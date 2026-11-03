@@ -5,7 +5,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:80242aae75e4511a
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:33b5b8efd56113c3
     environment:
       SCENARIO_ID: "ops/pagerduty/reassign-replication-lag"
       BENCH_ADMIN_TOKEN: "${HARBOR_TRIAL_ADMIN_TOKEN:-}"

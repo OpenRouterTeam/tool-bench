@@ -26,7 +26,8 @@
       "details": {
         "monitor": "checkout-api p95 latency",
         "value": "2.8s",
-        "region": "us-east-1"
+        "region": "us-east-1",
+        "runbook": "RB-CHK-07 (checkout saturation): scale the checkout Deployment in shop-prod to 9 replicas, then confirm p95 recovers. Do not scale checkout-worker; it is queue-driven."
       }
     }
   },
@@ -88,7 +89,8 @@
       "details": {
         "monitor": "checkout-api p95 latency (staging)",
         "value": "3.4s",
-        "namespace": "shop-staging"
+        "namespace": "shop-staging",
+        "runbook": "RB-CHK-07 (checkout saturation): scale the checkout Deployment in shop-staging to 3 replicas."
       }
     }
   },

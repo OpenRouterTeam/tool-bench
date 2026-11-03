@@ -8,8 +8,10 @@ tags = ["write", "multi-service", "pagerduty", "kubernetes", "disambiguation"]
 timeout_sec = 900
 
 # PagerDuty: two triggered incidents titled "Checkout API saturated: p95 latency above 2s".
-# Q7CHKAP15PCT1D (checkout-api, production) says: scale shop-prod/checkout to 9 replicas.
-# Q8CHKSTG5PCT2F (checkout-api-staging) says: scale shop-staging/checkout to 3. checkout-web
+# Q7CHKAP15PCT1D (checkout-api, production) runbook: scale shop-prod/checkout to 9 replicas.
+# Q8CHKSTG5PCT2F (checkout-api-staging) runbook: scale shop-staging/checkout to 3. The runbook
+# step is on each incident's first Datadog alert (body.details.runbook): pagerduty-mcp's
+# Incident model drops the incident body, so get_incident never shows it. checkout-web
 # has a third, acknowledged incident. Kubernetes: shop-prod/checkout runs 3 replicas;
 # checkout-worker (2) must not be scaled; shop-staging/checkout stays at 1.
 [[expect.state]]
@@ -99,6 +101,11 @@ arguments = { statuses = ["triggered", "acknowledged"] }
 [[solution.call]]
 endpoint = "pagerduty"
 tool = "get_incident"
+arguments = { incident_id = "Q7CHKAP15PCT1D" }
+
+[[solution.call]]
+endpoint = "pagerduty"
+tool = "list_alerts_from_incident"
 arguments = { incident_id = "Q7CHKAP15PCT1D" }
 
 [[solution.call]]

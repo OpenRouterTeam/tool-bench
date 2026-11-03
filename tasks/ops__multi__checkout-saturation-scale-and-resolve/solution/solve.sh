@@ -12,7 +12,8 @@ call() {
 }
 call 7111 "$DIR/call-0.json"
 call 7111 "$DIR/call-1.json"
-call 7115 "$DIR/call-2.json"
+call 7111 "$DIR/call-2.json"
 call 7115 "$DIR/call-3.json"
-call 7111 "$DIR/call-4.json"
+call 7115 "$DIR/call-4.json"
 call 7111 "$DIR/call-5.json"
+call 7111 "$DIR/call-6.json"
