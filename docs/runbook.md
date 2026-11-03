@@ -45,7 +45,7 @@ Run each arm as its own run, with everything else identical.
 
 - Per-trial metrics in `reward.json`:
   - `reward`
-  - `outcome_code`: 0 pass, 1 fail, 2 context overflow
+  - `outcome_code`: 0 pass, 1 fail, 2 context overflow (a failed trial whose agent logs show a context-length rejection)
   - `state_ok`, `required_calls_ok`, `forbidden_calls_ok`, `answer_ok`
   - `api_calls`, `mcp_bypass`
 - The verifier also keeps `journal.json` (every API call) and `state.json` (final world

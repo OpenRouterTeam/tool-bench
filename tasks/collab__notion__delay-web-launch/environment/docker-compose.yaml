@@ -5,7 +5,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:052ecb9303504a28
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:1f12c699b5570899
     environment:
       SCENARIO_ID: "collab/notion/delay-web-launch"
       BENCH_ADMIN_TOKEN: "${HARBOR_TRIAL_ADMIN_TOKEN:-}"
@@ -29,7 +29,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:a522adc1f6b41e76
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b52f4d06a9ac0aa6
     depends_on:
       world:
         condition: service_healthy

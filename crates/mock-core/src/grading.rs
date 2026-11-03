@@ -173,7 +173,7 @@ pub fn grade(input: &GradeInput) -> Grade {
     let passed = state_ok && required_calls_ok && forbidden_calls_ok && answer_ok;
     let outcome = if passed {
         Outcome::Pass
-    } else if input.context_overflow && via_tools.is_empty() {
+    } else if input.context_overflow {
         Outcome::ContextOverflow
     } else {
         Outcome::Fail
@@ -431,14 +431,22 @@ mod tests {
     }
 
     #[test]
-    fn context_overflow_without_any_tool_activity_is_its_own_outcome() {
-        let e = expect(json!({"required_calls": [{"service": "github"}]}));
-        let mut i = input(&e, &[], None);
+    fn failed_trial_with_context_overflow_is_its_own_outcome() {
+        let e = expect(json!({"required_calls": [{"service": "github", "method": "POST"}]}));
+        // MCP servers' startup handshakes reach the world before the agent's first turn.
+        let journal = [entry(1, TOOLS, "GET", "/api/v2/ping", json!(null))];
+        let mut i = input(&e, &journal, None);
         i.context_overflow = true;
         let g = grade(&i);
         assert_eq!(g.outcome, Outcome::ContextOverflow);
         assert_eq!(g.reward, 0.0);
         assert_eq!(g.metrics()["outcome_code"], 2.0);
+
+        let journal = [entry(1, TOOLS, "POST", "/x", json!({}))];
+        let mut i = input(&e, &journal, None);
+        i.context_overflow = true;
+        let g = grade(&i);
+        assert_eq!(g.outcome, Outcome::Pass, "a passing trial stays a pass");
     }
 
     #[test]
