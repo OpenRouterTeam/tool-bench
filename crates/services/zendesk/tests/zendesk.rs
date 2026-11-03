@@ -688,6 +688,7 @@ async fn scenario_oracles_pass_and_nop_fails() {
             answer: None,
             tools_ips: vec!["unknown".to_owned()],
             context_overflow: false,
+            startup: &[],
         });
         assert_eq!(g.reward, 0.0, "{slug}: nop must fail");
 
@@ -713,6 +714,7 @@ async fn scenario_oracles_pass_and_nop_fails() {
             answer: scenario.solution.answer.as_deref(),
             tools_ips: vec!["unknown".to_owned()],
             context_overflow: false,
+            startup: &[],
         });
         assert_eq!(g.reward, 1.0, "{slug}: oracle must pass: {g:?}");
     }

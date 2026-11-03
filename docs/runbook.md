@@ -47,7 +47,7 @@ Run each arm as its own run, with everything else identical.
   - `reward`
   - `outcome_code`: 0 pass, 1 fail, 2 context overflow
   - `state_ok`, `required_calls_ok`, `forbidden_calls_ok`, `answer_ok`
-  - `api_calls`, `mcp_bypass`
+  - `api_calls` (world requests through MCP servers, minus the servers' own startup requests in `crates/world/startup-calls.json`), `mcp_bypass`
 - The verifier also keeps `journal.json` (every API call) and `state.json` (final world
   state) next to `reward.json`.
 - The world's admin port (`world:9000`) answers only `/_bench/health` and `/_bench/ca.pem` without

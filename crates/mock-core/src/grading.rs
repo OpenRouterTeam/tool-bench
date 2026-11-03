@@ -7,7 +7,10 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::journal::JournalEntry;
+use crate::{
+    journal::JournalEntry,
+    startup::{StartupCall, without_startup},
+};
 
 /// What a scenario expects (generated from `scenario.toml` into the task's `tests/expect.json`).
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -110,6 +113,8 @@ pub struct GradeInput<'a> {
     pub tools_ips: Vec<String>,
     /// Agent logs contained a context-length rejection.
     pub context_overflow: bool,
+    /// Requests MCP servers make when a session opens; not counted as agent calls.
+    pub startup: &'a [StartupCall],
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -120,7 +125,7 @@ pub struct Grade {
     pub required_calls_ok: bool,
     pub forbidden_calls_ok: bool,
     pub answer_ok: bool,
-    /// World requests made through MCP servers.
+    /// World requests made through MCP servers, excluding their startup requests.
     pub api_calls: usize,
     /// World requests that did not come from the tools container.
     pub mcp_bypass: usize,
@@ -148,6 +153,7 @@ pub fn grade(input: &GradeInput) -> Grade {
         .journal
         .iter()
         .partition(|e| input.tools_ips.contains(&e.source));
+    let agent_calls = without_startup(&via_tools, input.startup);
 
     let state_ok = input
         .expect
@@ -173,7 +179,7 @@ pub fn grade(input: &GradeInput) -> Grade {
     let passed = state_ok && required_calls_ok && forbidden_calls_ok && answer_ok;
     let outcome = if passed {
         Outcome::Pass
-    } else if input.context_overflow && via_tools.is_empty() {
+    } else if input.context_overflow && agent_calls.is_empty() {
         Outcome::ContextOverflow
     } else {
         Outcome::Fail
@@ -185,7 +191,7 @@ pub fn grade(input: &GradeInput) -> Grade {
         required_calls_ok,
         forbidden_calls_ok,
         answer_ok,
-        api_calls: via_tools.len(),
+        api_calls: agent_calls.len(),
         mcp_bypass: bypass.len(),
     }
 }
@@ -345,6 +351,7 @@ mod tests {
             answer,
             tools_ips: vec![TOOLS.to_owned()],
             context_overflow: false,
+            startup: &[],
         }
     }
 
@@ -439,6 +446,38 @@ mod tests {
         assert_eq!(g.outcome, Outcome::ContextOverflow);
         assert_eq!(g.reward, 0.0);
         assert_eq!(g.metrics()["outcome_code"], 2.0);
+    }
+
+    #[test]
+    fn startup_requests_are_not_agent_calls() {
+        let e = expect(json!({"required_calls": [{"service": "github", "method": "POST"}]}));
+        let startup = [StartupCall {
+            service: "github".into(),
+            method: "GET".into(),
+            path: "/ping".into(),
+            query: Some("state=open".into()),
+        }];
+        let handshake = entry(1, TOOLS, "GET", "/ping", json!(null));
+        let mut i = input(&e, std::slice::from_ref(&handshake), None);
+        i.startup = &startup;
+        i.context_overflow = true;
+        let g = grade(&i);
+        assert_eq!(g.api_calls, 0);
+        assert_eq!(g.outcome, Outcome::ContextOverflow);
+
+        let journal = [
+            handshake.clone(),
+            entry(2, TOOLS, "GET", "/ping", json!(null)),
+        ];
+        let mut i = input(&e, &journal, None);
+        i.startup = &startup;
+        i.context_overflow = true;
+        let g = grade(&i);
+        assert_eq!(
+            g.api_calls, 1,
+            "an agent repeating a startup request is counted"
+        );
+        assert_eq!(g.outcome, Outcome::Fail);
     }
 
     #[test]

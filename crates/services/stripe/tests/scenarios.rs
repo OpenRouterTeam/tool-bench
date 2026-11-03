@@ -73,6 +73,7 @@ fn score(world: &SharedWorld, expect: &Expect, answer: Option<&str>) -> f64 {
         answer,
         tools_ips: vec!["unknown".to_owned()],
         context_overflow: false,
+        startup: &[],
     });
     g.reward
 }

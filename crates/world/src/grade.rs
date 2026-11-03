@@ -1,7 +1,7 @@
 //! Verifier endpoints. The task's `tests/test.sh` posts the agent's answer, then asks the
 //! world to grade itself against `tests/expect.json`; the reply is Harbor's `reward.json`.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::LazyLock};
 
 use axum::{
     Json, Router,
@@ -10,9 +10,15 @@ use axum::{
 };
 use mock_core::{
     grading::{Expect, GradeInput, grade},
+    startup::StartupCall,
     world::SharedWorld,
 };
 use serde_json::{Value, json};
+
+/// Written by `deploy/capture-stack.sh` from a capture of every MCP endpoint.
+static STARTUP_CALLS: LazyLock<Vec<StartupCall>> = LazyLock::new(|| {
+    serde_json::from_str(include_str!("../startup-calls.json")).expect("startup-calls.json")
+});
 
 /// Compose service name of the tools container; its IPs are the legitimate API callers.
 pub const TOOLS_HOST: &str = "tools";
@@ -49,6 +55,7 @@ async fn grade_trial(
         answer: world.answer.as_deref(),
         tools_ips,
         context_overflow: query.get("context_overflow").is_some_and(|v| v == "1"),
+        startup: &STARTUP_CALLS,
     });
     Json(json!(result.metrics()))
 }

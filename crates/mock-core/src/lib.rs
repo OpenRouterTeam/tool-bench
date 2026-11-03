@@ -12,5 +12,6 @@ pub mod journal;
 pub mod mcp;
 pub mod serve;
 pub mod service;
+pub mod startup;
 pub mod store;
 pub mod world;

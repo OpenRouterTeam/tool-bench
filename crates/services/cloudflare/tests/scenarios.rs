@@ -99,6 +99,7 @@ async fn run(dir: &Path, solve: bool) -> (f64, Vec<String>) {
         answer,
         tools_ips: vec!["unknown".to_owned()],
         context_overflow: false,
+        startup: &[],
     });
     (g.reward, errors)
 }

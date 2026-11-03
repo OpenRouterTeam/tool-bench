@@ -42,7 +42,7 @@ docker build -f images/world/Dockerfile -t tool-bench-world:dev .
 docker build -f images/tools/Dockerfile -t tool-bench-tools:dev .
 
 docker compose -f deploy/compose.dev.yaml up              # world + tools; MCP on localhost:7101-7132
-./deploy/capture-stack.sh                                 # offline capture of every endpoint -> servers/snapshots
+./deploy/capture-stack.sh                                 # offline capture of every endpoint -> servers/snapshots + crates/world/startup-calls.json
 cargo run -p mcp-tools --bin toolmeter -- report          # table of tools, bytes and tokens per endpoint
 ```
 

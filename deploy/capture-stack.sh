@@ -3,6 +3,7 @@
 #   world (mock APIs + TLS) <- tools (supervisor: bridges + replicas) <- toolmeter over HTTP.
 # The network is --internal, so nothing can reach the internet.
 #   deploy/capture-stack.sh [out-dir] [endpoint-id ...]   (default: servers/snapshots, all)
+# A full capture also rewrites crates/world/startup-calls.json.
 set -eu
 OUT="${1:-servers/snapshots}"
 case "$OUT" in /*) ;; *) OUT="$(cd "$(dirname "$0")/.." && pwd)/$OUT" ;; esac
@@ -41,5 +42,12 @@ docker run --rm --network $NET -e ONLY="$ONLY" -v "$OUT:/out" --entrypoint sh "$
 $endpoints
 EOF
   [ "$failures" = 0 ] || { echo "$failures endpoint(s) failed"; exit 1; }'
+if [ -z "$ONLY" ]; then
+  # What the servers requested on their own while every endpoint was initialized and listed;
+  # grading excludes these startup requests from the agent's calls.
+  docker exec tb-world curl -fs http://localhost:9000/_bench/journal \
+    | jq '[.entries[] | select(.path | startswith("/_bench") | not) | {service, method, path, query}] | sort' \
+    > "$(cd "$(dirname "$0")/.." && pwd)/crates/world/startup-calls.json"
+fi
 echo "--- tools container log (errors only)"
 docker logs tb-tools 2>&1 | grep -iE "error|panic|failed" | head -40 || true
