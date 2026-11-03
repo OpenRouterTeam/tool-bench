@@ -856,8 +856,114 @@ impl Kube<'_> {
         if rt.group.is_empty() && rt.plural == "secrets" && self.is_helm_virtual(&key) {
             self.remove_helm_secret(&key);
         }
+        let rescaled = rt.group == "apps"
+            && rt.plural == "deployments"
+            && !current.is_null()
+            && next["spec"]["replicas"] != current["spec"]["replicas"];
         self.save(rt, &key, next.clone());
+        if rescaled {
+            self.reconcile_deployment(rt, ns, name);
+            return json(StatusCode::OK, self.fetch(rt, ns, name).unwrap_or(next));
+        }
         json(StatusCode::OK, next)
+    }
+
+    /// Does what the Deployment and ReplicaSet controllers would after a replica change: the
+    /// Deployment's status, its newest ReplicaSet and that ReplicaSet's pods follow the new count.
+    fn reconcile_deployment(&mut self, rt: &ResType, ns: Option<&str>, name: &str) {
+        let Some(deploy) = self.fetch(rt, ns, name) else {
+            return;
+        };
+        let Some(n) = deploy["spec"]["replicas"].as_i64() else {
+            return;
+        };
+        let mut next = deploy.clone();
+        next["status"]["observedGeneration"] = deploy["metadata"]["generation"].clone();
+        for field in [
+            "replicas",
+            "updatedReplicas",
+            "readyReplicas",
+            "availableReplicas",
+        ] {
+            next["status"][field] = json_value!(n);
+        }
+        self.commit(rt, ns, name, &deploy, next);
+        let Some(rs_rt) = find(&self.types, "apps", "v1", "replicasets").cloned() else {
+            return;
+        };
+        let revision = |rs: &Value| {
+            rs["metadata"]["annotations"]["deployment.kubernetes.io/revision"]
+                .as_str()
+                .and_then(|r| r.parse::<i64>().ok())
+                .unwrap_or(0)
+        };
+        let Some((_, rs)) = self
+            .stored(&rs_rt)
+            .into_iter()
+            .filter(|(_, r)| {
+                r["metadata"]["namespace"].as_str() == ns && owned_by(r, "Deployment", name)
+            })
+            .max_by_key(|(_, r)| revision(r))
+        else {
+            return;
+        };
+        let Some(rs_name) = rs["metadata"]["name"].as_str().map(str::to_owned) else {
+            return;
+        };
+        let generation = rs["metadata"]["generation"].as_i64().unwrap_or(1)
+            + i64::from(rs["spec"]["replicas"].as_i64() != Some(n));
+        let mut next_rs = rs.clone();
+        next_rs["spec"]["replicas"] = json_value!(n);
+        next_rs["status"]["observedGeneration"] = json_value!(generation);
+        for field in [
+            "replicas",
+            "fullyLabeledReplicas",
+            "readyReplicas",
+            "availableReplicas",
+        ] {
+            next_rs["status"][field] = json_value!(n);
+        }
+        self.commit(&rs_rt, ns, &rs_name, &rs, next_rs);
+        let Some(pod_rt) = find(&self.types, "", "v1", "pods").cloned() else {
+            return;
+        };
+        let mut pods: Vec<(String, Value)> = self
+            .stored(&pod_rt)
+            .into_iter()
+            .filter(|(_, p)| {
+                p["metadata"]["namespace"].as_str() == ns && owned_by(p, "ReplicaSet", &rs_name)
+            })
+            .collect();
+        pods.sort_by(|a, b| a.0.cmp(&b.0));
+        let keep = usize::try_from(n).unwrap_or(0);
+        for (key, _) in pods.iter().skip(keep) {
+            self.remove(&pod_rt, key);
+        }
+        let Some((_, sibling)) = pods.first().cloned() else {
+            return;
+        };
+        for _ in pods.len()..keep {
+            let i = self.state.ids.next_int("pod-scale", 0);
+            let pod_name = format!(
+                "{rs_name}-{}",
+                name_suffix(&format!("{rs_name}/scale/{i}"), 5)
+            );
+            let mut pod = sibling.clone();
+            pod["status"]["startTime"] = json_value!(self.now_str());
+            if let Some(status) = pod["status"].as_object_mut() {
+                status.remove("podIP");
+                status.remove("podIPs");
+            }
+            if let Some(statuses) = pod["status"]["containerStatuses"].as_array_mut() {
+                for c in statuses {
+                    c["restartCount"] = json_value!(0);
+                    c["lastState"] = json_value!({});
+                }
+            }
+            self.initialize(&pod_rt, ns, &pod_name, &mut pod);
+            let key = Self::key(&pod_rt, ns, &pod_name);
+            self.save(&pod_rt, &key, pod);
+        }
     }
 
     fn patch(

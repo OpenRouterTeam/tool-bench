@@ -455,6 +455,53 @@ async fn scale_subresource_updates_deployment() {
     let dep = &snap["services"]["kubernetes"]["deployments.apps"]["payments/payments-api"];
     assert_eq!(dep["spec"]["replicas"], 6);
     assert_eq!(dep["metadata"]["generation"], 2);
+    assert_eq!(dep["status"]["observedGeneration"], 2);
+    assert_eq!(dep["status"]["readyReplicas"], 6);
+    let k8s = &snap["services"]["kubernetes"];
+    let owned = |plural: &str, kind: &str, owner: &str| -> Vec<Value> {
+        k8s[plural]
+            .as_object()
+            .map(|m| {
+                m.values()
+                    .filter(|o| {
+                        o["metadata"]["ownerReferences"]
+                            .as_array()
+                            .is_some_and(|r| {
+                                r.iter().any(|r| r["kind"] == kind && r["name"] == owner)
+                            })
+                    })
+                    .cloned()
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    let rs: Vec<Value> = owned("replicasets.apps", "Deployment", "payments-api")
+        .into_iter()
+        .filter(|r| r["metadata"]["namespace"] == "payments")
+        .collect();
+    assert_eq!(rs.len(), 1);
+    assert_eq!(rs[0]["spec"]["replicas"], 6);
+    assert_eq!(rs[0]["status"]["readyReplicas"], 6);
+    let rs_name = rs[0]["metadata"]["name"].as_str().unwrap();
+    assert_eq!(owned("pods", "ReplicaSet", rs_name).len(), 6);
+
+    let down = send(
+        &app,
+        "PATCH",
+        path,
+        &[("content-type", "application/merge-patch+json")],
+        r#"{"spec":{"replicas":2}}"#,
+    )
+    .await;
+    assert_eq!(down.status, StatusCode::OK);
+    let snap = w.lock().unwrap().snapshot();
+    let k8s = &snap["services"]["kubernetes"];
+    let pods = k8s["pods"].as_object().unwrap().values().filter(|p| {
+        p["metadata"]["ownerReferences"]
+            .as_array()
+            .is_some_and(|r| r.iter().any(|r| r["name"] == rs_name))
+    });
+    assert_eq!(pods.count(), 2);
 }
 
 #[tokio::test]
