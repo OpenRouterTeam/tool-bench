@@ -576,7 +576,7 @@ async fn replica_change_with_new_template_is_not_reconciled() {
         "PATCH",
         path,
         &[("content-type", "application/strategic-merge-patch+json")],
-        r#"{"spec":{"replicas":5,"template":{"metadata":{"annotations":{"x":"y"}},"spec":{"terminationGracePeriodSeconds":5}}}}"#,
+        r#"{"spec":{"replicas":5,"template":{"metadata":{"annotations":{"x":"y"}}}}}"#,
     )
     .await;
     assert_eq!(r.status, StatusCode::OK, "{}", r.text);
@@ -913,4 +913,49 @@ async fn namespaces_cannot_delete_default_and_cascade_otherwise() {
             .get("perf-staging/checkout-loadtest.v1")
             .is_none()
     );
+}
+
+#[tokio::test]
+async fn scale_counts_pods_with_false_ready_condition_as_unavailable() {
+    let w = world(CRASHLOOP);
+    let app = service_app(w.clone(), &Kubernetes);
+    let snap = w.lock().unwrap().snapshot();
+    let pod = snap["services"]["kubernetes"]["pods"]
+        .as_object()
+        .unwrap()
+        .values()
+        .find(|p| {
+            p["metadata"]["namespace"] == "payments"
+                && p["metadata"]["labels"]["app.kubernetes.io/name"] == "payments-api"
+                && p["status"]["phase"] == "Running"
+        })
+        .unwrap()
+        .clone();
+    let pod_name = pod["metadata"]["name"].as_str().unwrap();
+    let r = send(
+        &app,
+        "PATCH",
+        &format!("/api/v1/namespaces/payments/pods/{pod_name}/status"),
+        &[("content-type", "application/merge-patch+json")],
+        r#"{"status":{"conditions":[{"type":"Ready","status":"False"}]}}"#,
+    )
+    .await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.text);
+    let ready_before = snap["services"]["kubernetes"]["deployments.apps"]["payments/payments-api"]
+        ["status"]["readyReplicas"]
+        .as_i64()
+        .unwrap();
+    let r = send(
+        &app,
+        "PATCH",
+        "/apis/apps/v1/namespaces/payments/deployments/payments-api/scale",
+        &[("content-type", "application/merge-patch+json")],
+        r#"{"spec":{"replicas":4}}"#,
+    )
+    .await;
+    assert_eq!(r.status, StatusCode::OK);
+    let snap = w.lock().unwrap().snapshot();
+    let dep = &snap["services"]["kubernetes"]["deployments.apps"]["payments/payments-api"];
+    assert_eq!(dep["status"]["readyReplicas"], ready_before);
+    assert_eq!(dep["status"]["unavailableReplicas"], 1);
 }

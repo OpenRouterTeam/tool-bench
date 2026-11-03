@@ -901,7 +901,11 @@ impl Kube<'_> {
         let Some(rs) = owned_sets.iter().max_by_key(|r| revision(r)).cloned() else {
             return;
         };
-        if rs["spec"]["template"]["spec"] != deploy["spec"]["template"]["spec"] {
+        let mut rs_template = rs["spec"]["template"].clone();
+        if let Some(labels) = rs_template["metadata"]["labels"].as_object_mut() {
+            labels.remove("pod-template-hash");
+        }
+        if rs_template != deploy["spec"]["template"] {
             return;
         }
         let Some(rs_name) = rs["metadata"]["name"].as_str().map(str::to_owned) else {
@@ -1947,7 +1951,11 @@ fn str_lines(v: &Value) -> Vec<String> {
 }
 
 fn pod_ready(pod: &Value) -> bool {
+    let ready_condition = pod["status"]["conditions"]
+        .as_array()
+        .and_then(|cs| cs.iter().find(|c| c["type"] == "Ready"));
     pod["status"]["phase"] == "Running"
+        && ready_condition.is_none_or(|c| c["status"] == "True")
         && pod["status"]["containerStatuses"]
             .as_array()
             .is_some_and(|cs| !cs.is_empty() && cs.iter().all(|c| c["ready"] == true))
