@@ -5,7 +5,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:19c4a9b3e3eb86a3
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:3da749bb872a2ade
     environment:
       SCENARIO_ID: "collab/multi/linear-cloudflare-api-origin-cutover"
       BENCH_ADMIN_TOKEN: "${HARBOR_TRIAL_ADMIN_TOKEN:-}"
@@ -29,7 +29,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:5b02f9a998d2478f
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:bfc8e4be6f5aff5e
     depends_on:
       world:
         condition: service_healthy

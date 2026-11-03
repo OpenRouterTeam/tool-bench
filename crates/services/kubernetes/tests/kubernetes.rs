@@ -485,23 +485,109 @@ async fn scale_subresource_updates_deployment() {
     let rs_name = rs[0]["metadata"]["name"].as_str().unwrap();
     assert_eq!(owned("pods", "ReplicaSet", rs_name).len(), 6);
 
-    let down = send(
+    let pods_of = |snap: &Value, rs: &str| -> Vec<Value> {
+        snap["services"]["kubernetes"]["pods"]
+            .as_object()
+            .unwrap()
+            .values()
+            .filter(|p| {
+                p["metadata"]["ownerReferences"]
+                    .as_array()
+                    .is_some_and(|r| r.iter().any(|r| r["name"] == rs))
+            })
+            .cloned()
+            .collect()
+    };
+    let scale_to = |n: i64| {
+        let app = app.clone();
+        async move {
+            let body = format!(r#"{{"spec":{{"replicas":{n}}}}}"#);
+            let r = send(
+                &app,
+                "PATCH",
+                path,
+                &[("content-type", "application/merge-patch+json")],
+                &body,
+            )
+            .await;
+            assert_eq!(r.status, StatusCode::OK);
+        }
+    };
+    scale_to(0).await;
+    assert!(pods_of(&w.lock().unwrap().snapshot(), rs_name).is_empty());
+    scale_to(4).await;
+    let snap = w.lock().unwrap().snapshot();
+    let pods = pods_of(&snap, rs_name);
+    assert_eq!(pods.len(), 4);
+    let mut ids: Vec<&str> = pods
+        .iter()
+        .flat_map(|p| p["status"]["containerStatuses"].as_array().unwrap())
+        .map(|c| c["containerID"].as_str().unwrap())
+        .collect();
+    ids.sort_unstable();
+    ids.dedup();
+    assert_eq!(ids.len(), 4);
+    assert!(pods.iter().all(|p| p["status"]["phase"] == "Running"));
+    let dep = &snap["services"]["kubernetes"]["deployments.apps"]["payments/payments-api"];
+    assert_eq!(dep["status"]["readyReplicas"], 4);
+}
+
+#[tokio::test]
+async fn scale_counts_unready_pods_as_unavailable() {
+    let w = world(CRASHLOOP);
+    let app = service_app(w.clone(), &Kubernetes);
+    let path = "/apis/apps/v1/namespaces/payments/deployments/ledger-worker/scale";
+    let before = w.lock().unwrap().snapshot();
+    let dep = &before["services"]["kubernetes"]["deployments.apps"]["payments/ledger-worker"];
+    let replicas = dep["spec"]["replicas"].as_i64().unwrap();
+    let ready = dep["status"]["readyReplicas"].as_i64().unwrap_or(0);
+    assert!(ready < replicas);
+    let body = format!(r#"{{"spec":{{"replicas":{}}}}}"#, replicas + 1);
+    let r = send(
         &app,
         "PATCH",
         path,
         &[("content-type", "application/merge-patch+json")],
-        r#"{"spec":{"replicas":2}}"#,
+        &body,
     )
     .await;
-    assert_eq!(down.status, StatusCode::OK);
+    assert_eq!(r.status, StatusCode::OK);
     let snap = w.lock().unwrap().snapshot();
-    let k8s = &snap["services"]["kubernetes"];
-    let pods = k8s["pods"].as_object().unwrap().values().filter(|p| {
-        p["metadata"]["ownerReferences"]
-            .as_array()
-            .is_some_and(|r| r.iter().any(|r| r["name"] == rs_name))
-    });
-    assert_eq!(pods.count(), 2);
+    let dep = &snap["services"]["kubernetes"]["deployments.apps"]["payments/ledger-worker"];
+    assert_eq!(dep["status"]["replicas"], replicas + 1);
+    assert_eq!(dep["status"]["readyReplicas"], ready + 1);
+    assert_eq!(dep["status"]["unavailableReplicas"], replicas - ready);
+}
+
+#[tokio::test]
+async fn replica_change_with_new_template_is_not_reconciled() {
+    let w = world(CRASHLOOP);
+    let app = service_app(w.clone(), &Kubernetes);
+    let path = "/apis/apps/v1/namespaces/payments/deployments/payments-api";
+    let before = w.lock().unwrap().snapshot();
+    let pod_count = |snap: &Value| {
+        snap["services"]["kubernetes"]["pods"]
+            .as_object()
+            .unwrap()
+            .len()
+    };
+    let r = send(
+        &app,
+        "PATCH",
+        path,
+        &[("content-type", "application/strategic-merge-patch+json")],
+        r#"{"spec":{"replicas":5,"template":{"metadata":{"annotations":{"x":"y"}},"spec":{"terminationGracePeriodSeconds":5}}}}"#,
+    )
+    .await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.text);
+    let snap = w.lock().unwrap().snapshot();
+    assert_eq!(pod_count(&snap), pod_count(&before));
+    let dep = &snap["services"]["kubernetes"]["deployments.apps"]["payments/payments-api"];
+    assert_eq!(dep["spec"]["replicas"], 5);
+    assert_ne!(
+        dep["status"]["observedGeneration"],
+        dep["metadata"]["generation"]
+    );
 }
 
 #[tokio::test]

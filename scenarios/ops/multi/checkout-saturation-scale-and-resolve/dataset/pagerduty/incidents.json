@@ -322,7 +322,7 @@
     "updated_at": "2026-10-30T12:40:00Z",
     "body": {
       "type": "incident_body",
-      "details": "p95 on POST /v2/checkout is 2.8s (SLO 800ms). All 3 checkout pods in shop-prod are pinned at ~97% CPU since the 12:30 traffic spike.\nRunbook RB-CHK-07 (checkout saturation): scale the checkout Deployment in shop-prod to 9 replicas, then confirm p95 recovers. Do not scale checkout-worker; it is queue-driven."
+      "details": "p95 on POST /v2/checkout is 2.8s (SLO 800ms). All 3 checkout pods in shop-prod are pinned at ~97% CPU since the 12:30 traffic spike.\nRunbook RB-CHK-07 (checkout saturation): scale the checkout Deployment in shop-prod to 9 replicas, then resolve the incident once the new pods are Ready. Do not scale checkout-worker; it is queue-driven."
     }
   },
   {
