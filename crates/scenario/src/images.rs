@@ -35,7 +35,7 @@ const TOOLS_INPUTS: &[&str] = &[
 const SKIPPED_DIRS: &[&str] = &["target", ".git", "node_modules"];
 const TAG_HEX_LEN: usize = 16;
 
-/// The published images for the sources under `root` (the tool-bench directory).
+/// The published images for the sources under `root` (the repository root).
 pub fn published(root: &Path) -> anyhow::Result<Images> {
     Ok(Images {
         world: world(root)?,
