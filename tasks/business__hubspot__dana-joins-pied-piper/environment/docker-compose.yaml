@@ -29,7 +29,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:123457e687b1ef13
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:521c33382f76f96a
     depends_on:
       world:
         condition: service_healthy

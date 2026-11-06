@@ -4,7 +4,7 @@
 
 ARG RUST_IMAGE=rust:1.99-bookworm
 ARG GO_IMAGE=golang:1.27-bookworm
-ARG NODE_IMAGE=node:24-bookworm-slim
+ARG NODE_IMAGE=node:24.22.2-bookworm-slim@sha256:01d566e8d94d8c619591d78652babfccd3c6992a3dffa9ed5ab39e11cf6c70e9
 ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.12.10
 
 # ── Our Rust binaries ────────────────────────────────────────────────────────
