@@ -44,7 +44,7 @@ RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --no-audit --no-fund
 # Depends only on the catalog and lockfiles, so Rust changes don't reinstall Python.
 FROM ${NODE_IMAGE} AS py-build
 COPY --from=ghcr.io/astral-sh/uv:0.12.10 /uv /uvx /usr/local/bin/
-ENV UV_PYTHON_INSTALL_DIR=/opt/python UV_NO_CACHE=1 UV_LINK_MODE=copy
+ENV UV_PYTHON_INSTALL_DIR=/opt/python UV_NO_CACHE=1 UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1
 RUN uv python install 3.13
 COPY catalog/services.toml /tmp/services.toml
 COPY servers/python /opt/py-locks
