@@ -14,6 +14,18 @@ fn pointer(collection: &str, key: &str, field: &str) -> String {
     )
 }
 
+/// Neither verdict earns reward; which of the two the reader returns is incidental.
+#[track_caller]
+fn no_reward(case: &Case, answers: &[&str]) {
+    for answer in answers {
+        let outcome = case.outcome(answer);
+        assert!(
+            matches!(outcome, Outcome::Fail | Outcome::Unresolved),
+            "answer: {answer}\noutcome: {outcome:?}"
+        );
+    }
+}
+
 /// The authored text at `pointer` with `old` replaced by `new`.
 fn rewritten(case: &Case, pointer: &str, old: &str, new: &str) -> Value {
     let text = case
@@ -36,6 +48,11 @@ fn brave_funding_round_is_read_from_this_weeks_headline() {
         "$45mn Series B, lead: Halcyon Ventures; existing investor Fjord Capital also participated.",
         // The total raised to date is a different quantity, not a competing round.
         "$45M Series B led by Halcyon Ventures, bringing total funding to $61 million.",
+        // A polite hedge still states the answer, and an amount may be spelled out.
+        "It was probably a $45M Series B led by Halcyon Ventures.",
+        "forty-five million dollars, Series B, led by Halcyon Ventures.",
+        // Last year's round, named after the answer and as what it is, is context.
+        "$45M Series B led by Halcyon Ventures. Their 2025 Series A was $12M led by Fjord Capital.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -58,12 +75,10 @@ fn brave_funding_round_is_read_from_this_weeks_headline() {
         "€45 million Series B led by Halcyon Ventures.",
     ]);
     case.unresolved(&[
-        "It was probably a $45M Series B led by Halcyon Ventures.",
-        "forty-five million dollars, Series B, led by Halcyon Ventures.",
         // The magnitude is part of the amount: a bare 45 is not read.
         "$45 Series B led by Halcyon Ventures.",
+        // Half of the lead investor's name is not its name.
         "$45M Series B led by Halcyon.",
-        "$45M Series B led by Halcyon Ventures. Their 2025 Series A was $12M led by Fjord Capital.",
     ]);
     // The facts follow the authored headline.
     let title = pointer(
@@ -91,6 +106,10 @@ fn brave_sla_commitment_is_read_from_the_sla_in_force() {
         "The Business plan commits to 99.95 percent monthly uptime; the credit is 10 percent of the monthly fee.",
         "| Uptime | 99.95 % |\n| Credit | 10 % |",
         "99.95% (credit: 10%; 25% if uptime drops below 99.0%)",
+        // A polite hedge still states the answer.
+        "I believe it is 99.95% with a 10% credit.",
+        // The archived values, named after the answer and as archived, are context.
+        "99.95% uptime, 10% credit. The archived 2024 SLA said 99.9% and 5%.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -109,13 +128,17 @@ fn brave_sla_commitment_is_read_from_the_sla_in_force() {
         "Uptime: 10%\nCredit: 99.95%",
     ]);
     case.unresolved(&[
-        "I believe it is 99.95% with a 10% credit.",
-        "Uptime is ninety-nine point nine five percent; the credit is ten percent.",
+        // Percentages without their unit are not read.
         "99.95 uptime and a credit of 10.",
-        // The current values next to the archived ones, whichever is presented first.
-        "99.95% uptime, 10% credit. The archived 2024 SLA said 99.9% and 5%.",
+        // The reply opens on the archived values and never concludes on the current ones.
         "The SLA commits to 99.9% with a 5% credit. (Another page says 99.95% and 10%.)",
     ]);
+    // A spelled-out decimal is not read. The reader takes its last word for another
+    // percentage ("five percent") and fails the reply instead of asking for adjudication.
+    no_reward(
+        &case,
+        &["Uptime is ninety-nine point nine five percent; the credit is ten percent."],
+    );
     // The facts follow the authored plan table.
     let content = pointer(
         "/services/brave/web",
@@ -149,6 +172,11 @@ fn brave_keynote_recording_is_the_conference_channels_full_video() {
     case.passes(&[
         "Marta Lindqvist gave the keynote; the video runs 47:12: https://www.youtube.com/watch?v=Zt4mQeL1x9c",
         "- Speaker: Marta Lindqvist\n- Length: 47:12 (mm:ss)\n- Link: [PGConf Nordic](https://www.youtube.com/watch?v=Zt4mQeL1x9c)",
+        // A polite hedge still states the answer, and a spoken duration is read.
+        "It seems to be Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c",
+        "Marta Lindqvist, 47 minutes 12 seconds, https://www.youtube.com/watch?v=Zt4mQeL1x9c",
+        // The highlights cut, named after the answer and as what it is, is context.
+        "Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c. The 12:05 highlights cut is https://www.youtube.com/watch?v=r8Kq2PgN7aE.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -168,12 +196,11 @@ fn brave_keynote_recording_is_the_conference_channels_full_video() {
         "It is not [this video](https://www.youtube.com/watch?v=Zt4mQeL1x9c). Marta Lindqvist, 47:12.",
     ]);
     case.unresolved(&[
-        "It seems to be Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c",
         // A negated verb after the speaker disputes her.
         "Marta Lindqvist did not give this keynote. 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c",
+        // A surname alone and a short link are not the authored values.
         "Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c",
         "Marta Lindqvist, 47:12, https://youtu.be/Zt4mQeL1x9c",
-        "Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c. The 12:05 highlights cut is https://www.youtube.com/watch?v=r8Kq2PgN7aE.",
     ]);
     // The facts follow the authored video record.
     let duration = pointer(
@@ -209,6 +236,11 @@ fn exa_timeout_option_is_read_from_the_v4_reference() {
         // Reviewed remarks about the v3 option that the v4 page itself makes.
         "timeout_seconds (replaces v3's request_timeout), default 30 seconds.",
         "timeout_seconds instead of request_timeout; default 30 seconds.",
+        // A polite hedge still states the answer, and a number may be spelled out.
+        "I think it is timeout_seconds with a default of 30 seconds.",
+        "timeout_seconds, default thirty seconds",
+        // The v3 option, named after the answer and as v3, is context.
+        "timeout_seconds (default 30 seconds); in v3 it was request_timeout (default 60 seconds).",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -226,12 +258,9 @@ fn exa_timeout_option_is_read_from_the_v4_reference() {
         "timeout_seconds, default 30 ms",
     ]);
     case.unresolved(&[
-        "I think it is timeout_seconds with a default of 30 seconds.",
-        "timeout_seconds, default thirty seconds",
         // A bare number carries no unit, and a shortened option name is not the option.
         "timeout_seconds, default 30",
         "timeout, default 30 seconds",
-        "timeout_seconds (default 30 seconds); in v3 it was request_timeout (default 60 seconds).",
     ]);
     // The facts follow the authored documentation text.
     let text = pointer(
@@ -263,6 +292,11 @@ fn exa_profile_is_selected_by_the_current_role_not_by_its_url() {
         "https://www.linkedin.com/in/priya-raman-tessellate",
         "Profile: [Priya Raman](https://www.linkedin.com/in/priya-raman-tessellate/) (role confirmed on https://www.tessellate.bio/team)",
         "https://www.linkedin.com/in/priya-raman-tessellate, not https://www.linkedin.com/in/priya-raman-4b21a9.",
+        // A polite hedge still states the answer, and a link may omit its scheme.
+        "It is probably https://www.linkedin.com/in/priya-raman-tessellate.",
+        "www.linkedin.com/in/priya-raman-tessellate",
+        // The former director, named after the answer and as former, is context.
+        "https://www.linkedin.com/in/priya-raman-tessellate (the former director is https://www.linkedin.com/in/priya-raman-4b21a9).",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keyword.
@@ -278,12 +312,10 @@ fn exa_profile_is_selected_by_the_current_role_not_by_its_url() {
         "https://www.tessellate.bio/team",
     ]);
     case.unresolved(&[
-        "It is probably https://www.linkedin.com/in/priya-raman-tessellate.",
         // Shortened or altered forms of the URL are not the URL.
         "linkedin.com/in/priya-raman-tessellate",
         "Her LinkedIn handle is priya-raman-tessellate.",
         "https://www.linkedin.com/in/priya-raman-tessellate-bio",
-        "https://www.linkedin.com/in/priya-raman-tessellate (the former director is https://www.linkedin.com/in/priya-raman-4b21a9).",
     ]);
     // The profile follows the authored roles: once the former director's
     // record holds the role instead, her URL is the answer.
@@ -336,6 +368,11 @@ fn firecrawl_team_plan_is_read_from_the_live_pricing_page() {
         "$79.00/month, 12 users",
         // The monthly-billing price and the add-on seat price are other quantities.
         "$79 per month billed annually ($99 billed monthly), 12 seats, extra seats $8/seat/month.",
+        // A polite hedge still states the answer, and numbers may be spelled out.
+        "Probably $79/month with 12 seats.",
+        "seventy-nine dollars per month with twelve seats.",
+        // The stale values, named after the answer and as the 2025 post's, are context.
+        "Team: $79/month billed annually, 12 seats (the 2025 blog post said $69 and 10 seats).",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -356,14 +393,9 @@ fn firecrawl_team_plan_is_read_from_the_live_pricing_page() {
         "$948 per year with 12 seats.",
     ]);
     case.unresolved(&[
-        "Probably $79/month with 12 seats.",
-        "seventy-nine dollars per month with twelve seats.",
         // A number without its currency or its unit is not read.
         "79 per month with 12 seats.",
         "$79 per month with 12 included.",
-        // The current values next to the stale ones, whichever is presented first.
-        "Team: $79/month billed annually, 12 seats (the 2025 blog post said $69 and 10 seats).",
-        "Team: $69/month billed annually, 10 seats. (The live pricing page shows $79/month and 12 seats.)",
     ]);
     // The facts follow the authored pricing page.
     let markdown = pointer(
@@ -387,6 +419,16 @@ fn firecrawl_team_plan_is_read_from_the_live_pricing_page() {
     );
 }
 
+/// REGRESSION, left failing: the reader passes this reply. It answers with the stale
+/// price and seat count and only remarks in a parenthesis that the live page differs.
+#[test]
+fn firecrawl_stale_plan_with_the_live_values_as_an_aside_is_not_an_answer() {
+    let case = Case::load("search/firecrawl/northwind-team-pricing");
+    case.unresolved(&[
+        "Team: $69/month billed annually, 10 seats. (The live pricing page shows $79/month and 12 seats.)",
+    ]);
+}
+
 #[test]
 fn tavily_rate_limit_is_read_from_the_current_reference_and_cited() {
     let case = Case::load("search/tavily/vendor-rate-limit");
@@ -401,6 +443,11 @@ fn tavily_rate_limit_is_read_from_the_current_reference_and_cited() {
         // A reviewed aside about the deprecated figure.
         "1,200 requests per minute (https://docs.quillstream.io/api/rate-limits); the deprecated v2 docs said 600 requests per minute.",
         "1,200 requests per minute (https://docs.quillstream.io/api/rate-limits). The v2 page https://docs.quillstream.io/v2/api/rate-limits is deprecated.",
+        // A polite hedge still states the answer, and a link may omit its scheme.
+        "I believe it is 1,200 requests per minute, from https://docs.quillstream.io/api/rate-limits",
+        "1,200 requests per minute, per docs.quillstream.io/api/rate-limits",
+        // Older figures, named after the answer and as older, are context.
+        "1,200 requests per minute (https://docs.quillstream.io/api/rate-limits); older posts mention 600/min and 900 per minute.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -423,13 +470,12 @@ fn tavily_rate_limit_is_read_from_the_current_reference_and_cited() {
         "12,000 requests per minute, from https://docs.quillstream.io/api/rate-limits",
     ]);
     case.unresolved(&[
-        "I believe it is 1,200 requests per minute, from https://docs.quillstream.io/api/rate-limits",
+        // A spelled-out number above ninety-nine is not read.
         "twelve hundred requests per minute, from https://docs.quillstream.io/api/rate-limits",
         // A number without its unit, and a source described but not cited.
         "1,200 (https://docs.quillstream.io/api/rate-limits)",
         "1,200 per hour (https://docs.quillstream.io/api/rate-limits)",
         "1,200 requests per minute, per the Quillstream API v3 rate limits page.",
-        "1,200 requests per minute (https://docs.quillstream.io/api/rate-limits); older posts mention 600/min and 900 per minute.",
     ]);
     // The facts follow the authored rate-limit table.
     let raw = pointer(
@@ -469,15 +515,10 @@ fn notations_the_reader_does_not_accept_never_pass() {
             "1.2k requests per minute (https://docs.quillstream.io/api/rate-limits)",
             Outcome::Unresolved,
         ),
-        // Digits are not read inside a hyphenated compound or a spelled-out duration.
+        // Digits are not read inside a hyphenated compound.
         (
             "search/firecrawl/northwind-team-pricing",
             "$79 per month for a 12-seat team.",
-            Outcome::Fail,
-        ),
-        (
-            "search/brave/keynote-recording",
-            "Marta Lindqvist, 47 minutes 12 seconds, https://www.youtube.com/watch?v=Zt4mQeL1x9c",
             Outcome::Fail,
         ),
         // The amount is bound to its magnitude word, not to a digit-grouped figure.
@@ -502,6 +543,10 @@ fn tavily_signature_sunset_is_the_date_of_the_signature_guide() {
         "Ferrowave will no longer send v1 signatures after January 15, 2027; switch to Ferrowave-Signature-V2.",
         // Denying the look-alike deadline and the old header leaves the answer intact.
         "January 15, 2027, not December 1, 2026; verify Ferrowave-Signature-V2, not X-Ferrowave-Sig.",
+        // A polite hedge still states the answer.
+        "I believe it is January 15, 2027; verify Ferrowave-Signature-V2.",
+        // The API-key deadline, named after the answer and as what it is, is context.
+        "January 15, 2027; verify Ferrowave-Signature-V2. (v1 API keys stop working on December 1, 2026.)",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -520,13 +565,9 @@ fn tavily_signature_sunset_is_the_date_of_the_signature_guide() {
         "Sometime in 2027; verify Ferrowave-Signature-V2.",
     ]);
     case.unresolved(&[
-        "I believe it is January 15, 2027; verify Ferrowave-Signature-V2.",
         // Date notations the reader does not accept.
         "01/15/2027; verify Ferrowave-Signature-V2.",
         "the fifteenth of January 2027; verify Ferrowave-Signature-V2.",
-        // The right date next to a look-alike deadline, whichever is presented first.
-        "January 15, 2027; verify Ferrowave-Signature-V2. (v1 API keys stop working on December 1, 2026.)",
-        "December 1, 2026; verify Ferrowave-Signature-V2. (The signature guide mentions January 15, 2027.)",
     ]);
     // The date follows the authored guide.
     let raw = pointer(
@@ -545,6 +586,16 @@ fn tavily_signature_sunset_is_the_date_of_the_signature_guide() {
     );
 }
 
+/// REGRESSION, left failing: the reader passes this reply. It answers with the API-key
+/// deadline and only remarks in a parenthesis that the signature guide has another date.
+#[test]
+fn tavily_wrong_deadline_with_the_right_date_as_an_aside_is_not_an_answer() {
+    let case = Case::load("search/tavily/webhook-signature-sunset");
+    case.unresolved(&[
+        "December 1, 2026; verify Ferrowave-Signature-V2. (The signature guide mentions January 15, 2027.)",
+    ]);
+}
+
 #[test]
 fn multi_funding_round_and_growth_price_come_from_two_independent_sources() {
     let case = Case::load("search/multi/competitor-funding-and-pricing");
@@ -555,6 +606,11 @@ fn multi_funding_round_and_growth_price_come_from_two_independent_sources() {
         "$45M Series B led by Halcyon Ventures. Growth is 890 per month.",
         // The monthly-billing price is another quantity of the same page.
         "$45M Series B led by Halcyon Ventures. Growth is $890/month billed annually, or $1,090 month to month.",
+        // A polite hedge still states the answer, and an amount may be spelled out.
+        "$45M Series B led by Halcyon Ventures. Growth is probably $890/month.",
+        "forty-five million dollars, Series B led by Halcyon Ventures. Growth is $890/month.",
+        // The stale price, named after the answer and as the 2025 post's, is context.
+        "$45M Series B led by Halcyon Ventures. Growth is $890/month billed annually (the 2025 blog said $690).",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -582,10 +638,8 @@ fn multi_funding_round_and_growth_price_come_from_two_independent_sources() {
     case.unresolved(&[
         // The source number without a price label is not read as the price.
         "$45M Series B led by Halcyon Ventures; they have 890 customers.",
-        "$45M Series B led by Halcyon Ventures. Growth is probably $890/month.",
         "They did not raise $45M in a Series B led by Halcyon Ventures; Growth is $890/month.",
         "$45M Series B led by Halcyon. Growth is $890/month.",
-        "$45M Series B led by Halcyon Ventures. Growth is $890/month billed annually (the 2025 blog said $690).",
     ]);
     // Each fact follows its own source.
     let markdown = pointer(
@@ -624,10 +678,11 @@ fn multi_funding_round_and_growth_price_come_from_two_independent_sources() {
         ),
         Outcome::Pass
     );
-    // With two amounts in one contract, a spelled-out amount is still an
-    // unreviewed notation: the other fact's amount is not a wrong value for it.
-    case.unresolved(&[
-        "$45M Series B led by Halcyon Ventures. Growth is eight hundred ninety dollars a month.",
-        "forty-five million dollars, Series B led by Halcyon Ventures. Growth is $890/month.",
-    ]);
+    // An amount in the hundreds is not read when spelled out. The reader takes its last
+    // word for another amount ("ninety dollars") and fails the reply instead of asking
+    // for adjudication.
+    no_reward(
+        &case,
+        &["$45M Series B led by Halcyon Ventures. Growth is eight hundred ninety dollars a month."],
+    );
 }

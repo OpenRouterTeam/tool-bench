@@ -14,6 +14,10 @@ fn sentry_top_unresolved_issue_is_ranked_from_the_authored_event_counts() {
         "CHECKOUT-API-3F - OperationalError: could not obtain connection from pool within 5.0s",
         "Short ID: `checkout-api-3f`\nTitle: \"OperationalError: could not obtain connection from pool within 5.0s\"",
         "| Short ID | Title |\n|---|---|\n| CHECKOUT-API-3F | OperationalError: could not obtain connection from pool within 5.0s |",
+        // A polite hedge still states the answer.
+        "I think it is CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s.",
+        // A true aside after the answer sets the ignored issue aside.
+        "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s. CHECKOUT-API-2R has more events but is ignored.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -35,11 +39,8 @@ fn sentry_top_unresolved_issue_is_ranked_from_the_authored_event_counts() {
         "It is not the issue CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s).",
     ]);
     case.unresolved(&[
-        "I think it is CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s.",
+        // A paraphrased title is not the title.
         "CHECKOUT-API-3F: an OperationalError about the connection pool",
-        "CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s) and CHECKOUT-API-3C are the two noisiest.",
-        // A true aside about the ignored issue still names another record.
-        "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s. CHECKOUT-API-2R has more events but is ignored.",
         // A negative predicate about the right issue is a dispute, not a statement.
         "CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s) is not the noisiest issue.",
         "CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s) does not have the most events.",
@@ -64,14 +65,40 @@ fn sentry_top_unresolved_issue_is_ranked_from_the_authored_event_counts() {
         ),
         Outcome::Pass
     );
+    // Once the ignored issue with more events is unresolved, it is the one to name. The
+    // resolved issue is ignored in its place: the contract's reviewed aside reads the
+    // project's one ignored issue, so a state without any is an environment error.
+    let mut reopened = case.initial.clone();
+    for (issue, status) in [
+        ("CHECKOUT-API-2R", "unresolved"),
+        ("CHECKOUT-API-31", "ignored"),
+    ] {
+        *reopened
+            .pointer_mut(&format!("/services/sentry/issues/{issue}/status"))
+            .unwrap() = json!(status);
+    }
     assert_eq!(
-        case.outcome_after(
-            "/services/sentry/issues/CHECKOUT-API-2R/status",
-            json!("unresolved"),
-            &case.reference
-        ),
+        case.grade_with(&reopened, &case.reference).outcome,
         Outcome::Fail
     );
+    assert_eq!(
+        case.grade_with(
+            &reopened,
+            "CHECKOUT-API-2R: DisallowedHost: Invalid HTTP_HOST header: '10.4.2.17:8000'"
+        )
+        .outcome,
+        Outcome::Pass
+    );
+}
+
+/// REGRESSION, left failing: the reader passes this reply. The task asks which one issue
+/// has the most events; the reply names two issues as joint leaders and never chooses.
+#[test]
+fn sentry_two_issues_named_as_joint_leaders_do_not_answer_which_is_noisiest() {
+    let case = Case::load("ops/sentry/top-unresolved-checkout");
+    case.unresolved(&[
+        "CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s) and CHECKOUT-API-3C are the two noisiest.",
+    ]);
 }
 
 #[test]
@@ -83,6 +110,11 @@ fn sentry_release_is_traced_to_its_pull_request_and_author_by_joins() {
         "| Sentry issue | STOREFRONT-WEB-7Q |\n| First release | storefront@5.2.0 |\n| Pull request | #57 |\n| Author | sofia |",
         "storefront-web-7q, storefront@5.2.0, pull request 57 by @sofia",
         "STOREFRONT-WEB-7Q, storefront@5.2.0, PR #57 (https://github.com/lumen-labs/storefront/pull/57), Sofia Alvarez",
+        // A polite hedge still states the answer, and a number may be spelled out.
+        "It is probably STOREFRONT-WEB-7Q, first seen in storefront@5.2.0, from PR #57 by Sofia Alvarez.",
+        "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; pull request fifty-seven by Sofia Alvarez.",
+        // The open fix attempt, named after the answer and as what it is, is context.
+        "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #57 by Sofia Alvarez. PR #70 by marcus is an open fix.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -106,10 +138,8 @@ fn sentry_release_is_traced_to_its_pull_request_and_author_by_joins() {
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #570 by Sofia Alvarez.",
     ]);
     case.unresolved(&[
-        "It is probably STOREFRONT-WEB-7Q, first seen in storefront@5.2.0, from PR #57 by Sofia Alvarez.",
-        // A bare number is not a pull request reference, and number words are not read.
+        // A bare number is not a pull request reference.
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; 57, Sofia Alvarez.",
-        "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; pull request fifty-seven by Sofia Alvarez.",
         // A partial author name and a partial release name.
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #57 by S. Alvarez.",
         "STOREFRONT-WEB-7Q first appeared in storefront 5.2.0; PR #57 by Sofia Alvarez.",
@@ -118,8 +148,6 @@ fn sentry_release_is_traced_to_its_pull_request_and_author_by_joins() {
         "STOREFRONT-WEB-7Q, storefront@5.2.0, PR #57, Sofia Alvarez. The pull request was not the PR numbered #57.",
         // The right issue under the opposite ranking.
         "The quietest issue is STOREFRONT-WEB-7Q, first seen in storefront@5.2.0; PR #57 by Sofia Alvarez.",
-        // The right chain next to the open fix attempt.
-        "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #57 by Sofia Alvarez. PR #70 by marcus is an open fix.",
     ]);
     // The chain follows the authored data: a busier issue changes every fact,
     // and a different pull request author changes only the author.
@@ -173,6 +201,12 @@ fn datadog_peak_is_the_highest_production_point_inside_the_hour() {
         "The highest p95 was 1.843 s, reached at 2026-10-29T14:35:00Z.",
         "1843 milliseconds at 14:35:00 UTC",
         "1843 ms at 14:35 UTC, not the 2210 ms staging peak.",
+        // A polite hedge still states the answer, and a 12-hour clock time is read.
+        "It probably peaked at 1843 ms at 14:35 UTC.",
+        "1843 ms at 2:35 PM UTC",
+        // Other points named after the peak, as what they are, are context.
+        "1843 ms at 14:35 UTC (outside the window production reached 2950 ms at 13:30).",
+        "1843 ms at 14:35 UTC; five minutes later it was still 1701 ms at 14:40.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -193,16 +227,11 @@ fn datadog_peak_is_the_highest_production_point_inside_the_hour() {
         "1843 ms at 14:53 UTC",
     ]);
     case.unresolved(&[
-        "It probably peaked at 1843 ms at 14:35 UTC.",
+        // A rounded value in words is not the peak.
         "about eighteen hundred ms at 14:35",
-        // The peak next to a point outside the hour: the reader cannot tell
-        // an aside from a competing answer.
-        "1843 ms at 14:35 UTC (outside the window production reached 2950 ms at 13:30).",
-        // A value without its unit and a 12-hour clock time are not read.
+        // A value without its unit is not read.
         "1843 at 14:35 UTC",
-        "1843 ms at 2:35 PM UTC",
-        // The peak next to another point of the same hour, and a negative predicate.
-        "1843 ms at 14:35 UTC; five minutes later it was still 1701 ms at 14:40.",
+        // A negative predicate about the peak.
         "Production did not exceed 1843 ms, reached at 14:35 UTC.",
         // The right point under the opposite ranking.
         "The lowest p95 of the hour was 1843 ms at 14:35 UTC.",
@@ -236,6 +265,10 @@ fn kubernetes_crashloop_error_is_read_from_the_log_joined_by_record_key() {
         // Reviewed negative predicates of a diagnosis do not deny the pod.
         "ledger-worker-zx4mrndj8b-gdg8j cannot authenticate to Postgres: password authentication failed for user \"ledger\".",
         "ledger-worker-zx4mrndj8b-gdg8j never becomes ready: password authentication failed for user \"ledger\".",
+        // A polite hedge still states the answer.
+        "It is probably ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user \"ledger\".",
+        // The healthy sibling, named after the answer and as what it is, is context.
+        "ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user \"ledger\". The other replica ledger-worker-zx4mrndj8b-dwvg9 is healthy.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -252,15 +285,13 @@ fn kubernetes_crashloop_error_is_read_from_the_log_joined_by_record_key() {
         "ledger-worker-zx4mrndj8b-gdg8j: OOMKilled",
     ]);
     case.unresolved(&[
-        "It is probably ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user \"ledger\".",
         // A truncated pod name, the workload name alone, and a shortened or
         // unquoted error are not the authored values.
         "ledger-worker-zx4mrndj8b-gdg8: password authentication failed for user \"ledger\"",
         "ledger-worker: password authentication failed for user \"ledger\"",
         "ledger-worker-zx4mrndj8b-gdg8j: password authentication failed",
         "ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user ledger",
-        // The right pod next to its healthy sibling, and unreviewed negative predicates.
-        "ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user \"ledger\". The other replica ledger-worker-zx4mrndj8b-dwvg9 is healthy.",
+        // Unreviewed negative predicates about the right pod.
         "ledger-worker-zx4mrndj8b-gdg8j does not crash-loop: password authentication failed for user \"ledger\".",
         "ledger-worker-zx4mrndj8b-gdg8j is not the crash-looping pod: password authentication failed for user \"ledger\".",
     ]);
@@ -300,6 +331,10 @@ fn grafana_top_5xx_pod_is_ranked_within_the_production_datasource() {
     case.passes(&[
         "checkout-7b9d6c5f4-xk2lp",
         "Pod to cordon: `checkout-7b9d6c5f4-xk2lp` (~3.5 5xx/s, roughly 8% of its requests).",
+        // A polite hedge still states the answer.
+        "It is probably checkout-7b9d6c5f4-xk2lp.",
+        // The busier staging pod, named after the answer and as staging, is context.
+        "checkout-7b9d6c5f4-xk2lp (3.5/s); in staging checkout-5f6d7c8b9-zq4wd is at 4.5/s.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the name.
@@ -313,9 +348,8 @@ fn grafana_top_5xx_pod_is_ranked_within_the_production_datasource() {
         "checkout-7b9d6c5f4-xk2lq",
     ]);
     case.unresolved(&[
-        "It is probably checkout-7b9d6c5f4-xk2lp.",
+        // The right pod under the opposite ranking, and a fragment of its name.
         "checkout-7b9d6c5f4-xk2lp has the fewest 5xx responses.",
-        "checkout-7b9d6c5f4-xk2lp (3.5/s); in staging checkout-5f6d7c8b9-zq4wd is at 4.5/s.",
         "The xk2lp checkout pod.",
     ]);
     // The ranking follows the authored rates: once another production pod
