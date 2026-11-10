@@ -847,6 +847,37 @@ async fn replica_either_source_read_shape_supplies_the_exact_alarm_facts() {
 }
 
 #[tokio::test]
+async fn replica_alarm_looked_up_by_its_metric_supplies_the_same_alarm_facts() {
+    // `describe-alarms-for-metric` on the replica's ReplicaLag metric returns the same alarm
+    // record as `describe-alarms`: its name, its ALARM state and when it got there.
+    let lag_alarms = |instance: &str| {
+        json!({"MetricName":"ReplicaLag","Namespace":"AWS/RDS",
+            "Dimensions":[{"Name":"DBInstanceIdentifier","Value":instance}]})
+    };
+    let cloud = CloudTrial::for_replica_without_evidence();
+    let found = cloud
+        .cloudwatch("DescribeAlarmsForMetric", lag_alarms("orders-db-replica-2"))
+        .await;
+    assert_eq!(found["MetricAlarms"][0]["AlarmName"], ALARM);
+    cloud.pagerduty_note(INCIDENT, ALARM_NOTE).await;
+    cloud.postmortem(postmortem_properties()).await;
+    passes(&cloud);
+    // The same lookup for last week's replica says nothing about this alarm.
+    let other = CloudTrial::for_replica_without_evidence();
+    other
+        .cloudwatch("DescribeAlarmsForMetric", lag_alarms("orders-db-replica-1"))
+        .await;
+    other.pagerduty_note(INCIDENT, ALARM_NOTE).await;
+    other.postmortem(postmortem_properties()).await;
+    let assessment = other.trial.assess();
+    assert_eq!(assessment.outcome, Outcome::Fail, "{assessment:?}");
+    assert!(
+        !assessment.ordering_ok && assessment.environment_ok,
+        "{assessment:?}"
+    );
+}
+
+#[tokio::test]
 async fn replica_missing_wrong_and_late_reads_cannot_authorize_guessed_paperwork() {
     for evidence in ["missing", "wrong_alarm", "wrong_history", "late"] {
         let cloud = CloudTrial::for_replica_without_evidence();
