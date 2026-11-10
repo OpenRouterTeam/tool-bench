@@ -836,6 +836,10 @@ discarded merely because the query mentions the history table. Unsupported
 catalog writes fail explicitly instead of returning fabricated read results.
 The adapter is not full native catalog-write, transaction, recursive/data-modifying
 CTE, privilege, trigger, numeric-precision or asynchronous control-plane conformance.
+One transaction shape is admitted: a `BEGIN`/`COMMIT` pair that wraps a whole script
+runs as the statements between it, because the executor already commits a script as
+one unit. A rollback, a savepoint and a transaction that ends before the script does
+remain unsupported statements.
 The current pause model completes immediately; that is not a hosted timing promise.
 
 Both retained introspection counterexamples now pass targeted regressions.
@@ -1100,6 +1104,14 @@ fixture files. The reviewed contracts and explicit uncertainties are in
   state and ignore update Tags. Unknown CloudWatch operations no longer return
   empty success; this does not remove unsupported-success behavior across every
   other AWS module.
+- SNS is read-only and derived: `ListTopics` names the topic ARNs that alarm
+  actions of the account and Region deliver to, and `GetTopicAttributes` answers
+  for those and returns `NotFound` otherwise. No topic documents, subscriptions
+  or deliveries are modeled; other SNS operations keep the empty success.
+- The `aws-api` endpoint sets `AWS_DEFAULT_REGION` beside `AWS_REGION`, because
+  the server's `--region *` expansion resolves its `account` client through
+  botocore. The expansion then lists the mock's regions; resources without an
+  explicit Region live in `us-east-1`.
 - Shutdown requires the stopped production target, the actual ticket tag and
   retained attached EBS volumes. Existing tags, private addresses, other instances
   and disk data/relationships remain protected. The permitted automatic-public-IP
