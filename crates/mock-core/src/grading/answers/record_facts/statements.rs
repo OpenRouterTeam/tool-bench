@@ -469,11 +469,9 @@ fn leading(before: &str) -> Option<Status> {
         if token.ends_with([',', ':', ';', '(', '.']) || token == "-" || token == "but" {
             break;
         }
+        // A negator before an opening parenthesis does not govern what is inside it:
+        // "Shipped? No (fulfillment status unfulfilled)".
         if token.starts_with('(') && !negator(bare(token)) {
-            unknown = false;
-            word_used = false;
-            // Skip to the word before the parenthesis: it must itself be a negator
-            // directly applied to the parenthetical to count, which is not a denial.
             break;
         }
         let word = bare(token);
