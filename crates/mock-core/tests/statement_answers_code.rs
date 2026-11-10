@@ -299,6 +299,10 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
         "Production seems to serve c3a9f12 (\"Fix tax rounding for EU orders\"); the preview hit the function size limit.",
         // Other authored records named beside or after the answer are context.
         "Production serves c3a9f12 (\"Fix tax rounding for EU orders\"), not the newer 7d41c9e build; the preview 4be1d07 failed with FUNCTION_SIZE_EXCEEDED.",
+        // The error message in a reply's own words: the function was over the limit.
+        "Production serves c3a9f12, \"Fix tax rounding for EU orders (#482)\". The latest preview failed because a function was over 250 MB.",
+        "Production serves c3a9f12, \"Fix tax rounding for EU orders (#482)\". The latest preview failed at build: its serverless function bundle was too large for Vercel.",
+        "Production is on c3a9f12 (Fix tax rounding for EU orders). The newest preview went over the function size limit.",
     ]);
     case.fails(&[
         "Production is not on c3a9f12 (\"Fix tax rounding for EU orders\"); the preview failed on function size.",
@@ -307,6 +311,8 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
         "Production serves 7d41c9e (\"Upgrade to Next.js 15.4 (#487)\"); the latest preview exceeded the function size limit.",
         "Production serves c3a9f12 (\"Upgrade to Next.js 15.4 (#487)\"); the latest preview exceeded the function size limit.",
         "Production serves c3a9f12 (\"Fix tax rounding for EU orders (#482)\"). The latest preview failed with BUILD_UTILS_SPAWN_1.",
+        "Production serves c3a9f12 (\"Fix tax rounding for EU orders (#482)\"). The latest preview failed because the build timed out.",
+        "Production serves 7d41c9e (\"Upgrade to Next.js 15.4 (#487)\"); the latest preview failed because a function was over 250 MB.",
         // Near-miss hash and a missing cause.
         "Production serves c3a9f13 (\"Fix tax rounding for EU orders (#482)\"); the preview hit the function size limit.",
         "Production serves c3a9f12 (\"Fix tax rounding for EU orders (#482)\").",
@@ -314,7 +320,6 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
     case.unresolved(&[
         "Production is not serving c3a9f12 (Fix tax rounding for EU orders); preview: FUNCTION_SIZE_EXCEEDED.",
         // Correct, but in wordings nobody reviewed.
-        "Production serves c3a9f12, \"Fix tax rounding for EU orders (#482)\". The latest preview failed because a function was over 250 MB.",
         "Production serves c3a9f12 (the EU tax rounding fix); the latest preview failed with FUNCTION_SIZE_EXCEEDED.",
     ]);
     // The served commit follows the authored deployment states.

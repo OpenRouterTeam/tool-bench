@@ -59,7 +59,10 @@ capture = '^(.*?)(?: \(#\d+\))?$'
 kind = "text"
 
 # The coded source value is the deployment's error code; the bound wordings are plain
-# wordings of that code only.
+# wordings of that code only. The second line restates the deployment's error message (a
+# function over the 250 MB unzipped maximum) the way a reply paraphrases it. The third
+# holds the same wordings behind "over": the reader takes a bare "over" before a value
+# for a comparison that sets the value aside, and here it is the failure itself.
 [expect.answer.record_facts.facts.reason]
 record = "preview"
 field = "/errorCode"
@@ -67,7 +70,11 @@ also = ["/errorMessage"]
 kind = "text"
 
 [expect.answer.record_facts.facts.reason.wordings]
-FUNCTION_SIZE_EXCEEDED = ["function size", "maximum size", "size limit"]
+FUNCTION_SIZE_EXCEEDED = [
+  "function size", "maximum size", "size limit",
+  "250 MB", "250MB", "too large", "too big",
+  "over 250 MB", "over 250MB", "over the 250 MB", "over the 250MB", "over the function size", "over the maximum size", "over the size limit", "over the limit",
+]
 
 [expect.answer.record_facts.related.failed_prod]
 allow_absence = true
