@@ -19,6 +19,13 @@ fn argocd_degraded_app_binds_the_app_to_its_pods_image_tag_and_reason() {
         // Other authored records named beside or after the answer are context.
         "checkout-web (2.14.0-rc3, ImagePullBackOff) is Degraded; checkout-web-staging is Degraded too.",
         "checkout-web is Degraded: the 2.14.0-rc3 pod is in ImagePullBackOff while the 2.13.4 pods keep serving.",
+        // The root cause the pod's events give, without the Kubernetes status word: the
+        // registry does not have the tag.
+        "checkout-web is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry.",
+        "Application: checkout-web. Failing resource: Deployment checkout-web. Root cause: image tag 2.14.0-rc3 was not found in ghcr.io (NotFound).",
+        "The Degraded production app is checkout-web: its Deployment was pointed at ghcr.io/lumen-retail/checkout-web:2.14.0-rc3, a tag that was never pushed.",
+        "App: checkout-web. Root cause: missing image tag - ghcr.io/lumen-retail/checkout-web:2.14.0-rc3 is not in the registry.",
+        "checkout-web: the Deployment checkout-web cannot roll out because the registry has no 2.14.0-rc3 tag.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -33,13 +40,30 @@ fn argocd_degraded_app_binds_the_app_to_its_pods_image_tag_and_reason() {
         "checkout-web is Degraded on production: its new pod cannot pull image tag 2.14.0-rc30 (ImagePullBackOff).",
         "checkout-web is Degraded on production: its new pod cannot pull image tag 2.14.0 (ImagePullBackOff).",
         "checkout-web is Degraded on production and runs tag 2.14.0-rc3.",
+        // The registry cause on the staging twin or on the twin's tag.
+        "checkout-web-staging is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry.",
+        "checkout-web is Degraded on production because the image tag 2.14.0-rc2 does not exist in the registry.",
+        // A cause the pod's events do not give.
+        "checkout-web is Degraded on production: the 2.14.0-rc3 pod crash-loops because the STRIPE_KEY environment variable is missing.",
+        "checkout-web is Degraded on production: the 2.14.0-rc3 pod is OOMKilled because its memory limit is too low.",
     ]);
     case.unresolved(&[
         // A cause in a wording nobody reviewed: it shares words with the pod's
         // own health message, so it is adjudicated rather than failed.
-        "checkout-web is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry.",
+        "checkout-web is Degraded on production: the registry rejected the kubelet's expired credentials for the 2.14.0-rc3 image.",
         "checkout-web is Degraded on production and runs image tag 2.14.0-rc3.",
     ]);
+    // The registry wordings are bound to the pod's waiting reason: once the pod waits for
+    // another reason they no longer state it.
+    let reason = "/services/argocd/resources/0d3df349-e40e-5789-bc1f-b9740a79c8a0/manifest/status/containerStatuses/0/state/waiting/reason";
+    assert_ne!(
+        case.outcome_after(
+            reason,
+            json!("CreateContainerConfigError"),
+            "checkout-web is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry."
+        ),
+        Outcome::Pass
+    );
     // The tag follows the failing pod's authored image.
     let image = "/services/argocd/resources/0d3df349-e40e-5789-bc1f-b9740a79c8a0/images/0";
     let edited = json!("ghcr.io/lumen-retail/checkout-web:2.14.0-rc4");
