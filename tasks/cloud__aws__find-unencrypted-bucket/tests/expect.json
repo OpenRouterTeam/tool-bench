@@ -108,12 +108,6 @@
         "uses kms",
         "uses sse-kms",
         "uses aws:kms"
-      ],
-      "assertions": [
-        "${bucket}",
-        "The bucket is ${bucket}.",
-        "${bucket} defaults to SSE-S3 instead of the required SSE-KMS.",
-        "${bucket} defaults to SSE-S3 instead of SSE-KMS."
       ]
     }
   },

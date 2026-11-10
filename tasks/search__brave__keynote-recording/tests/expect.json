@@ -57,13 +57,6 @@
       "mode": "statements",
       "context": [
         "Full official recording (PGConf Nordic channel):"
-      ],
-      "assertions": [
-        "${speaker} gave the keynote; the video runs ${duration}: ${url}",
-        "- Speaker: ${speaker} - Length: ${duration} - Link: ${url}",
-        "- Speaker: ${speaker} - Length: ${duration} (mm:ss) - Link: [PGConf Nordic](${url})",
-        "Speaker: ${speaker}. Duration: ${duration}. Recording: ${url}",
-        "${speaker}, ${duration}, ${url}"
       ]
     }
   },

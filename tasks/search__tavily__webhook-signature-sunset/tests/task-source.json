@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/tavily/webhook-signature-sunset",
-  "scenario_sha256": "sha256:d793179eed9fd138a633c4d18d0e61f56763fbae42c914fed613a06f7e1bf321",
+  "scenario_sha256": "sha256:6935b02826e38d412f03d28b4cba85d7fa74a5e628216f77f5b8221173099251",
   "dataset_sha256": "sha256:4bb6fc9f500654ad032e30696fcf462ae019c212bd6a7bb646b4c5d7b3abec4e",
-  "contract_sha256": "sha256:bd9524afd2b576d9f8b5884a57a16cb46731323eea942e26bc0b826b1dd8ed35"
+  "contract_sha256": "sha256:cbfcb1692863c3538e6d92490ccf8d5bc71b4cda7f04b0eca011e504f2a7b170"
 }

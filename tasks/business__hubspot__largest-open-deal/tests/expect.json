@@ -93,14 +93,7 @@
             "/toObjectId": "/id"
           }
         }
-      },
-      "assertions": [
-        "${company} has the largest open deal, worth ${amount}.",
-        "${company}, ${amount}.",
-        "Company: ${company}\nDeal amount: ${amount}",
-        "The biggest open deal belongs to ${company} and is worth ${amount}.",
-        "Largest open deal: ${company}, ${amount}."
-      ]
+      }
     }
   },
   "preservation": null,

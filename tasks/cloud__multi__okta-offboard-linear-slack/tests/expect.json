@@ -136,7 +136,7 @@
       "html_text": {},
       "reviewed_text": {
         "/text": {
-          "requirement": "Post a short notice that Lena Fischer (Product) has been offboarded, saying her Okta account was deactivated and that she was removed from Linear. A deletion claim, the look-alike Lena Fisher, a missing Okta or Linear outcome and a premature announcement are not acceptable. The channel supplies context; Linear team names are optional but must be true when stated. Unlisted nonempty wording requires adjudication.",
+          "requirement": "Post a short notice that Lena Fischer has been offboarded: her Okta account was deactivated and she was removed from Linear. A notice about the look-alike Lena Fisher only, a deletion instead of a deactivation, or a missing Okta or Linear outcome is not acceptable. Linear team names are optional.",
           "accepted": [
             "Offboarding notice: Lena Fischer (Product) has been offboarded. Her Okta account is deactivated (not deleted) and she has been removed from the Payments and Web App teams in Linear.",
             "Lena Fischer has been offboarded: Okta deactivated, removed from Linear.",
@@ -147,6 +147,17 @@
           "rejected": [
             "Lena Fisher has been offboarded. Her Okta account is deactivated and she has been removed from Linear.",
             "Lena Fischer has been offboarded. Her Okta account was deleted and she has been removed from Linear."
+          ],
+          "mentions": [
+            "Lena Fischer",
+            "Okta",
+            [
+              "deactivated",
+              "deactivation",
+              "deactivate",
+              "deprovisioned"
+            ],
+            "Linear"
           ],
           "format": "plain",
           "bound": null

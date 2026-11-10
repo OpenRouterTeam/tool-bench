@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/pagerduty/reassign-replication-lag",
-  "scenario_sha256": "sha256:b64bb5433a8a9cf927b097996a0583f29fbd247be2f2dbd212f89f812003486f",
+  "scenario_sha256": "sha256:48b006d2d4bd330763cdaa693d41a0bbd11a79db02f9c6afad44e6cc9c37d2cd",
   "dataset_sha256": "sha256:720935f09d9242a483f280bd715f8a4767a3c65f7d66fdf19466167ef4b40036",
-  "contract_sha256": "sha256:6f27233c4012b396782160074215575515dec979cbf3cc2d6c140d41c1a83a15"
+  "contract_sha256": "sha256:cedd912ef158eb281cb67ff77e14c4bc581c4557f5bf5919d7fb0fe5984cbaf6"
 }

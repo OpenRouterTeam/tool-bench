@@ -140,15 +140,7 @@
             }
           }
         }
-      },
-      "assertions": [
-        "${customer_count} customers have signed up, spending ${total_spend} in total.",
-        "Customers: ${customer_count}\nTotal spend: ${total_spend}",
-        "${customer_count} referral sign-ups, ${total_spend} total spend.",
-        "${customer_count} customers, ${total_spend} total spend.",
-        "${customer_count} customers, ${total_spend} total.",
-        "There are ${customer_count} FALL26 referral sign-ups and they have spent ${total_spend}."
-      ]
+      }
     }
   },
   "preservation": null,

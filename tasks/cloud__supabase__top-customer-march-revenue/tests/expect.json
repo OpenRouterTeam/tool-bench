@@ -82,6 +82,12 @@
           }
         }
       },
+      "context": [
+        "runner-up Felix Wagner",
+        "second-place Felix Wagner",
+        "Felix Wagner in second place",
+        "Felix Wagner in second"
+      ],
       "contradictions": [
         "second",
         "second-highest",
@@ -89,13 +95,6 @@
         "runner-up",
         "the least",
         "the lowest"
-      ],
-      "assertions": [
-        "${name} (${email}) brought in the most revenue: ${total}.",
-        "${name} (${email}): ${total}",
-        "Customer: ${name}\nEmail: ${email}\nMarch total: ${total}",
-        "${name} <${email}> leads March with ${total}.",
-        "${name} <${email}> leads with ${total}."
       ]
     }
   },

@@ -79,19 +79,6 @@
       "mode": "statements",
       "context": [
         "this replaces the earlier draft figure of ${draft_amount}"
-      ],
-      "assertions": [
-        "PO: ${po}",
-        "${po}",
-        "references ${po}",
-        "Amount due: ${amount}",
-        "${amount}",
-        "for ${amount}",
-        "USD ${amount}",
-        "Due: ${due}",
-        "due ${due}",
-        "${po}, ${amount}, due ${due}",
-        "The invoice references ${po} for ${amount}"
       ]
     }
   },

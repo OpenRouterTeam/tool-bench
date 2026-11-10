@@ -247,30 +247,6 @@
       "predicates": [
         "does not match expected scopes",
         "does not match the expected scopes"
-      ],
-      "assertions": [
-        "App: ${app}, failing on image tag ${image_tag}",
-        "${app} cannot pull tag ${image_tag}",
-        "${app} (${image_tag})",
-        "Pipeline: ${pipeline}, failed job: ${job}",
-        "Pipeline ${pipeline}: ${job} failed",
-        "Pipeline ${pipeline}",
-        "Pipeline #${pipeline}",
-        "${job} failed",
-        "${job} job failed",
-        "failed job: ${job}",
-        "Error: denied: ${error}",
-        "Error: ${error}",
-        "${error}",
-        "the docker push was ${error}",
-        "the CI token ${error}",
-        "the push was ${error}",
-        "${job} failed with ${error}",
-        "${job} failed because the CI token ${error}",
-        "${job} failed because the push was ${error}",
-        "GHCR_TOKEN had ${error}",
-        "Error: denied: ${error}: The token provided does not match expected scopes (${scope})",
-        "(${scope})"
       ]
     }
   },

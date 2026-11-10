@@ -111,17 +111,6 @@
         "on October 29",
         "then created ${replacement_key} at ${replacement_time}",
         "An earlier delete attempt by ${denied_actor} at ${denied_time} was denied"
-      ],
-      "assertions": [
-        "- User: ${user} - Deleted at: ${time} UTC",
-        "The key was deleted by ${user} at ${time} UTC.",
-        "${user} deleted the key at ${time} UTC.",
-        "${user} at ${time} UTC",
-        "User: ${user} Deleted at: ${time}",
-        "User: ${user}",
-        "Deleted at: ${time}",
-        "The key was deleted by ${user} at ${time} UTC",
-        "${user} deleted it at ${time} UTC"
       ]
     }
   },

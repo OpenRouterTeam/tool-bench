@@ -55,7 +55,7 @@
       "html_text": {},
       "reviewed_text": {
         "/content": {
-          "requirement": "The incident note must communicate the complete requested handoff: \"Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize.\" Do not negate the handoff, report that a resize has already happened, or substitute another replica.",
+          "requirement": "The incident note is dictated: \"Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize.\" Layout, emphasis, letter case and the final period may vary; nothing else may be added, dropped or changed.",
           "accepted": [
             "Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize."
           ],
@@ -63,6 +63,12 @@
             "replica-2",
             "Handing off to DBRE: replica-2 disk is at 100%, volume resize completed.",
             "Do not hand replica-2 off to DBRE."
+          ],
+          "mentions": [
+            [
+              "^Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize.$",
+              "^Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize$"
+            ]
           ],
           "format": "plain",
           "bound": null

@@ -200,7 +200,7 @@
       "html_text": {},
       "reviewed_text": {
         "/content": {
-          "requirement": "The complete note must truthfully state that production shop-prod/checkout was scaled to 9 replicas per its runbook. A bare number, staging claim, denial or changed-image claim is not a remediation note. Unlisted wording requires adjudication.",
+          "requirement": "Say what was changed: production checkout was scaled to 9 replicas. A bare number, a staging claim, a denial or a changed-image claim is not that note. No particular wording, runbook reference or namespace is required.",
           "accepted": [
             "Per RB-CHK-07: scaled the checkout Deployment in shop-prod from 3 to 9 replicas.",
             "Scaled production shop-prod/checkout from 3 to 9 replicas per RB-CHK-07; all 9 pods are Ready.",
@@ -211,6 +211,22 @@
             "Staging was scaled to 9; production was left unchanged.",
             "Production checkout was not scaled to 9 replicas.",
             "Scaled production checkout to 9 and changed its image."
+          ],
+          "mentions": [
+            [
+              "9",
+              "nine"
+            ],
+            [
+              "replicas",
+              "replica",
+              "scaled",
+              "scale",
+              "scaling",
+              "pods",
+              "checkout",
+              "deployment"
+            ]
           ],
           "format": "plain",
           "bound": null

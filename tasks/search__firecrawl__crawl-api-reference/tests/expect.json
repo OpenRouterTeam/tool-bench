@@ -6,6 +6,9 @@
       "selector": {
         "collection": "/services/firecrawl/crawls",
         "matching": {},
+        "field_patterns": {
+          "/plannedPages/0": "^https?://"
+        },
         "key_prefix": null,
         "created": true,
         "identity_field": null
@@ -55,9 +58,39 @@
         "kind": "create",
         "matching": null,
         "field_patterns": {
+          "/plannedPages/0": "^https?://",
           "/status": "^(queued|scraping|completed)$"
         },
         "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v2/crawl$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/crawls/*",
+        "kind": "create",
+        "matching": {
+          "completed": 0,
+          "creditsUsed": 0,
+          "total": 0
+        },
+        "field_patterns": {
+          "/status": "^(queued|scraping|completed)$"
+        },
+        "array_lengths": {
+          "/pages": 0,
+          "/plannedPages": 0
+        },
+        "max_count": 3,
         "count_scope": "trial",
         "add_set_values": null,
         "ascii_case_insensitive": false,
@@ -88,7 +121,7 @@
             "target_field": "/id"
           }
         ],
-        "max_count": 1,
+        "max_count": 4,
         "count_scope": "trial",
         "add_set_values": null,
         "ascii_case_insensitive": false,

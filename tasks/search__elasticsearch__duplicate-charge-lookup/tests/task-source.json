@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/elasticsearch/duplicate-charge-lookup",
-  "scenario_sha256": "sha256:7ca3ab109afe1216b4ec47ae6a1dfb24fb8827589cf92c1528fd813964efe0d0",
+  "scenario_sha256": "sha256:04542cb2960b4bf96924cea774c40488529935e8fce919197592ba06c4f5490f",
   "dataset_sha256": "sha256:0e83e375e139b9a05dc5655fb7472a898e9a9b33073286c04cc77abb9fb30306",
-  "contract_sha256": "sha256:8f7a0a3b244e2657b6a661548082882248a6684b271a33722d0ab9d5b231e730"
+  "contract_sha256": "sha256:a9c72ad039c1c118068917d0e67859ee71bc25f390f987c6791c31fcc8119ac4"
 }

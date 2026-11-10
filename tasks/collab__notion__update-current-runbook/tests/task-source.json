@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/notion/update-current-runbook",
-  "scenario_sha256": "sha256:1b765330f8d9bd6399038317539dd9f0ce8530791746e7b70327ecdd9d3a529d",
+  "scenario_sha256": "sha256:4d437f43da120cb531dfd01db0640771d422595af16cc2a20ec2aaed0179003b",
   "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
-  "contract_sha256": "sha256:8b7567a515226c2c840c7f9ea6cf932e0ca6bc11cfc9cabb966db8c33ff27564"
+  "contract_sha256": "sha256:0bda678802be7ad5209264a87212c0357f222b68edd340df10526c0c03b211cd"
 }

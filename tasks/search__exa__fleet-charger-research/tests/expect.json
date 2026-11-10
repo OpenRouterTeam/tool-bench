@@ -160,68 +160,24 @@
         "hq": {
           "header": "HQ",
           "kind": "place",
-          "required": false,
-          "answer_headers": [
-            "Headquarters"
-          ]
+          "required": false
         },
         "price": {
           "header": "Typical price, 22 kW AC bidirectional unit",
           "kind": "money",
-          "required": true,
-          "answer_headers": [
-            "Price",
-            "Typical price",
-            "22 kW price",
-            "Price (22 kW)",
-            "Typical price (22 kW)",
-            "Typical 22 kW price",
-            "Unit price",
-            "22 kW unit price"
-          ]
+          "required": true
         },
         "share": {
           "header": "Share of installed depot V2G units (DE)",
           "kind": "percent",
-          "required": false,
-          "answer_headers": [
-            "Share",
-            "Market share",
-            "Installed share"
-          ]
+          "required": false
         },
         "vendor": {
           "header": "Vendor",
           "kind": "name",
-          "required": true,
-          "answer_headers": [
-            "Market leader",
-            "Leader",
-            "Leading vendor",
-            "Market-leading vendor"
-          ]
+          "required": true
         }
-      },
-      "claims": [
-        "Market leader: ${vendor} (${hq}), about ${share} of installed depot V2G units in Germany. Typical price of its 22 kW AC bidirectional unit: ${price}.",
-        "Market leader: ${vendor}, about ${share} of installed depot V2G units in Germany. Typical price of its 22 kW AC bidirectional unit: ${price}.",
-        "Market leader: ${vendor}. Typical price of its 22 kW AC bidirectional unit: ${price}.",
-        "Market leader: ${vendor}. Typical price of its 22 kW bidirectional unit: ${price}.",
-        "Market leader: ${vendor}, about ${price} per 22 kW unit.",
-        "Market leader: ${vendor} — typical 22 kW bidirectional unit price ${price}.",
-        "Market-leading vendor: ${vendor}. Typical 22 kW bidirectional unit price: ${price}.",
-        "${vendor} leads the German depot V2G market; its 22 kW bidirectional unit typically costs ${price}.",
-        "${vendor} is the market leader; its 22 kW bidirectional unit typically costs ${price}.",
-        "${vendor} is the market leader, and its 22 kW bidirectional unit typically costs ${price}.",
-        "${vendor} leads, and its 22 kW unit costs ${price}.",
-        "Marktführer: ${vendor}, 22-kW-Einheit ca. ${price}."
-      ],
-      "rejected": [
-        "${vendor} is not the leader.",
-        "${vendor} is not the leader. ${vendor} leads, and its 22 kW unit costs ${price}.",
-        "${vendor} is not the market leader.",
-        "The market leader is not ${vendor}."
-      ]
+      }
     }
   },
   "preservation": {

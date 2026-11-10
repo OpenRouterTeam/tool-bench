@@ -148,65 +148,24 @@
         "hq": {
           "header": "HQ",
           "kind": "place",
-          "required": false,
-          "answer_headers": [
-            "Headquarters"
-          ]
+          "required": false
         },
         "price": {
           "header": "List price",
           "kind": "money",
-          "required": true,
-          "answer_headers": [
-            "Price",
-            "Price per sensor per month",
-            "Monthly price per sensor",
-            "List price per sensor per month",
-            "Per-sensor monthly price"
-          ]
+          "required": true
         },
         "share": {
           "header": "Est. share of monitored grocery cold rooms (Nordics)",
           "kind": "percent",
-          "required": false,
-          "answer_headers": [
-            "Share",
-            "Market share",
-            "Est. share"
-          ]
+          "required": false
         },
         "vendor": {
           "header": "Vendor",
           "kind": "name",
-          "required": true,
-          "answer_headers": [
-            "Market leader",
-            "Leader",
-            "Largest vendor",
-            "Leading vendor"
-          ]
+          "required": true
         }
-      },
-      "claims": [
-        "Market leader: ${vendor} (${hq}), about ${share} of monitored grocery cold rooms in the Nordics. List price: ${price} per sensor per month.",
-        "Market leader: ${vendor}, about ${share} of monitored grocery cold rooms in the Nordics. List price: ${price} per sensor per month.",
-        "Market leader: ${vendor}. List price: ${price} per sensor per month.",
-        "Largest market share: ${vendor}. List price: ${price} per sensor per month.",
-        "${vendor} has the largest share (${share}) and lists at ${price} per sensor per month.",
-        "${vendor} has the largest market share and lists at ${price} per sensor per month.",
-        "${vendor} has the largest share. ${vendor} charges ${price} per sensor per month.",
-        "${vendor} is the market leader at ${price} per sensor per month."
-      ],
-      "neutral_claims": [
-        "${vendor} — ${price} per sensor per month.",
-        "${vendor} — ${price} pro Sensor und Monat.",
-        "${vendor}: ${price} per sensor per month."
-      ],
-      "rejected": [
-        "${vendor} does not have the largest share.",
-        "${vendor} is not the market leader.",
-        "${vendor} is not the market leader. ${vendor} charges ${price} per sensor per month."
-      ]
+      }
     }
   },
   "preservation": {

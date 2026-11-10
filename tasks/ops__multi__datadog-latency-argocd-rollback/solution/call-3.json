@@ -1,1 +1,1 @@
-{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"update_application_spec","arguments":{"applicationName":"billing-api","applicationNamespace":"argocd","spec":"${billing_spec}"}},"argument_replacements":[{"pointer":"/spec/source/targetRevision","value":"v2.8.0"}]}
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"update_application_spec","arguments":{"applicationName":"billing-api","applicationNamespace":"argocd","spec":"${billing_spec}"}},"argument_replacements":[{"pointer":"/spec/source/targetRevision","value":"${previous_release}"}]}

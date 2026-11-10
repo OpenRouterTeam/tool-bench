@@ -63,7 +63,7 @@
             "/previous/2",
             "/previous/3"
           ],
-          "capture": "ERROR .*?: ([^:]+?)(?: \\d{4}-\\d{2}-\\d{2}T|$)"
+          "capture": "ERROR .*?: ([^:\"]+?)(?: \"| \\d{4}-\\d{2}-\\d{2}T|$)"
         },
         "pod": {
           "field": "/metadata/name",
@@ -117,14 +117,6 @@
         "could not initialize",
         "cannot initialise",
         "cannot initialize"
-      ],
-      "assertions": [
-        "Pod: ${pod} Error: pq: ${error}",
-        "${pod} is crash-looping: pq: ${error}",
-        "${pod} is crash-looping. pq: ${error}",
-        "${pod}: pq: ${error}",
-        "${pod} cannot authenticate to Postgres: ${error}",
-        "${pod} never becomes ready: ${error}"
       ]
     }
   },

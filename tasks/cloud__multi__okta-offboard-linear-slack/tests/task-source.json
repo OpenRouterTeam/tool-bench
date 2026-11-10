@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/multi/okta-offboard-linear-slack",
-  "scenario_sha256": "sha256:cca6524fb6aaf55f10463d0e7c91213b256f078a7519a272bbefae9d0861a3ae",
+  "scenario_sha256": "sha256:6fa1cbc9c659438a4ad4948c229f7efa65ffe844190d5135027e7660503e760d",
   "dataset_sha256": "sha256:203563cef5605943f0078fe741f099a90b612dcd362118d036424bdf8cb1dd19",
-  "contract_sha256": "sha256:1028597382c69c7eaa18bb9bb87cc9171774980aefaa33ce4fb9980f26045afd"
+  "contract_sha256": "sha256:b5ccbddebc83547d57c7c82ecb50d547a22c2b53b46295104a0d695ddbb1c1ae"
 }

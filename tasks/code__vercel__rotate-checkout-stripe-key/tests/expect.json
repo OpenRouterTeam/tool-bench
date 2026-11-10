@@ -154,6 +154,157 @@
         "ascii_case_insensitive": false,
         "element_matching": null,
         "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/deployments/*",
+        "kind": "create",
+        "matching": {
+          "projectId": "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH",
+          "source": "redeploy",
+          "target": "production"
+        },
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/vercel/deployment_sources",
+              "matching": {
+                "originalDeploymentId": "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL",
+                "sourcePreserved": true
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/deploymentId"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/deployment_sources/*",
+        "kind": "create",
+        "matching": {
+          "originalDeploymentId": "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL",
+          "projectId": "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH",
+          "sourcePreserved": true
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/aliases/*/deploymentId",
+        "kind": "update",
+        "matching": null,
+        "field_patterns": {
+          "/alias": "^(api\\.acme-shop\\.com|checkout-api-next-acme-shop\\.vercel\\.app)$"
+        },
+        "references": [
+          {
+            "source_field": "/deploymentId",
+            "target": {
+              "collection": "/services/vercel/deployments",
+              "matching": {
+                "projectId": "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH",
+                "readyState": "READY",
+                "target": "production"
+              },
+              "references": [
+                {
+                  "source_field": "/id",
+                  "target": {
+                    "collection": "/services/vercel/deployment_sources",
+                    "matching": {
+                      "originalDeploymentId": "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL",
+                      "sourcePreserved": true
+                    },
+                    "key_prefix": null,
+                    "created": true,
+                    "identity_field": null
+                  },
+                  "target_field": "/deploymentId"
+                }
+              ],
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "initial_matching": {
+          "projectId": "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH"
+        },
+        "max_count": 2,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/projects/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/targets/production",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/targets/production/id",
+            "target": {
+              "collection": "/services/vercel/deployments",
+              "matching": {
+                "projectId": "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH",
+                "readyState": "READY",
+                "target": "production"
+              },
+              "references": [
+                {
+                  "source_field": "/id",
+                  "target": {
+                    "collection": "/services/vercel/deployment_sources",
+                    "matching": {
+                      "originalDeploymentId": "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL",
+                      "sourcePreserved": true
+                    },
+                    "key_prefix": null,
+                    "created": true,
+                    "identity_field": null
+                  },
+                  "target_field": "/deploymentId"
+                }
+              ],
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/projects/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/latestDeployments",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       }
     ],
     "equivalent_numbers": []

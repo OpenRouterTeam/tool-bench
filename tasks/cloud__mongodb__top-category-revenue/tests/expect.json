@@ -83,13 +83,6 @@
         "the smallest",
         "least revenue",
         "lowest revenue"
-      ],
-      "assertions": [
-        "Top category: ${category}, with ${revenue} in revenue.",
-        "Category: ${category}\nFebruary revenue: ${revenue}",
-        "The winner is ${category} at ${revenue}.",
-        "${category}: ${revenue}",
-        "${category}, ${revenue}."
       ]
     }
   },

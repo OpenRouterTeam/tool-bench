@@ -134,18 +134,6 @@
       },
       "context": [
         "| Issue | Owner | State |"
-      ],
-      "assertions": [
-        "${issue}",
-        "Issue: ${issue}",
-        "${issue} is assigned to ${owner}",
-        "${issue} is owned by ${owner}",
-        "owner: ${owner}",
-        "${owner}",
-        "state: ${state}",
-        "${state}",
-        "${issue}, ${owner}, ${state}",
-        "${issue} - owner: ${owner} - state: ${state}"
       ]
     }
   },

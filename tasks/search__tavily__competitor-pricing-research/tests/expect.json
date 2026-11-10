@@ -23,7 +23,7 @@
       "html_text": {},
       "reviewed_text": {
         "/input": {
-          "requirement": "Ask for one comprehensive report on the current pricing plans of exactly Tallybook, Billfold and Sumwise, the competitors on the Ledgerly compare page, without adding other tools.",
+          "requirement": "Ask for one comprehensive report on the current pricing plans of exactly Tallybook, Billfold and Sumwise, the competitors on the Ledgerly compare page, without adding other tools: FreshBooks, InvoiceNinja and Zervant are not on that page and Ledgerize was dropped from it.",
           "accepted": [
             "Compare the current pricing plans (plan names, monthly prices and what each plan includes) of the invoicing tools Tallybook, Billfold and Sumwise.",
             "Research the current pricing plans of Tallybook, Billfold and Sumwise.",
@@ -36,6 +36,27 @@
             "Current pricing plans of Tallybook, Billfold, Sumwise and freshbooks.",
             "Current pricing plans of Tallybook, Billfold, Sumwise and Invoice Ninja.",
             "Current pricing plans of Tallybook, Billfold, Sumwise and Ledgerize."
+          ],
+          "mentions": [
+            "Tallybook",
+            "Billfold",
+            "Sumwise",
+            [
+              "pricing",
+              "price",
+              "prices",
+              "priced",
+              "plans",
+              "cost",
+              "costs"
+            ]
+          ],
+          "forbids": [
+            "FreshBooks",
+            "Fresh Books",
+            "InvoiceNinja",
+            "Invoice Ninja",
+            "Zervant"
           ],
           "format": "plain",
           "bound": null
@@ -123,6 +144,33 @@
     }
   ],
   "relations": [
+    {
+      "source": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "field_patterns": {
+          "/input": "(?i)\\bledgerize\\b"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/request_id",
+      "target": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "field_patterns": {
+          "/input": "(?i)(?:\\b(?:exclud\\w*|omit\\w*|skip\\w*|ignor\\w*|without|except|not|rather than|other than|leav\\w+ out)\\b|n\\Wt\\b)[^.,;:!?()\\n]*\\bledgerize\\b|(?:^|[.!?;:(\\n]\\s*)ledgerize\\b[^.:!?()\\n]*\\b(?:excluded|omitted|left out|leave it out|out of scope|not in scope|not (?:be )?(?:included|covered|researched|compared))\\b"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/request_id",
+      "kind": "bijection",
+      "fields": [],
+      "allow_empty": true
+    },
     {
       "source": {
         "collection": "/services/tavily/research",

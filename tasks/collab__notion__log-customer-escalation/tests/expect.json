@@ -58,17 +58,23 @@
       "html_text": {},
       "reviewed_text": {
         "/properties/Customer/rich_text": {
-          "requirement": "Identify Acme Retail as the reporting customer, not a rejected or negated alternative. Unlisted wording requires adjudication.",
+          "requirement": "The Customer is the reporting customer's name, Acme Retail, and nothing else. Segment boundaries, passive formatting and letter case do not change the name.",
           "accepted": [
             "Acme Retail"
+          ],
+          "mentions": [
+            "^Acme Retail$"
           ],
           "format": "notion_rich_text",
           "bound": null
         },
         "/properties/Summary/title": {
-          "requirement": "Record the reported issue as Checkout button unresponsive on Safari, without contradictory additional text. Segment boundaries and passive formatting do not change the title; unlisted wording requires adjudication.",
+          "requirement": "The Summary is the reported issue as dictated: Checkout button unresponsive on Safari. Segment boundaries, passive formatting and letter case do not change the title; no other text may be added.",
           "accepted": [
             "Checkout button unresponsive on Safari"
+          ],
+          "mentions": [
+            "^Checkout button unresponsive on Safari$"
           ],
           "format": "notion_rich_text",
           "bound": null

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/hubspot/largest-open-deal",
-  "scenario_sha256": "sha256:70e06e1cb1aa324c06b86fc2def549f26aa62517175cbeeea02f3520617f6aa7",
+  "scenario_sha256": "sha256:313c1c71c06f6a3bc76b70c0c90465d20373ae9fbd625fe8518aecf6de65d31a",
   "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
-  "contract_sha256": "sha256:a49ea3adcc3661473702b0f399543362b60b26c68c92094511b3853710e89b26"
+  "contract_sha256": "sha256:a85f1d08d0d5e46bc62b0130a74a95d5b443b6aa7741d7f863cbf10b8856524e"
 }

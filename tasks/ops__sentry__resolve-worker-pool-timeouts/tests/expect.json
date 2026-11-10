@@ -158,6 +158,57 @@
         "pointer": "/services/sentry/activities/*",
         "kind": "create",
         "matching": {
+          "type": "note"
+        },
+        "field_patterns": {
+          "/data/text": "\\S"
+        },
+        "references": [
+          {
+            "source_field": "/issue",
+            "target": {
+              "collection": "/services/sentry/issues",
+              "matching": {
+                "shortId": "PAYMENTS-WORKER-1K"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/user",
+            "target": {
+              "collection": "/services/sentry/users",
+              "matching": {
+                "email": "priya@lumenlabs.dev"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/notes/$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/activities/*",
+        "kind": "create",
+        "matching": {
           "data": {
             "assigneeType": "team"
           },

@@ -23,7 +23,7 @@
       "html_text": {},
       "reviewed_text": {
         "/description": {
-          "requirement": "Optional planning context must not contradict the requested Q1 planning sync, date/time, attendees, or meeting availability. Unreviewed wording requires adjudication.",
+          "requirement": "Optional planning context: the request does not ask for a description, so no particular wording is required.",
           "optional": true,
           "accepted": [
             "Q1 planning sync with Priya and Marcus."

@@ -99,11 +99,6 @@
         "fewest",
         "the least",
         "the lowest"
-      ],
-      "assertions": [
-        "${pod}",
-        "Pod to cordon: ${pod}",
-        "The checkout pod with the highest 5xx rate is ${pod}"
       ]
     }
   },

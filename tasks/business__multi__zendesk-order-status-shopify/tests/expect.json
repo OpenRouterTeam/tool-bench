@@ -116,14 +116,37 @@
               "hasn't yet shipped",
               "hasn't been shipped",
               "hasn't yet been shipped",
+              "isn't shipped",
+              "yet to ship",
+              "yet to be shipped",
+              "nothing has shipped",
+              "nothing has been shipped",
               "not fulfilled",
               "not yet fulfilled",
               "not been fulfilled",
               "not yet been fulfilled",
               "hasn't been fulfilled",
               "hasn't yet been fulfilled",
+              "isn't fulfilled",
+              "yet to be fulfilled",
               "awaiting fulfillment",
-              "unshipped"
+              "awaiting fulfilment",
+              "awaiting shipment",
+              "awaiting dispatch",
+              "pending fulfillment",
+              "pending shipment",
+              "not dispatched",
+              "not yet dispatched",
+              "not been dispatched",
+              "not yet been dispatched",
+              "hasn't been dispatched",
+              "unshipped",
+              "Shipped: No",
+              "Shipped : No",
+              "Shipped yet: No",
+              "Shipped: Not yet",
+              "Shipped : Not yet",
+              "Shipped yet: Not yet"
             ]
           }
         },
@@ -135,17 +158,7 @@
       "mode": "statements",
       "context": [
         "(Sam's other order, #1051 from March, was fulfilled; #1060 belongs to a different Sam Ortiz.)",
-        "Shipped: No",
         "payment PAID"
-      ],
-      "assertions": [
-        "Order #${order} — total ${total} — ${status} (${status}).",
-        "Order #${order} — total ${total} — ${status}.",
-        "Order #${order}, ${status}, total ${total}.",
-        "- Order number: ${order}\n- Status: ${status}\n- Order total: ${total}",
-        "Order number: #${order}\n— fulfillment status is ${status}\nOrder total: ${total}",
-        "The order is #${order}, ${status}, total ${total}.",
-        "Order #${order} is ${status}; total ${total}."
       ]
     }
   },

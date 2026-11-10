@@ -76,14 +76,6 @@
         "replaces ${v3_option}",
         "replaces the old ${v3_option}",
         "instead of ${v3_option}"
-      ],
-      "assertions": [
-        "Option: ${option} Default: ${default}",
-        "Use ${option}; the default is ${default}.",
-        "${option}, default ${default} (seconds)",
-        "${option}, default ${default}",
-        "${option}; default ${default}.",
-        "driftwood.Client(${option}=${default}) is the default."
       ]
     }
   },

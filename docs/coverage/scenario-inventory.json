@@ -37,8 +37,8 @@
       "0": 5,
       "1": 56,
       "2": 63,
-      "3": 22,
-      "4": 4
+      "3": 23,
+      "4": 3
     },
     "scored_version_two": 150,
     "scored_legacy": 0,
@@ -46,7 +46,7 @@
     "scored_source_gaps": {
       "legacy_answer_file_collection": 55,
       "unreviewed_reference_operation": 71,
-      "validation_evidence_missing": 119
+      "validation_evidence_missing": 115
     },
     "scored_lookups": 50,
     "scored_writes": 100,
@@ -75,8 +75,8 @@
     ],
     "scored_captured_argument_calls": 18,
     "scored_captured_argument_calls_validated": 18,
-    "scored_with_validation_evidence": 31,
-    "scored_without_validation_evidence": 119,
+    "scored_with_validation_evidence": 35,
+    "scored_without_validation_evidence": 115,
     "scored_with_every_near_miss_kind": 0,
     "scored_exercised_operations": 243,
     "scored_exercised_operations_reviewed": 0,
@@ -481,9 +481,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/hubspot/largest-open-deal",
-        "scenario_sha256": "sha256:70e06e1cb1aa324c06b86fc2def549f26aa62517175cbeeea02f3520617f6aa7",
+        "scenario_sha256": "sha256:313c1c71c06f6a3bc76b70c0c90465d20373ae9fbd625fe8518aecf6de65d31a",
         "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
-        "contract_sha256": "sha256:a49ea3adcc3661473702b0f399543362b60b26c68c92094511b3853710e89b26"
+        "contract_sha256": "sha256:a85f1d08d0d5e46bc62b0130a74a95d5b443b6aa7741d7f863cbf10b8856524e"
       },
       "instruction_sha256": "sha256:5a3d2bb8dd7d37a40a90e4ba05c247542307aba5161c01aa0d41b199dcc0bd0f",
       "scored": true,
@@ -535,7 +535,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -675,9 +675,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/multi/hubspot-largest-deal-salesforce-owner",
-        "scenario_sha256": "sha256:806180553ad198630f0cef3ed1cb37a19b0eca079dcdd7a0464e1889dc3c9b09",
+        "scenario_sha256": "sha256:7b96a9331e0fbd1297ea85864525bd799241cf5b876384a06e6e76e939424fdf",
         "dataset_sha256": "sha256:6214e3dd7a601d0ff38d36b3a148e5d42c9bcfb8700980d27975813a06d9741b",
-        "contract_sha256": "sha256:fef91566152bf20360c36b9261319d267d29f0afaf0e73cd48bdedef2c3a6bba"
+        "contract_sha256": "sha256:76ddf9535f8dd09228864d14c0962da0b5f3ecee1018815340cab746e5a5e43a"
       },
       "instruction_sha256": "sha256:b7c13584678a6f4352845d2d20cad32d06d3807731866d1dbbc81e486488f640",
       "scored": true,
@@ -733,7 +733,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -803,9 +803,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/multi/hubspot-won-to-salesforce-opportunity",
-        "scenario_sha256": "sha256:a1d069772d8899599438ae1cf4ab883a9f703dd0722a23303ae56fd459773b47",
+        "scenario_sha256": "sha256:98aa0b6d4636ab21f3fff698e288a3367a346b5b3e4af3d45026fdeabc8963a2",
         "dataset_sha256": "sha256:e715f3c6f53873ec82a8b28860805d860cfd981fba9567552d1fe283378d8631",
-        "contract_sha256": "sha256:30f420e04cb311d7ba041ddafa2d53c88b13cae4b15e26862fdc043d3d66ce9e"
+        "contract_sha256": "sha256:f4e07a4471eb2f799e1c724b0750afe67886df62888cd99b01aa407568530b3b"
       },
       "instruction_sha256": "sha256:0ca9b9159a85b480deeb32a32a7c6b00fb9d585c3f52dc6658c55e5855946e82",
       "scored": true,
@@ -1097,9 +1097,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/multi/zendesk-order-status-shopify",
-        "scenario_sha256": "sha256:ad9743e52600ee73865f9be336faa666e2e3eab56558bb012b40be27b07dafb1",
+        "scenario_sha256": "sha256:375fd4a190c17924185618dedadd8b1aae9524defb5dd3a5284d75c726fe955b",
         "dataset_sha256": "sha256:089a3a26bbf5c15596577e3f54e358daaf83a2b806a731ca9346640f526090cd",
-        "contract_sha256": "sha256:47ab565e0cecc542b22ca25b2f45f9bf83737e6960bc5d24bcdf284e0f1b0a09"
+        "contract_sha256": "sha256:4db18c641f6badd2c037ef88850e4b1803470c55c6158ddb691a62757810f86b"
       },
       "instruction_sha256": "sha256:b4994199293de5de6841b2633e2004188d416a4fd3bc483d2f13a34e8b9b210d",
       "scored": true,
@@ -1154,7 +1154,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -1224,9 +1224,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/multi/zendesk-refund-via-stripe",
-        "scenario_sha256": "sha256:2af8011d051f1c42d5f12b8396752b07c0c445583edb54610847b580229b08d6",
+        "scenario_sha256": "sha256:484f19afe41f690e19db27e99bfcd5cc9a7dd09f22f21c1e4baccad1c493755f",
         "dataset_sha256": "sha256:5c90a8f3d151ff71df60df6c29b575f38545481c4e624432339c9aee7b5597ed",
-        "contract_sha256": "sha256:022c76fc4eb8f44ddb61b75397550da5381679e7ec5fd7ad14a8dff5be057730"
+        "contract_sha256": "sha256:04231e354a2e6f470a4ee4486b516d3cd031da6d9578f9dc420060b27be7dc23"
       },
       "instruction_sha256": "sha256:d98cc32da06f07038f18149c270d1196a304ef0fdbb3d5e63a7767ad16add3d1",
       "scored": true,
@@ -1613,9 +1613,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/salesforce/log-call-on-contact",
-        "scenario_sha256": "sha256:e5ccd6d8fc658f44a3a35aea71cc3e5e86202b7817f325fec8233131b5451383",
+        "scenario_sha256": "sha256:a102d0a172723334b3d88ae086ae4d16de6caa8ac7cb2154fa9d3d5015131b71",
         "dataset_sha256": "sha256:8b89dfece0df4ec0490e9aac11bee920fedf4de76719c0168d57bc4bfc185752",
-        "contract_sha256": "sha256:49ad157013f235d89198bbc7eca1c2c1cbdb5c1f4e7ba0793071034c9402950d"
+        "contract_sha256": "sha256:4f037d9d9b37e9e3d79789ee53e94831da3f469d4d3cae4ab0a320aee7bbab84"
       },
       "instruction_sha256": "sha256:41283bd88947fcd9d1362d7874ff49570555d74e11b332337f385e0697850f76",
       "scored": true,
@@ -1667,7 +1667,7 @@
       },
       "effect_permissions": {
         "create": 1,
-        "update": 2
+        "update": 3
       },
       "answer_check": "none",
       "reference_answer_template": false,
@@ -1717,9 +1717,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/salesforce/open-pipeline-by-rep",
-        "scenario_sha256": "sha256:113143a8c6b6088dc61c4592c85113aa4199e2820d404739c930d165ca1e458e",
+        "scenario_sha256": "sha256:1fa050570873de4d62c4480e0c96de41c21b0148b633b4ebdcf8a9f2b34daa62",
         "dataset_sha256": "sha256:4b7968cdfbfbeec39680ad7658c41f766b35bffb983b342e05e69e0dcf1ab06b",
-        "contract_sha256": "sha256:34d57b9375302e3c0303c2f42abcf0e76962cd2c7728fd3580e1ec2d02332525"
+        "contract_sha256": "sha256:2e91bfaac952594c50f864cd02ff7a0e4a69ddc21b6beda312d71a921cb99a64"
       },
       "instruction_sha256": "sha256:fb184a23325111b51bed5fd28d826c78c9b2c52494fd6d6bc2e934ff2c779247",
       "scored": true,
@@ -1769,7 +1769,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -2273,9 +2273,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/shopify/top-spender",
-        "scenario_sha256": "sha256:4284cbb7fe12d31b3fa794dabed3ffbe55dbe012100c3a9c3443ed9c73d5521c",
+        "scenario_sha256": "sha256:abfa8759988579be44192912889f034416c386ace28611188834989e2fd325d7",
         "dataset_sha256": "sha256:97b7abcc579d03f6fe24aa4cddfba7c7876d29788535c239151495abb8b9da2f",
-        "contract_sha256": "sha256:6fc15fd9b5133d7b2a85033e8223378ebec4380b7f58b8398ba7512bcff740bf"
+        "contract_sha256": "sha256:3fa2f9c087e4fc3fdd01e501255007155925db043dc81c6ed69e028fdd462b9c"
       },
       "instruction_sha256": "sha256:1bf9cc5f4a966732e350fe54ea4093e250fbd059c3b812b52033c6c4005cf89d",
       "scored": true,
@@ -2325,7 +2325,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -2494,7 +2494,7 @@
         "dataset_sha256": "sha256:56f7199b0ffb442c035e0c212174a6fdea12b51c9b6d72135e657b4b707b9ba1",
         "contract_sha256": "sha256:1e358035330f1a110028f65ad9ef771b4b1f0d1090e9f53b6f343b8c084ee01a"
       },
-      "instruction_sha256": "sha256:4474c3a59f47381ad953fe941350e15c251688da2dc8595ec2a9fe7e554db1a1",
+      "instruction_sha256": "sha256:345c7d72a6bfff6c2b24c3fea877b9a8ddd7f5657e3655fb203e1148ada2bea9",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -2606,9 +2606,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/stripe/customer-mrr",
-        "scenario_sha256": "sha256:1e306afd0eabcabc67a3797e0a9f8d7770e6f809da71525dcdd742fb3f6a2cd2",
+        "scenario_sha256": "sha256:c967f3e5c8a59ab765931ec1385c27cb683a350d5dab16aec372de50ae021f7b",
         "dataset_sha256": "sha256:edfeed7e14f8e93fa942af5c33746fa13e03577a9cd4f3df951b6733150c8502",
-        "contract_sha256": "sha256:2b7314eacdd10c324db9b0c3e86e92a2b09c375b5553683c5131a5fcdca62c70"
+        "contract_sha256": "sha256:335aaf6a039d6b3f9a6c9d6f422658b701db642ebfa76680ab2c4bcdb33b5242"
       },
       "instruction_sha256": "sha256:5fe94bed9ba423fdaa5066b81bb7bf2faa77d7ac633cb4dff23f86a83afdaed4",
       "scored": true,
@@ -2661,7 +2661,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -2830,9 +2830,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/zendesk/create-ticket-for-caller",
-        "scenario_sha256": "sha256:c9fbe93e2de473f41f25ba4dcf21437fa3b598154b2b9b2e7f25f4c0a681c74a",
+        "scenario_sha256": "sha256:8e8d792d9dbe8aecaf6eb33086391e8233d9a9928ef6ecd5b81b4dd8641a0b9b",
         "dataset_sha256": "sha256:884c4112ecc3cab364c337efb267809eaf1db25eb13fd5ec9012ec2f28172ae4",
-        "contract_sha256": "sha256:17a686644caef289938c362ecbc9384ec67f7723cf4fc345292a914a173bae9c"
+        "contract_sha256": "sha256:1c8fec97665ca578ce43f5e5ac0ca3f6b5b1f46e5237143d73258acb075ef506"
       },
       "instruction_sha256": "sha256:361a417b16863f8d4db42569148ec11830eb557e8d9121d1b0b95c611848efb7",
       "scored": true,
@@ -2932,9 +2932,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/zendesk/escalate-outage-ticket",
-        "scenario_sha256": "sha256:d76ff9cbed75cac658c00e8efd7d465a493aeb23212c58a78fd8ca37c1610c01",
+        "scenario_sha256": "sha256:50104b361b89e5ca2d2e83c58d0bebc1fa8fbe984cc827841f159a3e89195fcc",
         "dataset_sha256": "sha256:1695835d9b0bb588e8adb18c91d7bf09476a1ef1029f8cf7e9b72afb634506e0",
-        "contract_sha256": "sha256:846ced7c58a9fe0728fd5e75aff5453d2ffa397800e176512e7a46568ca4a8f1"
+        "contract_sha256": "sha256:292c10b2414133fec68c332243143be4389565355f84696d6abe9a91387049af"
       },
       "instruction_sha256": "sha256:e2bc73e7029b923736c682df8041999b79b71abddbfe0b35b895268beb6b53f1",
       "scored": true,
@@ -2988,7 +2988,7 @@
       },
       "effect_permissions": {
         "create": 2,
-        "update": 3
+        "update": 4
       },
       "answer_check": "none",
       "reference_answer_template": false,
@@ -3059,9 +3059,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/zendesk/find-invoice-attachment",
-        "scenario_sha256": "sha256:4d27a58d8b02b7a873dcf5c9d58c3e5186f36f5474bf70337631733b6b653158",
+        "scenario_sha256": "sha256:639d2c08c44044ea8f1913129bb47bb1196db28e780288e57aacc860c526d020",
         "dataset_sha256": "sha256:9b175f65fc78cd4f84bff0455fb891f1aeab6bcaa553a8fd7072db01f493033b",
-        "contract_sha256": "sha256:36e3495224ac10e69cdf929fe1ff96edc8537304b31e1198cb980834d5e1be02"
+        "contract_sha256": "sha256:439d1cb01eceef4925d6136a25c14ea6aa89b7a8ce4c2ef80346cfff1beddac2"
       },
       "instruction_sha256": "sha256:7e2c92619561302b6a5f71ccd617544f9e5258be417089472470e7c375eb793e",
       "scored": true,
@@ -3112,7 +3112,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -3160,9 +3160,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/zendesk/reply-refund-and-solve",
-        "scenario_sha256": "sha256:63414dfcfc80c2a5c7c3d0d5494111c5a4afba61b402c6751d24df0a0bc11403",
+        "scenario_sha256": "sha256:f82b3d05742d108c5f7647544cb11f205264375af7ce956c72fa0542f3c57943",
         "dataset_sha256": "sha256:6c7e63fbdbbcc3fecd9a7e63c02c765b74ef1bd9ab65ba7eccffc612ebe878e4",
-        "contract_sha256": "sha256:d3fc5740de93583106c6c2516009e368f5e8802843a1988858ae2e5ab03d680f"
+        "contract_sha256": "sha256:c0c24023e4ba51243f6962755e9530c3579df471aab819a605aea556056d0a36"
       },
       "instruction_sha256": "sha256:9b0c75d45b43c8323c6d3e9e7bd0b24b449b254bc200081536989360942c0c4a",
       "scored": true,
@@ -3287,9 +3287,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/aws/find-unencrypted-bucket",
-        "scenario_sha256": "sha256:cc8254d39dc7b0d5cd5371bb8874313889142b726b7bad3e52635c962e25a8cd",
+        "scenario_sha256": "sha256:ed90776ab86d44acdf7997197f0da36db3fcfa9e3760bd22d6f18d18deecc8b4",
         "dataset_sha256": "sha256:193ea0840d1c00bd95061275182e62d943d925651637adfe3fc1a119cda5bfb2",
-        "contract_sha256": "sha256:ed458d4094981a57cade41c9bafe500d1eb02c25669043d6843ef10534f7be62"
+        "contract_sha256": "sha256:ca776641cc2f3ef00f79e5ed94c8b7800b9f8c7d7985375a508595a7cf594d8c"
       },
       "instruction_sha256": "sha256:80649c3126bd68b99226d4dea6dabcadf2e716ecf90bfdf2b2e4c75e8f06c879",
       "scored": true,
@@ -3339,7 +3339,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -3944,9 +3944,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/cloudflare/find-stale-origin",
-        "scenario_sha256": "sha256:478fb10b6a033086cc479d88d78956f1ab54d42e205d2772b613e72af3053b06",
+        "scenario_sha256": "sha256:d1625d3ed27b0068fa63f212df4e6fb8cb014f0fe26a88d01dd22a4c7f8f2f55",
         "dataset_sha256": "sha256:11978f677a5fbd6d8f3acbf8d918f55bdacd18f5cc8f332ec1ade758da9a8d47",
-        "contract_sha256": "sha256:3008951f8396b4dd60d73eb669f43a97c5c9597b5ddac6d9ff7d44996ecf0060"
+        "contract_sha256": "sha256:3f32456f5ef0b295cbe20d9526d17253fa39eb267e01a5d43602b770cbb389b9"
       },
       "instruction_sha256": "sha256:98ef47e80b431b3e5735a0a1534b9035264459720150503c679825596cb73362",
       "scored": true,
@@ -3997,7 +3997,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -4499,9 +4499,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/mongodb/top-category-revenue",
-        "scenario_sha256": "sha256:2c7176c62639915aab386c736a31b6f2eddf1e41afc26813736a2a5c1ca6a972",
+        "scenario_sha256": "sha256:f06d477ea7a0106337d51e14e2b9e2a2726252c32553f001509238fce971b256",
         "dataset_sha256": "sha256:17cc233ada17c9dca2e7f1557a0edd8ea0bd7de391d6311901f659b83bc617c3",
-        "contract_sha256": "sha256:6d3ddfe0d6148efc4d5db57f905829cb25dc332275b082f1ef8de6fb86647119"
+        "contract_sha256": "sha256:b580ec270b9d18fc62e42361336fc75cb92e2d837a09ef40ca7cb8e25cf9da7b"
       },
       "instruction_sha256": "sha256:2bc8f280cce06b2beb8adb5a8c170f29cfafe243aa66f5fad441bb3cb3da73e8",
       "scored": true,
@@ -4551,7 +4551,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -4589,9 +4589,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/multi/aws-jira-decommission-worker",
-        "scenario_sha256": "sha256:c213c311ff42f0061f36bcaa4b19bbe0255d22e1133453065c4463a62a7ece0d",
+        "scenario_sha256": "sha256:ac1bb26f0e887ffbc02346c8d8395618dd1d981c14a4b6e543a8355b2355c1d4",
         "dataset_sha256": "sha256:f2167c81ccc642f2de1ef61cb1329c481c97d69c27411f8b87b5032fbc5a86a3",
-        "contract_sha256": "sha256:ac3c30b9861b9eee3c79fb18c33fefbc0a8c0d4cdfa7a477eed8593a0e036fd6"
+        "contract_sha256": "sha256:6e67d36cfd107663b91b05a502313fa598cc3674ec308123dda8265ab7aae0a6"
       },
       "instruction_sha256": "sha256:072254198d56efbe6cda39c8b7884d3a6d9d67e9b66511f7ce5293c7d1bb1b12",
       "scored": true,
@@ -4746,9 +4746,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/multi/aws-replica-lag-pagerduty-notion",
-        "scenario_sha256": "sha256:83c0f0a5cd8929b624dee795063ed1fc7ce8fcae1d8016db48b479362796e629",
+        "scenario_sha256": "sha256:3aa39feccadd2018613a8b24d5330c397ee60b1d3c8a684989a459659aa835ed",
         "dataset_sha256": "sha256:0220f1f87c70f4ceb38a01c37cfc618b4f64ee79d45bc9f7603cadf96776256b",
-        "contract_sha256": "sha256:5a1c777ff05e52b550a6f9e5f5da9d36e38a38fb2ef937b5ed7a20f186298385"
+        "contract_sha256": "sha256:bfef83cb43b5787db81b193c8f359a40712aae2a0904a0acea5d916707d5c787"
       },
       "instruction_sha256": "sha256:628c57e7bf722036abb411486361675e08a1685cbe357143d058c33d3060091d",
       "scored": true,
@@ -4902,9 +4902,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/multi/mongodb-zendesk-order-tracking",
-        "scenario_sha256": "sha256:1cd92782305807e7de074f5fb5fecc0b72c06d3a3d777dab4ef46e808cfd1237",
+        "scenario_sha256": "sha256:2511438b2e962d5bd4f8c754b529bfd0448631cc75bafadd9ef5798034671492",
         "dataset_sha256": "sha256:1463a80f53a2e6cd1b9c51bf4dbd2c97f4d368f9ce9edf4fe8c7444bcb393ad0",
-        "contract_sha256": "sha256:82c599564d92a56e05a152f8ad89d504aee896d076425bd4d5948846c9d10f91"
+        "contract_sha256": "sha256:393e936df7116ad39f04d2dfcbc3bfbfc701f7ffe61bd94d7cc3893e7895190d"
       },
       "instruction_sha256": "sha256:c48396c86a8bdf70611ce035002dbd840b1dd763e15790966f4336b4407da33e",
       "scored": true,
@@ -4960,7 +4960,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -5019,9 +5019,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/multi/okta-offboard-linear-slack",
-        "scenario_sha256": "sha256:cca6524fb6aaf55f10463d0e7c91213b256f078a7519a272bbefae9d0861a3ae",
+        "scenario_sha256": "sha256:6fa1cbc9c659438a4ad4948c229f7efa65ffe844190d5135027e7660503e760d",
         "dataset_sha256": "sha256:203563cef5605943f0078fe741f099a90b612dcd362118d036424bdf8cb1dd19",
-        "contract_sha256": "sha256:1028597382c69c7eaa18bb9bb87cc9171774980aefaa33ce4fb9980f26045afd"
+        "contract_sha256": "sha256:b5ccbddebc83547d57c7c82ecb50d547a22c2b53b46295104a0d695ddbb1c1ae"
       },
       "instruction_sha256": "sha256:765184776189a30d6e96d059ef5f576ebe4cbe8aee23e7b89c075c6e8d5418ba",
       "scored": true,
@@ -5197,9 +5197,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/multi/supabase-slack-referral-signups",
-        "scenario_sha256": "sha256:9789371ccd5a6648d8b5fae11217141894c84d5189bc3960577be1a1cd7f135e",
+        "scenario_sha256": "sha256:d9afaf6648133f123592532189f510b4697c419293064ff925745fc20310b628",
         "dataset_sha256": "sha256:ac457a39f89a5eda64363a1e3dbfe7cc6d228fa0527baeb5eef4c654d1c5fd56",
-        "contract_sha256": "sha256:6e8159f07018ba6028f2e69b3fe47e06b482199d0451d93645523c3a66ed8b82"
+        "contract_sha256": "sha256:874fba88c3cf70f30a5c5a95301b764af960b94f444145d555119ad1c2703a5d"
       },
       "instruction_sha256": "sha256:6395079af4dd6119d4cbb83d5a92eb7361c21b79544d8772ac36a42891c29361",
       "scored": true,
@@ -5254,7 +5254,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -5487,9 +5487,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/okta/failed-signins-report",
-        "scenario_sha256": "sha256:7bfbcc68d32447665acedbb9c1cb4f315291de3020d49fe7f94fa20f029fff15",
+        "scenario_sha256": "sha256:27093e912fed1e9f3b0526666ee64ee417c52028a398f5f7836ca0bb9c91f7d9",
         "dataset_sha256": "sha256:5f3d061a48ae4145d26b66ad7443181540da228b6f992d1ea3e21db6a0ec5dd8",
-        "contract_sha256": "sha256:21719e283169a04785c35e749f8955aa0439a77774f6ed068c65b8e35085bece"
+        "contract_sha256": "sha256:3ae8b30e9739bc514329d8950f5086fcea264e4a8c6af957470618ab952a754c"
       },
       "instruction_sha256": "sha256:733c93bb5bd3959e56c5d829a69dfa9ef5595b87e816f20531a21d26d21949f1",
       "scored": true,
@@ -5539,7 +5539,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -6204,9 +6204,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/supabase/top-customer-march-revenue",
-        "scenario_sha256": "sha256:c31048f5eaf0e59a812abb8ee86b2d27c5710cd17e7daea7fd48525787168803",
+        "scenario_sha256": "sha256:c458997900bd47096928e555615b1f526b33823f3de3262adf35e6140c9b4a3c",
         "dataset_sha256": "sha256:446db5aa3f4b18f573193eb918aa5ad0bc4111c5cbd6a7b5a82b4575af5bd29e",
-        "contract_sha256": "sha256:a4831957a6c256475c66c516044070348a3b2a21f18bfe05f1e619055fa5f407"
+        "contract_sha256": "sha256:4de1cad4193b6371566c860eea62ce6d337c475b1af48bdbf634f73ff3c42c7c"
       },
       "instruction_sha256": "sha256:dc9de7406f576805a8a3adef1f3b4dc10dfe182f355ecd7aa5ce4cea27a25dd4",
       "scored": true,
@@ -6256,7 +6256,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -6293,9 +6293,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/argocd/find-degraded-app",
-        "scenario_sha256": "sha256:53477bff3e942935f5d38c84a9ab9891e2284c0317959f856f7306e4fcf9147f",
+        "scenario_sha256": "sha256:ce85a74cf46a365fdb7484aa949a5b8a9120b62252cad83ff674d47790b9ba78",
         "dataset_sha256": "sha256:7744a3b62facfb55b901c5059c1a7ef07279e5e58a02f7968f2a7b65d4bdd046",
-        "contract_sha256": "sha256:7354c78a38dbee581b0b587b7b3342bd0fa3aefb2c82dc10d2b4de94ffb44955"
+        "contract_sha256": "sha256:d6dbef527f694ac8a0b75d20c8757f28e6172718fd14f54a864dad8227cc38b0"
       },
       "instruction_sha256": "sha256:c7516d927421ef36337a9942b76cb17cf9edafc9901873897eff0be7d0024507",
       "scored": true,
@@ -6345,7 +6345,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -6835,9 +6835,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/github/approve-merge-dependency-bump",
-        "scenario_sha256": "sha256:2f77b326ef72233618d0eec764ccc4911e8cf2df9301b222b45b72f33eba156f",
+        "scenario_sha256": "sha256:e93da3e1056f9e49c729d334a0b6df93477930c0d97b3dc5b94d5cb0cbaa6e76",
         "dataset_sha256": "sha256:744c9182c027f4451704b134ec22c098eb2268560d0fa9769cb179d761f90f31",
-        "contract_sha256": "sha256:5f92c6db7a7e3f2a27d26151c5467720909a624dc20bd44f89e4a7e714451523"
+        "contract_sha256": "sha256:5b9ec4272df119152a5de59e303f75053ad896d744e1fa5947081982ef38be0e"
       },
       "instruction_sha256": "sha256:e8f193041b5f1d7cf9af603389a61ab9c36c37ce00337a32871189879fe7d33b",
       "scored": true,
@@ -6937,9 +6937,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/github/ci-failure-root-cause",
-        "scenario_sha256": "sha256:71a8f9ceb90ba1082fa17d0c08b7afe43b5e96ead5e6f3b486084582065e0542",
+        "scenario_sha256": "sha256:df896f05ddea9a60dda273da8b2c9cdaf18301efd636cb178119108467d60f8c",
         "dataset_sha256": "sha256:b0cf8aae708c405fa1b4bb9bf4f8740a3e5de235db7b809012efaac547a7ae50",
-        "contract_sha256": "sha256:162256b3efa7515cf9c7122dbd4551315a5f5a715a492d9a7d34af05b9d91a80"
+        "contract_sha256": "sha256:f9079fbb6da8564a1e85a90d6895e74ed7a0ab4f1fd586b85666d56bea3f404f"
       },
       "instruction_sha256": "sha256:80d9e6783a97eff0a471956c768a8313de2fc31bef236e610c5a12fb20ef7f69",
       "scored": true,
@@ -6991,7 +6991,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -7040,9 +7040,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/github/file-login-bug",
-        "scenario_sha256": "sha256:f8b4df18185941c23cf47d34571c3276466f0131a68e823597fbf6a551e9f2de",
+        "scenario_sha256": "sha256:563176f122d8b5350493fc94eb2210caa8b829b5e87f90ad91bda7517f19d5cd",
         "dataset_sha256": "sha256:3b75506d03c8f40eceb3a9f553a45b3de838913b097fda3254bda29cecdadb31",
-        "contract_sha256": "sha256:6aa15e4ce133c1d72853195b23105cd45d9231a62312788833cb4e3dbc0b29e7"
+        "contract_sha256": "sha256:17d2bb36330ff0109d6372f4d7a121e25351b8fd37433ff4aa0ffe9984052f0e"
       },
       "instruction_sha256": "sha256:706bedcb8a7fcb98370f8224cd9b35f41725f189aaaba30863eec9254a71eff9",
       "scored": true,
@@ -7245,9 +7245,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/gitlab/answer-changelog-review-thread",
-        "scenario_sha256": "sha256:de9e4a956f13b991529c69d6bdab457acb8d5c633a39d863f831fbac734a9dfe",
+        "scenario_sha256": "sha256:ed5fc3b097340539812013929a194f9e114bbbbaea95d4317084d8410ce3680f",
         "dataset_sha256": "sha256:4238b6d83e53b747e6e1ee0a257c600afda3aa9906113e095d78a1f13f4eae99",
-        "contract_sha256": "sha256:3847ceeadfe6641e12f9dad2f6f541f4056377db401049ea1d2b57688c375672"
+        "contract_sha256": "sha256:7440a0ca07dcaed412d908f5885e7516ccda095427873f9d2cd0da3894e6982a"
       },
       "instruction_sha256": "sha256:df36b64940b7f5b7a12daff8bbd8afcf306efda182fae2e3fd7a8ba7a7300e4d",
       "scored": true,
@@ -7453,9 +7453,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/gitlab/diagnose-failed-pipeline",
-        "scenario_sha256": "sha256:c3aee4e57bd6aacce16032571daa262c8ae2f1d5a1570fccb4f30cb04f60a4be",
+        "scenario_sha256": "sha256:4032c12a5e6f5e58ad25f677ab8a83a6130166fa572ea9c06e24551f3781c00c",
         "dataset_sha256": "sha256:0709a7f1eca6279eb727bca96ec3be418abb1a4f7b4b6ac8967287d42b1ffe69",
-        "contract_sha256": "sha256:202ed651da3600ec991916f0b814b9b7b0692f9b91a3f176e905bc895ea28810"
+        "contract_sha256": "sha256:f24f67da42af7d97085b3f5a5f804df93d588ea254809a3be417d5f1bc3b7020"
       },
       "instruction_sha256": "sha256:078cf4da17a67300c63af83eae842e3717b8320abef92d850e6a5489331e0536",
       "scored": true,
@@ -7507,7 +7507,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -7567,9 +7567,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/gitlab/file-circuit-breaker-issue",
-        "scenario_sha256": "sha256:515a3ac64bdcdbec963285ffbab4e5138d1c251edef5ab98e73262b0fcd39d15",
+        "scenario_sha256": "sha256:6cbcf037f702b7213bab04ca748f17de018b130e25b5120a824bea4ad5d22861",
         "dataset_sha256": "sha256:a609995c59659e9a04c592603f5f95749562cf76cedbc0fb7b8391bbff3eb96e",
-        "contract_sha256": "sha256:f9cb884c309bf414c01e13ac504c70283015e13dc6993463171bda7abd96f0bc"
+        "contract_sha256": "sha256:2b0b84e64a8a97ff7fbc618cb8fffbda1df9a330ae53db56dc8217f3097c4212"
       },
       "instruction_sha256": "sha256:b4782ef6f0bdbe15154f3594c06bb677403205ab024cd69346acbe3a291cfa2a",
       "scored": true,
@@ -7657,9 +7657,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/multi/argocd-degraded-gitlab-commit",
-        "scenario_sha256": "sha256:9562836d4e64fd4e828086bca7ea542e5ab3a7bfee2ff5341c2044f4c5ec9b28",
+        "scenario_sha256": "sha256:cbf1dc663e04b34002a1acc91868ac117731f3a987993d788f344a97e580352d",
         "dataset_sha256": "sha256:71955cb890c5150afa9dcad3a1d5b8a942a66a48fc2144258494e8dde9a47927",
-        "contract_sha256": "sha256:3da1fc4fcbec3164f991b2f5c51bce525b83a17d1c3f1c47f94973fd94c93fbd"
+        "contract_sha256": "sha256:e0434a2ba5e6cff2a023e91d1f1dc26e6dea48d510e99bbb655cc297128f593b"
       },
       "instruction_sha256": "sha256:8c921cc15bdb6a34614b11956c533bf85fa543d207857f058552760f419a5899",
       "scored": true,
@@ -7714,7 +7714,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -7864,7 +7864,7 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 1,
+          "valid_alternative": 2,
           "near_miss": {
             "collateral_change": 0,
             "partial": 1,
@@ -7933,9 +7933,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/multi/terraform-failure-grafana-annotate",
-        "scenario_sha256": "sha256:1b85dd61f2d35cf87e398794ec08101d9ff596dc0af472354232ba7ea556cae8",
+        "scenario_sha256": "sha256:e9675ff0079c298c4bd66d2284ab658ffbdf6ede9d7ed362dcb9f122edea447a",
         "dataset_sha256": "sha256:cbc3e3350cc38a67285dbd38486ff07c590e6e8d8010e231c95b7eb908045ad5",
-        "contract_sha256": "sha256:70ddd198146092ab532b0c9e843ab50c1916ff104eb33778c69d85a1b1bff29a"
+        "contract_sha256": "sha256:0cf15db45d27ed9fd94e0802033743446c555e0fd98bb1b624830c0f077dbe4f"
       },
       "instruction_sha256": "sha256:0c405b2b555ab05efd04647e4ccc10580acf2a79333ae5ea5f6a681be2f8fc4d",
       "scored": true,
@@ -8079,9 +8079,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/multi/vercel-deploy-github-pr-lookup",
-        "scenario_sha256": "sha256:52c7644af5b3a2e9cb84c258ed402a15747f7a0a65125e696b09405347cb20c3",
+        "scenario_sha256": "sha256:4bbc4024275b798899693dc09d415d99b70f3348636f2133aa0c6b24de3b50a8",
         "dataset_sha256": "sha256:e7cb77d21b00bbf602258149b39e4becdc3aae2b5187a5ef8e479106e63bdd98",
-        "contract_sha256": "sha256:6da1b3426daa73609f68594a8d6ffc9611ef695c6159b8c572bba20a28c76c9f"
+        "contract_sha256": "sha256:6516170eec4550706324d5c005b99d244cd4d702ded817c85e4c5ee738ea3f6b"
       },
       "instruction_sha256": "sha256:ca6109268ff6f2dc17038cfcae32bc76ab1002d77a9d95c5b273152d218a2dd6",
       "scored": true,
@@ -8137,7 +8137,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -8327,9 +8327,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/terraform/payments-db-upgrade-failure",
-        "scenario_sha256": "sha256:a89b5b7d6594481ab9a6818a764b20d6e2a8fa7e31dd7779c40c61ebc16ea740",
+        "scenario_sha256": "sha256:e6b3645c4f1bd910048465be8ddef6c19a776f2de6f2e2f0ba6e915f1e89c1a0",
         "dataset_sha256": "sha256:76871493642ffc8744ee72d9741a6936b2927a176a60e7d0d514ca8f4bb9dd87",
-        "contract_sha256": "sha256:ee8accd37a96730f77635e01e4a49f752094bc2b819cf7ea044b1610656e959e"
+        "contract_sha256": "sha256:3aa6d638eb112b93e431a9ad776cf103c80f26242b7f2049c8dc778fa409b6a8"
       },
       "instruction_sha256": "sha256:6e21fb2164844351c78c3024fde080d82c97c07e0c1d9718ba4d51b5dd6415fd",
       "scored": true,
@@ -8381,7 +8381,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -8661,7 +8661,7 @@
       "authoring": {
         "captured_arguments": "validated",
         "validation_evidence": {
-          "valid_alternative": 1,
+          "valid_alternative": 2,
           "near_miss": {
             "collateral_change": 1,
             "partial": 0,
@@ -8992,9 +8992,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/vercel/rotate-checkout-stripe-key",
-        "scenario_sha256": "sha256:a14b4381cb0d55c5d2e6f279059d2f97807a2042dffe63cd7b9d4ab744cb1e55",
+        "scenario_sha256": "sha256:105e5c8d5499ec43a49a15cbbdf328837aa7a6bb74e797065f7b74cf3984eefd",
         "dataset_sha256": "sha256:439caddd71f2943b2f57e69f097b3dae6fb7cfb5e23b8e4b9bdb7fa602c02ef9",
-        "contract_sha256": "sha256:8119fca2f715c117731354a8dc1042497253b3c112b28d491f6aeafd57554119"
+        "contract_sha256": "sha256:dbaae16dbf19c16b91feccdacc7eacea0eb69327859633b2981f3eec26dbac65"
       },
       "instruction_sha256": "sha256:5750856c26db55bf4fc2300b3627d165687d097f0eba113189e1ed518e80ea43",
       "scored": true,
@@ -9029,8 +9029,8 @@
       "array_length_permissions": 0,
       "latest_record_checks": 0,
       "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 3,
-      "related_record_filters": 0,
+      "initial_scope_permissions": 4,
+      "related_record_filters": 5,
       "relationship_checks": 0,
       "causal_checks": 0,
       "information_prerequisites": 0,
@@ -9045,9 +9045,9 @@
         "source_bound_answers": 0
       },
       "effect_permissions": {
-        "create": 1,
+        "create": 3,
         "delete": 1,
-        "update": 6
+        "update": 9
       },
       "answer_check": "none",
       "reference_answer_template": false,
@@ -9055,9 +9055,9 @@
       "authoring": {
         "captured_arguments": "validated",
         "validation_evidence": {
-          "valid_alternative": 0,
+          "valid_alternative": 1,
           "near_miss": {
-            "collateral_change": 1,
+            "collateral_change": 2,
             "partial": 1,
             "undone_prohibited_change": 0,
             "wrong_entity": 0
@@ -9072,9 +9072,7 @@
         ],
         "unreviewed_operations": []
       },
-      "source_gaps": [
-        "validation_evidence_missing"
-      ],
+      "source_gaps": [],
       "reference_calls": [
         {
           "endpoint": "vercel",
@@ -9137,9 +9135,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/vercel/storefront-production-status",
-        "scenario_sha256": "sha256:e91d497468af39ad7052e2eaf2879866569972f7110c1221916bd515a5804da3",
+        "scenario_sha256": "sha256:a399c8e64aa218a32ba61959e555e5de356cad26917510b3da67fbc84bdd4997",
         "dataset_sha256": "sha256:899512a902853a7504e75cbb47f7b2b297211421bd6390bedf2fb4600733bf12",
-        "contract_sha256": "sha256:bca1ad4c8647346d62ad69c23382572ab4bbb94b4987979457140472896a7f5c"
+        "contract_sha256": "sha256:df1cddf164c6f1b6fa6bfb75832c7c823968d89d418ee50df9c6f1b000af7fb4"
       },
       "instruction_sha256": "sha256:a18710f265e6a8926a1f3dadaef6b046c80d11670eb78d43b02ae629cbcbb295",
       "scored": true,
@@ -9191,7 +9189,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -9242,7 +9240,7 @@
         "schema_version": 1,
         "scenario": "collab/google/mark-northwind-renewed",
         "scenario_sha256": "sha256:e2f3565fbb38d2fb029ebd5636426ef66ca8e15f1965a64e40bf89ae9521c6e2",
-        "dataset_sha256": "sha256:73b4fef1b385270d496c465e92edb5e73b43ced1bbdd1873d34521c5cfdd2852",
+        "dataset_sha256": "sha256:c750c83e5b9ddf6d6cd5a40d09cb38960db3863646c9e13f7d240f10aea769aa",
         "contract_sha256": "sha256:19637325bd0da0ed63069d7fa263e75760f92bb9deec48c571a69531f87ba19e"
       },
       "instruction_sha256": "sha256:db4c6f2bbe3d1a1e41885ac54c00173c74fe30a156fed01f8497d064703eeb4b",
@@ -9383,9 +9381,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/google/northwind-invoice-lookup",
-        "scenario_sha256": "sha256:f55ede697cd9fb18726a141c00d1be6566dd2833600f4ac36a25c1f8ebc2051d",
-        "dataset_sha256": "sha256:73b4fef1b385270d496c465e92edb5e73b43ced1bbdd1873d34521c5cfdd2852",
-        "contract_sha256": "sha256:1b1e8105a415fe3b2b6ed56f641600e3814bb9fe78af7045e8801be8d92428d0"
+        "scenario_sha256": "sha256:4d1e0a6cc10f91b8ca6623b86e92ad5f8a1ef029249fabd08b712b388dd60fe6",
+        "dataset_sha256": "sha256:c750c83e5b9ddf6d6cd5a40d09cb38960db3863646c9e13f7d240f10aea769aa",
+        "contract_sha256": "sha256:74864721f24cc857ec4138ad0b53ce08970fedd61e11cf53189037702a313487"
       },
       "instruction_sha256": "sha256:b9b4610a39502590555108d6e7505e818743487a91e6f3e80e872be8becbdd33",
       "scored": true,
@@ -9439,7 +9437,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -9487,9 +9485,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/google/schedule-q1-planning",
-        "scenario_sha256": "sha256:518e3bf48745bd1cbf5e7c07c0c35e17f714429539c14d8e19ae101d6d9c7b62",
-        "dataset_sha256": "sha256:73b4fef1b385270d496c465e92edb5e73b43ced1bbdd1873d34521c5cfdd2852",
-        "contract_sha256": "sha256:b94f98838313f5d5697c31839f31a602990153b93abd623e76604c27aca3e711"
+        "scenario_sha256": "sha256:23e8da704f89341c8166e5b58b589ffd7d8c1fdb6921082aa1030a3573ed6a9c",
+        "dataset_sha256": "sha256:c750c83e5b9ddf6d6cd5a40d09cb38960db3863646c9e13f7d240f10aea769aa",
+        "contract_sha256": "sha256:3b46cbe837881708be74dbef41eecfef817903882c0209c37c4c4de1fd71f059"
       },
       "instruction_sha256": "sha256:5536d04bf19a8efcd8641b8af05b96f25486f8cfef72567383c4a576580c29e0",
       "scored": true,
@@ -9605,7 +9603,7 @@
         "schema_version": 1,
         "scenario": "collab/google/share-soc2-with-contoso",
         "scenario_sha256": "sha256:e8fe0ffe3c741650ba8ea63caa3ecfa0e56284532214481ff8f8145dc68a9c0e",
-        "dataset_sha256": "sha256:73b4fef1b385270d496c465e92edb5e73b43ced1bbdd1873d34521c5cfdd2852",
+        "dataset_sha256": "sha256:c750c83e5b9ddf6d6cd5a40d09cb38960db3863646c9e13f7d240f10aea769aa",
         "contract_sha256": "sha256:2df52e9350eb08c557183f78a84eb03df4c89da3314d1cdee1e9d9999efab6f4"
       },
       "instruction_sha256": "sha256:a1367415484d5f7925bc5c68959026019868a730bb4de7355e3d99b10d9188f5",
@@ -9874,9 +9872,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/jira/blocked-sprint-item",
-        "scenario_sha256": "sha256:4c95b6cc2395cae36f8f75c98fe03108ed117865bb0b1896ee53f2b3757eb8fc",
+        "scenario_sha256": "sha256:9838b85e7068ce58ba0b5889505b86fb5848aa8acf7eaf8037251254d58a5409",
         "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
-        "contract_sha256": "sha256:92990fc82e7814ec3b9413cc914a770e391b0a258d2478cbd079a6ded25ec439"
+        "contract_sha256": "sha256:07cd688b72b7030577f547308acb07605c31bac55543a58ce6cb2d423afc0797"
       },
       "instruction_sha256": "sha256:a76f532bf21ee73e1a773e1abc81aaca8b8e6095edd8edd3c0448e51d7b4326c",
       "scored": true,
@@ -9927,7 +9925,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -9987,9 +9985,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/jira/file-apple-pay-bug",
-        "scenario_sha256": "sha256:e48eca4d0d3cc3f1593161d8d9ee46c47fbf19eddafa6b634929faae055f3b93",
+        "scenario_sha256": "sha256:7082c59d2f7202136a75078f309fbeec54c05cae7e05057c55c67c7f3a6e6556",
         "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
-        "contract_sha256": "sha256:41187c9e2083d923dac510ceeadd01c790aae53e00757071de80d3cfb760fde0"
+        "contract_sha256": "sha256:d2d86d592a234add66250b17d20ebdc709ac3d3af5ac0fb91bb68357e87bbe0a"
       },
       "instruction_sha256": "sha256:49c23ae3b59b8ebc5fe94eb713816621dd7f4e351142f2a2b957b18b1f284f00",
       "scored": true,
@@ -10091,9 +10089,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/jira/ship-refund-retries",
-        "scenario_sha256": "sha256:a9bfe73f45c620b42c285cdf152ea9fcf0f0ad9d5570490baa162156f151bf97",
+        "scenario_sha256": "sha256:afd8e1c56eef66776dbca08cb500855882d910429575c8fe3cde4a69cee42317",
         "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
-        "contract_sha256": "sha256:b844542e780533288945660b45b1ee7d7eaa685415eb35d70a11e5a37a4a383b"
+        "contract_sha256": "sha256:95fdbbde78c09dd4bd39222dced467d696db00d37ad421711eb05015debeac2f"
       },
       "instruction_sha256": "sha256:e5c0df37f84533f8078eb783395edef47aeeb4944e029188f6364555273c6a63",
       "scored": true,
@@ -10216,9 +10214,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/linear/escalate-right-safari-issue",
-        "scenario_sha256": "sha256:3f6e1dd82b94ad5d6a3ac246c794ffae35b5c7774720be8b14238dbb7897afff",
+        "scenario_sha256": "sha256:588d276c78a9776aa6bf675e95850a82b043b39db4caaac3b2c80e01153e6457",
         "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
-        "contract_sha256": "sha256:191ff117f07c489cfa949464effbeb59797e74b9bb5cd95458f12b44de882e57"
+        "contract_sha256": "sha256:48867ac3de0b1f47200d3a55157aab35f5670b07073e4314cf6d893df6c1df6a"
       },
       "instruction_sha256": "sha256:be13a99f6c023760198d209f2eb910dcf31fa9d0ea6772cc8688f12c6b92f764",
       "scored": true,
@@ -10332,9 +10330,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/linear/file-safari-crash-bug",
-        "scenario_sha256": "sha256:8ba86f3096911acaff6c60efabc3ffcb0656cf560af37c951a614548b53ea3f8",
+        "scenario_sha256": "sha256:5b8d5252c3ea6ea7dfc5d8c57b09ec0f132f76f66bd347dc4c2cfda53a0942a5",
         "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
-        "contract_sha256": "sha256:626fdb91ea8f6624b4c580314eaf68a9094b50dac19a9f3084c884517466d096"
+        "contract_sha256": "sha256:34aeafaff9600db14a9d23a794afd05445e208fe57c3dde1a6f23f6c18f8fce1"
       },
       "instruction_sha256": "sha256:a803ff166f2cf63762a5c02966930fd04803c6c510f9d7a3c8ba39c210a3dda4",
       "scored": true,
@@ -10559,9 +10557,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/linear/urgent-bug-owner",
-        "scenario_sha256": "sha256:9d15b87b067ade5e3c7ba50afca7e9215c2b54aedb57c25affcd5c826c5a5660",
+        "scenario_sha256": "sha256:02e7eaeaa4b206091823c62cb775c1602209b0dc3d22c83c688ed8cd39ed0769",
         "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
-        "contract_sha256": "sha256:c4610340e3baafb012f7629bf09a4777ef335e74c638d56a07258909822e6689"
+        "contract_sha256": "sha256:51051f58d7c02c6e561f26e0aa72b71f59c4461b784b15e569b95e37b10c5537"
       },
       "instruction_sha256": "sha256:01df74b4e71a1dfe8434a8e4cc68a8f25d57e49222b2859f55be33762fdc2c51",
       "scored": true,
@@ -10613,7 +10611,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -10662,9 +10660,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/multi/google-refund-damaged-order",
-        "scenario_sha256": "sha256:87525ca56efcd9ca46b0a9a220d4047dca216cc2806c945115aa965b7016c3c7",
-        "dataset_sha256": "sha256:554be4f4b46066465a5f730afff9d9dca2d6c51949916016f252dd57bb7b725f",
-        "contract_sha256": "sha256:a6b63a4900e14f889bd0a60820b0e86ff8503539942de47212fce697a467a297"
+        "scenario_sha256": "sha256:96730983b9d9e598c532f38f93786a439f5bfd5067ea28de88db1c8a5f5e6578",
+        "dataset_sha256": "sha256:b5a78cfd72181541d8aef8ca3414fac6634b0ff7369af3b8010a6f3ac25aa613",
+        "contract_sha256": "sha256:2f6d99d50ecab46249b399a1026c7fbf5e54142fc712e4a08def4b9af799673f"
       },
       "instruction_sha256": "sha256:0f4f6c08873ea443076f9b9c77800000f81d8a8f39a429f30a115823ee2522c1",
       "scored": true,
@@ -10828,9 +10826,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/multi/jira-sentry-crash-impact",
-        "scenario_sha256": "sha256:3a5b390dcda5d361a517660c1088cc72e84960a6f397c5c0868ed5a6417dfde8",
+        "scenario_sha256": "sha256:fa10a970e71cf6cd0fddce4d7a6dbb9c6ee9b91ddba3106504d2e3d6622537fd",
         "dataset_sha256": "sha256:9a0465141d9ec276cd745291bc55e7cfd6b43d63ab18bc0151a6a34ad6f63351",
-        "contract_sha256": "sha256:e543a658d005b2c920ef5fa74ae10d8a9871ead450fee7eaa604f90a3f377d39"
+        "contract_sha256": "sha256:eb56cefbbeb3c69caa1668bf0e1287196b551dfceedb80e8d88e967c947fecdf"
       },
       "instruction_sha256": "sha256:caa519a0ec40d9fe82f49c471e9382accd7d8a2de51f0d75c5524eabb9fbc522",
       "scored": true,
@@ -10885,7 +10883,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -10946,9 +10944,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/multi/linear-cloudflare-api-origin-cutover",
-        "scenario_sha256": "sha256:71ff5e4ea0b68db018c83a1857507d10ba4e479b426edff00aeb74cc7fa23693",
+        "scenario_sha256": "sha256:7f77b0fed08832d37e732494c844510d7a5b382e596fd81b9bae8ce033a02302",
         "dataset_sha256": "sha256:3f2f103669762049e69befb11bbe75a53cddd44b98699235d3b98462fee7b357",
-        "contract_sha256": "sha256:d84a7f27cb39596d06fe9b2baefcd0a27a402c5192054b28cafb2dfd291d3e13"
+        "contract_sha256": "sha256:94ce8d890251f82ae9d0f294c98ff8120c0145f3fe263b40c21312dbfaf192a4"
       },
       "instruction_sha256": "sha256:95f9e60d11504c6b0fdfc290e38de5cf729cd4c170d2530daec1ee3e36651527",
       "scored": true,
@@ -11005,7 +11003,7 @@
       },
       "effect_permissions": {
         "create": 2,
-        "update": 8
+        "update": 10
       },
       "answer_check": "none",
       "reference_answer_template": false,
@@ -11089,9 +11087,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/multi/slack-google-cutover-calendar",
-        "scenario_sha256": "sha256:58ec1d8c2399fd90a68b6cad8bec785f33e0d0b85ac83e5bdf64bce689772c41",
-        "dataset_sha256": "sha256:abaad80baea58329b3ec5702dc2bdaf5e5f504ad265dfc0074d4a642db8f3e95",
-        "contract_sha256": "sha256:fce7cb81bdce6e9063209838078a3d91f0764ebee6061fd12ea1bc5c4c2c5272"
+        "scenario_sha256": "sha256:9f12d2bead19626c0ea4584be132d743b140baccb5d24cee4a2864e7d4533709",
+        "dataset_sha256": "sha256:f4e3a06186a74415d5889ebeb1b303c8cace1473165e62fe33c6972b1a6c953d",
+        "contract_sha256": "sha256:6da7ecb8f4fcbd42695e2d1d88bde25fa17a493ebe500df12380b66bd5e421ab"
       },
       "instruction_sha256": "sha256:247331a91e3a1e0e8bb53fe86622c769586b435cc383347b97b3d5e53ef48051",
       "scored": true,
@@ -11253,9 +11251,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/multi/slack-pagerduty-dbre-oncall",
-        "scenario_sha256": "sha256:1352f322c49fc491b29054dea9ecfbb10fe1dc2d040d4adb59cacf268cfbfe77",
-        "dataset_sha256": "sha256:039ffdda0b3f3277882244cca27edb375668893d4d283182a70ea08bff4cc68b",
-        "contract_sha256": "sha256:e290e6ef9ae5c85140eb5e5bad7517ff3f80f9458aeb98d984e62c0629a7155d"
+        "scenario_sha256": "sha256:6292199c0e70daa4f633807ef97d15d3eaaeb3bf3fdde09737390895bbbd97eb",
+        "dataset_sha256": "sha256:66a0bdc15356c209fa8d86e46f75f740be88df00977c60393b78ed720d44cf44",
+        "contract_sha256": "sha256:0210ac0c6477423fcebc1484b98703442a2865c5132f87434d20aaae0e8774c9"
       },
       "instruction_sha256": "sha256:425c85323a3a04ff207ff5f917a83243f23f8323eab439b3b9ee828bb07f2ec8",
       "scored": true,
@@ -11311,7 +11309,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -11383,9 +11381,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/notion/delay-web-launch",
-        "scenario_sha256": "sha256:18046b711c707ac89f8cb2077461d2cc7f40f8394d0aac2322de7f61923d2e44",
+        "scenario_sha256": "sha256:7ee3d2914dbe48ff088585df3548a61031f4814e351bb19852e387bf4b8d4a8d",
         "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
-        "contract_sha256": "sha256:f4605b756edab01ee4e6305c14a9a641f28af0f0c7563538a95c7d19810757e5"
+        "contract_sha256": "sha256:e282c7835308854d4ee3a5d92ba54e72513dba0ff5ab9df3a19067b606235d3d"
       },
       "instruction_sha256": "sha256:64bf80f9ef6e1418374a0a46bcfeb34586cc2b35c268db82bdb75d319aa91c3e",
       "scored": true,
@@ -11427,7 +11425,7 @@
       "declared_content": {
         "literal_business_text": 0,
         "literal_html": 0,
-        "reviewed_static_text": 0,
+        "reviewed_static_text": 1,
         "optional_reviewed_text": 0,
         "conditional_reviewed_text": 0,
         "identity_bound_text": 0,
@@ -11435,7 +11433,7 @@
         "source_bound_answers": 0
       },
       "effect_permissions": {
-        "update": 4
+        "update": 5
       },
       "answer_check": "none",
       "reference_answer_template": false,
@@ -11484,9 +11482,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/notion/launch-date-owner",
-        "scenario_sha256": "sha256:02d5e122bb5db6881c2f9d5d8211006f18ba772319b5cfa1eafe1d8e82591e46",
+        "scenario_sha256": "sha256:4a38b7ad351d0db6932027a90d7ff9f10e3eb45d7105c7cfaa91e6e402459c99",
         "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
-        "contract_sha256": "sha256:12e26ebe3678a6bcb85c90a534698273a779d5597510febffbf81f444fa858da"
+        "contract_sha256": "sha256:b2f0d3d8c4b72e0dccc330114ef02f33043dcd41d9c4e159fd7cbf31d2783e3d"
       },
       "instruction_sha256": "sha256:fae32c50f4df3d77651b6151d784bfc6f574c6e0e87682e81c184544b4e3a0b3",
       "scored": true,
@@ -11539,7 +11537,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -11587,9 +11585,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/notion/log-customer-escalation",
-        "scenario_sha256": "sha256:76af8de45d9bdd3af432d113f4a7323b1898e069a3713c2c2e0ae7e79a3e3f01",
+        "scenario_sha256": "sha256:9986ef2f3cfe9b8c68450e7af4bcb40d18d45790f16494915725d21ff4925aa4",
         "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
-        "contract_sha256": "sha256:73bdda139267f921d1a2ed33229dbbf54904beef147fce1661d017797973dcc7"
+        "contract_sha256": "sha256:98fcf0297fdfc0583111c30d282a67fe27c7b16c9e29f6fad5612e8c12adda53"
       },
       "instruction_sha256": "sha256:77ff69951d27067769e78c14340dc76eb27661c9b5c7f5425277df8dca89a8d3",
       "scored": true,
@@ -11699,9 +11697,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/notion/update-current-runbook",
-        "scenario_sha256": "sha256:1b765330f8d9bd6399038317539dd9f0ce8530791746e7b70327ecdd9d3a529d",
+        "scenario_sha256": "sha256:4d437f43da120cb531dfd01db0640771d422595af16cc2a20ec2aaed0179003b",
         "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
-        "contract_sha256": "sha256:8b7567a515226c2c840c7f9ea6cf932e0ca6bc11cfc9cabb966db8c33ff27564"
+        "contract_sha256": "sha256:0bda678802be7ad5209264a87212c0357f222b68edd340df10526c0c03b211cd"
       },
       "instruction_sha256": "sha256:3b24d2ec257efa2b1f398b8135358115b3b68da2403bffaec3aeef466d52e205",
       "scored": true,
@@ -11812,9 +11810,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/slack/cutover-thread-summary",
-        "scenario_sha256": "sha256:b650dd86a99817826763517852c79629287938a043096c623a3577efaf2f01cc",
+        "scenario_sha256": "sha256:8593f20228cb529bb941bdfc44007e10c73e840de9ff95052f73a7d8f7a118b2",
         "dataset_sha256": "sha256:1415010f505743174c7d326c86eafd92b1c54cedebba3f2128fb08c2816fb635",
-        "contract_sha256": "sha256:b1751ba88533589682326e4206f87759d46ac78febffcf081da87ba40ef3a9b1"
+        "contract_sha256": "sha256:f56ff4667057651e513533d63e87647b128f7e636e42e5d919661226e6f07493"
       },
       "instruction_sha256": "sha256:b312e5a8203b7c7f8a66b2e981cf3f75ef3e59aed1b6058cb7045e616271a001",
       "scored": true,
@@ -12026,9 +12024,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/slack/observability-decision",
-        "scenario_sha256": "sha256:84146ac8a7ee60da9b96d9733dfe4c2f245df328c75831b5e875fa6bd2723f6b",
+        "scenario_sha256": "sha256:75ee9a6fb102466cca3b38ec707b33cee1e8d1502c83c1b2be54e98a683e74fb",
         "dataset_sha256": "sha256:759c3e40133dbb265a5862712574141ac44c94b62849dd5aa64cfe3dc3ced0da",
-        "contract_sha256": "sha256:9ac89ff7ed2a54308451bf831d827ef2dc5053edfb93c52e2b798357ff5ccb50"
+        "contract_sha256": "sha256:02309b8dc354f10ba1c1843d372ca28eb401218b384fd91529e48398d7a065a7"
       },
       "instruction_sha256": "sha256:c5eb2cc85e3c229785d4af61d715242bafb24deaebfa6557c018aa5b764a084e",
       "scored": true,
@@ -12081,7 +12079,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -12131,9 +12129,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/slack/release-date-dm-designer",
-        "scenario_sha256": "sha256:5549991d5007bf19edc908465cc0eae133ff9ac57ed18d2dba4aedffd6d6ac28",
+        "scenario_sha256": "sha256:7f5e667958f6870ad965670088f2805f8e8f1455d5295ed8e6196863c2c5d134",
         "dataset_sha256": "sha256:0439f4c2773585a2918e4e64d67ec1cb24d9c146a8d56c5e8db076f46c7ab342",
-        "contract_sha256": "sha256:9d606d0279118263dbcb9c0664f1f919ce39875eb036d4b8280607029161ced9"
+        "contract_sha256": "sha256:2fedc14c10a2c6dd49b123bcac2057817e238d794d86828e250761a8d5d489a7"
       },
       "instruction_sha256": "sha256:7070dbef345a6f8a324bf0fffa83de26f8ad30c34adcf12e9a134ab2387c2419",
       "scored": true,
@@ -12357,9 +12355,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "diagnostic/stripe/no-action-already-refunded",
-        "scenario_sha256": "sha256:5c285b949dfcf7b7d15ba738eb9a575b180ac0977ea001eae9b764cde95bb80b",
+        "scenario_sha256": "sha256:4835f95ee85d1b20a0268ff78348c98b101907c2cb79296fd90ae3051dc8b58f",
         "dataset_sha256": "sha256:cea715ff8b1816cc035623c990b6bd1f9d33d6740ebb37702f02170adfb64cc1",
-        "contract_sha256": "sha256:f4acaf85b8673367e45b15edac6ca81864dbf67751b0631863f335240954c598",
+        "contract_sha256": "sha256:a95650e8428522ebca1406ec62598bb00296ef36d7d25c41d272d84ba2e04333",
         "materialization": {
           "schema_version": 1,
           "base_id": "synth-ops",
@@ -12443,7 +12441,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -12768,9 +12766,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/datadog/checkout-p95-peak",
-        "scenario_sha256": "sha256:5402cb6c7acb95fd7837ace53040e0be78679e086a3918ed9aa54c726382c0e8",
+        "scenario_sha256": "sha256:78eded98888276a7fbaa377bc4ccfa23e28e950d18dd76bb4c0ac95c45a5901c",
         "dataset_sha256": "sha256:27aa8eb40d37508683e327234638d1d396de25575c3067b91b8147e5f61a49c8",
-        "contract_sha256": "sha256:1ee378ae9196205cfb34606144654de40129bbbbccf93527883332f67aa9d327"
+        "contract_sha256": "sha256:9e2c068f4ab98bc508e0c0590623ea6e80c3febedebe14cd4b31221262514243"
       },
       "instruction_sha256": "sha256:a5aece29f558dad4c0e2e24c1aeee22b1b9f94f9a3aff065df7630d77dd0e3da",
       "scored": true,
@@ -12820,7 +12818,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -13068,9 +13066,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/grafana/ack-checkout-page-oncall",
-        "scenario_sha256": "sha256:27bb5160fdec9e8b4cc751235e495c46074a352ea989f59805ef50b612f4a380",
+        "scenario_sha256": "sha256:3d3847b78b5c3e3a10d60b1aaa4a4ef9db418597e946d09af55757e0dec36ea6",
         "dataset_sha256": "sha256:b8da9caa4b5d0fe29883dd50b66461f7ac81c8ca35c18625739efafa1b1db23f",
-        "contract_sha256": "sha256:554ca96ce453a0df0d3bfef7a4cf5ca4f5868ae8911a14e472555a9e1c1b7e6e"
+        "contract_sha256": "sha256:83ffcf89f73c1574334918d4cf70672763293070d4fbeeca59cf1e6b1aa3a816"
       },
       "instruction_sha256": "sha256:cd445f47f01d8e90fc1d3b3b09d8d2aa9a4cae2e76874987957e794120b7a384",
       "scored": true,
@@ -13125,7 +13123,7 @@
       "effect_permissions": {
         "update": 3
       },
-      "answer_check": "source_bound_oncall_with_reviewed_answer_content",
+      "answer_check": "source_bound_oncall_with_prose_reading",
       "reference_answer_template": true,
       "declared_environment_faults": [],
       "authoring": {
@@ -13458,9 +13456,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/grafana/top-5xx-checkout-pod",
-        "scenario_sha256": "sha256:a3077986cad25581a8c8a0528a062dfbd4e2307dd28d37f583e7fe408926b0ba",
+        "scenario_sha256": "sha256:b106f566dc232bfcb812b2dbb9025e5841e93bb58f484a740b8ce8af8b5f41fa",
         "dataset_sha256": "sha256:a03b1eb14fbf3895864d1445d04b64c188efab0bdcdb31377eb687eb592991d6",
-        "contract_sha256": "sha256:7fbf1c55b30b69420841b8fa62b38a8f29ecfaf09bc26e1262b9795d52e9a3fb"
+        "contract_sha256": "sha256:6b712eae22eb179dd855aac9a1ad9eb1dbc80de7b7a45eecf869953d38ed584e"
       },
       "instruction_sha256": "sha256:5a20f127fa4ce41c174c5e3fe9300c508cfabfc1168957592491ce6809625f62",
       "scored": true,
@@ -13511,7 +13509,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -13560,9 +13558,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/kubernetes/crashloop-root-cause",
-        "scenario_sha256": "sha256:42fd7b695ae78257b7e053abd9e0c0b17dd5e9fd06754a674183c3002bb7e725",
+        "scenario_sha256": "sha256:b109e0d78ba88b0911ac9b36c6551ab001a95a878aa75744120031f826c3a721",
         "dataset_sha256": "sha256:9300d2c236220fae23e56a9b7b6559d16ba5bcc2c50f9a78db4a3385f09b4689",
-        "contract_sha256": "sha256:aeb47184f5b8b60c5f145b8916d9151bfdaa224c488a4d036c54604845958733"
+        "contract_sha256": "sha256:5db92c09192279f54a7fa5b65b0f1c9bddce1e3d49a69c28db17adf9f5f5a74c"
       },
       "instruction_sha256": "sha256:f889a8f94ec65af3ed4d5465f127434d802995a451be21c693bd2e50733b1eb0",
       "scored": true,
@@ -13612,7 +13610,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -13662,9 +13660,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/kubernetes/oomkilled-memory-limit",
-        "scenario_sha256": "sha256:5a1094dc24948698958739374b4f6be1fa4fc45a110554b6dad1a367d990470f",
+        "scenario_sha256": "sha256:8e408265af7c7407d31936855b8aa5a798b983fe8edc51083c6bcd338433bf7f",
         "dataset_sha256": "sha256:b0ca0d55a98576477e4780a4ec2a197f865d385c4b7a2ee1ddb21933a1f0d2f3",
-        "contract_sha256": "sha256:0de54ca4d7abfc4b48f169de1ee17710676e87f4631931f88153314f9aa4586d"
+        "contract_sha256": "sha256:e7139cb676f855ef5e845691a2d30c411e5215ceebb118a71e555c17dc2b460a"
       },
       "instruction_sha256": "sha256:2879c0335b71c5f55e0bfd3e393def0d33b0f7f6388e7a5b5a5285c182c86d36",
       "scored": true,
@@ -13698,9 +13696,9 @@
       "tag_scope_checks": 0,
       "array_length_permissions": 0,
       "latest_record_checks": 0,
-      "cause_scoped_permissions": 6,
+      "cause_scoped_permissions": 20,
       "initial_scope_permissions": 0,
-      "related_record_filters": 0,
+      "related_record_filters": 2,
       "relationship_checks": 0,
       "causal_checks": 0,
       "information_prerequisites": 0,
@@ -13715,7 +13713,9 @@
         "source_bound_answers": 0
       },
       "effect_permissions": {
-        "update": 6
+        "create": 3,
+        "delete": 2,
+        "update": 15
       },
       "answer_check": "none",
       "reference_answer_template": false,
@@ -13723,9 +13723,9 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
+          "valid_alternative": 2,
           "near_miss": {
-            "collateral_change": 2,
+            "collateral_change": 3,
             "partial": 0,
             "undone_prohibited_change": 1,
             "wrong_entity": 0
@@ -13739,9 +13739,7 @@
         ],
         "unreviewed_operations": []
       },
-      "source_gaps": [
-        "validation_evidence_missing"
-      ],
+      "source_gaps": [],
       "reference_calls": [
         {
           "endpoint": "kubernetes",
@@ -13994,9 +13992,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/multi/checkout-saturation-scale-and-resolve",
-        "scenario_sha256": "sha256:df89fd155761c665efcda3755b6860c2f43281e926ae909b5859a39dd5ac8623",
+        "scenario_sha256": "sha256:bdd69ffaec0a5a5c2b6412007b1636e9d86e58fd650d51c5c33031899225b242",
         "dataset_sha256": "sha256:8c9271171a11bca0001027c68254394872a169626a94d95a99da3610a99ef1de",
-        "contract_sha256": "sha256:b83b5c7e3d08b7b487ca680a08d05a3f74457dd319352d445ddceb1cc583f26c"
+        "contract_sha256": "sha256:0b2c2c637651b8d1fc6c766e72b601626829e7bcdc7a772d51194bf1395bb699"
       },
       "instruction_sha256": "sha256:8a3cb864560e7beebc5b0e68f91484dc7c175188b4bb0e857070a4e81dc5a341",
       "scored": true,
@@ -14181,9 +14179,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/multi/crashloop-oncall-lookup",
-        "scenario_sha256": "sha256:c067dd946e6afb08df172c5746f1ddcac2f31407b0e0ebee9dd00d1bf5352ca6",
+        "scenario_sha256": "sha256:0b0f34f159dd6a30eb60e4db5e0357a2288ed56cce2f5aa0b5e224a620ddc8ad",
         "dataset_sha256": "sha256:99c6e2f947302251fc641f5ad963080f60a5ce375e34c60b7758810af8d44cd7",
-        "contract_sha256": "sha256:ce1a43f56c25653f15fef22bfe491e8f1664340f258054ce049841706640953d"
+        "contract_sha256": "sha256:ea15c49ffa5dbcdcdea2ac798baa320c6f1ff5d9dbe1d4de3f8ead1f608f161e"
       },
       "instruction_sha256": "sha256:17cc88d2eb66b474678caf93f820f029559151a998a2e524ac04560b53f7b560",
       "scored": true,
@@ -14238,7 +14236,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -14310,11 +14308,11 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/multi/datadog-latency-argocd-rollback",
-        "scenario_sha256": "sha256:19e06b88c20caf4ec86bbec52c86e476b12cced98479cdde45c20363f488cb93",
+        "scenario_sha256": "sha256:1c2b2285fa504ac28eb85f1e8e99024d6161c2bc8014644a4d67c6b5f1cfb356",
         "dataset_sha256": "sha256:c7a2bc700d99472e3e855155d02046f043cdcaf2353534930e81124fbb57489d",
-        "contract_sha256": "sha256:0bf3ccc40b5b9253a7e6830dfbda4bdcafbc3c117f9308d3e42d9aae12a5ef52"
+        "contract_sha256": "sha256:61bc85c11abc3ef839d763f5fa11098705348ba6920ec9d9a815fe5a63d5427a"
       },
-      "instruction_sha256": "sha256:4eb5472f57892808174ac0006482bec182e6f41bb428d2e1330794cfa24c50ab",
+      "instruction_sha256": "sha256:59ccd0dd7ba7e67eb1848bfc04cd3f703f5d4d33f4c36eb2189dbb73cfb01f8b",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -14323,8 +14321,8 @@
           "entity_ambiguity",
           "cross_system_identity"
         ],
-        "dependency_depth": 4,
-        "rationale": "Chain: prod p95 series jumps at 09:05 -> v2.9.0 deployed 09:02 -> prior revision f4befdc -> tag v2.8.0; contract requires the Datadog query before the Argo CD PUT; v2.9.1, billing-worker and staging app are decoys."
+        "dependency_depth": 3,
+        "rationale": "Chain: prod p95 series jumps at 09:05 -> release 9c2e41d deployed 09:02 -> prior history entry f4befdc6, pinned by full commit; contract requires the Datadog query before the Argo CD PUT; 5ab7f03, billing-worker and staging app are decoys."
       },
       "scripted_user": false,
       "services": [
@@ -14379,7 +14377,7 @@
       "authoring": {
         "captured_arguments": "validated",
         "validation_evidence": {
-          "valid_alternative": 2,
+          "valid_alternative": 3,
           "near_miss": {
             "collateral_change": 0,
             "partial": 0,
@@ -14449,6 +14447,12 @@
                 "argument": "/spec",
                 "mode": "whole",
                 "static_check": "compatible"
+              },
+              {
+                "binding": "previous_release",
+                "argument": "/spec/source/targetRevision",
+                "mode": "whole",
+                "static_check": "consumer_unconstrained"
               }
             ],
             "runtime_locked_schema": true,
@@ -14482,9 +14486,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/multi/oom-limit-and-sentry-resolve",
-        "scenario_sha256": "sha256:570a4ad9a638bcf78acd7f2159f71d2324bad88c709f45d79949cdc496cf946f",
+        "scenario_sha256": "sha256:98a6aa84505809394c46bfe2fc80176f4447d5be9a3dae2e4c65e6ece9abf028",
         "dataset_sha256": "sha256:16746bbc901e3d2a9822271c53fa8a95917bc09fe293072c9a37580c5135fbbb",
-        "contract_sha256": "sha256:e02b9fb616d249dbf0137100e235712041dede985ba7bb7ba4ca4017ad7c8d3a"
+        "contract_sha256": "sha256:37a19cb063db90404f60859b080e48ddf04ed9e3a387bd6b0e7b87d6d1905b75"
       },
       "instruction_sha256": "sha256:4d3dfa6b0fa433dbdfdaa8eaa3beb10135182b10b90537e1a4da59cf37466233",
       "scored": true,
@@ -14522,9 +14526,9 @@
       "tag_scope_checks": 0,
       "array_length_permissions": 0,
       "latest_record_checks": 0,
-      "cause_scoped_permissions": 11,
+      "cause_scoped_permissions": 26,
       "initial_scope_permissions": 0,
-      "related_record_filters": 5,
+      "related_record_filters": 9,
       "relationship_checks": 0,
       "causal_checks": 1,
       "information_prerequisites": 0,
@@ -14539,8 +14543,9 @@
         "source_bound_answers": 0
       },
       "effect_permissions": {
-        "create": 2,
-        "update": 9
+        "create": 6,
+        "delete": 2,
+        "update": 18
       },
       "answer_check": "none",
       "reference_answer_template": false,
@@ -14548,8 +14553,13 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 2,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 0
+          }
         },
         "reviewed_operations": [],
         "partially_reviewed_operations": [
@@ -14561,9 +14571,7 @@
         ],
         "unreviewed_operations": []
       },
-      "source_gaps": [
-        "validation_evidence_missing"
-      ],
+      "source_gaps": [],
       "reference_calls": [
         {
           "endpoint": "kubernetes",
@@ -14622,9 +14630,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/multi/pagerduty-sentry-github-issue",
-        "scenario_sha256": "sha256:691afb20b369358e95a4cb01324097223618bba3f295da9ddda793f50abea83f",
+        "scenario_sha256": "sha256:b002207d2ebd5446e98015f49ee5f031576f9887b4ccd27cf9fce14e11198a4f",
         "dataset_sha256": "sha256:dd229caa02e52945cd3e4277aaf98cf43b487c1ba687b8572491e08b353c46b3",
-        "contract_sha256": "sha256:664d029c335db2bb05bccaffa6aeeffba9ceb08560ee2c010942a81d33d5f15c"
+        "contract_sha256": "sha256:379d277764f5f205f646226c67b15b65169ec25369c8ecc1d0253b985eaf4b01"
       },
       "instruction_sha256": "sha256:948a3d3a4e5bccf65b907803ca6e24a2f9fea66472786ac78566537d7e23a24c",
       "scored": true,
@@ -14655,7 +14663,7 @@
       "preservation_required": true,
       "history_required": true,
       "state_checks": 0,
-      "record_checks": 10,
+      "record_checks": 7,
       "metric_alarm_checks": 0,
       "firecrawl_crawl_checks": 0,
       "firecrawl_monitor_checks": 0,
@@ -14795,9 +14803,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/multi/sentry-release-commit-lookup",
-        "scenario_sha256": "sha256:94c98d37533226abf631ff020d4ee9fd54451c29d9ae7865e71e84121f20a8e0",
-        "dataset_sha256": "sha256:fee43219209f7520d2a49a35576057dba6b7f71335bdc9327646fdb78803984f",
-        "contract_sha256": "sha256:84d21e798372edf2409d8b4c7a2ab5321d7737d14a503966b07d0780bdeb4f38"
+        "scenario_sha256": "sha256:9d0418e0b00ddf53af57e7fddd4e5fe10ed1fcf7e8e7a24227f81eab0e5f886f",
+        "dataset_sha256": "sha256:54faa4b3f91003c8c8dc81e6d61a964e0881ea58085609fce04a626216188b87",
+        "contract_sha256": "sha256:a9ed37f57897c6aebfc8b2b8301cec142df9def29ae96365ec12d52cad90b9e1"
       },
       "instruction_sha256": "sha256:abe82f61f300d4b84d3d9d14587831bf1b7bbd9b0a2be78de1e024e34c59b0fe",
       "scored": true,
@@ -14853,7 +14861,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -15048,9 +15056,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/pagerduty/payments-oncall-now",
-        "scenario_sha256": "sha256:6619b8c65f41ec77aeba24bff97dc56eb125abaf5801e76469671336579d0b71",
+        "scenario_sha256": "sha256:bed38e1934b737e9f53f143a5d3e0b6bf3bf1db113e7328149398dace106a7e3",
         "dataset_sha256": "sha256:ab1d2d7b5aca0a15c6289136644699087a52d2cb5d7ac97a7399267a41028e88",
-        "contract_sha256": "sha256:5437cf72f77ba592b028d136d279f7a200f27f23e4f1507eb50033de89ec6ca0"
+        "contract_sha256": "sha256:841d348bda6ef4e286af8b47e0d1cf1294d295c48276964bb6a1a620a727679f"
       },
       "instruction_sha256": "sha256:5ac1983ce11f6ebcbb4fe93e9f48159752e8d240d14e7b50fc3f348fec5ad4f6",
       "scored": true,
@@ -15103,7 +15111,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -15153,9 +15161,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/pagerduty/reassign-replication-lag",
-        "scenario_sha256": "sha256:b64bb5433a8a9cf927b097996a0583f29fbd247be2f2dbd212f89f812003486f",
+        "scenario_sha256": "sha256:48b006d2d4bd330763cdaa693d41a0bbd11a79db02f9c6afad44e6cc9c37d2cd",
         "dataset_sha256": "sha256:720935f09d9242a483f280bd715f8a4767a3c65f7d66fdf19466167ef4b40036",
-        "contract_sha256": "sha256:6f27233c4012b396782160074215575515dec979cbf3cc2d6c140d41c1a83a15"
+        "contract_sha256": "sha256:cedd912ef158eb281cb67ff77e14c4bc581c4557f5bf5919d7fb0fe5984cbaf6"
       },
       "instruction_sha256": "sha256:483144b2b644debd0926417befbf3ca37ac4d7f65fbb77180d4d449469802595",
       "scored": true,
@@ -15279,9 +15287,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/pagerduty/resolve-prod-checkout",
-        "scenario_sha256": "sha256:699dc4867817e1b80ffc823775e4aa7ab09a17835ff810887d926ce1ed59c45c",
+        "scenario_sha256": "sha256:584549ace277169e731c3536c0bf17210f91443e6f7fba045fcac2aed591491d",
         "dataset_sha256": "sha256:87a7c6c653c3524b618255ecac4f2e292b0c900a9fd4985ad8ed3d50abd62f19",
-        "contract_sha256": "sha256:3c635fcc713e5cfd676e99f39d912cd95cdfd124c945aea3007e9bfed4cb999a"
+        "contract_sha256": "sha256:0358f616a2daea8837839329f061f9e7e668c93585592a99ee4f7158f44b1ff3"
       },
       "instruction_sha256": "sha256:233d114ad31199979a6bb219453e8fe33400674a2d238cfb28ff52938c3f8127",
       "scored": true,
@@ -15410,9 +15418,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/sentry/create-notification-project",
-        "scenario_sha256": "sha256:240fd9dea443eba6036cf813cf062181c75b871f299854834aaa406e651ac39a",
+        "scenario_sha256": "sha256:dd32ea194eeec438b001b0b94a5d57db6b92f364337fc2cf7395d3249fd20ec9",
         "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
-        "contract_sha256": "sha256:79bf252df3d49466b63d1b748f21ca7302daf7170fc4c0707984b4afb48840ef"
+        "contract_sha256": "sha256:2865800a7cf46b01362a0a548a34e5e7eb5a2c175b7dcb20229b55d9503f0942"
       },
       "instruction_sha256": "sha256:1486b016ff37ba180712d98cbd313d1a71addb07767c1e83f43e32f4b6bb5a1e",
       "scored": true,
@@ -15464,13 +15472,13 @@
       "effect_permissions": {
         "create": 2
       },
-      "answer_check": "source_bound_dsn_with_reviewed_answer_content",
+      "answer_check": "source_bound_dsn_with_prose_reading",
       "reference_answer_template": true,
       "declared_environment_faults": [],
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 1,
+          "valid_alternative": 2,
           "near_miss": {
             "collateral_change": 1,
             "partial": 0,
@@ -15525,9 +15533,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/sentry/resolve-worker-pool-timeouts",
-        "scenario_sha256": "sha256:370149226061bef7380609c14953aa96bbdd047d64d51c2ed4d9bd7af2e32ef6",
+        "scenario_sha256": "sha256:eabc42e2f6bf7537c41b5fe8f09dac2199328aa95bd04b35a7c5fc6e386c9bca",
         "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
-        "contract_sha256": "sha256:c01a0b96c8547ed8485941f898b480e28aa7da3a733ed49b12778ae196ba28b3"
+        "contract_sha256": "sha256:70679ff608c9442f657be0b3569c051b6655769b5a6da3f7b5b61ce4187287e0"
       },
       "instruction_sha256": "sha256:9e947690d3e687525d9c2260881754c745485542a3454c9972a3899ee1eb2aa8",
       "scored": true,
@@ -15561,9 +15569,9 @@
       "tag_scope_checks": 0,
       "array_length_permissions": 0,
       "latest_record_checks": 0,
-      "cause_scoped_permissions": 5,
+      "cause_scoped_permissions": 6,
       "initial_scope_permissions": 0,
-      "related_record_filters": 5,
+      "related_record_filters": 7,
       "relationship_checks": 0,
       "causal_checks": 0,
       "information_prerequisites": 0,
@@ -15578,7 +15586,7 @@
         "source_bound_answers": 0
       },
       "effect_permissions": {
-        "create": 2,
+        "create": 3,
         "update": 3
       },
       "answer_check": "none",
@@ -15587,9 +15595,9 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
+          "valid_alternative": 1,
           "near_miss": {
-            "collateral_change": 3,
+            "collateral_change": 4,
             "partial": 0,
             "undone_prohibited_change": 1,
             "wrong_entity": 0
@@ -15602,9 +15610,7 @@
         ],
         "unreviewed_operations": []
       },
-      "source_gaps": [
-        "validation_evidence_missing"
-      ],
+      "source_gaps": [],
       "reference_calls": [
         {
           "endpoint": "sentry",
@@ -15633,9 +15639,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/sentry/top-unresolved-checkout",
-        "scenario_sha256": "sha256:4f9c7bd9afc4f91a2551fa9aae2feb6a7122f1446a52ea62b20a8c9315e11825",
+        "scenario_sha256": "sha256:28ef8c7720f7b1d7b65743695316a78df6b2ed47bdb6e5f34fbb3c6af7c6ad2e",
         "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
-        "contract_sha256": "sha256:0d2dcf122c1d7f12903b43f8900d2bbe1ef1209cf0c77fde431110a79b245568"
+        "contract_sha256": "sha256:d999b9e06e2ff112ab83158e8b746e92ba9175cd27216b499235eedad3a68048"
       },
       "instruction_sha256": "sha256:7a2d1193bc0cb000741d1c47714e75dccda910f42a58d37444d96e88fee22bb1",
       "scored": true,
@@ -15687,7 +15693,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -15724,9 +15730,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/sentry/triage-storefront-map-error",
-        "scenario_sha256": "sha256:8a7b8e97ea0196aa6012bf2e3c963cdbd8a6c2ebcedd9782f7ab36e37cae3cda",
+        "scenario_sha256": "sha256:cf1ccae3b47561a4d6802cd55eae01c30e5dca7ee67baae60098711b4109abd7",
         "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
-        "contract_sha256": "sha256:e7c66f906e1bb4e98151f9c8621f8e618eca1735e1fb33fd52e841cd5fef79d5"
+        "contract_sha256": "sha256:6cc99f0fb4c6343f9e2f35b8470d05655927edb963bc17b7116d5fd8e5f16273"
       },
       "instruction_sha256": "sha256:5cf94ef518ce4e61fd2d074b0e3254a499e56d6c0a2931b744c84896016fb683",
       "scored": true,
@@ -15760,9 +15766,9 @@
       "tag_scope_checks": 0,
       "array_length_permissions": 0,
       "latest_record_checks": 0,
-      "cause_scoped_permissions": 7,
+      "cause_scoped_permissions": 8,
       "initial_scope_permissions": 0,
-      "related_record_filters": 6,
+      "related_record_filters": 8,
       "relationship_checks": 1,
       "causal_checks": 0,
       "information_prerequisites": 0,
@@ -15777,7 +15783,7 @@
         "source_bound_answers": 0
       },
       "effect_permissions": {
-        "create": 2,
+        "create": 3,
         "update": 5
       },
       "answer_check": "none",
@@ -15786,9 +15792,9 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 2,
+          "valid_alternative": 3,
           "near_miss": {
-            "collateral_change": 0,
+            "collateral_change": 1,
             "partial": 0,
             "undone_prohibited_change": 0,
             "wrong_entity": 1
@@ -15830,9 +15836,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/brave/caterer-saturday-hours",
-        "scenario_sha256": "sha256:cf9a35e34e7d21ed30395029a1ddcf50833a30fdc322d167d048fbb3f07f0cec",
+        "scenario_sha256": "sha256:5e201c5c128a5c60366a5b10403505df0439cccf6ea606409d9362c27c033b35",
         "dataset_sha256": "sha256:4cb6924927056ef099afa13db9b6fedc71491a4c7613fb4b5fb1e0eb79d3eecb",
-        "contract_sha256": "sha256:0c8c1ae71512268f9b20c51d85f26b8b55a1de0adbdff5405c49a82421e50664"
+        "contract_sha256": "sha256:17b1e34259aaf331ed87b9b6d8d41802fdd318653c7fc3ee56452cdc293360fb"
       },
       "instruction_sha256": "sha256:58ceca88d1ace016c0d02334f75e2ddbc0b74da865b39bf07566bd15deb085c7",
       "scored": true,
@@ -15886,7 +15892,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -15924,9 +15930,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/brave/competitor-funding-news",
-        "scenario_sha256": "sha256:14ef3709384bb5577cba88dbe726f8d234e50744aa3c98561efad40cbee5a99b",
+        "scenario_sha256": "sha256:66641fe3d6254fee5c97a15513d5d43a70a62feb175aaaa05c56a5377b95a947",
         "dataset_sha256": "sha256:07b257f9518255408ebcbb4d6093ba501c2caccf8328ce5b5b54ceb5b5748ebc",
-        "contract_sha256": "sha256:bae40df6737acb84b211a6059fe5ae38674f348a9c54e40959c774caee416e8e"
+        "contract_sha256": "sha256:474497bff548835859e722411857b7ecaabb992c50b7067eb365d77b5201d400"
       },
       "instruction_sha256": "sha256:b8d90d5893848b40272540aadad8c484e2c574bf5f8abf0ee247661b3844eee9",
       "scored": true,
@@ -15978,7 +15984,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16016,9 +16022,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/brave/hosting-sla-lookup",
-        "scenario_sha256": "sha256:386e59df93730fbe2b98831bddaf2d52652a248c9a79080d762fa4e425b72960",
+        "scenario_sha256": "sha256:b08c700ce0ff93631452be9c3ae11b93040ce0232d0bab14a5b00b56f8c3b2ee",
         "dataset_sha256": "sha256:657c2b1f45fab6351445a6bd6b4d9a09af74500dc545aa56969a3e502e43698d",
-        "contract_sha256": "sha256:219371cd24f66479d056d7e04f7d5dd878f4b3a98996ba267e98f2bbe38a3301"
+        "contract_sha256": "sha256:7b1b00af8775aeadb0d3567de11abeb7b60fd9af80b128d9e48a95e0e3e8afca"
       },
       "instruction_sha256": "sha256:2db8376f5806934300fb1a34b07b09f6ef4212bf7e46f3690d6885e012fd29cf",
       "scored": true,
@@ -16070,7 +16076,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16108,9 +16114,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/brave/keynote-recording",
-        "scenario_sha256": "sha256:afbf94f28e7e7dbb29c5e1e89849d3b935d9e22ab84d327a906086bfd6dfc158",
+        "scenario_sha256": "sha256:32ef582e0d44e7a80954aed150534013580277befbc5466230c3b7a80d8822a1",
         "dataset_sha256": "sha256:d851ecdff5abf3a8d48ed64dc4157c43b349ef98600e16f155a326c4b7c8f982",
-        "contract_sha256": "sha256:97a3895a2b411db85d96634e6d5ac193d24262190f29586ccfde54825ef1a35d"
+        "contract_sha256": "sha256:37913563ee229464b62a53cf45123ac2748eaa397ecbab9c209dfadad2a3dc77"
       },
       "instruction_sha256": "sha256:f95f8b0be521ddf245ffc9e953523b4243a245c0e8355a0aa87b3d81e5de053d",
       "scored": true,
@@ -16163,7 +16169,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16201,9 +16207,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/elasticsearch/checkout-errors-last-hour",
-        "scenario_sha256": "sha256:653b0c517c98e6f2c44f98236692be87196e58476db1e28c902020c09db453ba",
+        "scenario_sha256": "sha256:79a46f6934d5dc9e1d31b16c8e58f612b08233f344f7d2ca3966ee69213578d0",
         "dataset_sha256": "sha256:4ab9a3a18460d1d316b97e78f198a90f6329fa2923ed581014491615c2b1caee",
-        "contract_sha256": "sha256:ad9552d2921f4cf29ba4e541c221d229b6e9e37e29be5c36dd7f707b8789c5bf"
+        "contract_sha256": "sha256:f54180bbaf6fa0dd3d679aceac82ff625b1badaeadf17f0fc2aaa28066b3ebf4"
       },
       "instruction_sha256": "sha256:7cf8b2ee0227cdedc5426cc7b5939c7a0529a0547588f2802664acff84accd9e",
       "scored": true,
@@ -16256,7 +16262,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16316,9 +16322,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/elasticsearch/deleted-api-key-audit",
-        "scenario_sha256": "sha256:8f61407679f1f1883f2473a7ae54688e2ea25fed03ae3245d7bcfb5d7eb0f1be",
+        "scenario_sha256": "sha256:706fedf7672caf1eaa7db2c0e1210e0bf9db39c1dc7fc516edf746416a79cf0e",
         "dataset_sha256": "sha256:7aff93de0395ad052644ed11527d19a67d485208f533a4cf333d75965580d5d6",
-        "contract_sha256": "sha256:8952d125bf1e553b9369dd7ba57eb090bfa1062e5c2226ecf1198bddea4a39eb"
+        "contract_sha256": "sha256:b9f1f12a1a6db0e81fe800f1c31a32637411cae8b54f70b0f7dd089542adb82f"
       },
       "instruction_sha256": "sha256:44bcc4bc7c481964a0002cdac93fed5d201181d1e7e6c6d1ef16207019138f69",
       "scored": true,
@@ -16371,7 +16377,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16420,9 +16426,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/elasticsearch/duplicate-charge-lookup",
-        "scenario_sha256": "sha256:7ca3ab109afe1216b4ec47ae6a1dfb24fb8827589cf92c1528fd813964efe0d0",
+        "scenario_sha256": "sha256:04542cb2960b4bf96924cea774c40488529935e8fce919197592ba06c4f5490f",
         "dataset_sha256": "sha256:0e83e375e139b9a05dc5655fb7472a898e9a9b33073286c04cc77abb9fb30306",
-        "contract_sha256": "sha256:8f7a0a3b244e2657b6a661548082882248a6684b271a33722d0ab9d5b231e730"
+        "contract_sha256": "sha256:a9c72ad039c1c118068917d0e67859ee71bc25f390f987c6791c31fcc8119ac4"
       },
       "instruction_sha256": "sha256:a4d9ee4df470b1f4f5c7a98f0188d8266d166c46d6c6ccf3ebcd9f4c6511a54c",
       "scored": true,
@@ -16473,7 +16479,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16522,9 +16528,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/elasticsearch/latency-by-region",
-        "scenario_sha256": "sha256:2fb7d566bb2dd3cdd2d6206eeb152fefa7f2cc9b36a9c6ba1efd2631f1c7e479",
+        "scenario_sha256": "sha256:fa9fa5eeff1715af592cf173e89d8fcae673799f09d7850ceeb13790b4b3ff8c",
         "dataset_sha256": "sha256:50baf3bf1645633251012616f601b8caff25c411476daa3849baaefa7f66760b",
-        "contract_sha256": "sha256:2f3fae37356084eb7e4f4e5a94fc38c49829515ca36d83dbd44a38cccba8f628"
+        "contract_sha256": "sha256:c05bee735f61dea3e4f7863bd18e2cc65e8d8d88351c1fa10787e1297a591a73"
       },
       "instruction_sha256": "sha256:95ded9d11a4a1e173a17e1cb20fd7c04b8f43ead4d0ae2ff7282e010c6d73d24",
       "scored": true,
@@ -16576,7 +16582,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16625,9 +16631,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/exa/enrich-lead-list",
-        "scenario_sha256": "sha256:4a4b654d2fc2da8f41e5140ec04ad46695b1ba193f5ccde7224d7d5c0bf15a4a",
+        "scenario_sha256": "sha256:e1dccd26e21e37628f5780e9113c0f57af1a517a97b9fbd889d72bd292fbfdc9",
         "dataset_sha256": "sha256:581b7f1b8fd2d7bae595fdbb6f704539f1722bb765ed78e08832fbfe8b20535c",
-        "contract_sha256": "sha256:2d75c4176a7386837733f146e901b1bcee03eb2393c24e93c9d895fc895473fd"
+        "contract_sha256": "sha256:90dd4444a20c7c21f16c369ddd5121b625971ffbd7d4df5ef523d735b09839e7"
       },
       "instruction_sha256": "sha256:8bd2c4023e9d39ca382b2811723c9289fff97f752fa1aec0ee083bc591925e83",
       "scored": true,
@@ -16681,7 +16687,7 @@
       "effect_permissions": {
         "create": 1
       },
-      "answer_check": "source_bound_facts_with_typed_rows_and_reviewed_claims",
+      "answer_check": "source_bound_facts_with_typed_rows_and_prose_reading",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16723,9 +16729,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/exa/find-vp-engineering-profile",
-        "scenario_sha256": "sha256:d85ddbfee4e2935e82d0c67fc40ea9f5a9e8cb759e8278dbcbfd91b9a286c60f",
+        "scenario_sha256": "sha256:1ddee7f0c4228a702d163f605e17edffdd132031d4543ed4ffe2252af565b445",
         "dataset_sha256": "sha256:e0da727a09c7ec44aada55d1bbb1bb4b6f2a0f0865e5ccc0cd21eaa77b9403e6",
-        "contract_sha256": "sha256:543fba08bfa42ff52bc3b74b83d8d6787f1413b65c19e197fe7e31226fe3244e"
+        "contract_sha256": "sha256:e9b337b2c07fd999d965ce9e50c43194023de0f099546d1f9e763128afc46814"
       },
       "instruction_sha256": "sha256:a84490fde408facfa30f5a8161f01f53dd857f01f6d2c7feaa00867895042c5a",
       "scored": true,
@@ -16778,7 +16784,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16816,9 +16822,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/exa/fleet-charger-research",
-        "scenario_sha256": "sha256:174b9202b1491f406d17f61a9fcd583e975889b814c114370dc8ece2f74f7243",
+        "scenario_sha256": "sha256:ad709c3bf4eaed51022284e9aa8c880aaab65435b83d5392cd43caba4c05ab42",
         "dataset_sha256": "sha256:d59c6daf19f9841510be2954222f0c7e89bf63cfc77ff13466faeac934c62248",
-        "contract_sha256": "sha256:c82bb78b849d612f8cd47f679843093580bef59342cc8b27c249fd2d4c0d65f0"
+        "contract_sha256": "sha256:acd56ec37b4cef5110267d5615ba97a2c13c8cfa156be2a9e3acf8654267a12b"
       },
       "instruction_sha256": "sha256:7b8dfe4e0b8c4ddfb2d17133856ccd7c411f7fc1566b8ad1794e3a1d2341dd51",
       "scored": true,
@@ -16870,7 +16876,7 @@
       "effect_permissions": {
         "create": 1
       },
-      "answer_check": "source_bound_facts_with_typed_rows_and_reviewed_claims",
+      "answer_check": "source_bound_facts_with_typed_rows_and_prose_reading",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -16924,9 +16930,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/exa/sdk-timeout-default",
-        "scenario_sha256": "sha256:1a710533943edbab8a338ed96c9a57beaff1b68802f4717db5d60eb6612b3df5",
+        "scenario_sha256": "sha256:a29d0fb95ec640df5984f5a0738a19150ab70c20b5e1e3eaa7ee31dada205ca2",
         "dataset_sha256": "sha256:1d1c15292e27c5cb577353e82fe59dd309afeb6e17acc19c41459e84c2ae9950",
-        "contract_sha256": "sha256:ac772b794bc0892c56074c525d85f8230fcb025af24d2a8dc3f6c323d3a64e8a"
+        "contract_sha256": "sha256:d34878f884874f838ecd1b96ef2d7c77919f99bf85a009cf7d59e07048b97945"
       },
       "instruction_sha256": "sha256:35acf4a8c5882f426f428a3a77c122ff79d61fc5b9a1d6ee79a04764feec4b3b",
       "scored": true,
@@ -16978,7 +16984,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -17027,9 +17033,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/firecrawl/crawl-api-reference",
-        "scenario_sha256": "sha256:cf3ab59ef158f52ff26ba2f0739700d445db72295561a5211522d5579d5389b0",
+        "scenario_sha256": "sha256:0699564001f6309b3085a6a23c0f9ccde2905324faa67020e6f5ae11863b8eb3",
         "dataset_sha256": "sha256:111c613fda92b40b2e0fbe4161ab530954bfaed1f9b75ac04553e76f55dd9c4a",
-        "contract_sha256": "sha256:94f341a3d52f6344d285f97ad5cae38fa73be1de31fe38982f52dbaa96ee01c6"
+        "contract_sha256": "sha256:f33cd60f312c3acb31911b930f8cecc497aeee9ff13cb7884b37416761e88c0d"
       },
       "instruction_sha256": "sha256:4866644f707742325a78078afab4d4096024e65df4140fdfaa7c5c7203d2c69d",
       "scored": true,
@@ -17038,7 +17044,7 @@
         "primary": "baseline",
         "secondary": [],
         "dependency_depth": 1,
-        "rationale": "Origin https://docs.lumenpay.dev and the /api/ prefix are given; the contract checks one created crawl scoped to that prefix, with no competing record to choose between."
+        "rationale": "Origin https://docs.lumenpay.dev and the /api/ prefix are given; the contract checks the one created crawl that plans pages, scoped to that prefix, beside at most three that planned none, with no competing record to choose between."
       },
       "scripted_user": false,
       "services": [
@@ -17060,9 +17066,9 @@
       "quantity_checks": 0,
       "interval_coverage_checks": 0,
       "tag_scope_checks": 0,
-      "array_length_permissions": 0,
+      "array_length_permissions": 2,
       "latest_record_checks": 0,
-      "cause_scoped_permissions": 7,
+      "cause_scoped_permissions": 8,
       "initial_scope_permissions": 0,
       "related_record_filters": 6,
       "relationship_checks": 0,
@@ -17079,7 +17085,7 @@
         "source_bound_answers": 0
       },
       "effect_permissions": {
-        "create": 1,
+        "create": 2,
         "update": 6
       },
       "answer_check": "none",
@@ -17132,9 +17138,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/firecrawl/monitor-competitor-pricing",
-        "scenario_sha256": "sha256:eaf5dd73fd8b2569deec7ca1b797fea60cebbe80bc60baab7d7c34776b027a29",
+        "scenario_sha256": "sha256:3f9d738899cccc65e57115b5bd7443ab08c7a811269f9b2789a4134673f5c7b9",
         "dataset_sha256": "sha256:8db665fc1fc8ab0383a1f41134fca6e2137889082a55772198b4ef81f48b9161",
-        "contract_sha256": "sha256:debce817ea4fefeefcdf5458a0807ef6da0494e38f6464ae30d501f47f09e9de"
+        "contract_sha256": "sha256:29c0c3aa8bdd2670ae02203b5d1273717605ec0cc501cdf7a2f7036277949c7c"
       },
       "instruction_sha256": "sha256:1437cceaf6f440c4f0896e697ad8ba1741aae7a717427c1d8039958642108234",
       "scored": true,
@@ -17237,9 +17243,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/firecrawl/northwind-team-pricing",
-        "scenario_sha256": "sha256:d333b1259070f471ff532978e08cae6b965c02a81228795ace92fb0b8e1d1054",
+        "scenario_sha256": "sha256:7ba80bbdb0d4c6fb7dc9e0653dc6f0a24ce6d80087a3c3857b8d688a8e4af99b",
         "dataset_sha256": "sha256:c54a784b2c0864ca54388433e36cfdbc21ccf88ce92328c197b8d8a533a9963a",
-        "contract_sha256": "sha256:4b043602b2e7b18e9ecf316e1c936cd9a02f2941a2f6a0a604f4f464f3f60cd9"
+        "contract_sha256": "sha256:7863bbf75f734f6da0ed86155b8eed4e5d56da2bc172f17fd20260f6fdacc08f"
       },
       "instruction_sha256": "sha256:9dfe4340ab897a595e0b4ee8d15f84d789ca86cfdcb80600a580c99a80a6df86",
       "scored": true,
@@ -17292,7 +17298,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -17341,9 +17347,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/firecrawl/pause-broken-pricing-monitor",
-        "scenario_sha256": "sha256:6b65f3715cca6666a032e8793e76c60da7d1613e9f87868c93e639489aea5225",
+        "scenario_sha256": "sha256:99621fc800792e55dee37834677f03730b1012c907739b5dbc96ca3e2aa02021",
         "dataset_sha256": "sha256:deb392fe148a9cc084cab48a5e533759c46f00e288e36186379fe962b4374ae2",
-        "contract_sha256": "sha256:fa1abeb761a99ee749bf3329616029add9e2db64e5c09b5eb40a9fe8980a7db2"
+        "contract_sha256": "sha256:8c970f69e6943d4aea2b6dc98c93ab2cdbbf75ecea070bf5d92d44bb67a2f8ca"
       },
       "instruction_sha256": "sha256:500d3dfcce3f584ae23644eb812dc4ffedf8799960fd38d31470fa8784e368f8",
       "scored": true,
@@ -17383,7 +17389,7 @@
       "initial_scope_permissions": 0,
       "related_record_filters": 5,
       "relationship_checks": 1,
-      "causal_checks": 1,
+      "causal_checks": 0,
       "information_prerequisites": 0,
       "declared_content": {
         "literal_business_text": 0,
@@ -17473,9 +17479,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/multi/api-key-deletion-audit-github",
-        "scenario_sha256": "sha256:615d7d710c1bd29b97ab9f37484b68d8db5bb61f2951201ffb303e26a13da466",
+        "scenario_sha256": "sha256:5af03786730e0753e2858ae340c5b54e4f852c672677fdb1a83b910871bbcf8c",
         "dataset_sha256": "sha256:81ba09c6b875951f9af9ee377b5f1cdcbdcf0e1797a7093f544ee1a3d77ef36d",
-        "contract_sha256": "sha256:99434ea14cb2aa1eed6c30cc710f627fefdc60951fba3798d9f29148422cad5f"
+        "contract_sha256": "sha256:19829ec0dfca321f124c1f9c8a5b72245e3a7edbf0f8a2493efb580a6722b149"
       },
       "instruction_sha256": "sha256:3562d055e4116ee1340e68cf5cabca569a1c2d3f6d1692f1027e559c85785743",
       "scored": true,
@@ -17531,7 +17537,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -17602,9 +17608,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/multi/competitor-funding-and-pricing",
-        "scenario_sha256": "sha256:0dbe7e28cb6f70deb1fc141f6d69d5d181fed486e3ac333c5362b52b4a744df9",
+        "scenario_sha256": "sha256:7f6ecb6000b1075dbc125e5dfc1fada0e3f25ebd3215ef84888950115b9610ae",
         "dataset_sha256": "sha256:49661962ac9d0930073295330528a78de3e706dc353ca4380472892310b218d4",
-        "contract_sha256": "sha256:729631d0b8debc34990a5ba08205ee0c07b8128f30241137d2ecd5ffd19f45d3"
+        "contract_sha256": "sha256:d547d94aa9f00955d231184b4809ed8acc4ee21dd68c266dd6d9cdabd7088e06"
       },
       "instruction_sha256": "sha256:fea7fb5f6863b9878cc2e877991a8e06dfc88cca6ea471414232da7adf6166dd",
       "scored": true,
@@ -17659,7 +17665,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -17719,9 +17725,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/multi/competitor-research-github-issue",
-        "scenario_sha256": "sha256:91be3a671f028f7a76b30537abe0406c2083b82ff05bba8cddcf69c9a495d719",
+        "scenario_sha256": "sha256:642217e2a8a5327b2018a475b40e5a624916886de60538dfd7a5e652535104c4",
         "dataset_sha256": "sha256:3456b404b0bb31859df7e1cf491a4a8a62b5c379919f0656fedfa8d3872e65e7",
-        "contract_sha256": "sha256:56ee7c30362096a142a0924bf19ec258763bbbe291d5079fb445a7762fb566f0"
+        "contract_sha256": "sha256:b880fff1e6ff1e3c5a4191ce36d58dc6ea2e63efd5b0ab5c0bd7f7b866868f74"
       },
       "instruction_sha256": "sha256:53fd56306ade803e342a0dc0da9e4919280b583e9881d41a12bc3d5cbfff5304",
       "scored": true,
@@ -17979,9 +17985,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/multi/vendor-rate-limit-zendesk-reply",
-        "scenario_sha256": "sha256:3422048470a3067a04416f46af0d05f97d2c5561227862cc68004fab45120737",
+        "scenario_sha256": "sha256:8391da788ed31da2587d89cffa4268a22671ab1f78a11e6ed16756017232192a",
         "dataset_sha256": "sha256:f53cfb381e955cdac39298a04d9a5d9084eda34a7390f2259a695cbd015b9f58",
-        "contract_sha256": "sha256:e11491b37d5f5986017d9f13ef5d8b612c785d6c519c551a3c733e8696f581da"
+        "contract_sha256": "sha256:e5c4b08d257910a1a148dc545f3054714b2033c7dc9532b4e4918ced649f4a89"
       },
       "instruction_sha256": "sha256:72275151db9ee01ec4bea136e728909b99346c7e2a181036b5b80f62189e6c69",
       "scored": true,
@@ -18132,9 +18138,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/tavily/cold-chain-market-research",
-        "scenario_sha256": "sha256:09f993df997674a9243f2b450b6f063053a0cae57e6cd9449effb7f7e8173577",
+        "scenario_sha256": "sha256:202617bd40138b46d068857c5c7bfaf521a69853c7ea77c221812a3394033f85",
         "dataset_sha256": "sha256:c923bf91a6244ea6a5d3a45fae0bd6a986f56617bc131d963188afc1d1b6df51",
-        "contract_sha256": "sha256:3ac1fb6557fdf33fb35fbb37092517a387ddb5d1fa7fee31ed84786e97ac9b76"
+        "contract_sha256": "sha256:0b87c5a4cca4f33f6f9426eaaf3399a28745c6baab87e8157d57271e8e538d24"
       },
       "instruction_sha256": "sha256:bc65ea433affcd129fe5adb76b2dde4ae8040311dab66c637769667c108dcb5e",
       "scored": true,
@@ -18186,7 +18192,7 @@
       "effect_permissions": {
         "create": 1
       },
-      "answer_check": "source_bound_facts_with_typed_rows_and_reviewed_claims",
+      "answer_check": "source_bound_facts_with_typed_rows_and_prose_reading",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -18224,9 +18230,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/tavily/competitor-pricing-research",
-        "scenario_sha256": "sha256:4a4f95243afb9a8b6f518cf2a1d55264f78dbf84f7e44c44a086f0911b13b622",
+        "scenario_sha256": "sha256:22d38d55f462f2a1876e1c386ba4f10978aa456c401264279fc618f308e5887a",
         "dataset_sha256": "sha256:3478a763cb21e467d1c3314146444a2e0a6e547385dc8e754398c65d4ecb4826",
-        "contract_sha256": "sha256:07798b91eb299d9c68f38ced4e080b2d31abc497256580b7278431b92efc83c1"
+        "contract_sha256": "sha256:ada72c6ccf193f495c6264fed29ab64b5aa2a8062e2dab64233cf35a4734fadd"
       },
       "instruction_sha256": "sha256:3035681ef042d53c51482d670f45e78482076da0561d7c625ffdc3da0ed44e68",
       "scored": true,
@@ -18265,7 +18271,7 @@
       "cause_scoped_permissions": 0,
       "initial_scope_permissions": 0,
       "related_record_filters": 0,
-      "relationship_checks": 2,
+      "relationship_checks": 3,
       "causal_checks": 1,
       "information_prerequisites": 1,
       "declared_content": {
@@ -18334,9 +18340,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/tavily/vendor-rate-limit",
-        "scenario_sha256": "sha256:7afb9ced34a17ae1d7fbbf0703a1283ddd0a17acba75b5441a76a81d45e098de",
+        "scenario_sha256": "sha256:651d3200538999a6b79f17f08fbd2155602c9646eef358c738dbc9fdc33dad47",
         "dataset_sha256": "sha256:d9a53b2fa44548b0a8b07b3c32dc4cacabb362303d16646fc80804b69bf24594",
-        "contract_sha256": "sha256:28b17255ef832eb3e3636a57230a10102f5408bf81bc02a0c93df71f4025332e"
+        "contract_sha256": "sha256:8b2d506d0176bd445c57301374908ac8d591691e91e403304ba91a465b9cdce3"
       },
       "instruction_sha256": "sha256:e9eb7a4af406454c4a6b6beddaac938ee3ce64c377003ae2740556531a56393a",
       "scored": true,
@@ -18388,7 +18394,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {
@@ -18437,9 +18443,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/tavily/webhook-signature-sunset",
-        "scenario_sha256": "sha256:d793179eed9fd138a633c4d18d0e61f56763fbae42c914fed613a06f7e1bf321",
+        "scenario_sha256": "sha256:6935b02826e38d412f03d28b4cba85d7fa74a5e628216f77f5b8221173099251",
         "dataset_sha256": "sha256:4bb6fc9f500654ad032e30696fcf462ae019c212bd6a7bb646b4c5d7b3abec4e",
-        "contract_sha256": "sha256:bd9524afd2b576d9f8b5884a57a16cb46731323eea942e26bc0b826b1dd8ed35"
+        "contract_sha256": "sha256:cbfcb1692863c3538e6d92490ccf8d5bc71b4cda7f04b0eca011e504f2a7b170"
       },
       "instruction_sha256": "sha256:0dfd6fca257841bef425a9cfe37d16001a0d216975c4b0d7de246234810f3be8",
       "scored": true,
@@ -18492,7 +18498,7 @@
         "source_bound_answers": 1
       },
       "effect_permissions": {},
-      "answer_check": "source_bound_record_facts_with_reviewed_claims",
+      "answer_check": "source_bound_record_facts",
       "reference_answer_template": false,
       "declared_environment_faults": [],
       "authoring": {

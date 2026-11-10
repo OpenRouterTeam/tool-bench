@@ -56,11 +56,35 @@
       "html_text": {},
       "reviewed_text": {
         "/properties/hs_note_body": {
-          "requirement": "State that the Initech warehouse deal has been synced to Salesforce and identify its actual opportunity, 0065g00000IDWm1AAH (15-character form 0065g00000IDWm1). A bare ID, denial, wrong amount or incorrect date is not a truthful sync confirmation. Unlisted wording requires adjudication.",
+          "requirement": "Say that the Initech warehouse deal has been synced to Salesforce and give the ID of its opportunity, 0065g00000IDWm1AAH (15-character form 0065g00000IDWm1). A bare ID is not a sync note.",
           "accepted": [
             "Synced to Salesforce opportunity 0065g00000IDWm1AAH.",
             "Synced to Salesforce opportunity 0065g00000IDWm1.",
             "Synced to Salesforce: opportunity 0065g00000IDWm1AAH marked Closed Won ($176,500, closed 2026-10-28)."
+          ],
+          "rejected": [
+            "Synced to Salesforce opportunity 0065g00000IRdw1AAD.",
+            "Synced to Salesforce opportunity 0065g00000IDWp0AAH."
+          ],
+          "mentions": [
+            [
+              "0065g00000IDWm1AAH",
+              "0065g00000IDWm1"
+            ],
+            [
+              "synced",
+              "sync",
+              "syncing",
+              "synchronized",
+              "synchronised",
+              "synchronization",
+              "synchronisation",
+              "mirrored",
+              "updated",
+              "matches",
+              "match",
+              "matched"
+            ]
           ],
           "format": "html",
           "bound": null

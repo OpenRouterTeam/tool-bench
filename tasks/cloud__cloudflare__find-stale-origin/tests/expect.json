@@ -11,7 +11,7 @@
       "service": "cloudflare",
       "method": "POST",
       "path": null,
-      "path_regex": "^/client/v4/",
+      "path_regex": "^/client/v4/(zones|accounts|user|memberships)(/|$)",
       "query_contains": null,
       "body": null,
       "body_contains": null,
@@ -85,11 +85,6 @@
       "contradictions": [
         "is fine",
         "is okay"
-      ],
-      "assertions": [
-        "${hostname}",
-        "The hostname is ${hostname}.",
-        "Hostname: ${hostname}"
       ]
     }
   },

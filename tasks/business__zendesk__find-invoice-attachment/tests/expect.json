@@ -118,14 +118,7 @@
             "/_key": "^(\\d+)/"
           }
         }
-      },
-      "assertions": [
-        "Ticket: ${ticket}\nFile: ${file}",
-        "It's on ticket ${ticket}; the attachment is ${file}.",
-        "Ticket ${ticket}, file ${file}.",
-        "Priya Raman's invoice is on ticket ${ticket}; the file is ${file}.",
-        "The invoice attachment is on ticket ${ticket}: ${file}."
-      ]
+      }
     }
   },
   "preservation": null,

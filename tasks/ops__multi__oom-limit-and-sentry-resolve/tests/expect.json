@@ -227,6 +227,492 @@
         }
       },
       {
+        "pointer": "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/annotations/deployment.kubernetes.io~1revision",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/analytics~1report-builder/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*",
+        "kind": "create",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "report-builder",
+                "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+              }
+            ]
+          }
+        },
+        "max_count": 2,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/apiVersion",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "report-builder",
+                "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/kind",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "report-builder",
+                "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/spec/replicas",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "report-builder",
+                "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/status",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "report-builder",
+                "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/resourceVersion",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "report-builder",
+                "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/generation",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "report-builder",
+                "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/annotations",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "report-builder",
+                "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/pods/*",
+        "kind": "delete",
+        "matching": {
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "report-builder-t2h6vx4p7r",
+                "uid": "e023e374-4901-434f-a316-f43449a6f943"
+              }
+            ]
+          }
+        },
+        "max_count": 2,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/pods/*",
+        "kind": "create",
+        "matching": {
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "ReplicaSet"
+              }
+            ]
+          }
+        },
+        "references": [
+          {
+            "source_field": "/metadata/ownerReferences/0/uid",
+            "target": {
+              "collection": "/services/kubernetes/replicasets.apps",
+              "matching": {
+                "metadata": {
+                  "namespace": "analytics",
+                  "ownerReferences": [
+                    {
+                      "apiVersion": "apps/v1",
+                      "controller": true,
+                      "kind": "Deployment",
+                      "name": "report-builder",
+                      "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+                    }
+                  ]
+                }
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/metadata/uid"
+          }
+        ],
+        "max_count": 2,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/pods/*",
+        "kind": "delete",
+        "matching": {
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "ReplicaSet"
+              }
+            ]
+          }
+        },
+        "references": [
+          {
+            "source_field": "/metadata/ownerReferences/0/uid",
+            "target": {
+              "collection": "/services/kubernetes/replicasets.apps",
+              "matching": {
+                "metadata": {
+                  "namespace": "analytics",
+                  "ownerReferences": [
+                    {
+                      "apiVersion": "apps/v1",
+                      "controller": true,
+                      "kind": "Deployment",
+                      "name": "report-builder",
+                      "uid": "44a9880e-ab05-46e4-ad71-4e6b00c34f85"
+                    }
+                  ]
+                }
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/metadata/uid"
+          }
+        ],
+        "max_count": 2,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/pods/*",
+        "kind": "create",
+        "matching": {
+          "metadata": {
+            "namespace": "analytics",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "report-builder-t2h6vx4p7r",
+                "uid": "e023e374-4901-434f-a316-f43449a6f943"
+              }
+            ]
+          }
+        },
+        "max_count": 2,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$"
+        }
+      },
+      {
         "pointer": "/services/sentry/issues/REPORT-BUILDER-4T/status",
         "kind": "update",
         "matching": {
@@ -404,6 +890,58 @@
             "PUT"
           ],
           "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/activities/*",
+        "kind": "create",
+        "matching": {
+          "type": "note"
+        },
+        "field_patterns": {
+          "/data/text": "\\S"
+        },
+        "references": [
+          {
+            "source_field": "/issue",
+            "target": {
+              "collection": "/services/sentry/issues",
+              "matching": {
+                "id": "6184422318",
+                "shortId": "REPORT-BUILDER-4T"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/user",
+            "target": {
+              "collection": "/services/sentry/users",
+              "matching": {
+                "email": "priya@lumenlabs.dev"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/notes/$"
         }
       }
     ],

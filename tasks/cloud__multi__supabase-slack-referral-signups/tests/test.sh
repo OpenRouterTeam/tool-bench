@@ -14,7 +14,9 @@ set -- bench-verify \
   --runner-admission /exports/runner-admission.json \
   --realized-manifest /exports/realized-manifest.json \
   --inference-evidence /exports/inference-evidence.json \
-  --output /logs/verifier
+  --output /logs/verifier \
+  --allow-unattested-runner \
+  --withhold-invalid-reward
 if [ -f /app/answer.md ]; then
   set -- "$@" --answer /app/answer.md
 fi

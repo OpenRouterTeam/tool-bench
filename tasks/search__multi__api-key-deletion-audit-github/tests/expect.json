@@ -253,26 +253,6 @@
         "(${denied_actor}'s delete attempt at ${denied_time} was denied.)",
         "She created ${replacement_key} at ${replacement_time}",
         "review requested from ${reviewer}"
-      ],
-      "assertions": [
-        "User: ${user} Deleted at: ${time} UTC GitHub username: ${login} Pull request: #${pull_request} (${merged})",
-        "${user} deleted the key at ${time} UTC. On GitHub she is ${login}, and her PR #${pull_request} has ${merged}.",
-        "${user} deleted the key at ${time} UTC. On GitHub she is ${login}, and her PR #${pull_request} has ${merged} yet.",
-        "| User | Time | GitHub | PR | Status | |---|---|---|---|---| | ${user} | ${time} UTC | ${login} | #${pull_request} | ${merged} |",
-        "${user} (${time} UTC) is GitHub user ${login}; pull request #${pull_request}; ${merged}.",
-        "User: ${user} Deleted at: ${time} GitHub username: ${login} Pull request: #${pull_request} (${merged})",
-        "${user} (${time} UTC) is GitHub user ${login}; pull request number ${pull_request}; ${merged}",
-        "${user} (${time} UTC) is GitHub user ${login}; PR #${pull_request} is ${merged}",
-        "User: ${user}",
-        "Deleted at: ${time}",
-        "GitHub username: ${login}",
-        "Pull request: #${pull_request} (${merged}, ${merged})",
-        "${merged} (${merged})",
-        "| ${user} | ${time} UTC | ${login} | #${pull_request} | ${merged} (${merged}) |",
-        "${user} (${time} UTC) is GitHub user ${login}",
-        "pull request number ${pull_request}",
-        "${merged}",
-        "PR #${pull_request} has been ${merged}"
       ]
     }
   },

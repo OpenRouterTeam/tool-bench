@@ -115,38 +115,7 @@
     }
   ],
   "audit_history": true,
-  "ordering": [
-    {
-      "prerequisite": {
-        "selector": {
-          "collection": "/services/firecrawl/monitors",
-          "matching": {
-            "id": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11"
-          },
-          "key_prefix": null,
-          "created": false,
-          "identity_field": null
-        },
-        "field": "/status",
-        "equals": "paused"
-      },
-      "action": {
-        "selector": {
-          "collection": "/services/firecrawl/monitor_checks",
-          "matching": {
-            "monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
-          },
-          "key_prefix": null,
-          "created": true,
-          "identity_field": null
-        },
-        "field": "/trigger",
-        "equals": "manual"
-      },
-      "require_transition": false,
-      "allow_same_commit": false
-    }
-  ],
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {

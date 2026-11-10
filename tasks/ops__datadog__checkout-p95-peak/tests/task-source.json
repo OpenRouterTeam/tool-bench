@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/datadog/checkout-p95-peak",
-  "scenario_sha256": "sha256:5402cb6c7acb95fd7837ace53040e0be78679e086a3918ed9aa54c726382c0e8",
+  "scenario_sha256": "sha256:78eded98888276a7fbaa377bc4ccfa23e28e950d18dd76bb4c0ac95c45a5901c",
   "dataset_sha256": "sha256:27aa8eb40d37508683e327234638d1d396de25575c3067b91b8147e5f61a49c8",
-  "contract_sha256": "sha256:1ee378ae9196205cfb34606144654de40129bbbbccf93527883332f67aa9d327"
+  "contract_sha256": "sha256:9e2c068f4ab98bc508e0c0590623ea6e80c3febedebe14cd4b31221262514243"
 }

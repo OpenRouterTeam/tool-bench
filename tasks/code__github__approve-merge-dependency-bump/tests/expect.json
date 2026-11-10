@@ -78,7 +78,7 @@
       "html_text": {},
       "reviewed_text": {
         "/body": {
-          "requirement": "Review narration is optional. If supplied, it must be a legitimate approval of this lodash security update and must not deny it or introduce unsupported claims. Unlisted nonempty wording requires adjudication, not an invented model failure.",
+          "requirement": "Review narration is optional: the request asks for the approval and the squash merge of the lodash security update, not for review text, so no particular wording is required.",
           "optional": true,
           "accepted": [
             "LGTM.",

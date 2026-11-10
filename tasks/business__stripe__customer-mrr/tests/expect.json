@@ -92,15 +92,7 @@
             }
           }
         }
-      },
-      "assertions": [
-        "The MRR is ${mrr}.",
-        "MRR: ${mrr}",
-        "Monthly recurring revenue: ${mrr}.",
-        "MRR is ${mrr}.",
-        "${customer} has a monthly recurring revenue of ${mrr}.",
-        "${customer}: MRR ${mrr}."
-      ]
+      }
     }
   },
   "preservation": null,

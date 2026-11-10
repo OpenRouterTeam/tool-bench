@@ -70,12 +70,6 @@
         "(role confirmed on ${team_page_url})",
         "not https://www.linkedin.com/in/priya-raman-4b21a9",
         "team page: ${team_page_url}"
-      ],
-      "assertions": [
-        "${url}",
-        "Profile: ${url}",
-        "Profile: [Priya Raman](${url}/)",
-        "Profile: [Priya Raman](${url})"
       ]
     }
   },

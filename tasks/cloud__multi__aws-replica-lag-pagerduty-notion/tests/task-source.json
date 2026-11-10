@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/multi/aws-replica-lag-pagerduty-notion",
-  "scenario_sha256": "sha256:83c0f0a5cd8929b624dee795063ed1fc7ce8fcae1d8016db48b479362796e629",
+  "scenario_sha256": "sha256:3aa39feccadd2018613a8b24d5330c397ee60b1d3c8a684989a459659aa835ed",
   "dataset_sha256": "sha256:0220f1f87c70f4ceb38a01c37cfc618b4f64ee79d45bc9f7603cadf96776256b",
-  "contract_sha256": "sha256:5a1c777ff05e52b550a6f9e5f5da9d36e38a38fb2ef937b5ed7a20f186298385"
+  "contract_sha256": "sha256:bfef83cb43b5787db81b193c8f359a40712aae2a0904a0acea5d916707d5c787"
 }

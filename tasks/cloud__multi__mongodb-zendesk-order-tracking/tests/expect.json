@@ -139,14 +139,16 @@
         "on Oct 23",
         "on 2026-10-23",
         "ETA Oct 31",
-        "estimated delivery 2026-10-31"
-      ],
-      "assertions": [
-        "Order number: ${order}\nStatus: ${status}\nCarrier: ${carrier}\nTracking number: ${tracking}",
-        "Order ${order} has ${status} with ${carrier} (tracking ${tracking})",
-        "Order ${order} was ${status} via ${carrier} (${tracking})",
-        "Order ${order}: ${status}, ${carrier}, tracking ${tracking}.",
-        "Order ${order}: ${status}. Carrier: ${carrier}. Tracking number: ${tracking}."
+        "estimated delivery 2026-10-31",
+        "not yet been shipped",
+        "hasn't yet been shipped",
+        "not been shipped",
+        "hasn't been shipped",
+        "not yet shipped",
+        "hasn't yet shipped",
+        "hasn't shipped",
+        "isn't shipped",
+        "not shipped"
       ]
     }
   },

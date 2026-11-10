@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/multi/competitor-funding-and-pricing",
-  "scenario_sha256": "sha256:0dbe7e28cb6f70deb1fc141f6d69d5d181fed486e3ac333c5362b52b4a744df9",
+  "scenario_sha256": "sha256:7f6ecb6000b1075dbc125e5dfc1fada0e3f25ebd3215ef84888950115b9610ae",
   "dataset_sha256": "sha256:49661962ac9d0930073295330528a78de3e706dc353ca4380472892310b218d4",
-  "contract_sha256": "sha256:729631d0b8debc34990a5ba08205ee0c07b8128f30241137d2ecd5ffd19f45d3"
+  "contract_sha256": "sha256:d547d94aa9f00955d231184b4809ed8acc4ee21dd68c266dd6d9cdabd7088e06"
 }

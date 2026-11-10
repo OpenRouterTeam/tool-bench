@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/brave/hosting-sla-lookup",
-  "scenario_sha256": "sha256:386e59df93730fbe2b98831bddaf2d52652a248c9a79080d762fa4e425b72960",
+  "scenario_sha256": "sha256:b08c700ce0ff93631452be9c3ae11b93040ce0232d0bab14a5b00b56f8c3b2ee",
   "dataset_sha256": "sha256:657c2b1f45fab6351445a6bd6b4d9a09af74500dc545aa56969a3e502e43698d",
-  "contract_sha256": "sha256:219371cd24f66479d056d7e04f7d5dd878f4b3a98996ba267e98f2bbe38a3301"
+  "contract_sha256": "sha256:7b1b00af8775aeadb0d3567de11abeb7b60fd9af80b128d9e48a95e0e3e8afca"
 }

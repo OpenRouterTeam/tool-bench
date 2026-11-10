@@ -108,11 +108,9 @@
         "override covering Riya Patel",
         "(override for Riya Patel)"
       ],
-      "assertions": [
-        "On call: ${oncall1}, backup: ${oncall2}",
-        "${oncall1} and ${oncall2}",
-        "Level 1: ${oncall1}. Level 2: ${oncall2}",
-        "Primary: ${oncall1}, secondary: ${oncall2}"
+      "order": [
+        "oncall1",
+        "oncall2"
       ]
     }
   },

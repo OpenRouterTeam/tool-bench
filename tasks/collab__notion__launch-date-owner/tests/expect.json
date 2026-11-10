@@ -82,20 +82,6 @@
         "Payments v2 GA",
         "which",
         "| Launch | Date | Owner |"
-      ],
-      "assertions": [
-        "Launch date: ${date}",
-        "launches on ${date}",
-        "scheduled for ${date}",
-        "${date}",
-        "Owner: ${owner}",
-        "owner is ${owner}",
-        "owned by ${owner}",
-        "${owner} owns",
-        "${owner}",
-        "and is owned by ${owner}",
-        "Payments v2 GA launches on ${date} and is owned by ${owner}",
-        "| ${date} | ${owner} |"
       ]
     }
   },

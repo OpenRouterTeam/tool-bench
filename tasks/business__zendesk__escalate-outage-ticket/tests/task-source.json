@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/zendesk/escalate-outage-ticket",
-  "scenario_sha256": "sha256:d76ff9cbed75cac658c00e8efd7d465a493aeb23212c58a78fd8ca37c1610c01",
+  "scenario_sha256": "sha256:50104b361b89e5ca2d2e83c58d0bebc1fa8fbe984cc827841f159a3e89195fcc",
   "dataset_sha256": "sha256:1695835d9b0bb588e8adb18c91d7bf09476a1ef1029f8cf7e9b72afb634506e0",
-  "contract_sha256": "sha256:846ced7c58a9fe0728fd5e75aff5453d2ffa397800e176512e7a46568ca4a8f1"
+  "contract_sha256": "sha256:292c10b2414133fec68c332243143be4389565355f84696d6abe9a91387049af"
 }

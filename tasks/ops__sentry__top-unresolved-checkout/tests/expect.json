@@ -94,13 +94,6 @@
         "least frequent",
         "least noisy",
         "quietest"
-      ],
-      "assertions": [
-        "${issue_id} - ${title}",
-        "${issue_id}: ${title}",
-        "Short ID: ${issue_id} Title: \"${title}\"",
-        "| Short ID | Title | |---|---| | ${issue_id} | ${title} |",
-        "${issue_id}, titled ${title}"
       ]
     }
   },

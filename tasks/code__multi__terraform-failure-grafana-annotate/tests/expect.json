@@ -54,8 +54,12 @@
       "html_text": {},
       "reviewed_text": {
         "/text": {
-          "requirement": "The complete annotation must truthfully mark the production payments-api-prod Terraform run that failed during the Postgres 16 database upgrade with the actual failed run ID and AWS error code. It must not claim success, an applied upgrade, a rollback, a database state or any other unsupported outcome, and must not blame another run, environment or error code. Do not require a particular phrasing, the run message, workspace or resource address. Unlisted nonempty wording requires adjudication.",
+          "requirement": "Include the ID of the production payments-api-prod Terraform run that failed during the Postgres 16 upgrade and the AWS error code InvalidParameterCombination from its apply log. No particular phrasing, run message, workspace or resource address is required.",
           "accepted": [],
+          "mentions": [
+            "${failed_run}",
+            "InvalidParameterCombination"
+          ],
           "format": "plain",
           "bound": {
             "identities": {

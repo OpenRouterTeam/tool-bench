@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/multi/sentry-release-commit-lookup",
-  "scenario_sha256": "sha256:94c98d37533226abf631ff020d4ee9fd54451c29d9ae7865e71e84121f20a8e0",
-  "dataset_sha256": "sha256:fee43219209f7520d2a49a35576057dba6b7f71335bdc9327646fdb78803984f",
-  "contract_sha256": "sha256:84d21e798372edf2409d8b4c7a2ab5321d7737d14a503966b07d0780bdeb4f38"
+  "scenario_sha256": "sha256:9d0418e0b00ddf53af57e7fddd4e5fe10ed1fcf7e8e7a24227f81eab0e5f886f",
+  "dataset_sha256": "sha256:54faa4b3f91003c8c8dc81e6d61a964e0881ea58085609fce04a626216188b87",
+  "contract_sha256": "sha256:a9ed37f57897c6aebfc8b2b8301cec142df9def29ae96365ec12d52cad90b9e1"
 }

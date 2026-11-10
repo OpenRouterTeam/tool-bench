@@ -128,14 +128,6 @@
         "${participating_investor} also participated",
         "participation from existing investor ${participating_investor}",
         "participation from ${participating_investor}"
-      ],
-      "assertions": [
-        "Funding: ${amount} ${round} led by ${lead}. Pricing: Growth is ${price} per month, billed annually.",
-        "| Raised | ${amount} | | Round | ${round} | | Lead | ${lead} | | Growth (annual billing) | ${price}/month |",
-        "${amount} ${round} led by ${lead}. Growth is ${price} per month.",
-        "${amount} ${round} led by ${lead}. Growth is ${price}/month billed annually.",
-        "${amount} ${round} led by ${lead}. Growth is ${price}/month billed annually,",
-        "${amount} ${round} led by ${lead}. Growth is ${price}/month"
       ]
     }
   },

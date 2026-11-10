@@ -119,7 +119,19 @@
             "FUNCTION_SIZE_EXCEEDED": [
               "function size",
               "maximum size",
-              "size limit"
+              "size limit",
+              "250 MB",
+              "250MB",
+              "too large",
+              "too big",
+              "over 250 MB",
+              "over 250MB",
+              "over the 250 MB",
+              "over the 250MB",
+              "over the function size",
+              "over the maximum size",
+              "over the size limit",
+              "over the limit"
             ]
           }
         }
@@ -166,22 +178,6 @@
         "PR #${failed_prod_pr}",
         "1.",
         "2."
-      ],
-      "assertions": [
-        "Production serves ${commit}",
-        "Production is on ${commit}",
-        "Commit: ${commit}",
-        "${commit}",
-        "Message: ${message}",
-        "${message}",
-        "\"${message}\"",
-        "${message} (#${prod_pr})",
-        "The latest preview failed with ${reason}",
-        "The newest preview went over the ${reason} limit",
-        "Preview failure: ${reason}",
-        "${reason}",
-        "a Serverless Function has exceeded the unzipped ${reason} of 250 MB",
-        "Preview failure: a Serverless Function has exceeded the unzipped ${reason} of 250 MB"
       ]
     }
   },

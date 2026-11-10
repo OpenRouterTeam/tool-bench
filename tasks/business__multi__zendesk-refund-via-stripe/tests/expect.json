@@ -189,8 +189,20 @@
       "html_text": {},
       "reviewed_text": {
         "/body": {
-          "requirement": "Tell the customer that the duplicate payment was refunded and include an actual Stripe refund reference. The ticket association supplies Hannah/order context. Do not require a greeting, signature, repeated amount/order/date, or an explicit statement about the original charge. Any added factual claims must be supported. An identifier mention alone does not establish truthful communication; unlisted nonempty wording requires adjudication, not an automatic model failure.",
+          "requirement": "Tell the customer that the duplicate payment was refunded and cite every actual Stripe refund ID. The ticket supplies Hannah and the order; a greeting, signature, amount, order, date or statement about the original charge is not required. A bare ID does not say it was refunded.",
           "accepted": [],
+          "mentions": [
+            "${refund_ids}",
+            [
+              "refund",
+              "refunded",
+              "refunds",
+              "refunding",
+              "reversed",
+              "returned",
+              "credited"
+            ]
+          ],
           "format": "plain",
           "bound": {
             "identities": {
@@ -217,8 +229,20 @@
           }
         },
         "/html_body": {
-          "requirement": "The rendered public reply must truthfully report the duplicate refund and include an actual Stripe reference, without hidden or contradictory content. The ticket supplies customer/order context; do not require optional greetings, signatures, repeated amount/order/date or original-payment narration.",
+          "requirement": "The rendered public reply must say the duplicate payment was refunded and show every actual Stripe refund ID, without hidden content. The ticket supplies Hannah and the order; a greeting, signature, amount, order, date or statement about the original charge is not required.",
           "accepted": [],
+          "mentions": [
+            "${refund_ids}",
+            [
+              "refund",
+              "refunded",
+              "refunds",
+              "refunding",
+              "reversed",
+              "returned",
+              "credited"
+            ]
+          ],
           "format": "zendesk_html",
           "bound": {
             "identities": {

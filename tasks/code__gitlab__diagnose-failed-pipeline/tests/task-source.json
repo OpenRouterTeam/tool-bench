@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/gitlab/diagnose-failed-pipeline",
-  "scenario_sha256": "sha256:c3aee4e57bd6aacce16032571daa262c8ae2f1d5a1570fccb4f30cb04f60a4be",
+  "scenario_sha256": "sha256:4032c12a5e6f5e58ad25f677ab8a83a6130166fa572ea9c06e24551f3781c00c",
   "dataset_sha256": "sha256:0709a7f1eca6279eb727bca96ec3be418abb1a4f7b4b6ac8967287d42b1ffe69",
-  "contract_sha256": "sha256:202ed651da3600ec991916f0b814b9b7b0692f9b91a3f176e905bc895ea28810"
+  "contract_sha256": "sha256:f24f67da42af7d97085b3f5a5f804df93d588ea254809a3be417d5f1bc3b7020"
 }

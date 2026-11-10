@@ -93,77 +93,20 @@
         "city": {
           "header": "HQ city",
           "kind": "place",
-          "required": true,
-          "answer_headers": [
-            "HQ",
-            "Headquarters",
-            "Headquarters city",
-            "HQ location",
-            "City",
-            "Location"
-          ]
+          "required": true
         },
         "company": {
           "header": "Company",
           "kind": "name",
           "required": true,
-          "answer_headers": [
-            "Company name",
-            "Name",
-            "Lead",
-            "Organization"
-          ],
           "short_names": true
         },
         "employees": {
           "header": "Employees (approx.)",
           "kind": "number",
-          "required": true,
-          "answer_headers": [
-            "Employees",
-            "Headcount",
-            "Employee count",
-            "Approx. headcount",
-            "Approximate headcount",
-            "Approx. employees",
-            "Approximate employees"
-          ]
+          "required": true
         }
-      },
-      "aliases": {
-        "PA": [
-          "Pennsylvania"
-        ],
-        "TX": [
-          "Texas"
-        ],
-        "USA": [
-          "US",
-          "U.S.",
-          "U.S.A.",
-          "United States"
-        ],
-        "United Kingdom": [
-          "UK",
-          "U.K.",
-          "England"
-        ]
-      },
-      "claims": [
-        "${company}: HQ ${city}; about ${employees} employees",
-        "${company}: HQ ${city}; ~${employees} employees",
-        "${company}: HQ ${city}, about ${employees} employees",
-        "${company}: ${city}, about ${employees} employees",
-        "${company}: ${city}; about ${employees} employees",
-        "${company}: ${city}, ~${employees} employees",
-        "${company} — ${city} — ~${employees} employees",
-        "${company} is headquartered in ${city} and has about ${employees} employees.",
-        "${company} is headquartered in ${city} with about ${employees} employees."
-      ],
-      "rejected": [
-        "${company} is not headquartered in ${city}.",
-        "${company} does not have about ${employees} employees."
-      ]
+      }
     }
   },
   "preservation": {

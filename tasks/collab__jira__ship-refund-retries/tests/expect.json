@@ -56,10 +56,30 @@
       "html_text": {},
       "reviewed_text": {
         "/body": {
-          "requirement": "Say that the failed-refund-webhook retry story shipped in release 2026.11, without contradictory or invented claims. The issue association supplies the story context; merely mentioning the release identifier is insufficient.",
+          "requirement": "Say that the failed-refund-webhook retry story shipped in release 2026.11. The issue association supplies the story context. The comment must name release 2026.11 and say it shipped or was released; merely mentioning the release identifier is insufficient.",
           "accepted": [
             "Shipped in release 2026.11.",
             "The refund webhook retry story shipped in release 2026.11."
+          ],
+          "mentions": [
+            [
+              "2026.11",
+              "v2026.11"
+            ],
+            [
+              "shipped",
+              "ship",
+              "ships",
+              "shipping",
+              "released",
+              "release",
+              "went out",
+              "went live",
+              "rolled out",
+              "deployed",
+              "delivered",
+              "launched"
+            ]
           ],
           "format": "plain",
           "bound": null

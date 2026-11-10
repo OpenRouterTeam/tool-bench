@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/vercel/storefront-production-status",
-  "scenario_sha256": "sha256:e91d497468af39ad7052e2eaf2879866569972f7110c1221916bd515a5804da3",
+  "scenario_sha256": "sha256:a399c8e64aa218a32ba61959e555e5de356cad26917510b3da67fbc84bdd4997",
   "dataset_sha256": "sha256:899512a902853a7504e75cbb47f7b2b297211421bd6390bedf2fb4600733bf12",
-  "contract_sha256": "sha256:bca1ad4c8647346d62ad69c23382572ab4bbb94b4987979457140472896a7f5c"
+  "contract_sha256": "sha256:df1cddf164c6f1b6fa6bfb75832c7c823968d89d418ee50df9c6f1b000af7fb4"
 }

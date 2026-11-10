@@ -54,11 +54,20 @@
       "html_text": {},
       "reviewed_text": {
         "/body": {
-          "requirement": "Mention deploy 412 in the new login HTTP-500 bug's description, without denying the reported regression or inventing its root cause. The exact title already supplies the login failure context; no particular prose or level of detail is required. Unlisted nonempty wording requires adjudication.",
+          "requirement": "Mention deploy 412 in the new login HTTP-500 bug's description. The exact title already supplies the login failure context; no particular prose or level of detail is required.",
           "accepted": [
             "The login page has returned HTTP 500 since deploy 412.",
             "Observed after deploy 412.",
             "Deploy 412."
+          ],
+          "mentions": [
+            "412",
+            [
+              "deploy",
+              "deployment",
+              "deployed",
+              "deploys"
+            ]
           ],
           "format": "plain",
           "bound": null

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/multi/competitor-research-github-issue",
-  "scenario_sha256": "sha256:91be3a671f028f7a76b30537abe0406c2083b82ff05bba8cddcf69c9a495d719",
+  "scenario_sha256": "sha256:642217e2a8a5327b2018a475b40e5a624916886de60538dfd7a5e652535104c4",
   "dataset_sha256": "sha256:3456b404b0bb31859df7e1cf491a4a8a62b5c379919f0656fedfa8d3872e65e7",
-  "contract_sha256": "sha256:56ee7c30362096a142a0924bf19ec258763bbbe291d5079fb445a7762fb566f0"
+  "contract_sha256": "sha256:b880fff1e6ff1e3c5a4191ce36d58dc6ea2e63efd5b0ab5c0bd7f7b866868f74"
 }

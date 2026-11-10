@@ -57,15 +57,7 @@
             "/Id": "/key"
           }
         }
-      },
-      "assertions": [
-        "${rep} has the largest open pipeline: ${total}.",
-        "${rep} - ${total}",
-        "${rep}: ${total}",
-        "Rep: ${rep}\nOpen Q2 pipeline: ${total}",
-        "${rep} leads with ${total} of open pipeline closing in Q2.",
-        "${rep} leads with ${total} of open pipeline."
-      ]
+      }
     }
   },
   "preservation": null,

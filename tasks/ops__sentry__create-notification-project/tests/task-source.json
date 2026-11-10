@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/sentry/create-notification-project",
-  "scenario_sha256": "sha256:240fd9dea443eba6036cf813cf062181c75b871f299854834aaa406e651ac39a",
+  "scenario_sha256": "sha256:dd32ea194eeec438b001b0b94a5d57db6b92f364337fc2cf7395d3249fd20ec9",
   "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
-  "contract_sha256": "sha256:79bf252df3d49466b63d1b748f21ca7302daf7170fc4c0707984b4afb48840ef"
+  "contract_sha256": "sha256:2865800a7cf46b01362a0a548a34e5e7eb5a2c175b7dcb20229b55d9503f0942"
 }

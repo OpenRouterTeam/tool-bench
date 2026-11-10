@@ -24,11 +24,28 @@
       "html_text": {},
       "reviewed_text": {
         "/text": {
-          "requirement": "Summarize the agreed production cutover: start 2026-11-07 at 22:00 and end at 01:00 the following morning, Central time, led by Sam. Use YYYY-MM-DD and 24-hour times. Do not treat the superseded proposal or identifier/date mentions as a decision. Optional rollback/verification details must be grounded; unlisted nonempty wording requires adjudication.",
+          "requirement": "Summarize the agreed production cutover: start 2026-11-07 at 22:00 and end at 01:00 the following morning, Central time, led by Sam. The summary must carry the date as YYYY-MM-DD, both 24-hour times, the Central time zone and Sam as lead. The superseded proposal may be mentioned; rollback/verification details are not mandatory.",
           "accepted": [
             "Summary: the production cutover window is Saturday 2026-11-07, 22:00-01:00 CT (moved off Nov 6 because of the payments change freeze). Sam leads the cutover, Priya handles payments verification, rollback deadline 00:30 CT.",
             "Agreed cutover: 2026-11-07 22:00 to 2026-11-08 01:00 Central time. Sam Ortiz leads.",
             "Summary: 2026-11-07, 22:00-01:00 CT; Sam is the cutover lead."
+          ],
+          "mentions": [
+            "2026-11-07",
+            "22:00",
+            "01:00",
+            [
+              "CT",
+              "Central",
+              "CST",
+              "CDT",
+              "America/Chicago",
+              "US/Central"
+            ],
+            [
+              "Sam",
+              "U05SORTIZ6M"
+            ]
           ],
           "format": "plain",
           "bound": null

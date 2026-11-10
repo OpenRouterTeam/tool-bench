@@ -96,7 +96,11 @@
           "kind": "number",
           "record": "sentry",
           "units": [
-            "events"
+            "events",
+            "total events",
+            "error events",
+            "event count",
+            "occurrences"
           ],
           "require_unit": true
         },
@@ -124,7 +128,12 @@
           "record": "sentry",
           "units": [
             "users",
-            "affected users"
+            "affected users",
+            "impacted users",
+            "unique users",
+            "distinct users",
+            "user count",
+            "people"
           ],
           "require_unit": true
         }
@@ -152,23 +161,6 @@
       ],
       "predicates": [
         "Cannot read properties of undefined"
-      ],
-      "assertions": [
-        "Sentry issue: ${issue}",
-        "${issue}",
-        "Events: ${events}",
-        "${events} events",
-        "Affected users: ${users}",
-        "${users} users",
-        "${users} affected users",
-        "First release: storefront@${release}",
-        "first release storefront@${release}",
-        "first seen in ${release}",
-        "storefront@${release}",
-        "${issue}: ${events} events, ${users} users, first seen in ${release}",
-        "${issue} has ${events} events affecting ${users} users",
-        "${issue} (${events} events, ${users} users, first seen in ${release})",
-        "${events} events and ${users} users, first seen in ${release}"
       ]
     }
   },

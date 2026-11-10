@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/stripe/customer-mrr",
-  "scenario_sha256": "sha256:1e306afd0eabcabc67a3797e0a9f8d7770e6f809da71525dcdd742fb3f6a2cd2",
+  "scenario_sha256": "sha256:c967f3e5c8a59ab765931ec1385c27cb683a350d5dab16aec372de50ae021f7b",
   "dataset_sha256": "sha256:edfeed7e14f8e93fa942af5c33746fa13e03577a9cd4f3df951b6733150c8502",
-  "contract_sha256": "sha256:2b7314eacdd10c324db9b0c3e86e92a2b09c375b5553683c5131a5fcdca62c70"
+  "contract_sha256": "sha256:335aaf6a039d6b3f9a6c9d6f422658b701db642ebfa76680ab2c4bcdb33b5242"
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/linear/urgent-bug-owner",
-  "scenario_sha256": "sha256:9d15b87b067ade5e3c7ba50afca7e9215c2b54aedb57c25affcd5c826c5a5660",
+  "scenario_sha256": "sha256:02e7eaeaa4b206091823c62cb775c1602209b0dc3d22c83c688ed8cd39ed0769",
   "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
-  "contract_sha256": "sha256:c4610340e3baafb012f7629bf09a4777ef335e74c638d56a07258909822e6689"
+  "contract_sha256": "sha256:51051f58d7c02c6e561f26e0aa72b71f59c4461b784b15e569b95e37b10c5537"
 }

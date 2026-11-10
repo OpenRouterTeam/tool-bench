@@ -80,7 +80,7 @@
       "html_text": {},
       "reviewed_text": {
         "/content": {
-          "requirement": "The complete incident note must state that rolling back release 2026.10.29.3 resolved this production incident. Do not merely mention the release, negate the rollback or resolution, claim a roll-forward, or claim that the assistant performed the rollback.",
+          "requirement": "Say that this incident was resolved by rolling back release 2026.10.29.3: name the release and the rollback. Do not merely mention the release, deny the rollback or resolution, claim a roll-forward, or claim that the assistant performed the rollback.",
           "accepted": [
             "Resolved by rolling back release 2026.10.29.3.",
             "Rolling back release 2026.10.29.3 resolved this incident.",
@@ -91,6 +91,23 @@
             "Release 2026.10.29.3 was not rolled back; this incident is still broken.",
             "Resolved by rolling forward release 2026.10.29.3.",
             "I rolled back release 2026.10.29.3 and resolved this incident."
+          ],
+          "mentions": [
+            [
+              "2026.10.29.3",
+              "v2026.10.29.3"
+            ],
+            [
+              "rolled back",
+              "rolling back",
+              "rollback",
+              "roll back",
+              "roll-back",
+              "rolled-back",
+              "reverted",
+              "reverting",
+              "revert"
+            ]
           ],
           "format": "plain",
           "bound": null

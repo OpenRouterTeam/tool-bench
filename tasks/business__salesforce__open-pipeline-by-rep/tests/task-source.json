@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/salesforce/open-pipeline-by-rep",
-  "scenario_sha256": "sha256:113143a8c6b6088dc61c4592c85113aa4199e2820d404739c930d165ca1e458e",
+  "scenario_sha256": "sha256:1fa050570873de4d62c4480e0c96de41c21b0148b633b4ebdcf8a9f2b34daa62",
   "dataset_sha256": "sha256:4b7968cdfbfbeec39680ad7658c41f766b35bffb983b342e05e69e0dcf1ab06b",
-  "contract_sha256": "sha256:34d57b9375302e3c0303c2f42abcf0e76962cd2c7728fd3580e1ec2d02332525"
+  "contract_sha256": "sha256:2e91bfaac952594c50f864cd02ff7a0e4a69ddc21b6beda312d71a921cb99a64"
 }

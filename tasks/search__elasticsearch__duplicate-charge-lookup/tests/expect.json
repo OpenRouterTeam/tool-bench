@@ -51,14 +51,7 @@
           "kind": "identifier"
         }
       },
-      "mode": "statements",
-      "assertions": [
-        "Duplicate orders: ${orders}, ${orders} Amount charged twice: ${amount}",
-        "${orders} duplicates ${orders}; each was charged ${amount}.",
-        "${orders} and ${orders}: ${amount} each",
-        "The double charge is ${orders} and ${orders}, both ${amount}.",
-        "${orders} and ${orders}, ${amount} each."
-      ]
+      "mode": "statements"
     }
   },
   "preservation": null,

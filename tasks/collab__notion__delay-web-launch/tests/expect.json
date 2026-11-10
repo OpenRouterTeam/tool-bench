@@ -32,7 +32,19 @@
         "/properties/Launch date/date/time_zone"
       ],
       "html_text": {},
-      "reviewed_text": {},
+      "reviewed_text": {
+        "/properties/Notes/rich_text": {
+          "requirement": "The row's Notes need not change. If they do, they must still carry the existing note, Release notes screenshots by Alex; text added to it, such as the reason for the slip, is not judged.",
+          "accepted": [
+            "Release notes screenshots by Alex."
+          ],
+          "mentions": [
+            "Release notes screenshots by Alex"
+          ],
+          "format": "notion_rich_text",
+          "bound": null
+        }
+      },
       "reviewed_fields": null,
       "any_fields": [],
       "totals": {},
@@ -47,6 +59,17 @@
   "answer": null,
   "preservation": {
     "allow": [
+      {
+        "pointer": "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Notes/rich_text",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
       {
         "pointer": "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Status/status",
         "kind": "update",

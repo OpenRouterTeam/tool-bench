@@ -50,10 +50,20 @@
       "html_text": {},
       "reviewed_text": {
         "/body": {
-          "requirement": "Say the changelog entry was added in commit 24f172e5, in Dana's existing review thread. The surrounding MR supplies the payments-SDK context. A commit token alone or contradictory wording cannot establish the requested reply; unlisted wording requires adjudication.",
+          "requirement": "Say the changelog entry was added in commit 24f172e5, in Dana's existing review thread. The surrounding MR supplies the payments-SDK context. The reply must name the changelog and the commit (short or full SHA); a commit token alone does not establish the requested reply.",
           "accepted": [
             "The changelog entry was added in commit 24f172e5.",
             "Yes, the changelog entry for the 4.2.0 bump was added in commit 24f172e5."
+          ],
+          "mentions": [
+            [
+              "changelog",
+              "change log"
+            ],
+            [
+              "24f172e5",
+              "24f172e5f801f520765fdc1dcfa16dc929323edf"
+            ]
           ],
           "format": "plain",
           "bound": null

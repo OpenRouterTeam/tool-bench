@@ -71,6 +71,24 @@
             "Lumenrail Scale plan (generally available): 50M events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
             "Lumenrail Scale plan (generally available): $349 per month billed annually, 50M events per month included."
           ],
+          "mentions": [
+            [
+              "$349",
+              "$349.00",
+              "349 USD",
+              "USD 349"
+            ],
+            [
+              "50M",
+              "50 M",
+              "50 million",
+              "50,000,000"
+            ],
+            [
+              "lumenrail.io/blog/scale-plan-generally-available",
+              "lumenrail.io/pricing"
+            ]
+          ],
           "format": "plain",
           "bound": null
         },
@@ -88,6 +106,10 @@
             "Lumenrail Scale plan in beta",
             "Lumenwise Scale plan pricing",
             "Lumenrail Scale plan beta pricing: $299/month"
+          ],
+          "mentions": [
+            "Lumenrail",
+            "Scale"
           ],
           "format": "plain",
           "bound": null

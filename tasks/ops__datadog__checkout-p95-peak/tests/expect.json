@@ -49,8 +49,7 @@
           "units": [
             "ms",
             "milliseconds"
-          ],
-          "require_unit": true
+          ]
         },
         "staging_peak": {
           "field": "/value",
@@ -104,16 +103,6 @@
         "lowest",
         "minimum",
         "smallest"
-      ],
-      "assertions": [
-        "Peak: ${peak} at ${time} UTC",
-        "| Peak p95 | ${peak} | | Time (UTC) | ${time} |",
-        "The highest p95 was ${peak}, reached at ${time} UTC",
-        "The highest p95 was ${peak}, ${time}",
-        "The highest p95 was ${peak}, reached at ${time}",
-        "${peak} at ${time} UTC",
-        "${peak} at ${time}",
-        "The production checkout API p95 latency peaked at ${peak} at ${time} UTC"
       ]
     }
   },

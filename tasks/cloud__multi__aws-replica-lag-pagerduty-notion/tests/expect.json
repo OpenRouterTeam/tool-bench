@@ -50,7 +50,7 @@
       "html_text": {},
       "reviewed_text": {
         "/content": {
-          "requirement": "Add to the PagerDuty incident the name of the CloudWatch alarm that fired for orders-db-replica-2, orders-db-replica-2-replica-lag, and the instant it went into ALARM, 2026-10-30 at 13:11:00 UTC. A look-alike alarm, another instant, an OK state or a note without both facts is not acceptable. The incident association supplies context; the ReplicaLag measurement is optional but must be true when stated. Unlisted nonempty wording requires adjudication.",
+          "requirement": "Give the name of the CloudWatch alarm that fired for orders-db-replica-2, orders-db-replica-2-replica-lag, and when it went into ALARM: 2026-10-30 at 13:11 UTC. A look-alike alarm, another date or time, or a note without both facts is not acceptable. The ReplicaLag measurement is optional.",
           "accepted": [
             "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:11:00Z (ReplicaLag max 412s vs 300s threshold).",
             "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:11:00Z.",
@@ -64,6 +64,33 @@
             "CloudWatch alarm inventory-db-replica-1-replica-lag went into ALARM at 2026-10-30T13:19:00Z.",
             "CloudWatch alarm orders-db-staging-replica-lag went into ALARM at 2026-10-30T08:01:00Z.",
             "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:12:00Z."
+          ],
+          "mentions": [
+            "orders-db-replica-2-replica-lag",
+            [
+              "2026-10-30",
+              "October 30",
+              "Oct 30",
+              "Oct. 30",
+              "October 30th",
+              "Oct 30th",
+              "30 October",
+              "30 Oct",
+              "30th October",
+              "30th of October",
+              "10/30",
+              "30/10"
+            ],
+            [
+              "13:11",
+              "13:11Z",
+              "13:11UTC",
+              "1:11 PM",
+              "1:11PM",
+              "1:11 p.m.",
+              "01:11 PM",
+              "01:11PM"
+            ]
           ],
           "format": "plain",
           "bound": null
@@ -129,7 +156,7 @@
       "html_text": {},
       "reviewed_text": {
         "/properties/Alarm/rich_text": {
-          "requirement": "Record the alarm name orders-db-replica-2-replica-lag, not a look-alike alarm. Unlisted wording requires adjudication.",
+          "requirement": "Record the alarm name orders-db-replica-2-replica-lag, not a look-alike alarm or the database instance name.",
           "accepted": [
             "orders-db-replica-2-replica-lag"
           ],
@@ -138,11 +165,14 @@
             "inventory-db-replica-1-replica-lag",
             "orders-db-staging-replica-lag"
           ],
+          "mentions": [
+            "orders-db-replica-2-replica-lag"
+          ],
           "format": "notion_rich_text",
           "bound": null
         },
         "/properties/Incident/rich_text": {
-          "requirement": "Record the requested incident reference PagerDuty #4812 and no other incident. Unlisted wording requires adjudication.",
+          "requirement": "Record the incident exactly as PagerDuty #4812, with no other incident or text.",
           "accepted": [
             "PagerDuty #4812"
           ],
@@ -151,11 +181,14 @@
             "PagerDuty #4761",
             "PagerDuty #4806"
           ],
+          "mentions": [
+            "^PagerDuty #4812$"
+          ],
           "format": "notion_rich_text",
           "bound": null
         },
         "/properties/Title/title": {
-          "requirement": "Title the postmortem orders-db-replica-2 replication lag, without contradictory additional text. Segment boundaries and passive formatting do not change the title; unlisted wording requires adjudication.",
+          "requirement": "Title the postmortem exactly orders-db-replica-2 replication lag. Segment boundaries, letter case and passive formatting do not change the title.",
           "accepted": [
             "orders-db-replica-2 replication lag"
           ],
@@ -163,6 +196,9 @@
             "orders-db-replica-1 replication lag",
             "inventory-db-replica-1 replication lag",
             "orders-db-staging replication lag"
+          ],
+          "mentions": [
+            "^orders-db-replica-2 replication lag$"
           ],
           "format": "notion_rich_text",
           "bound": null
@@ -366,6 +402,55 @@
               "format": "unix_seconds"
             }
           ]
+        },
+        {
+          "prerequisite": {
+            "service": "aws",
+            "method": "POST",
+            "path": "/",
+            "path_regex": null,
+            "query_contains": null,
+            "body": null,
+            "body_contains": null,
+            "headers": {
+              "x-amz-target": "GraniteServiceVersion20100801.DescribeAlarmsForMetric"
+            },
+            "min_count": 1,
+            "response_status": [],
+            "allow_tool_error": false
+          },
+          "response_field": "/MetricAlarms",
+          "source": {
+            "collection": "/services/aws/alarms",
+            "matching": {
+              "AlarmName": "orders-db-replica-2-replica-lag",
+              "StateValue": "ALARM"
+            },
+            "key_prefix": null,
+            "created": false,
+            "identity_field": null
+          },
+          "projection": [
+            {
+              "response": [
+                "/AlarmName"
+              ],
+              "source": "/AlarmName"
+            },
+            {
+              "response": [
+                "/StateValue"
+              ],
+              "source": "/StateValue"
+            },
+            {
+              "response": [
+                "/StateTransitionedTimestamp"
+              ],
+              "source": "/StateTransitionedTimestamp",
+              "format": "unix_seconds"
+            }
+          ]
         }
       ]
     },
@@ -491,6 +576,55 @@
                 "/Timestamp"
               ],
               "source": "/Timestamp",
+              "format": "unix_seconds"
+            }
+          ]
+        },
+        {
+          "prerequisite": {
+            "service": "aws",
+            "method": "POST",
+            "path": "/",
+            "path_regex": null,
+            "query_contains": null,
+            "body": null,
+            "body_contains": null,
+            "headers": {
+              "x-amz-target": "GraniteServiceVersion20100801.DescribeAlarmsForMetric"
+            },
+            "min_count": 1,
+            "response_status": [],
+            "allow_tool_error": false
+          },
+          "response_field": "/MetricAlarms",
+          "source": {
+            "collection": "/services/aws/alarms",
+            "matching": {
+              "AlarmName": "orders-db-replica-2-replica-lag",
+              "StateValue": "ALARM"
+            },
+            "key_prefix": null,
+            "created": false,
+            "identity_field": null
+          },
+          "projection": [
+            {
+              "response": [
+                "/AlarmName"
+              ],
+              "source": "/AlarmName"
+            },
+            {
+              "response": [
+                "/StateValue"
+              ],
+              "source": "/StateValue"
+            },
+            {
+              "response": [
+                "/StateTransitionedTimestamp"
+              ],
+              "source": "/StateTransitionedTimestamp",
               "format": "unix_seconds"
             }
           ]

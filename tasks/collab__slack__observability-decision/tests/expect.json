@@ -103,21 +103,6 @@
       "context": [
         "a ${contract_term}",
         "not Datadog or Honeycomb"
-      ],
-      "assertions": [
-        "Vendor: ${vendor}",
-        "It is ${vendor}",
-        "We picked ${vendor}",
-        "We went with ${vendor}",
-        "We signed with ${vendor}",
-        "${vendor}",
-        "Contract start: ${start}",
-        "the contract starts on ${start}",
-        "the contract starts ${start}",
-        "the contract begins ${start}",
-        "the new contract begins ${start}",
-        "and the contract starts ${start}",
-        "${start}"
       ]
     }
   },

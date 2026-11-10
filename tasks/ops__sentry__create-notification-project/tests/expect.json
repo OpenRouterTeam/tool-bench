@@ -114,6 +114,7 @@
     "contains": [],
     "regex": null,
     "sentry_dsn": {
+      "requirement": "Return a usable active DSN of the newly created notification-service project owned by Payments. The answer must not deny that DSN, present another credential URL, or say that no project was created.",
       "project": {
         "collection": "/services/sentry/projects",
         "matching": {
@@ -143,23 +144,11 @@
         "field": "/ingestion_origin",
         "separator": null
       },
-      "content": {
-        "requirement": "Return a usable active DSN for the newly created notification-service project owned by Payments. Surrounding text must not contradict project creation or present a different configuration value. Unlisted nonempty wording requires review after the URI's actual key, project and endpoint binding has passed.",
-        "accepted": [
-          "${dsn}",
-          "SENTRY_DSN=${dsn}",
-          "SENTRY_DSN=\"${dsn}\"",
-          "```env\nSENTRY_DSN=${dsn}\n```",
-          "```\n${dsn}\n```",
-          "notification-service (Payments team) DSN: ${dsn}"
-        ],
-        "rejected": [
-          "No project was created. DSN: ${dsn}",
-          "Do not use this DSN: ${dsn}"
-        ],
-        "format": "plain",
-        "bound": null
-      }
+      "rejected": [
+        "No project was created",
+        "The project was not created",
+        "could not create the project"
+      ]
     }
   },
   "preservation": {

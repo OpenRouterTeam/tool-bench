@@ -29,12 +29,15 @@
       "html_text": {},
       "reviewed_text": {
         "/paragraph/rich_text": {
-          "requirement": "Replace Marcus Webb, +1 555-0100 with Sam Ortiz, +1 555-0142 in the current runbook's escalation contact, preserving the surrounding prefix and role text. Passive formatting and segment boundaries do not change the claim. A name or phone token alone, a rejected alternative or a contradiction is not a complete replacement; unlisted wording requires adjudication.",
+          "requirement": "Replace Marcus Webb, +1 555-0100 with Sam Ortiz, +1 555-0142 in the current runbook's escalation contact and keep the rest of the line, so it reads: Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure). Passive formatting and segment boundaries do not change the line; a name or phone alone, the old contact or any added text is not the requested replacement.",
           "accepted": [
             "Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure)"
           ],
           "rejected": [
             "Escalation contact: Marcus Webb, +1 555-0100 (Head of Infrastructure)"
+          ],
+          "mentions": [
+            "^Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure)$"
           ],
           "format": "notion_rich_text",
           "bound": null

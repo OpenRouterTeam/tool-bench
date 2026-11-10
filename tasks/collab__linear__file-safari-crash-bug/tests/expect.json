@@ -57,9 +57,31 @@
       "html_text": {},
       "reviewed_text": {
         "/description": {
-          "requirement": "Record that opening Saved carts on Safari 17.1/macOS 14 causes a reload loop, Chrome/Firefox are fine, and the regression began with the 4.12 release candidate. Do not invent customer counts or other unsupported facts. Unlisted nonempty wording requires adjudication.",
+          "requirement": "Record the forwarded details: opening Saved carts on Safari 17.1/macOS 14 causes a reload loop, Chrome/Firefox are fine, and the regression began with the 4.12 release candidate. The exact title supplies the Saved carts reload-loop symptom; the description must carry Safari 17.1, macOS 14, Chrome, Firefox and the 4.12 release candidate.",
           "accepted": [
             "On Safari 17.1 (macOS 14), opening the Saved carts tab makes the page reload in a loop. Chrome and Firefox are fine. It started with the 4.12 release candidate."
+          ],
+          "mentions": [
+            [
+              "17.1",
+              "v17.1"
+            ],
+            [
+              "macOS 14",
+              "mac OS 14",
+              "macOS Sonoma"
+            ],
+            "Chrome",
+            "Firefox",
+            [
+              "4.12",
+              "v4.12"
+            ],
+            [
+              "release candidate",
+              "release-candidate",
+              "RC"
+            ]
           ],
           "format": "plain",
           "bound": null

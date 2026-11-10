@@ -22,10 +22,13 @@
       "html_text": {},
       "reviewed_text": {
         "/text": {
-          "requirement": "Tell Alex Kim in a DM that the current web 4.12 release date is 2026-11-10, written YYYY-MM-DD. The conversation supplies recipient context. No greeting, reason, old date or freeze date is mandatory; added facts must be grounded. Unlisted nonempty wording requires adjudication.",
+          "requirement": "Tell Alex Kim in a DM that the current web 4.12 release date is 2026-11-10, written YYYY-MM-DD. The conversation supplies recipient and release context, so the date is the one required fact; no greeting, reason, old date or freeze date is mandatory.",
           "accepted": [
             "The web 4.12 release is scheduled for 2026-11-10.",
             "Hi Alex! The web 4.12 release moved from 2026-11-03 to 2026-11-10 (Tuesday) because of the payments SDK regression. Code freeze is now 2026-11-06."
+          ],
+          "mentions": [
+            "2026-11-10"
           ],
           "format": "plain",
           "bound": null

@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "business/stripe/cancel-at-period-end",
-  "instruction_sha256": "sha256:4474c3a59f47381ad953fe941350e15c251688da2dc8595ec2a9fe7e554db1a1",
+  "instruction_sha256": "sha256:345c7d72a6bfff6c2b24c3fea877b9a8ddd7f5657e3655fb203e1148ada2bea9",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:ef89373ee3a561a2ea8eb8e297a67256fd8fbf1ed03f016eb54a398c7501f84f",
+  "framing_sha256": "sha256:4857eb1e6c7be7e5ffc8dcb29d557436a967aad8095fb0765ee2917defee73d5",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:f503074d625fc583b7da9233f7473fe4901c786bc3a45113f140bdc3ceba1457"
+    "docker-compose.yaml": "sha256:7647f63e14ee126a5d1c296ba256b427d4d8f399b6de217da670e69233f77265"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:ac9c66cda5b7cb79",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:32dbc9393fa99d6a",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:d7944c989f6ea4a2",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:2883185b019a2b74",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

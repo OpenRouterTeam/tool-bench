@@ -24,7 +24,7 @@
       "min_count": null,
       "max_count": null,
       "fields": {
-        "/spec/source/targetRevision": "v2.8.0",
+        "/spec/source/targetRevision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2",
         "/status/health/status": "Healthy",
         "/status/sync/status": "Synced"
       },
@@ -60,7 +60,7 @@
         "/history/revision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2",
         "/history/source/path": "overlays/production",
         "/history/source/repoURL": "https://github.com/lumen-retail/billing-api-deploy.git",
-        "/history/source/targetRevision": "v2.8.0"
+        "/history/source/targetRevision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
       },
       "optional_fields": {},
       "optional_choices": {},
@@ -381,6 +381,7 @@
         "source_tags": "/tags",
         "points": "/pointlist",
         "interval": "/interval",
+        "max_rollup_interval": 3600,
         "source_points": "/points",
         "timestamp_scale": 1000,
         "start": "2026-10-29T09:00:00Z",
@@ -448,7 +449,7 @@
         "matching": {
           "spec": {
             "source": {
-              "targetRevision": "v2.8.0"
+              "targetRevision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
             }
           }
         },
@@ -574,7 +575,7 @@
         "matching": {
           "spec": {
             "source": {
-              "targetRevision": "v2.8.0"
+              "targetRevision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
             }
           }
         },
@@ -653,7 +654,7 @@
             "source": {
               "path": "overlays/production",
               "repoURL": "https://github.com/lumen-retail/billing-api-deploy.git",
-              "targetRevision": "v2.8.0"
+              "targetRevision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
             }
           }
         },

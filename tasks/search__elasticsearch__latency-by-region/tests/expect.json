@@ -79,20 +79,6 @@
         "fastest",
         "quickest",
         "lowest"
-      ],
-      "assertions": [
-        "Slowest region: ${region}, average ${average} for successful /checkout/submit requests on 2026-10-30",
-        "Slowest region: ${region}",
-        "Average duration: ${average}",
-        "${region} is the slowest, averaging ${average}",
-        "${region} is the slowest, averaging ${average} (${average}) per successful request",
-        "The region with the largest average latency is ${region} at ${average}",
-        "${region} averages ${average} for successful /checkout/submit requests",
-        "${region} averages ${average}",
-        "${region}: ${average}",
-        "| Region | Average duration | | ${region} | ${average} |",
-        "| Region | Average duration | |---|---| | ${region} | ${average} |",
-        "{\"region\":\"${region}\",\"average\":\"${average}\"}"
       ]
     }
   },

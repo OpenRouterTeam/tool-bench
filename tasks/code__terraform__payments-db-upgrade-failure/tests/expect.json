@@ -135,19 +135,6 @@
       ],
       "predicates": [
         "Cannot upgrade postgres"
-      ],
-      "assertions": [
-        "Run: ${run}",
-        "${run}",
-        "${run} errored",
-        "${run} failed",
-        "Failed resource: ${resource}",
-        "${resource}",
-        "${error_code}",
-        "Plan: ${to_add} to add, ${to_change} to change, ${to_destroy} to destroy",
-        "${to_add} to add, ${to_change} to change, ${to_destroy} to destroy",
-        "${run} errored while applying ${resource}: ${error_code}",
-        "${run} failed applying ${resource} with ${error_code}"
       ]
     }
   },

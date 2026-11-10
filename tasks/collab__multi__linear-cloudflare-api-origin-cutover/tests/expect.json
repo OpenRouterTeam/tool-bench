@@ -73,7 +73,7 @@
       "html_text": {},
       "reviewed_text": {
         "/body": {
-          "requirement": "Tell the PLAT-241 reader what was changed in Cloudflare: the existing api.octo-corp.com A record now points to 198.51.100.45. The comment association supplies the ticket context; no greeting, repeated ticket id, old address, proxy narration or staging remark is mandatory, but any added claim must be true. Do not accept the old/canceled address, a newly created record, or a failed/not-done report. Unlisted nonempty wording requires adjudication, not an invented model failure.",
+          "requirement": "Tell the PLAT-241 reader what was changed in Cloudflare: the existing api.octo-corp.com A record now points to 198.51.100.45. The comment association supplies the ticket context. The comment must name the record and the new address; no greeting, repeated ticket id, old address, proxy narration or staging remark is mandatory. The old/canceled address as the new value, a newly created record, or a failed/not-done report is not accepted.",
           "accepted": [
             "Done: the api.octo-corp.com A record in Cloudflare now points to 198.51.100.45 (origin-3), still proxied. Staging api.octo-corp.dev is unchanged.",
             "Updated the existing api.octo-corp.com A record to 198.51.100.45.",
@@ -84,6 +84,10 @@
             "Moved api.octo-corp.com to 198.51.100.44.",
             "Created a new A record for api.octo-corp.com at 198.51.100.45.",
             "I could not make the DNS change."
+          ],
+          "mentions": [
+            "api.octo-corp.com",
+            "198.51.100.45"
           ],
           "format": "plain",
           "bound": null
@@ -365,6 +369,29 @@
         "ascii_case_insensitive": false,
         "element_matching": null,
         "value_equals": "4ed11568-6dd0-5b94-bf4e-ba05dd563850",
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/linear/issues/PLAT-241/stateId",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "value_equals": "1bf2e271-f765-5dce-bbdd-56b9366aacc6",
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/linear/issues/PLAT-241/startedAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
         "identity_field": null
       },
       {

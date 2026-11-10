@@ -41,28 +41,13 @@
       },
       "selection": "only",
       "facts": {
-        "hours": {
+        "closes": {
+          "field": "/opening_hours/days/5/0/closes",
+          "kind": "text"
+        },
+        "opens": {
           "field": "/opening_hours/days/5/0/opens",
-          "kind": "text",
-          "append": [
-            "/opening_hours/days/5/0/closes"
-          ],
-          "wordings": {
-            "09:00 14:00": [
-              "09:00-14:00",
-              "9:00-14:00",
-              "09:00 - 14:00",
-              "9:00 - 14:00",
-              "9am-2pm",
-              "9 am - 2 pm",
-              "9:00 AM - 2:00 PM",
-              "9:00am - 2:00pm",
-              "09:00 to 14:00",
-              "9am to 2pm",
-              "9 am to 2 pm",
-              "9:00 AM to 2:00 PM"
-            ]
-          }
+          "kind": "text"
         },
         "phone": {
           "field": "/contact/telephone",
@@ -75,10 +60,9 @@
           "/categories/0": "(?i)caterer"
         }
       },
-      "assertions": [
-        "Phone: ${phone}. Saturday: ${hours}.",
-        "${phone}, Saturday hours ${hours}.",
-        "${phone}, Saturday ${hours}."
+      "order": [
+        "opens",
+        "closes"
       ]
     }
   },

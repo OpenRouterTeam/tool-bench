@@ -1,1 +1,1 @@
-[{"name":"billing_spec","pointer":"/content/0/text","json_pointer":"/spec","select":null,"constraint":{"required":["source"],"type":"object"}}]
+[{"name":"billing_spec","pointer":"/content/0/text","json_pointer":"/spec","select":null,"constraint":{"required":["source"],"type":"object"}},{"name":"previous_release","pointer":"/content/0/text","json_pointer":"/status/history/1/revision","select":null,"constraint":{"pattern":"^[0-9a-f]{40}$","type":"string"}}]

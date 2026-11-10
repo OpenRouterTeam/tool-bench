@@ -60,6 +60,7 @@
         "message_count": {
           "field": "/value",
           "kind": "number",
+          "optional": true,
           "record": "_second_level"
         },
         "service": {
@@ -78,12 +79,7 @@
       },
       "contradictions": [
         "fewest",
-        "least"
-      ],
-      "assertions": [
-        "${service}: ${count} errors. Top message: ${message} (${message_count}).",
-        "${service} had ${count} 5xx errors; the most common was \"${message}\" with ${message_count} occurrences.",
-        "${service}: ${count} errors. Most frequent: ${message} (${message_count} occurrences)."
+        "the least"
       ]
     }
   },

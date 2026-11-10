@@ -81,10 +81,14 @@
             "failed",
             "failures",
             "failure",
+            "fails",
             "unsuccessful",
-            "times"
-          ],
-          "require_unit": true
+            "times",
+            "sign-ins",
+            "sign-in",
+            "logins",
+            "login"
+          ]
         },
         "ip": {
           "field": "/member/client/ipAddress",
@@ -95,14 +99,7 @@
           "kind": "identifier"
         }
       },
-      "mode": "statements",
-      "assertions": [
-        "${login} had the most failed sign-ins (${attempts}), all from IP ${ip}.",
-        "Username: ${login}\nFailed attempts: ${attempts}\nIP address: ${ip}",
-        "${login} had ${attempts}, every one from ${ip}.",
-        "${login} had ${attempts} from ${ip}.",
-        "${login} had ${attempts} attempts from ${ip}."
-      ]
+      "mode": "statements"
     }
   },
   "preservation": null,

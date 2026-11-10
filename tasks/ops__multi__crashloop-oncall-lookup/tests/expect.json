@@ -177,10 +177,9 @@
         "override covering Riya Patel",
         "(override for Riya Patel)"
       ],
-      "assertions": [
-        "Pod ${pod}, error: ${error}. On call: ${oncall1}, backup ${oncall2}.",
-        "${pod}: ${error}. Primary: ${oncall1}, secondary: ${oncall2}.",
-        "Crash-looping pod: ${pod}. Error: ${error}. Level 1: ${oncall1}. Level 2: ${oncall2}."
+      "order": [
+        "oncall1",
+        "oncall2"
       ]
     }
   },

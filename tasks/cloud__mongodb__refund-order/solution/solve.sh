@@ -38,7 +38,7 @@ bound_call() {
   else
     cp "$2" "$WORK/call.json"
   fi
-  if [ -n "$5" ]; then
+  if [ -n "${5:-}" ]; then
     if [ ! -f "$5" ]; then
       printf '%s\n' "oracle: the locked input schema for captured arguments was not generated; refusing to send the call" >&2
       exit 1

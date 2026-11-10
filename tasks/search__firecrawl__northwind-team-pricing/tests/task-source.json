@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/firecrawl/northwind-team-pricing",
-  "scenario_sha256": "sha256:d333b1259070f471ff532978e08cae6b965c02a81228795ace92fb0b8e1d1054",
+  "scenario_sha256": "sha256:7ba80bbdb0d4c6fb7dc9e0653dc6f0a24ce6d80087a3c3857b8d688a8e4af99b",
   "dataset_sha256": "sha256:c54a784b2c0864ca54388433e36cfdbc21ccf88ce92328c197b8d8a533a9963a",
-  "contract_sha256": "sha256:4b043602b2e7b18e9ecf316e1c936cd9a02f2941a2f6a0a604f4f464f3f60cd9"
+  "contract_sha256": "sha256:7863bbf75f734f6da0ed86155b8eed4e5d56da2bc172f17fd20260f6fdacc08f"
 }
