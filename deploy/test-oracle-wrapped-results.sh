@@ -3,7 +3,7 @@ set -eu
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
-(cd "$ROOT" && CARGO_INCREMENTAL=0 cargo run -q --locked -p scenario --bin taskgen -- \
+(cd "$ROOT" && CARGO_INCREMENTAL=0 cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required \
   --include-examples --out "$WORK/tasks" --world-image fixture:world --tools-image fixture:tools) >/dev/null
 NEGATIVE="$WORK/tasks/example__aws__missing-bucket-policy/solution"
 mkdir "$WORK/bin"

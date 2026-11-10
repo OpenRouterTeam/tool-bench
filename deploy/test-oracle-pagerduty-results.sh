@@ -12,7 +12,7 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
-(cd "$ROOT" && cargo run -q --locked -p scenario --bin taskgen -- \
+(cd "$ROOT" && cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required \
   --out "$WORK/tasks" --world-image fixture:world --tools-image fixture:tools) >/dev/null
 ORIGINAL="$WORK/tasks/ops__grafana__silence-replica-maintenance/solution"
 mkdir "$WORK/bin"

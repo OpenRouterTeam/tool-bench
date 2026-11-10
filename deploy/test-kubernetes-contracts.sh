@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the current Kubernetes world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-kubernetes.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 for slug in oomkilled-memory-limit scale-checkout-for-sale uninstall-finished-loadtest; do
   mkdir "$OUT/$slug-original"

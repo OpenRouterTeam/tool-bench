@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the current world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-communication-history.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/collab__jira__ship-refund-retries"
 CAPTURING="$OUT/tasks/business__multi__zendesk-refund-via-stripe/solution"

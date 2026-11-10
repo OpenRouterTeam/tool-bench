@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the reviewed Supabase world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the pinned tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-supabase-errors.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/cloud__supabase__enable-rls-flagged-table"
 mkdir "$OUT/original"

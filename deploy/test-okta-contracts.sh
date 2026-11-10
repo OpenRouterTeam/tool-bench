@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the revision-33 Okta world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the declared Okta tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-okta.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 for slug in transfer-to-platform-team offboard-contractor contractor-self-service-reset; do
   mkdir "$OUT/$slug-original"

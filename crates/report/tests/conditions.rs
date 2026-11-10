@@ -75,6 +75,7 @@ fn arm(
         Treatments {
             exposure: Some(&requested),
             awareness: Some(cell),
+            runner_admission: Default::default(),
         },
     )
     .unwrap();

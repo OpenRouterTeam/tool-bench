@@ -8,7 +8,7 @@ OUT="$(mktemp -d /tmp/tool-bench-rich-text.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 export PYTHONDONTWRITEBYTECODE=1
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/business__hubspot__log-call-note-initech"
 cp "$TASK/solution/call-0.json" "$OUT/original-call.json"

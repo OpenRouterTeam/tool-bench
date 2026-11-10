@@ -4,7 +4,7 @@ use regex::Regex;
 
 use super::{
     DerivedFact, Notes, NumberToken, Part, RecordFact, RecordFactKind, RecordFacts, Typed,
-    find_text, fold, numbers, parse_template, remove_context, spans,
+    find_text, fold, numbers, parse_template, spans,
 };
 use crate::relations::RecordCheckError;
 
@@ -85,79 +85,6 @@ pub(super) fn bound_form(form: &str) -> String {
         literal(form),
         if after { r"\b" } else { "" }
     )
-}
-
-fn pattern(
-    template: &str,
-    choices: &BTreeMap<String, Vec<String>>,
-    facts: &BTreeMap<String, DerivedFact>,
-) -> Result<Option<Regex>, RecordCheckError> {
-    let mut pattern = String::from("(?s)");
-    for part in parse_template(template).map_err(RecordCheckError::InvalidContract)? {
-        pattern.push_str(r"\s*");
-        match part {
-            Part::Literal(text) => pattern.push_str(&literal(&text)),
-            Part::Slot(name) => {
-                let Some(forms) = choices.get(&name).filter(|forms| !forms.is_empty()) else {
-                    return Ok(None);
-                };
-                let alternatives = forms
-                    .iter()
-                    .map(|form| bound_form(form))
-                    .collect::<Vec<_>>()
-                    .join("|");
-                pattern.push_str(&format!("(?:{alternatives})"));
-                if facts[&name].targets.len() > 1 {
-                    pattern.push_str(&format!(
-                        r"(?:(?:\s*[,;]\s*|\s+and\s+|\s*&\s*)(?:{alternatives}))*"
-                    ));
-                }
-            }
-        }
-    }
-    Regex::new(&pattern).map(Some).map_err(|_| {
-        RecordCheckError::NeedsAdjudication(
-            "reviewed assertion matching exceeded its supported pattern size".into(),
-        )
-    })
-}
-
-pub(super) fn covers(
-    contract: &RecordFacts,
-    facts: &BTreeMap<String, DerivedFact>,
-    answer: &str,
-) -> Result<bool, RecordCheckError> {
-    if answer.len() > 65_536 {
-        return Err(RecordCheckError::NeedsAdjudication(
-            "answer exceeds the reviewed-clause reader's bounded input size".into(),
-        ));
-    }
-    let mut text = fold(answer, false);
-    for context in &contract.context {
-        text = remove_context(context, contract, facts, &text, " ")?;
-    }
-    let choices = contract
-        .facts
-        .iter()
-        .map(|(name, fact)| (name.clone(), forms(fact, &facts[name], &text)))
-        .collect::<BTreeMap<_, _>>();
-    let mut covered = vec![false; text.len()];
-    for assertion in &contract.assertions {
-        let Some(pattern) = pattern(assertion, &choices, facts)? else {
-            continue;
-        };
-        for found in pattern.find_iter(&text) {
-            covered[found.start()..found.end()].fill(true);
-        }
-    }
-    Ok(text.char_indices().all(|(index, character)| {
-        covered[index]
-            || character.is_whitespace()
-            || matches!(
-                character,
-                '.' | ',' | ';' | ':' | '(' | ')' | '[' | ']' | '{' | '}' | '|' | '"' | '\'' | '-'
-            )
-    }))
 }
 
 pub(super) fn suggest(

@@ -42,6 +42,34 @@ pub struct Treatments<'a> {
     pub exposure: Option<&'a crate::exposure::Exposure>,
     /// Declared awareness cell the materialized framing and profile must realize.
     pub awareness: Option<crate::awareness::AwarenessCell>,
+    /// Whether the generated verifier requires the strict runner's receipt.
+    pub runner_admission: RunnerAdmissionMode,
+}
+
+/// How the generated verifier treats a trial whose runner published no receipt.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum RunnerAdmissionMode {
+    /// Stock Harbor runners (the production worker): grade from the sealed world evidence
+    /// and report the trial as unattested. A receipt that is present is still verified, and
+    /// an unassessable trial yields no reward instead of a zero.
+    Optional,
+    /// The strict local controller: a missing or invalid receipt is an environment error.
+    #[default]
+    Required,
+}
+
+impl std::str::FromStr for RunnerAdmissionMode {
+    type Err = String;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        match value {
+            "optional" => Ok(Self::Optional),
+            "required" => Ok(Self::Required),
+            other => Err(format!(
+                "unknown runner admission mode {other:?}; expected optional or required"
+            )),
+        }
+    }
 }
 
 /// Images the generated compose files reference.
@@ -227,7 +255,15 @@ pub fn write_task_with_treatments(
             images.world
         ),
     )?;
-    write_executable(&dir.join("tests/test.sh"), TEST_SH)?;
+    let test_script = match treatments.runner_admission {
+        RunnerAdmissionMode::Required => TEST_SH.to_owned(),
+        RunnerAdmissionMode::Optional => TEST_SH.replacen(
+            "  --output /logs/verifier\n",
+            "  --output /logs/verifier \\\n  --allow-unattested-runner \\\n  --withhold-invalid-reward\n",
+            1,
+        ),
+    };
+    write_executable(&dir.join("tests/test.sh"), &test_script)?;
     write_solution(
         scenario,
         catalog,

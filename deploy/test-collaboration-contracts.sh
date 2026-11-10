@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the current collaboration world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-collaboration.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 for task in linear__escalate-right-safari-issue linear__file-safari-crash-bug linear__pull-issue-into-cycle \
     slack__cutover-thread-summary slack__launch-checklist-item slack__release-date-dm-designer; do

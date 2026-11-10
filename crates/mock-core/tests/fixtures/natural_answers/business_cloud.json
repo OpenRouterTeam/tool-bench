@@ -1,0 +1,590 @@
+{
+  "business/multi/zendesk-order-status-shopify": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "#1063 — not shipped yet (unfulfilled) — $176.00"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Sam is asking about order #1063. It hasn't shipped yet (it's paid but still unfulfilled), and the order total was $176.00."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Ticket 6621: Sam Ortiz's order\n\n**Order #1063**\n\n- **Shipped?** No. Fulfillment status is still UNFULFILLED (payment went through).\n- **Total:** $176.00\n\nNote: there is a second Sam Ortiz in the store (sortiz@gmail.com) with an unfulfilled order, #1060 for $505.00. That one isn't it: the ticket came from sam.ortiz@fastmail.com, and #1060 is ten totes, not a sweater and a tote."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Ticket 6621 (\"Where is my order??\") was opened on May 17 by Sam Ortiz, sam.ortiz@fastmail.com, about a merino sweater and a tote ordered on May 10. In Shopify that email belongs to customer 7301, who has two orders. #1051 from March is a single sweater and was already fulfilled, so it can't be the one. The other was placed on May 10 and contains a Merino Crew Sweater and a Harbor Canvas Tote, which matches the ticket. So the order in question is #1063; it has not shipped (still unfulfilled), and its total is $176.00."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Order: #1063, placed May 10, 2026 by Sam Ortiz (sam.ortiz@fastmail.com)\nStatus: paid, but not shipped. Nothing has been fulfilled yet.\nTotal: 176 USD (Merino Crew Sweater, size M, $128 + Harbor Canvas Tote in Sand, $48; shipping was free)\n\nIt ships to 225 E 34th St Apt 12B, New York. I didn't reply on the ticket or change anything in the store."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Sam Ortiz's order is #1060. It has not shipped yet (unfulfilled), and the order total is $505.00."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "I checked #1063 first, but that isn't the order Sam is asking about. The ticket refers to order #1051, which has already shipped (it was fulfilled in March), with a total of $128.00."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "The order is #1063. It hasn't shipped yet. Order total: $128.00."
+    }
+  ],
+  "business/multi/hubspot-largest-deal-salesforce-owner": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Northwind Logistics — account owner: Daniel Okafor — open cases: 00002107, 00002113"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The largest open deal in HubSpot is with Northwind Logistics. In Salesforce that account is owned by Daniel Okafor, and it has two open support cases: 00002107 and 00002113."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "# Forecast prep: largest open deal\n\n**Company:** Northwind Logistics (Fleet Telemetry deal, $412,000, Contract Sent)\n**Salesforce account owner:** Daniel Okafor\n\n**Open cases (2):**\n- 00002107: Driver app shows stale ETAs after route change (Working, High)\n- 00002113: SSO login fails for depot supervisors (Escalated, Medium)\n\n_Why not Northwind Traders?_ Its $530,000 POS Analytics deal is bigger, but it is already closed won, so it isn't open pipeline."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "In HubSpot I sorted deals by amount. The three biggest are out: a $900,000 Umbrella Health entry is an archived duplicate, Vandelay's $640,000 deal is closed lost, and Northwind Traders' $530,000 deal is closed won. The largest one still open is Fleet Telemetry at $412,000, in Contract Sent, and it is associated with Northwind Logistics. In Salesforce there are three Northwind accounts, so I matched on the exact name. Its third case, 00002101, is already closed. Result: the company is Northwind Logistics, the Salesforce account owner is Daniel Okafor, and the open cases are 00002107 (Working) and 00002113 (Escalated)."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Largest open HubSpot deal: Northwind Logistics – Fleet Telemetry, $412K, stage Contract Sent, expected to close November 14, 2026.\n\nSalesforce account \"Northwind Logistics\" (Seattle, WA) is owned by Daniel Okafor, Strategic Account Director. Note the HubSpot deal owner is someone else, Elena Sokolova.\n\nYes, there are open support cases, two of them:\n1. Case 00002107, \"Driver app shows stale ETAs after route change\": Working, High priority, opened Oct 14\n2. Case 00002113, \"SSO login fails for depot supervisors\": Escalated, Medium priority, opened Oct 23\n\nNothing was modified in either system."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Your largest deal is with Northwind Traders (POS Analytics, $530,000). In Salesforce the Northwind Traders account is owned by Elena Sokolova, and it has one open support case: 00002109, \"POS export missing store IDs\"."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The largest open deal is with Northwind Logistics. The account isn't owned by Daniel Okafor, though; the owner is Elena Sokolova. Cases 00002107 and 00002113 are both already closed, so there are no open support cases on the account."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Largest open deal: Northwind Logistics. Salesforce account owner: Daniel Okafor. Open cases: 00002109 and 00002111."
+    }
+  ],
+  "business/shopify/top-spender": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Priya Raman, priya.raman@outlook.com, $1,130.00"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Your top customer is Priya Raman (priya.raman@outlook.com), who has spent $1,130.00 with you once refunded and cancelled orders are left out."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Top customer: Priya Raman**\n\n- Email: priya.raman@outlook.com\n- Total spent: **$1,130.00** across 3 paid orders\n\nElena Novak looks bigger on raw order totals ($1,822.00), but $1,608.00 of that is a refunded order, which leaves her at $214.00."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I pulled every order in the octo-corp store and totalled them per customer, skipping anything refunded or cancelled. That removes Elena Novak's $1,608.00 order (refunded) and Hannah Wright's $1,260.00 order (voided after she cancelled). Of what remains, Marcus Bell has the most orders (six) but only $740.00 in total, and Tom Achebe comes second with $1,050.00 from a single order. The highest total, $1,130.00, belongs to Priya Raman, whose email is priya.raman@outlook.com."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Name: Priya Raman\nEmail: priya.raman@outlook.com\nTotal spent: $1,130 (USD 1,130.00)\n\nThat is three paid, fulfilled orders: #1002 for $386.00 (Nov 19, 2025), #1008 for $400.00 (Feb 3, 2026) and #1013 for $344.00 (Apr 11, 2026). She is in Boston and has been a customer since August 2025. The runner-up is Tom Achebe at $1,050.00."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Elena Novak (elena.novak@protonmail.com) is your biggest spender, with $1,822.00 in orders."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "It isn't Priya Raman. Her $1,130.00 puts her second. The customer who has spent the most is Elena Novak (elena.novak@protonmail.com), with a total of $1,822.00."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Priya Raman (priya.raman@outlook.com) has spent the most: $1,050.00 in total."
+    }
+  ],
+  "business/hubspot/largest-open-deal": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Northwind Logistics — $412,000"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Northwind Logistics has the biggest deal that's still open: the Fleet Telemetry deal, worth $412,000."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Largest open deal\n\n**Northwind Logistics: $412,000**\n\n- Deal: Northwind Logistics – Fleet Telemetry\n- Stage: Contract Sent\n\nNot the answer: Vandelay Industries has a larger deal on record ($640,000), but it is closed lost, so it doesn't count as open."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Fourteen deals are in the CRM. Sorted by amount, the top three aren't usable: the $900,000 Umbrella Health deal is an archived duplicate, Vandelay Industries' $640,000 deal is closed lost, and Northwind Traders' $530,000 deal is closed won. Hooli has three open deals that add up to $450,000, but you asked for the single biggest deal and its largest is $180,000. That leaves the Fleet Telemetry deal, still open at the Contract Sent stage. So the company is Northwind Logistics and the deal is worth $412,000."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Company: Northwind Logistics\nDeal amount: $412K (412,000 USD)\n\nThe deal is \"Northwind Logistics – Fleet Telemetry\", currently in Contract Sent, with a close date of November 14, 2026. Elena Sokolova owns it. The next-largest open deal is Umbrella Health – Clinical Dashboards at $275,000."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Vandelay Industries has the biggest deal, the Import Analytics Suite, worth $640,000."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Northwind Logistics' $412,000 deal is not the largest open one. The biggest open deal belongs to Umbrella Health: the Enterprise Rollout, worth $900,000."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Northwind Logistics has the largest open deal, worth $530,000."
+    }
+  ],
+  "business/zendesk/find-invoice-attachment": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Ticket #3108 — Lumen-Invoice-INV-20931.pdf"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Priya attached the invoice to ticket 3108 (\"Question about our October bill\"); the file is called Lumen-Invoice-INV-20931.pdf."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Ticket:** #3108\n**File:** `Lumen-Invoice-INV-20931.pdf`\n\n- Posted by Priya Raman (Lumen Analytics) on October 22, 2026\n- Ticket subject: \"Question about our October bill\"\n\nTicket #3105 also has an invoice attached (`invoice_oct.pdf`), but that one is from Priya Ramesh at Ramesh & Co Bakery, a different customer."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Priya Raman of Lumen Analytics is the requester on three tickets. On 3101 she attached a screenshot (export-timeout.png) and on 3112 a HAR capture (sso-login-loop.har), so neither is an invoice. Two other tickets carry invoice PDFs but not from her: 3105 is from Priya Ramesh at a bakery, and on 3110 it was our own agent who attached an invoice for her colleague Tom Becker. The remaining one is her billing question, where she replied on October 22 with a PDF. The invoice is on ticket 3108, and the file name is Lumen-Invoice-INV-20931.pdf."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Ticket number: 3108\nInvoice file name: Lumen-Invoice-INV-20931.pdf\n\nDetails for billing: the ticket is \"Question about our October bill\", still open and assigned to Sam Ortiz. Priya Raman (priya.raman@lumenanalytics.example) attached the PDF in her reply on the 22nd of October 2026, seven days ago, after Sam asked for a copy. It is a 118,734-byte PDF, about 116 KB. I didn't reply or change anything."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The invoice is on ticket 3105. The attachment is invoice_oct.pdf."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "It's not ticket 3108. The PDF there, Lumen-Invoice-INV-20931.pdf, isn't the invoice billing needs. The invoice Priya sent is on ticket 3110, and the file is Lumen-Invoice-INV-20877.pdf."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "The invoice is on ticket 3108. File name: Lumen-Invoice-INV-20877.pdf"
+    }
+  ],
+  "business/salesforce/open-pipeline-by-rep": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Priya Raman: $252,500"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Priya Raman has the largest open pipeline closing in Q2 2026, with $252,500 across three open deals."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "### Largest open Q2 2026 pipeline\n\n**Priya Raman, $252,500**\n\n- Northgate Analytics - Platform Renewal 2026: $120,000\n- Kestrel Aerospace - Flight Ops Expansion: $85,000\n- Northgate Analytics - Data Quality Add-on: $47,500\n\nMarcus Bell has more open pipeline overall ($450,000), but $210,000 of it closes in September. His open Q2 total is $240,000."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I filtered Opportunities to open ones (IsClosed = false) with a close date between April 1 and June 30, 2026, then summed Amount by owner. Sofia Alvarez has $135,000 open; her $280,000 Lumen Retail renewal is already closed won, so it is excluded. Marcus Bell has $240,000 open in the quarter; his $210,000 Northgate Capital deal closes in September. Daniel Okafor has one open deal with no amount. The top rep is therefore Priya Raman, with an open Q2 pipeline of $252,500."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Rep: Priya Raman (Senior Account Executive)\nOpen pipeline closing Q2 2026: $252.5K ($252,500.00)\n\nIt is made up of three deals: Northgate Analytics - Platform Renewal 2026 ($120,000, Negotiation/Review, closes June 20), Kestrel Aerospace - Flight Ops Expansion ($85,000, Proposal/Price Quote, closes June 5) and Northgate Analytics - Data Quality Add-on ($47,500, Value Proposition, closes May 29). Her $150,000 Kestrel Aerospace training deal closed won on April 22 and is not counted. Marcus Bell is next at $240,000."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Marcus Bell has the largest open pipeline, at $450,000."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Priya Raman's $252,500 isn't the largest. Sofia Alvarez leads the quarter with $415,000."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Priya Raman has the largest open pipeline this quarter: $402,500."
+    }
+  ],
+  "business/stripe/customer-mrr": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "MRR: $439.00 ($339.00 billed monthly + $100.00 from the yearly add-on)"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Harbor & Pine Coffee Co.'s current MRR is $439.00. Breakdown: $339.00 from the Team subscription (plan $249.00 plus 6 seats at $15.00) and $100.00 from the Analytics add-on ($1,200.00 a year ÷ 12)."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**MRR: $439.00**\n\nBreakdown: Team monthly $249.00 + 6 additional seats × $15.00 ($90.00) + Analytics add-on $1,200.00/yr ÷ 12 ($100.00)\n\n- Not counted: the Extra location subscription ($49.00/mo) is still in trial, and the Starter plan ($99.00/mo) was canceled.\n- Harbor & Pine Roasters is a separate customer ($252.50 MRR) and is not included."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Harbor & Pine Coffee Co. (cus_mxxxdqMeoA1GEc) has four subscriptions. One is canceled (Starter, $99.00 a month) and one is trialing (Extra location, $49.00 a month), so both are out. The first active subscription bills monthly: Team at $249.00 plus 6 additional seats at $15.00 each, $339.00 in total. The second is the Analytics add-on at $1,200.00 a year, which is $100.00 a month. Adding the two gives a current MRR of $439.00."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Harbor & Pine Coffee Co. MRR: $439 per month (439.00 USD)\nBreakdown: $339.00 (Team monthly $249.00 + 6 seats × $15.00) + $100.00 (Analytics add-on, $1,200.00 billed yearly)\n\nBoth subscriptions are active: the Team plan since March 4, 2025 and the add-on since November 20, 2025. Left out: the Starter plan canceled on August 30, 2025, and an Extra location subscription on trial until March 25, 2026, which would add $49.00 a month if it converts. Annualized that is $5,268."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The MRR is $252.50: Team yearly at $2,490.00 ÷ 12 = $207.50, plus 3 additional seats at $15.00 = $45.00."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The MRR is not $439.00. That figure divides the yearly Analytics add-on by twelve, which understates it. Harbor & Pine Coffee Co.'s MRR is $1,539.00: $339.00 for the Team plan and seats plus $1,200.00 for the Analytics add-on."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Harbor & Pine Coffee Co.'s MRR is $488.00: Team $249.00 + 6 seats × $15.00 + Analytics add-on $100.00 + Extra location $49.00."
+    }
+  ],
+  "cloud/multi/mongodb-zendesk-order-tracking": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Order 10601 — shipped — UPS — 1Z4X97W80391827364"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Hana is asking about order 10601. It has shipped but hasn't been delivered yet; the carrier is UPS and the tracking number is 1Z4X97W80391827364."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Order number:** 10601\n**Status:** shipped\n**Carrier:** UPS\n**Tracking number:** `1Z4X97W80391827364`\n\nNote: Hana's other open order, 10605, is still processing, but that is a chef's knife placed on October 24, not the headphones from her ticket."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Hana Sato's open ticket (4222) says she ordered the Studio X2 headphones on October 21 and they haven't arrived. In the production shop database she has several orders under hana.sato@example.org. 10598 is a cable pack that was delivered by USPS on October 6, which belongs to her older, solved ticket. 10605 is a knife and is still processing. Another headphones order from that day, 10603, is Diego Alvarez's. The one that matches is the Studio X2 order created on October 21: order 10601, status shipped, carrier UPS, tracking number 1Z4X97W80391827364."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Order number: 10601 (Studio X2 Headphones, $199)\nCurrent status: shipped, not yet delivered\nCarrier: UPS\nTracking number: 1Z4X97W80391827364\n\nIt was placed on October 21, 2026, left the warehouse on the 23rd of October, and the estimated delivery date is October 31, 2026. This is from the production shop.orders collection. The shop_staging copy of this order shows different, test-only data, so I ignored it. I did not touch the ticket or the database."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The order is 10603. Status: shipped. Carrier: FedEx. Tracking number: 771234567890."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "It isn't order 10601 (the UPS shipment, 1Z4X97W80391827364); that is not the one her ticket is about. Hana is asking about order 10598, which was delivered by USPS, tracking number 9400111899223344556677."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Order 10601: delivered. Carrier UPS, tracking number 1ZTESTSTAGING000001."
+    }
+  ],
+  "cloud/multi/supabase-slack-referral-signups": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "4 customers, $410.50 spent"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Four customers have signed up with the FALL26 code so far, and together they've spent $410.50."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## FALL26 referral campaign (production)\n\n- **Customers signed up:** 4\n- **Total spent:** $410.50\n\nPer Priya's reply in the thread, this leaves out the two QA accounts (@octo-shop.com) and cancelled orders. Counting the QA accounts would have given 6 customers and $1,859.50, which overstates the campaign."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Lena asked in #growth how many new customers have signed up with FALL26 and what they've spent, production only. Priya replied to leave out QA accounts (@octo-shop.com) and cancelled orders. In storefront-prod, six customers have referral_code FALL26; two are QA accounts, leaving Mina Park, Luis Ortega, Omar Haddad and Ravi Menon. Their orders are $120.00, $80.50 and $210.00, plus a $40.00 order of Luis's that was cancelled and is excluded. Ravi hasn't ordered yet. So the answer is 4 customers, with $410.50 spent in total."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "FALL26 so far: 4 customers, 410.50 USD in total spend.\n\n- Mina Park: $120.00 (order 5101, paid)\n- Luis Ortega: $80.50 (order 5102, shipped; his $40.00 order 5103 was cancelled and isn't counted)\n- Omar Haddad: $210.00 (order 5106, shipped)\n- Ravi Menon: signed up October 27, no orders yet\n\nSource: storefront-prod on Supabase. QA accounts on @octo-shop.com are excluded, as are the FALL25 sign-ups and the load-test rows in staging. Nothing was posted to Slack."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "6 customers have signed up with FALL26, and they've spent $1,899.50 in total."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The answer is not 4 customers and $410.50; that undercounts the campaign. The real numbers are 6 customers and $1,859.50 in spend."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "4 customers have signed up with the FALL26 code, and they've spent $450.50 in total."
+    }
+  ],
+  "cloud/cloudflare/find-stale-origin": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "checkout.octo-shop.com"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The hostname is checkout.octo-shop.com. Its proxied A record still points at 203.0.113.40."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**checkout.octo-shop.com**\n\n- Record: A → 203.0.113.40\n- Proxy status: proxied (orange cloud)\n\nOne other A record carries the same address, but it is DNS only (grey cloud), so it doesn't send visitors through Cloudflare and doesn't count."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I listed the DNS records in all three zones in the account, eleven records in total. Two A records have 203.0.113.40 as their content. One of them is DNS only, so it is out. Two proxied records have addresses that look similar but are different (203.0.113.41 and 203.0.113.4), and a TXT record only mentions the address in its text. That leaves a single proxied A record pointing at exactly 203.0.113.40, and its hostname is checkout.octo-shop.com."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "checkout.octo-shop.com\n\nIt is an A record in the octo-shop.com zone with content 203.0.113.40, proxied, TTL automatic, tagged team:shop. Record ID 9f6b1e5d4c7a2f0b8d3e6c5a1f4b7d9c, last modified on May 20, 2024, so it was not updated when other records moved to the new origin between September 30 and October 2, 2026. I haven't changed anything."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "legacy-reports.octo-corp.com"
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "checkout.octo-shop.com is not the one; it has already been moved off the old origin. The hostname still pointing at 203.0.113.40 is legacy-reports.octo-corp.com."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "I went through the DNS records of every zone in the account and could not find a proxied record whose content is 203.0.113.40. I can't determine which hostname is still sending traffic to the old origin from the DNS data alone."
+    }
+  ],
+  "cloud/mongodb/top-category-revenue": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "outdoor — $1,457.50"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Outdoor was the top category in February 2026, with $1,457.50 in revenue from delivered orders."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## February 2026: top category by delivered revenue\n\n**Outdoor: $1,457.50**\n\n| Category | Revenue |\n|---|---|\n| outdoor | $1,457.50 |\n| electronics | $1,309.00 |\n| kitchen | $798.00 |\n| apparel | $436.00 |\n\nElectronics only comes out ahead ($2,208.00) if you include a cancelled $899.00 TV order, which was never delivered."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I queried shop.orders in production for orders created from February 1 up to, but not including, March 1, 2026 UTC with status delivered: 11 orders. Unwinding the line items and summing price × quantity per category gives apparel $436.00, kitchen $798.00 and electronics $1,309.00. Three February orders were left out because they were cancelled, refunded or only shipped. The highest total is $1,457.50, and the category is outdoor."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Winning category: outdoor\nFebruary 2026 revenue (delivered orders only): $1,457.50, roughly $1.46k\n\nIt comes from three delivered orders: 10459 ($435.00), 10482 ($214.50) and 10499 ($808.00). Electronics was second at $1,309.00, then kitchen at $798.00 and apparel at $436.00. Two outdoor orders were excluded: 10470 ($119.00, refunded) and 10488 ($429.00, shipped but not yet delivered)."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Electronics was the top category in February, with $2,208.00 in revenue."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Outdoor is not the winner; its $1,457.50 puts it second. The top category for February is electronics, with $2,208.00."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "The top category is outdoor, with $2,005.50 in February revenue."
+    }
+  ],
+  "cloud/supabase/top-customer-march-revenue": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Grace Kim <grace.kim@example.kr> — $1,234.50"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Grace Kim (grace.kim@example.kr) brought in the most revenue in March 2026: $1,234.50 from paid and shipped orders."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Top customer, March 2026:** Grace Kim\n\n- **Email:** grace.kim@example.kr\n- **March total:** $1,234.50 (3 orders, paid or shipped)\n\nFelix Wagner would come out ahead at $1,700.00 only if his refunded $600.00 order were counted. With it excluded he is at $1,100.00."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "In the storefront-prod project I summed orders created in March 2026 UTC with status paid or shipped, grouped by customer. Ben Okafor's $1,300.00 order is still pending, so it doesn't count. Felix Wagner has $1,100.00; his $600.00 order was refunded and his $500.00 order was placed at 00:10 UTC on April 1, just outside the month. Chloe Martin is third with $640.25. That puts one customer on top: Grace Kim, grace.kim@example.kr, with a March total of $1,234.50."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Customer: Grace Kim\nEmail: grace.kim@example.kr\nMarch 2026 total: 1,234.50 USD\n\nThree orders make up the total: 5004 ($412.50, shipped, March 6), 5008 ($389.00, paid, March 18) and 5012 ($433.00, shipped, March 27). She is customer 1007, based in South Korea. Runner-up is Felix Wagner at $1,100.00. Figures are from the production project (storefront-prod), not staging."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Felix Wagner (felix.wagner@example.de) brought in the most revenue in March: $1,700.00."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Grace Kim (grace.kim@example.kr) is not the top customer; her $1,234.50 is second. The most March revenue came from Ben Okafor (ben.okafor@example.com) with $1,300.00."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Felix Wagner (felix.wagner@example.de) brought in the most March revenue, $1,234.50."
+    }
+  ],
+  "cloud/okta/failed-signins-report": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "jordyn.patel@octo-corp.example, 6 failed attempts, 203.0.113.77"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The account is jordyn.patel@octo-corp.example, which had six failed sign-in attempts on March 13, all from IP address 203.0.113.77."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Account:** `jordyn.patel@octo-corp.example`\n**Failed sign-ins on 2026-03-13 (UTC):** 6\n**Source IP:** 203.0.113.77\n\nNot to be confused with jordan.pate@octo-corp.example, which had 4 events that day. Those were sign-on policy denials, not failed sign-in attempts, and came from 198.51.100.77."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I pulled the System Log for March 13, 2026, 00:00 to 24:00 UTC and kept the user.session.start events with outcome FAILURE. Four accounts appear: Priya Raman with 1, Jordan Patel with 2, Marcus Chen with 3, and one account with a burst between 14:20 and 14:25 UTC. Lee Wong's 8 failures were on March 10 and Alex Kim's 7 were just after midnight on March 14, so neither falls on the day in question. The account with the most is jordyn.patel@octo-corp.example: 6 failed attempts, every one from 203.0.113.77."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Username (login): jordyn.patel@octo-corp.example\nFailed attempts: 6\nIP address: 203.0.113.77\n\nThe account belongs to Jordyn Patel, Marketing Manager. All six failures were INVALID_CREDENTIALS, one a minute from 14:20:03 to 14:25:03 UTC on the 13th of March 2026, and the IP geolocates to Ashburn, Virginia. There was no successful sign-in from that account that day. The next-highest account was marcus.chen@octo-corp.example with 3. Nothing was changed in Okta."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "lee.wong@octo-corp.example had the most failed sign-ins: 8 attempts, all from 198.51.100.23."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "It wasn't jordyn.patel@octo-corp.example; that account's 6 failures from 203.0.113.77 are not the most. The account with the most failed sign-ins is alex.kim@octo-corp.example, with 7 attempts from 198.51.100.90."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "jordan.patel@octo-corp.example had the most failed sign-ins yesterday: 6 attempts, all from 203.0.113.77."
+    }
+  ],
+  "cloud/aws/find-unencrypted-bucket": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "northwind-legacy-exports"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The bucket is northwind-legacy-exports. Its default encryption is SSE-S3 (AES256) rather than SSE-KMS."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**northwind-legacy-exports**\n\n- Default encryption: `AES256` (SSE-S3), no KMS key configured\n- Every other bucket in the account defaults to `aws:kms`\n\nThe similarly named 2019 exports bucket is not the one: it already uses SSE-KMS with the finance key, just with Bucket Key turned off."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I listed the buckets in the account (seven) and ran get-bucket-encryption on each one. Six of them return aws:kms with a KMS key. Two buckets have Bucket Key disabled, which made both look suspicious, but one of those still uses a KMS key, so it complies. Only one bucket returns SSEAlgorithm AES256, meaning S3-managed keys. The non-compliant bucket is northwind-legacy-exports."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "northwind-legacy-exports\n\nIts default encryption rule is SSEAlgorithm AES256 (SSE-S3) with Bucket Key disabled. The bucket was created on June 21, 2017, is tagged team=finance with the note \"pre-2018 nightly CSV exports\", and holds old customer CSV exports. The other six buckets in account 481562039417 (northwind-prod) all default to aws:kms. No settings were changed."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "northwind-legacy-exports-2019"
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "It is not northwind-legacy-exports; that bucket is already on SSE-KMS. The bucket still defaulting to SSE-S3 is northwind-legacy-exports-2019."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "I checked the default encryption on all seven buckets and every one reports SSE-KMS. I could not identify a bucket that still defaults to SSE-S3, so I can't name one."
+    }
+  ]
+}

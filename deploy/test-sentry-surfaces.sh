@@ -9,7 +9,7 @@ PUBLIC_ORIGIN="${PUBLIC_ORIGIN:-https://sentry.lumenlabs.dev}"
 INGESTION_ORIGIN="${INGESTION_ORIGIN:-$PUBLIC_ORIGIN}"
 OUT="$(mktemp -d /tmp/tool-bench-sentry-surfaces.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --scenarios "$SCENARIOS" --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --scenarios "$SCENARIOS" --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" --inventory "$OUT/source-inventory.json" >/dev/null
 TASK="$OUT/tasks/ops__sentry__create-notification-project"
 cp "$TASK/solution/solve.sh" "$TASK/solution/reference-solve.sh"

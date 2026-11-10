@@ -1,0 +1,590 @@
+{
+  "code/terraform/payments-db-upgrade-failure": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "run-Gy4tBHGggKx49nbH: aws_db_instance.payments, InvalidParameterCombination. Plan: 1 to add, 1 to change, 0 to destroy"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The latest run on payments-api-prod, run-Gy4tBHGggKx49nbH, errored during apply when the change to aws_db_instance.payments was rejected by AWS with InvalidParameterCombination. Its plan was `Plan: 1 to add, 1 to change, 0 to destroy`."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "# payments-api-prod: failed run\n\n**Run:** `run-Gy4tBHGggKx49nbH` (\"Upgrade payments DB to Postgres 16\")\n\n- **Failed resource:** `aws_db_instance.payments`\n- **AWS error code:** `InvalidParameterCombination`\n- **Plan:** `Plan: 1 to add, 1 to change, 0 to destroy`\n\nNot the answer: `run-nAAGvVVuIe2rfmNM` also errored on this workspace, but it is the older run from 24 October and it died at plan time on an undeclared resource reference, so it never reached AWS."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I listed the runs for payments-api-prod in acme-platform. Two are errored: one from 24 October that failed while planning, and the newest one from 28 October, which planned cleanly and then failed in apply. The apply log for the newest run shows the new parameter group being created, then the ModifyDBInstance call on the database returning a 400 because a major version upgrade from 14.12 to 16.4 needs AllowMajorVersionUpgrade. So: the failed run is run-Gy4tBHGggKx49nbH, the resource that failed is aws_db_instance.payments, the AWS error code is InvalidParameterCombination, and the plan read \"Plan: 1 to add, 1 to change, 0 to destroy\"."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Failed run: run-Gy4tBHGggKx49nbH (\"Upgrade payments DB to Postgres 16\", commit e3f09aa, queued 2026-10-28 13:12 UTC by alice-wong).\n\nFailed resource: aws_db_instance.payments\nAWS error code: InvalidParameterCombination (\"Cannot upgrade postgres from 14.12 to 16.4. You must set AllowMajorVersionUpgrade to true when upgrading to a new major version.\")\n\nPlan: 1 to add, 1 to change, 0 to destroy\n\nThe apply (apply-OttY2qKt1DNXCd1P) got partway: aws_db_parameter_group.payments_pg16 was created before the instance modify failed, so the log ends with \"Apply failed! Resources: 1 added, 0 changed, 0 destroyed.\" The same upgrade applied cleanly on payments-api-staging two days earlier with allow_major_version_upgrade = true."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Run run-YF4vEQXaSoBg49H3 failed while applying. The resource that failed is aws_db_parameter_group.payments_pg14, and AWS returned InvalidDBParameterGroupState because database instances are still members of that parameter group. Plan: 0 to add, 0 to change, 1 to destroy."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The run you want is not run-Gy4tBHGggKx49nbH; that one only got as far as planning the Postgres 16 upgrade. The run that actually failed on payments-api-prod is run-nAAGvVVuIe2rfmNM (\"Add read replica for reporting\"), which errored with \"Reference to undeclared resource\" on aws_db_instance.payments_replica. There is no AWS error code for it. Plan: 0 to add, 0 to change, 0 to destroy."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Failed run: run-Gy4tBHGggKx49nbH. The apply failed on aws_db_instance.payments with AWS error InvalidParameterCombination. Plan: 1 to add, 0 to change, 0 to destroy."
+    }
+  ],
+  "code/vercel/storefront-production-status": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Prod: c3a9f12 \"Fix tax rounding for EU orders (#482)\". Latest preview failed: FUNCTION_SIZE_EXCEEDED."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Production is serving commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9, \"Fix tax rounding for EU orders (#482)\". The most recent storefront preview failed because a serverless function exceeded Vercel's 250 MB unzipped size limit."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## storefront on Vercel\n\n**1. Production is serving `c3a9f12`**, \"Fix tax rounding for EU orders (#482)\"\n\n- It is the newest production deployment that is READY, and it holds the acme-shop.com alias.\n- Not `7d41c9e` (\"Upgrade to Next.js 15.4 (#487)\"): that production deployment is newer, but its build errored, so it never went live.\n\n**2. The latest preview failed with `FUNCTION_SIZE_EXCEEDED`**\n\n- Branch `feat/gift-cards`: a Serverless Function exceeded the 250 MB unzipped maximum."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I listed the storefront deployments. The newest production deployment, for the Next.js 15.4 upgrade, is in ERROR, so it cannot be what is live. The newest production deployment that is READY, and the one aliased to acme-shop.com, was built from main on 24 October. For previews, the newest one in this project is the feat/gift-cards build from 28 October, and it errored at the build step. The newer failed preview I saw belongs to storefront-admin, a different project. So production is serving c3a9f12 (\"Fix tax rounding for EU orders (#482)\"), and the latest storefront preview failed with FUNCTION_SIZE_EXCEEDED: a Serverless Function went over the 250 MB unzipped limit."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "1. Production: commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9 (short: c3a9f12), message \"Fix tax rounding for EU orders (#482)\" by Mateo Alvarez. Deployment dpl_8o704GjcwumkLAaxPwjoxb4V6QDF, created 2026-10-24 09:42 UTC, READY, aliased to acme-shop.com.\n\n2. Latest preview: dpl_1KT70nyZgoWTlCSRmxLe0svxe4Xx on feat/gift-cards (commit 4be1d07, \"Gift card redemption at checkout\"), created 2026-10-28 09:31 UTC. It failed in the build step with FUNCTION_SIZE_EXCEEDED: \"A Serverless Function has exceeded the unzipped maximum size of 250 MB.\"\n\nWorth knowing: a newer production deploy of 7d41c9e (\"Upgrade to Next.js 15.4 (#487)\") errored on 27 October (\"pnpm run build\" exited with 1), which is why production is still on c3a9f12."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Production is serving 7d41c9e0b3a86f25d1e7c4b9a0f3e62d8c5b1a47, \"Upgrade to Next.js 15.4 (#487)\", the latest production deployment from main. The most recent preview failed with BUILD_UTILS_SPAWN_1: the command \"pnpm run build\" exited with 1."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Production is not on c3a9f12 (\"Fix tax rounding for EU orders (#482)\") any more; that deployment was superseded. The commit being served now is 7d41c9e, \"Upgrade to Next.js 15.4 (#487)\". The most recent preview did not fail on function size either: it failed with BUILD_UTILS_SPAWN_1 because \"pnpm run build\" exited with 1."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Production is serving c3a9f12, \"Fix tax rounding for EU orders (#482)\". The most recent preview deployment (feat/order-export) failed with BUILD_UTILS_SPAWN_1: \"pnpm run build\" exited with 1."
+    }
+  ],
+  "code/gitlab/diagnose-failed-pipeline": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Pipeline 5520, job integration-tests, missing column refund_reason (table refunds)."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The most recent failed pipeline on main is #5520, and it failed in the integration-tests job. The log shows Postgres rejecting an insert because the refund_reason column does not exist on the refunds table."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Pipeline 5520** on `main` failed in the **`integration-tests`** job.\n\n- **Column:** `refund_reason` on the `refunds` table\n- **Log line:** `psycopg.errors.UndefinedColumn: column \"refund_reason\" of relation \"refunds\" does not exist`\n- **Failing test:** `tests/integration/test_refunds.py::test_partial_refund_records_reason`\n\nNot pipeline 5523: it failed later, but it ran on the `fix/rounding` branch (a `unit-tests` assertion), not on `main`."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I filtered the checkout-api pipelines to failed runs on main. There are two: one from 1 April that was rerun and went green, and one from this morning at 07:39 UTC. A later failure exists too, but it is on the fix/rounding branch, so it does not count. In this morning's pipeline, build, lint and unit-tests passed, and the one failed job was retried and failed the same way. Its log ends with psycopg.errors.UndefinedColumn in test_partial_refund_records_reason. Conclusion: pipeline 5520, failing job integration-tests, and the column the log complains about is refund_reason (on the refunds table)."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Pipeline: 5520 (project IID 310) on main, commit 15861d77 \"Record refund reason on partial refunds\" by Sam Okafor, finished 2026-04-02 07:52 UTC.\n\nFailing job: integration-tests (job 88404, retried as 88409; both failed with exit code 1).\n\nColumn: refund_reason. The log says:\nE   psycopg.errors.UndefinedColumn: column \"refund_reason\" of relation \"refunds\" does not exist\n\nIt comes from tests/integration/test_refunds.py::test_partial_refund_records_reason (1 failed, 47 passed). The only migration that ran was 0040 -> 0041 \"refund index\", so the commit inserts into a column that no migration creates. deploy-staging was skipped."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Pipeline 5523 is the latest failed pipeline for checkout-api. It failed in the unit-tests job: tests/unit/test_rounding.py::test_partial_refund_rounding raised AssertionError: assert Decimal('20.00') == Decimal('19.99'). The value at fault is the partial refund amount, which rounds to 20.00 instead of 19.99."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Pipeline 5520 is not the one to look at: its integration-tests failure about refund_reason was already retried. The most recent failed pipeline on main is 5511, where the unit-tests job failed with redis.exceptions.TimeoutError: Timeout connecting to server redis-cache:6379. No database column is involved."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Pipeline 5520, job integration-tests. The log complains that column \"amount_cents\" of relation \"refunds\" does not exist."
+    }
+  ],
+  "code/argocd/find-degraded-app": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "checkout-web. Deployment checkout-web (pod checkout-web-7f8b9c6d5-q2x7m) is in ImagePullBackOff: image tag 2.14.0-rc3 doesn't exist in ghcr."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The Degraded production app is checkout-web. Its checkout-web Deployment is stuck rolling out because the new pod cannot pull ghcr.io/lumen-retail/checkout-web:2.14.0-rc3: the registry says that tag is not found, so the pod sits in ImagePullBackOff."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Degraded production app: `checkout-web`\n\n- **Failing resource:** Deployment `checkout-web` (namespace `storefront`), new pod `checkout-web-7f8b9c6d5-q2x7m`\n- **Root cause:** `ImagePullBackOff`. The image `ghcr.io/lumen-retail/checkout-web:2.14.0-rc3` cannot be pulled because tag `2.14.0-rc3` is not found in the registry.\n\n**Not** `checkout-web-staging`: it is also Degraded, but it runs on the staging cluster and fails for a different reason (CrashLoopBackOff on 2.14.0-rc2, `STRIPE_WEBHOOK_SECRET` is not set)."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Two applications show Degraded in Argo CD. One of them targets the staging cluster, so I set it aside; the other deploys to prod-use1 in the storefront namespace. In that app's resource tree the Service, Ingress and ConfigMap are fine, and the old ReplicaSet still has three running pods on 2.13.4. The new ReplicaSet has one pod that never starts, and its events repeat \"Failed to pull image ... not found\". So the app is checkout-web, the failing workload is the checkout-web Deployment (pod checkout-web-7f8b9c6d5-q2x7m), and the root cause is ImagePullBackOff: the image tag 2.14.0-rc3 does not exist in ghcr.io/lumen-retail/checkout-web."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Application: checkout-web (project storefront, cluster prod-us-east-1, namespace storefront). Health went Progressing -> Degraded at 2026-10-29 13:03 UTC.\n\nFailing resource: Deployment checkout-web (\"exceeded its progress deadline\"). Its new ReplicaSet checkout-web-7f8b9c6d5 has one pod, checkout-web-7f8b9c6d5-q2x7m, stuck Pending with 0/1 containers.\n\nRoot cause: the pod is waiting in ImagePullBackOff. Event: Failed to pull image \"ghcr.io/lumen-retail/checkout-web:2.14.0-rc3\" ... not found (15 attempts). The tag 2.14.0-rc3 came in with sync revision a23f2a7 (\"checkout-web(prod): promote 2.14.0-rc3\") at 12:53 UTC.\n\nThe three pods of the previous ReplicaSet (image 2.13.4) are still Running."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The Degraded application is checkout-web-staging. The failing resource is pod checkout-web-58c4d9f7b-hx8pl, which is in CrashLoopBackOff with 389 restarts. Root cause: the container exits on startup with \"config: required variable STRIPE_WEBHOOK_SECRET is not set\", so the 2.14.0-rc2 release is missing that environment variable."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "It is not checkout-web. That app's ImagePullBackOff on 2.14.0-rc3 is only a rollout in progress, and its old pods are still serving. The Degraded app that matters is checkout-web-staging: pod checkout-web-58c4d9f7b-hx8pl is in CrashLoopBackOff because the required variable STRIPE_WEBHOOK_SECRET is not set."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Application: checkout-web. Failing resource: Deployment checkout-web, pod checkout-web-7f8b9c6d5-q2x7m. Root cause: the pod is in CrashLoopBackOff on image tag 2.14.0-rc2 because the required variable STRIPE_WEBHOOK_SECRET is not set."
+    }
+  ],
+  "code/multi/vercel-deploy-github-pr-lookup": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9, PR #482. Author mateoalv, approved by ines-d, merged by riley-p."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Production is serving commit c3a9f12, which is the merge commit of PR #482 (\"Fix tax rounding for EU orders\"). Mateo Alvarez wrote it, Ines Duarte approved it and Riley Park merged it."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## EU tax change live on acme-shop.com\n\n**Commit:** `c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9`\n**Pull request:** #482, \"Fix tax rounding for EU orders\"\n\n| Role | Person |\n|---|---|\n| Author | Mateo Alvarez (`mateoalv`) |\n| Approved by | Ines Duarte (`ines-d`) |\n| Merged by | Riley Park (`riley-p`) |\n\n- Jun Park (`junpark`) also reviewed #482, but only left a comment, not an approval.\n- Not #478: it has the same title, but it was Jun Park's earlier attempt and was closed without merging."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "On Vercel, the newest production deployment of storefront (the Next.js 15.4 upgrade) is in ERROR, so I took the latest READY production deployment, the one aliased to acme-shop.com. Its Git SHA matches a merge commit on main in acme-shop/storefront, and the commit message carries the PR number. Two PRs share that title; the earlier one was closed unmerged, and only the later one has this merge commit. Its reviews show one comment and one approval. Result: commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9, pull request #482, written by Mateo Alvarez, approved by Ines Duarte, merged by Riley Park."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Commit: c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9 (c3a9f12), \"Fix tax rounding for EU orders (#482)\", live on acme-shop.com since the deployment of 2026-10-24 09:42 UTC.\n\nPull request: #482 in acme-shop/storefront, branch fix/eu-vat-line-rounding.\n- Author: Mateo Alvarez (mateoalv)\n- Approved by: Ines Duarte (ines-d) on 24 October 2026, 09:20 UTC: \"Checked against the finance spreadsheet, numbers match. Approving.\"\n- Merged by: Riley Park (riley-p) at 09:38 UTC the same day\n\nThe PR changes EU VAT to round half-even per line item and then sum; it supersedes #478. Jun Park left a review comment asking for a mixed 19%/7% fixture but did not approve."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Production is serving commit 7d41c9e0b3a86f25d1e7c4b9a0f3e62d8c5b1a47, which is PR #487, \"Upgrade to Next.js 15.4\". Jun Park wrote it, and Mateo Alvarez both approved and merged it."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The responsible change is not PR #482. Commit c3a9f12 was replaced in production by the newer deploy from main, so what is live is 7d41c9e, PR #487 (\"Upgrade to Next.js 15.4\"). Author: Jun Park. Approved and merged by: Mateo Alvarez."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Commit c3a9f12, PR #482. Author: Mateo Alvarez. Approved by: Jun Park. Merged by: Riley Park."
+    }
+  ],
+  "code/multi/argocd-degraded-gitlab-commit": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "checkout-web, image tag 2.14.0-rc3. Pipeline 7712, job image-publish: ghcr push denied (permission_denied), GHCR_TOKEN expired on 2026-10-28."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The Degraded production app is checkout-web, which cannot pull image tag 2.14.0-rc3. That release was promoted by GitLab pipeline 7712, where the image-publish job failed: the push to ghcr.io was denied because the CI token had expired, yet the promote job ran anyway."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**App:** `checkout-web` (production), failing on image tag `2.14.0-rc3` (ImagePullBackOff, tag not found in ghcr).\n\n**Pipeline:** `7712` in `lumen-retail/storefront/checkout-web` (tag `v2.14.0-rc3`)\n\n- **Failed job:** `image-publish`\n- **Error:** `denied: permission_denied: The token provided does not match expected scopes (write:packages). The CI token GHCR_TOKEN expired on 2026-10-28.`\n- **How it got promoted:** the `promote` job runs with `when: always`, so it pushed deploy commit `a23f2a7` even though the image was never published.\n\nNot pipeline `7716`: it also failed today, but on `main` in the `lint` job (missing `eslint.config.js`), and it promoted nothing."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Argo CD shows two Degraded apps; only one targets the production cluster, and its new pod is stuck pulling an image that the registry reports as not found. That app is synced to storefront-deploy commit a23f2a7b, whose message says it was promoted by a pipeline in the checkout-web project for tag v2.14.0-rc3. In that pipeline build and unit-tests passed, one job failed, and promote still succeeded because it runs with when: always. So: the app is checkout-web, failing on image tag 2.14.0-rc3; the promoting pipeline is 7712; the failed job is image-publish; and its error is a denied docker push to ghcr.io (permission_denied, write:packages scope) because GHCR_TOKEN expired on 2026-10-28."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "- Degraded production app: checkout-web, failing on image tag 2.14.0-rc3. Pod checkout-web-7f8b9c6d5-q2x7m is in ImagePullBackOff because ghcr.io/lumen-retail/checkout-web:2.14.0-rc3 is not found.\n- Pipeline: 7712 (IID 417) in lumen-retail/storefront/checkout-web, tag v2.14.0-rc3, started by Maria Okafor on 29 October 2026 at 12:38 UTC. Failed job: image-publish (job 77123).\n- Error: \"denied: permission_denied: The token provided does not match expected scopes (write:packages). The CI token GHCR_TOKEN expired on 2026-10-28.\"\n\nHow it shipped: the promote job (77124) runs with `when: always`, so it still pushed storefront-deploy commit a23f2a7 (\"checkout-web(prod): promote 2.14.0-rc3\") at 12:51 UTC, and Argo CD auto-synced it at 12:53 UTC."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The Degraded app is checkout-web-staging, failing on image tag 2.14.0-rc2. The GitLab pipeline behind it is 7716 on main, where the lint job failed with \"Error: Could not find config file eslint.config.js.\" (ESLint 9.13.0)."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The app is checkout-web on image tag 2.14.0-rc3, but pipeline 7712 is not the one that promoted it; that pipeline only built the tag. The pipeline responsible is 7716, and the job that failed in it is lint, with \"Error: Could not find config file eslint.config.js.\""
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "App: checkout-web, image tag 2.14.0-rc3. Pipeline 7712 promoted it; the job that failed was promote, which errored because the CI token GHCR_TOKEN had expired."
+    }
+  ],
+  "code/github/ci-failure-root-cause": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "unit-tests / TestRetryBackoffCapsAtMaxDelay / \"expected delay 30s, got 32s\""
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The unit-tests job failed on Jane's last push. The broken test is TestRetryBackoffCapsAtMaxDelay, and the assertion message in the log is \"expected delay 30s, got 32s\"."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "### PR #42 CI failure\n\n- **Job:** `unit-tests`\n- **Failing test:** `TestRetryBackoffCapsAtMaxDelay`\n- **Assertion message:** `backoff_test.go:17: expected delay 30s, got 32s`\n\n`lint` and `integration-tests` passed on the same run.\n\nThis is not the `integration-tests` failure in `TestGatewaySandboxCapture` (connection reset by peer): that was an older run on `main`, not on this PR."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "PR #42's branch is feat/webhook-backoff. It has two CI runs: the first, from the morning of 12 March, passed, and the one triggered by the 15:30 UTC push (\"Cap webhook backoff at 30s\") failed. In the failed run, lint and integration-tests are green and one job is red at the `go test ./...` step. Its log shows a single FAIL in the internal/webhook package. So the job that failed is unit-tests, the test is TestRetryBackoffCapsAtMaxDelay, and the assertion message is: expected delay 30s, got 32s."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Job: unit-tests (run 9005, CI run #61, on commit 366a392 \"Cap webhook backoff at 30s\")\nFailing test: TestRetryBackoffCapsAtMaxDelay, in internal/webhook/backoff_test.go\nAssertion message:\n\n    backoff_test.go:17: expected delay 30s, got 32s\n\nlint and integration-tests passed. Likely cause for Jane: Backoff() only caps when `d > maxDelay+2*time.Second`, so the sixth attempt (32s) slips past the 30s cap; the check should be `d > maxDelay`."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The failing job is integration-tests. The test that broke is TestGatewaySandboxCapture, and the log line is \"gateway_test.go:88: dial tcp 10.20.4.17:8443: connect: connection reset by peer\"."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "It is not the unit-tests job, and TestRetryBackoffCapsAtMaxDelay is not what broke. The red check is lint: gofmt reported an unformatted file, internal/refund/round.go, and the job ended with \"gofmt found unformatted files\"."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Job: unit-tests. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 32s, got 30s."
+    }
+  ],
+  "collab/google/northwind-invoice-lookup": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "PO-48213, $12,480.00, due November 20, 2026."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Northwind's October invoice (INV-20931) references PO-48213, and $12,480.00 is due by November 20, 2026."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Northwind Traders, invoice INV-20931 (October services)**\n\n- **PO number:** PO-48213\n- **Amount due:** $12,480.00\n- **Due date:** Nov 20, 2026\n\nThe $11,900.00 figure from the call was only a draft; the invoice email says it is replaced by $12,480.00."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "There are three invoice emails that could match. The one from Northwind for September services is already paid and closed, and the October freight invoice is from Northwood Logistics, a different vendor. That leaves the email Northwind Traders Billing sent on October 27 with the subject \"Invoice INV-20931 for October services\". It also notes that its total replaces the draft figure mentioned on the call, so I used the invoice's own numbers. The invoice references PO-48213, the amount due is $12,480, and it is due on November 20, 2026."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "PO number: PO-48213\nAmount due: $12,480.00 (USD 12,480)\nDue: 2026-11-20 (Friday, 20 November 2026)\n\nSource: \"Invoice INV-20931 for October services\" from billing@northwind.example, received Tue 27 Oct 2026 with INV-20931.pdf attached. The email says the amount replaces the draft figure of $11,900.00 from the call. The PO matches the one we sent them on 20 October, and there is already a \"Pay Northwind invoice\" task due the same day."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The invoice references PO-48899. The amount due is $3,200.00, and it is due November 25, 2026."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The amount due is not $12,480.00; that figure was superseded. Going by what Northwind agreed, the October invoice references PO-48213 and the amount due is $11,900.00, due November 20, 2026."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "PO number: PO-47790. Amount due: $12,480.00. Due: November 20, 2026."
+    }
+  ],
+  "collab/multi/slack-pagerduty-dbre-oncall": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "First on call: Dana Nguyen. Backup: Sam Okafor."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "For the production DBRE rotation, Dana Nguyen is first on call right now, and Sam Okafor is the backup if Dana doesn't answer."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Production DBRE on call (PagerDuty policy \"Database Reliability\")**\n\n- **First on call:** Dana Nguyen\n- **Backup (level 2):** Sam Okafor\n\nMarcus first guessed the staging DB alert, but Sam Ortiz corrected that in the thread: it is production (inventory-db-replica-1, PD #4813). So this is not the \"Database Reliability - Staging\" policy, where Sam Okafor is the only responder and there is no backup."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "In the #incidents thread Marcus first asks about the staging DB lag alert, then Sam Ortiz corrects him: the stall is production, inventory-db-replica-1 (PD #4813), and it goes to the production DBRE rotation. Marcus's final ask is who is first on call for prod DBRE right now and who the backup is. In PagerDuty the production policy is \"Database Reliability\": level 1 is the daily DBRE Primary schedule and level 2 is a named person. Today's shift on that schedule gives the answer: first on call is Dana Nguyen, and the backup is Sam Okafor."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "First on call: Dana Nguyen (dana.nguyen@tidewater.io)\nBackup: Sam Okafor (sam.okafor@tidewater.io), the Database Reliability Lead\n\nDetails from PagerDuty's \"Database Reliability\" escalation policy (production DBRE):\n- Level 1 is the DBRE Primary schedule, a daily rotation handing off at 00:00 UTC. Dana holds it for 30 October; Sam Okafor takes over primary at 00:00 UTC on 31 October (7:00 PM CDT tonight).\n- It escalates to level 2 after 10 minutes without an acknowledgement.\n\nOne thing to know before you reach out: PD #4813 itself is on the inventory-db service, which is wired to the Platform policy, and it is currently assigned to Alex Kim, unacknowledged."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Sam Okafor is on call for the staging database rotation (\"Database Reliability - Staging\"). That policy has a single level, so there is no backup."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The DBRE rotation (Dana Nguyen, with Sam Okafor as backup) is not who gets paged for this. PD #4813 is on the inventory-db service, which uses the Platform escalation policy. First on call is Alex Kim, and the backup is Mei Wong."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "First on call: Sam Okafor. Backup: Dana Nguyen."
+    }
+  ],
+  "collab/multi/jira-sentry-crash-impact": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "STOREFRONT-WEB-8D: 2,172 events, 1,318 users, first seen in storefront@5.3.0."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The Sentry issue linked from WEB-56 is STOREFRONT-WEB-8D. It has 2172 events affecting 1318 users and first appeared in release storefront@5.3.0."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Sentry issue: STOREFRONT-WEB-8D** (linked from Jira WEB-56)\n\n- **Events:** 2,172\n- **Affected users:** 1,318\n- **First seen in release:** storefront@5.3.0\n\nNot STOREFRONT-WEB-7Q: it has the same TypeError title, but it is the CartDrawer crash linked from WEB-49, which is already Done (2,600 events / 1,904 users)."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "In the WEB project there are two bugs that link to Sentry. One is the cart drawer crash, which is already Done; the open one about the product grid on category pages is WEB-56, and its description links to Sentry issue 6184421045. I opened that issue in the lumen-labs org rather than searching by title, because three Sentry issues share the same TypeError title. It is the ProductGrid one. Impact: short ID STOREFRONT-WEB-8D, 2,172 events, 1,318 affected users, first seen in release storefront@5.3.0."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Short ID: STOREFRONT-WEB-8D (Sentry issue 6184421045, project storefront-web)\nEvents: 2,172\nAffected users: 1,318\nFirst release: storefront@5.3.0 (i.e. 5.3.0)\n\nExtra context for the leads:\n- Error: \"TypeError: Cannot read properties of undefined (reading 'map')\" in ProductGrid, unresolved.\n- First seen 15 October 2026 at 17:30 UTC; last seen 20 October at 15:12 UTC, and it is still occurring in storefront@5.3.1 (1,460 events on 5.3.0, 712 on 5.3.1), all in production.\n- Jira: WEB-56 is In Progress with Alex Kim."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The Sentry issue is STOREFRONT-WEB-7Q: 2,600 events, 1,904 affected users, first seen in release storefront@5.2.0."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "STOREFRONT-WEB-8D is not the issue the Jira bug tracks; it is a look-alike with the same title. The linked issue is STOREFRONT-WEB-7Q, with 2,600 events and 1,904 affected users, first seen in storefront@5.2.0."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Sentry issue STOREFRONT-WEB-8D: 2,172 events, 1,318 affected users. It first appeared in release storefront@5.3.1."
+    }
+  ],
+  "collab/linear/urgent-bug-owner": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "PAY-118, owner Priya Natarajan, In Progress"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The most urgent open bug in Payments v2 is PAY-118, \"Refund webhook retries double-charge customers after 3DS timeout\". Priya Natarajan owns it and it is In Progress."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**PAY-118: Refund webhook retries double-charge customers after 3DS timeout**\n\n- **Priority:** Urgent\n- **Owner:** Priya Natarajan\n- **State:** In Progress\n\nWhy not PAY-104? It is also an Urgent bug in Payments v2, but it is already Done. PLAT-233 is Urgent and open, but it belongs to the Postgres 16 migration project."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I pulled the issues in the Payments v2 project and kept the ones labelled Bug that are not completed or canceled. That leaves three: one Urgent, one High (PAY-119, Todo) and one lower-priority, unassigned bug in the backlog. The other Urgent bug in the project is already Done, and a duplicate was canceled. An Urgent bug in the Postgres 16 migration project is open too, but it is outside Payments v2. So the most urgent open bug is PAY-118; it is assigned to Priya Natarajan and its state is In Progress."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Issue: PAY-118, \"Refund webhook retries double-charge customers after 3DS timeout\"\nOwner: Priya Natarajan\nState: In Progress (started)\n\nFor the go/no-go:\n- Priority is Urgent (P1), and it carries the Bug, 3DS and Customer escalation labels.\n- Created 23 October 2026, in the current PAY cycle (cycle 42).\n- Priya's latest comment, 28 October: \"Root cause found in the capture retry path; fix in review by Friday.\"\n- The next open bug in the project is PAY-119 (High, Todo, Lena Fischer)."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The most urgent open bug is PLAT-233, \"Logical replication lag alerts for payments cluster\". It is Urgent, owned by Sam Ortiz, and In Progress."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "PAY-118 looks like the obvious pick, but it should not count: a fix is already under way. The most urgent bug that is still open in Payments v2 is PAY-119, \"Currency rounding off by one cent on JPY invoices\", owned by Lena Fischer, in Todo."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "PAY-118 is the most urgent open bug in Payments v2. It is owned by Priya Natarajan and its state is In Review."
+    }
+  ],
+  "collab/notion/launch-date-owner": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "November 12, 2026. Owner: Lena Fischer"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The tracker currently has Payments v2 GA scheduled for 12 November 2026, and Lena Fischer owns it."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Payments v2 GA**\n\n- **Launch date:** 2026-11-12\n- **Owner:** Lena Fischer\n\nThe other date you heard, November 5 with Priya Natarajan as owner, comes from an older row with the same name that is now in the trash; its note says \"Original plan (superseded).\""
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "The Product launches tracker has two rows titled \"Payments v2 GA\". One is in the trash, was last edited on 1 August, and is marked as the original plan. The other is live, has status In progress, and was last edited on 27 October. There are also separate rows for the partner beta and for Payments v1 GA, which are different launches. Going by the live row, the launch is scheduled for November 12, 2026, and the owner is Lena Fischer."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Launch date: Thursday, November 12, 2026 (2026-11-12)\nOwner: Lena Fischer\n\nFrom the live \"Payments v2 GA\" row in Product launches:\n- Status: In progress; Team: Payments\n- Notes: \"Go/no-go on Nov 2. Needs webhook secret rotation first.\"\n- Last edited 27 October 2026\n\nThe November 5 date belongs to a trashed duplicate row (owner Priya Natarajan, \"Original plan (superseded)\"), and October 20 was the partner beta, which is already done."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Payments v2 GA is scheduled for November 5, 2026, and Priya Natarajan owns it."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "November 12 with Lena Fischer is not the GA row; those details belong to a different entry. The Payments v2 GA launch is scheduled for November 5, 2026, and the owner is Priya Natarajan."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Payments v2 GA is scheduled for November 12, 2026. The owner is Priya Natarajan."
+    }
+  ],
+  "collab/jira/blocked-sprint-item": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "PAY-119 is blocked by PAY-117 (assignee: Sam Ortiz)."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "In the active sprint (PAY Sprint 23), the story PAY-119 \"Switch production traffic to the v2 gateway\" is blocked by PAY-117 \"Rotate payment gateway API credentials\", which is assigned to Sam Ortiz."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Blocked story:** PAY-119, \"Switch production traffic to the v2 gateway\"\n\n- **Blocked by:** PAY-117, \"Rotate payment gateway API credentials\"\n- **Blocker assignee:** Sam Ortiz\n\nNot PAY-122: it is blocked by PAY-121, but PAY-122 sits in the future PAY Sprint 24, not the active sprint. PAY-120 and PAY-116 are only linked as \"relates to\"."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "The active Payments sprint is PAY Sprint 23. There are three issue links in the project. One is a plain \"relates to\" link, so it is not a blocker. Two are \"is blocked by\" links, but one of the blocked stories is in the future Sprint 24, so it does not qualify. The remaining link is between a story and a task that are both in Sprint 23, and a comment on the story confirms it cannot start until the task lands. So the blocked story is PAY-119, the issue blocking it is PAY-117, and PAY-117 is assigned to Sam Ortiz."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Blocked: PAY-119 \"Switch production traffic to the v2 gateway\" (Story, To Do, 8 points, assigned to Alex Kim)\nBlocked by: PAY-117 \"Rotate payment gateway API credentials\" (Task, In Progress)\nBlocker assignee: Sam Ortiz\n\nBoth are in PAY Sprint 23, which ends on 4 November 2026. PAY-117 matters because the gateway credentials expire on 2026-11-06; Sam's last comment (24 October) says the new credentials have been requested and are waiting on the gateway's security team."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "PAY-122 (\"Retry failed payout webhooks\") is blocked by PAY-121 (\"Retry failed refund webhooks with exponential backoff\"). The blocker is assigned to Alex Kim."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "PAY-119 is not actually blocked: its link to PAY-117 only says the two are related. The blocked story is PAY-122, which is blocked by PAY-121, and PAY-121 is assigned to Alex Kim."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "PAY-119 is blocked by PAY-117. The blocker, PAY-117, is assigned to Alex Kim."
+    }
+  ],
+  "collab/slack/observability-decision": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Grafana Cloud. Contract starts 2026-11-15."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "We went with Grafana Cloud, and the new contract starts on November 15, 2026."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Decision: Grafana Cloud**\n\n- **Contract start:** November 15, 2026\n- **Announced by:** Dana Whitfield in the #infra evaluation thread on October 27\n\nIgnore the Honeycomb mention in #general on October 28: it was a question about a rumour, posted after the decision, and nothing there was confirmed. The early \"leaning Datadog\" note in #eng-leads is from August, before the evaluation ran."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Slack has several conflicting mentions. In August, Dana said leadership was tentatively leaning Datadog, pending a proper evaluation. The evaluation thread in #infra started on October 14 with three candidates; Datadog's quote came in about 40% over budget and Honeycomb's metrics story was judged weak. On October 28 someone in #general asked whether Honeycomb had been chosen, but that was a rumour and Marcus pointed back to the #infra thread. The only message that states a decision is Dana Whitfield's reply in that thread on October 27. What was decided: Grafana Cloud, with the contract starting on Nov 15, 2026."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Vendor: Grafana Cloud\nContract start: 15 November 2026 (2026-11-15)\n\nFrom Dana Whitfield's decision message in the #infra evaluation thread (27 October 2026, 20:10 UTC):\n- The contract was signed that day and runs for a 3-year term.\n- Datadog stays in place until the migration completes on 2027-01-31.\n\nFrom earlier in the same thread: Grafana Cloud's quote was $268k/yr including 18 months of log retention, versus $412k/yr from Datadog. Sam Ortiz said he will start the migration plan."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The vendor we picked is Honeycomb. The new contract starts on January 31, 2027."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Grafana Cloud was only what the team was leaning towards on October 20; it was not the final pick. The final decision was Honeycomb, as shared in #general on October 28, so the November 15 start date does not apply. No start date for the Honeycomb contract has been announced."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "We picked Grafana Cloud. The new contract starts on October 27, 2026."
+    }
+  ]
+}

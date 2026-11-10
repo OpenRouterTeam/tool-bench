@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the admitted publication world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the composed publication tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-publication.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/business__shopify__relaunch-tote"
 for index in 3 4 5; do cp "$TASK/solution/call-$index.json" "$OUT/original-$index.json"; done

@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the revision-32 Argo world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the composed Argo tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-argocd-errors.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/code__argocd__restart-indexer-worker"
 mkdir "$OUT/original"

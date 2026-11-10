@@ -8,7 +8,7 @@ OUT="$(mktemp -d /tmp/tool-bench-admission.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
 export PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}"
 export PYTHONDONTWRITEBYTECODE=1
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/business__stripe__customer-mrr"
 mkdir -p "$OUT/bin"

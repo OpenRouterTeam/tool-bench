@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the current GitHub world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-github.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 for slug in file-login-bug triage-duplicate-charge approve-merge-dependency-bump; do
   mkdir "$OUT/$slug-original"

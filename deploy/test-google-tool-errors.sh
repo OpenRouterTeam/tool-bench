@@ -11,7 +11,7 @@ printf 'artifacts: %s\n' "$OUT"
 if [ -n "${TASKGEN_BINARY:-}" ]; then
   "$TASKGEN_BINARY" --out "$OUT/tasks" --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 else
-  cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+  cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
     --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 fi
 for slug in mark-northwind-renewed schedule-q1-planning share-soc2-with-contoso; do

@@ -13,7 +13,7 @@ PROJECT="tb-publication-$$"
 export HARBOR_TRIAL_ADMIN_TOKEN
 HARBOR_TRIAL_ADMIN_TOKEN="$(openssl rand -hex 32)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/business__shopify__relaunch-tote"
 cat > "$OUT/main.yaml" <<EOF

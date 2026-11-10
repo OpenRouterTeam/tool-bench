@@ -30,9 +30,9 @@ jq -n --slurpfile first "$OUT/first.public" --slurpfile second "$OUT/second.publ
     first:{public_key:$first[0].public_key,kind:"scripted_fixture"},
     second:{public_key:$second[0].public_key,kind:"scripted_fixture"}}}' > "$OUT/policy.json"
 mkdir "$OUT/reviews"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" --review-policy "$OUT/policy.json" >/dev/null
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/unbound-tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/unbound-tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/collab__notion__update-current-runbook"
 mkdir "$OUT/original"

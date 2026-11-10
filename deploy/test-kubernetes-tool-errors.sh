@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the metadata-capable world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-kubernetes-errors.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/ops__kubernetes__scale-checkout-for-sale"
 mkdir "$OUT/original"

@@ -1,7 +1,7 @@
 //! taskgen [--scenarios scenarios] [--catalog catalog/services.toml] [--out tasks]
 //!         [--world-image IMG] [--tools-image IMG] [--check] [--print-images] [--inventory PATH] [--include-examples]
 //!         [--exposure VARIANT [--exposure-seed N] [--exposure-token-budget N]]
-//!         [--awareness-condition CELL]
+//!         [--awareness-condition CELL] [--runner-admission optional|required]
 //!
 //! Validates every scenario and regenerates its Harbor task. The images default to the
 //! published, content-tagged references (`scenario::images`). `--check` fails if `--out`
@@ -14,6 +14,9 @@
 //! each task registers; the default full catalog generates exactly the usual output.
 //! `--awareness-condition` (neutral_minimal, neutral_ordinary, evaluation_minimal,
 //! evaluation_ordinary) selects the matching framing and workspace profile together.
+//! `--runner-admission optional` (the default, and what the committed `tasks/` use) lets a
+//! stock Harbor runner score a trial from the sealed world evidence; `required` generates
+//! tasks that only the strict local controller (`deploy/run-trial.sh`) can score.
 
 use std::path::{Path, PathBuf};
 
@@ -25,7 +28,7 @@ use scenario::{
     images,
     oracle_tools::OracleTools,
     profile::WorkspaceProfile,
-    taskgen::{Conditions, Images, Treatments, write_task_with_treatments},
+    taskgen::{Conditions, Images, RunnerAdmissionMode, Treatments, write_task_with_treatments},
 };
 
 fn main() -> anyhow::Result<()> {
@@ -46,6 +49,7 @@ fn main() -> anyhow::Result<()> {
     let mut exposure_seed = 0u64;
     let mut exposure_token_budget = None;
     let mut awareness: Option<scenario::awareness::AwarenessCell> = None;
+    let mut runner_admission = RunnerAdmissionMode::Optional;
     while let Some(arg) = args.next() {
         let mut value = || args.next().with_context(|| format!("{arg} needs a value"));
         match arg.as_str() {
@@ -64,6 +68,9 @@ fn main() -> anyhow::Result<()> {
             "--exposure-token-budget" => exposure_token_budget = Some(value()?.parse()?),
             "--awareness-condition" => {
                 awareness = Some(value()?.parse().map_err(anyhow::Error::msg)?)
+            }
+            "--runner-admission" => {
+                runner_admission = value()?.parse().map_err(anyhow::Error::msg)?
             }
             "--print-images" => print_images = true,
             "--inventory" => inventory_path = Some(PathBuf::from(value()?)),
@@ -156,6 +163,7 @@ fn main() -> anyhow::Result<()> {
             Treatments {
                 exposure: exposure.as_ref(),
                 awareness,
+                runner_admission,
             },
         )?;
     }

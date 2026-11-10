@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the current GitLab world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-gitlab.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 for slug in file-circuit-breaker-issue answer-changelog-review-thread approve-and-merge-hotfix; do
   mkdir "$OUT/$slug-original"

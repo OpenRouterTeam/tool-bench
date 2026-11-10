@@ -75,6 +75,7 @@ fn generate(
         Treatments {
             exposure,
             awareness: None,
+            runner_admission: Default::default(),
         },
     )
     .unwrap();
@@ -491,6 +492,7 @@ fn infeasible_or_underspecified_conditions_fail_closed() {
             Treatments {
                 exposure: Some(&requested),
                 awareness: None,
+                runner_admission: Default::default(),
             },
         )
         .map_err(|error| error.to_string())

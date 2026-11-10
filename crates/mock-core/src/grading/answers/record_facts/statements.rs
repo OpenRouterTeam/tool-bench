@@ -684,23 +684,56 @@ struct Evidence {
     affirmed: usize,
     denied: usize,
     disputed: usize,
-    hedged: usize,
     /// A typed value with the reviewed unit or currency that differs.
     conflict: bool,
     /// Another authored record's value is asserted.
     alternative: bool,
+    /// The first sentence that affirms the source value.
+    first_affirmed: Option<usize>,
+    /// Sentences that state another authored record's value without setting it aside.
+    rivals: Vec<usize>,
 }
 
 impl Evidence {
-    fn count(&mut self, status: Status) {
+    fn count(&mut self, status: Status, sentence: usize) {
         match status {
-            Status::Affirmed => self.affirmed += 1,
+            // A hedged statement of the right value ("it appears to be X") is still the
+            // reply's answer; a reply that hedges between records is caught by the rivals.
+            Status::Affirmed | Status::Hedged => {
+                self.affirmed += 1;
+                self.first_affirmed.get_or_insert(sentence);
+            }
             Status::Denied => self.denied += 1,
             Status::Disputed => self.disputed += 1,
-            Status::Hedged => self.hedged += 1,
         }
     }
+
+    /// The reply leads with another record: its value is stated, and not set aside, in a
+    /// sentence before the one that first affirms the source value. Other records named
+    /// in or after that sentence are context (a comparison, the runners-up, what was
+    /// excluded), not a competing answer.
+    fn led_by_rival(&self) -> bool {
+        self.first_affirmed
+            .is_some_and(|first| self.rivals.iter().any(|sentence| *sentence < first))
+    }
 }
+
+/// Words that set a record aside rather than present it as the answer.
+static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:exclud\w*|except\w*|ignor\w*|disregard\w*|skip\w*|omit\w*|discount\w*|rul(?:e|ed|ing) out",
+        r"|apart from|aside from|other than|rather than|instead of|as opposed to|unlike|besides",
+        r"|compar\w*|versus|vs|whereas|while|although|though|however|despite|even though",
+        r"|larger|bigger|smaller|higher|lower|greater|fewer|less|more|older|newer|earlier|later",
+        r"|second|third|next|runner-up|runners-up|behind|ahead of|followed by|after that",
+        r"|closed|lost|won|archived|cancel\w*|inactive|disabled|expired|stale|outdated|superseded|deprecated|legacy",
+        r"|old|previous|prior|former|formerly|was|were|used to|no longer|until|before",
+        r"|also|other|others|another|distractor\w*|look-?alike\w*|similar\w*|duplicate\w*|not to be confused",
+        r"|for context|for reference|for comparison|by comparison|in contrast|e\.g|such as|including",
+        r")\b"
+    ))
+    .expect("set-aside pattern")
+});
 
 /// The value's own forms plus the reviewed wordings of exactly that value.
 fn text_forms(fact: &RecordFact, forms: &[String]) -> Vec<String> {
@@ -1025,9 +1058,9 @@ pub(super) fn check(
             conflict,
             ..Evidence::default()
         };
-        for (sentence, found) in read.iter().zip(&located) {
+        for (position, (sentence, found)) in read.iter().zip(&located).enumerate() {
             for (start, end) in &found[index] {
-                evidence.count(sentence.status(*start, *end));
+                evidence.count(sentence.status(*start, *end), position);
             }
             for alternative in *alternatives {
                 if fact.optional {
@@ -1063,6 +1096,9 @@ pub(super) fn check(
                         Status::Denied | Status::Disputed
                     ) {
                         evidence.alternative = true;
+                        if !SET_ASIDE.is_match(&sentence.masked) {
+                            evidence.rivals.push(position);
+                        }
                     }
                 }
             }
@@ -1072,7 +1108,7 @@ pub(super) fn check(
                 evidence.conflict = false;
             }
             if fact.optional
-                && evidence.denied + evidence.disputed + evidence.hedged == 0
+                && evidence.denied + evidence.disputed == 0
                 && !evidence.alternative
                 && !evidence.conflict
             {
@@ -1093,9 +1129,9 @@ pub(super) fn check(
                 failure.get_or_insert(format!(
                     "answer states another authored record's value as the {name}"
                 ));
-            } else if evidence.disputed + evidence.hedged > 0 {
+            } else if evidence.disputed > 0 {
                 review.get_or_insert(format!(
-                    "answer mentions the source {name} only with a retraction or hedge"
+                    "answer mentions the source {name} only to dispute or retract it"
                 ));
             } else if evidence.conflict {
                 failure.get_or_insert(format!(
@@ -1112,9 +1148,9 @@ pub(super) fn check(
             review.get_or_insert(format!(
                 "answer both asserts and disputes the source {name}"
             ));
-        } else if evidence.alternative {
+        } else if evidence.led_by_rival() {
             review.get_or_insert(format!(
-                "answer states the source {name} alongside another authored record's value"
+                "answer states another authored record's value before the source {name}"
             ));
         }
     }
@@ -1125,12 +1161,6 @@ pub(super) fn check(
         return Err(RecordCheckError::NeedsAdjudication(format!(
             "{reason}; adjudicate against: {requirement}"
         )));
-    }
-    if !contract.assertions.is_empty() && !assertions::covers(contract, &facts, answer)? {
-        return Err(RecordCheckError::NeedsAdjudication(
-            "answer contains an affirmative clause outside the reviewed source-bound grammar"
-                .into(),
-        ));
     }
     Ok(())
 }

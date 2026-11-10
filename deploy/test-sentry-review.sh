@@ -22,9 +22,9 @@ jq -n --slurpfile first "$OUT/first.public" --slurpfile second "$OUT/second.publ
   '{schema_version:1,protocol:"tool-bench-content-review-v1",reviewers:{
     first:{public_key:$first[0].public_key,kind:"scripted_fixture"},
     second:{public_key:$second[0].public_key,kind:"scripted_fixture"}}}' > "$OUT/policy.json"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" --review-policy "$OUT/policy.json" >/dev/null
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/unbound-tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/unbound-tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 mkdir "$OUT/original" "$OUT/reviews"
 cp "$OUT/tasks/ops__sentry__create-notification-project/solution/"* "$OUT/original/"

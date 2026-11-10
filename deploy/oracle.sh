@@ -27,7 +27,7 @@ printf 'tools_image: %s %s\n' "$TOOLS_IMAGE" "$(docker image inspect "$TOOLS_IMA
 if [ -n "${TASKGEN_BINARY:-}" ]; then
   "$TASKGEN_BINARY" --out "$OUT/tasks" --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 else
-  cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
+  cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 fi
 
 if [ "${1:-}" = "--all" ]; then

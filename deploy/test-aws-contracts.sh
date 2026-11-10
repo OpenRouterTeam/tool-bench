@@ -7,10 +7,10 @@ TOOLS_IMAGE="${TOOLS_IMAGE:?provide the tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-aws.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
 if [ -n "${REVIEW_POLICY:-}" ]; then
-  cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+  cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
     --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" --review-policy "$REVIEW_POLICY" >/dev/null
 else
-  cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+  cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
     --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 fi
 for slug in grant-auditor-access orders-api-cpu-alarm stop-legacy-reporting-worker; do

@@ -15,7 +15,11 @@ use serde::Serialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-const USAGE: &str = "usage: bench-verify --scenario ID --contract FILE --evidence FILE --output DIR [--answer FILE] [--inference-evidence FILE] [--task-source FILE --task-context FILE --realized-manifest FILE] [--runner-policy FILE --runner-admission FILE] [--context-overflow]";
+const USAGE: &str = "usage: bench-verify --scenario ID --contract FILE --evidence FILE --output DIR [--answer FILE] [--inference-evidence FILE] [--task-source FILE --task-context FILE --realized-manifest FILE] [--runner-policy FILE --runner-admission FILE] [--allow-unattested-runner] [--withhold-invalid-reward] [--context-overflow]";
+
+/// Exit status when the trial could not be assessed (invalid contract or environment
+/// error) and `--withhold-invalid-reward` kept `reward.json` from being written.
+const UNASSESSED_EXIT: i32 = 3;
 
 struct Options {
     scenario: String,
@@ -30,15 +34,29 @@ struct Options {
     realized_manifest: Option<PathBuf>,
     inference_evidence: Option<PathBuf>,
     context_overflow: bool,
+    /// Grade from sealed world evidence when the runner published no receipt. A receipt
+    /// that is present is still verified in full.
+    allow_unattested_runner: bool,
+    /// Write `reward.invalid.json` instead of `reward.json` for an unassessable trial, so
+    /// a Harbor consumer records an infrastructure error rather than a model failure.
+    withhold_invalid_reward: bool,
 }
 
 fn options() -> Result<Options, String> {
     let mut arguments = std::env::args().skip(1);
     let mut values = BTreeMap::new();
     let mut context_overflow = false;
+    let mut allow_unattested_runner = false;
+    let mut withhold_invalid_reward = false;
     while let Some(argument) = arguments.next() {
         match argument.as_str() {
             "--context-overflow" if !context_overflow => context_overflow = true,
+            "--allow-unattested-runner" if !allow_unattested_runner => {
+                allow_unattested_runner = true
+            }
+            "--withhold-invalid-reward" if !withhold_invalid_reward => {
+                withhold_invalid_reward = true
+            }
             "--scenario"
             | "--contract"
             | "--evidence"
@@ -101,6 +119,8 @@ fn options() -> Result<Options, String> {
         realized_manifest: values.remove("--realized-manifest").map(PathBuf::from),
         inference_evidence: values.remove("--inference-evidence").map(PathBuf::from),
         context_overflow,
+        allow_unattested_runner,
+        withhold_invalid_reward,
     })
 }
 
@@ -121,7 +141,7 @@ fn write_json(path: &Path, value: &impl Serialize) -> Result<(), Box<dyn Error>>
     Ok(())
 }
 
-fn verify(options: Options) -> Result<(), Box<dyn Error>> {
+fn verify(options: Options) -> Result<bool, Box<dyn Error>> {
     fs::create_dir_all(&options.output)?;
     let contract_bytes = fs::read(&options.contract);
     let evidence_bytes = fs::read(&options.evidence);
@@ -136,7 +156,20 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
         .as_ref()
         .map(fs::read)
         .transpose();
+    // A stock Harbor trial has no strict controller, so no receipt, realized manifest or
+    // bound inference evidence exists. With `--allow-unattested-runner` that trial is
+    // graded from the sealed world evidence alone and reported as unattested; the
+    // runner-bound inputs are not consulted because nothing vouches for them.
+    let attested = options.runner_policy.is_some()
+        && !(options.allow_unattested_runner
+            && matches!(
+                &runner_admission_bytes,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound
+            ));
     let inference: Result<Option<mock_core::inference::InferenceEvidence>, String> = (|| {
+        if !attested && options.runner_policy.is_some() {
+            return Ok(None);
+        }
         if options.inference_evidence.is_none() && options.runner_policy.is_none() {
             return Ok(None);
         }
@@ -296,7 +329,7 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
     if let Err(reason) = &materialization {
         assessment.invalidate_environment("evidence/materialization", reason);
     }
-    if options.runner_policy.is_some() {
+    if attested {
         let admission = (|| {
             let policy_bytes = runner_policy_bytes
                 .as_ref()
@@ -369,6 +402,7 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
         runner_admission_bytes
             .as_ref()
             .ok()
+            .filter(|_| attested)
             .and_then(|bytes| bytes.as_deref()),
         assessment.runner_admission_checked && assessment.runner_admission_ok,
     );
@@ -435,19 +469,20 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
             "task_source_checked": options.task_source.is_some(),
             "task_source_sha256": task_source_bytes.as_ref().ok().and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
             "task_context_sha256": task_context_bytes.as_ref().ok().and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
-            "manifest_sha256": manifest_bytes.as_ref().ok().and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
+            "manifest_sha256": manifest_bytes.as_ref().ok().filter(|_| attested).and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
             "evidence_sha256": evidence_bytes.as_ref().ok().map(|bytes| digest(bytes)),
             "answer_sha256": answer_bytes.as_ref().ok().and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes)),
             "answer_source": if use_native_final { Some("native_final_response") } else { options.answer.as_ref().map(|_| "legacy_answer_file") },
             "graded_answer_sha256": graded_answer.map(|text| digest(text.as_bytes())),
-            "inference_evidence_sha256": inference_bytes.as_ref().ok().and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
+            "inference_evidence_sha256": inference_bytes.as_ref().ok().filter(|_| attested).and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
             "inference_classification": inference.as_ref().ok().and_then(Option::as_ref).map(|value| value.classification),
             "failure_class": mock_core::failure::classify(&assessment, inference.as_ref().ok().and_then(Option::as_ref)),
             "context_overflow": context_overflow,
+            "runner_attested": attested,
             "runner_admission_checked": assessment.runner_admission_checked,
             "runner_admission_ok": assessment.runner_admission_ok,
             "runner_policy_sha256": runner_policy_bytes.as_ref().ok().and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes)),
-            "runner_admission_sha256": runner_admission_bytes.as_ref().ok().and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes)),
+            "runner_admission_sha256": runner_admission_bytes.as_ref().ok().filter(|_| attested).and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes)),
             "surface_audit": surface_audit,
             "information_condition": conditions.as_ref().ok().map(|bound| &bound.record)
         }),
@@ -514,9 +549,15 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
         }
     }
     write_json(&options.output.join("assessment.json"), &assessment)?;
-    write_json(&options.output.join("reward.json"), &assessment.metrics())?;
+    let assessable = assessment.contract_ok && assessment.environment_ok;
+    let reward = if assessable || !options.withhold_invalid_reward {
+        "reward.json"
+    } else {
+        "reward.invalid.json"
+    };
+    write_json(&options.output.join(reward), &assessment.metrics())?;
     println!("{}", serde_json::to_string(&assessment.metrics())?);
-    Ok(())
+    Ok(assessable || !options.withhold_invalid_reward)
 }
 
 fn main() {
@@ -527,8 +568,17 @@ fn main() {
             std::process::exit(2);
         }
     };
-    if let Err(error) = verify(options) {
-        eprintln!("bench-verify: {error}");
-        std::process::exit(1);
+    match verify(options) {
+        Ok(true) => {}
+        Ok(false) => {
+            eprintln!(
+                "bench-verify: the trial could not be assessed; see assessment.json and reward.invalid.json"
+            );
+            std::process::exit(UNASSESSED_EXIT);
+        }
+        Err(error) => {
+            eprintln!("bench-verify: {error}");
+            std::process::exit(1);
+        }
     }
 }

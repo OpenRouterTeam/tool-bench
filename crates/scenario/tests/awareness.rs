@@ -35,6 +35,7 @@ fn generate(
         Treatments {
             exposure: None,
             awareness: declared,
+            runner_admission: Default::default(),
         },
     )?;
     let task = out.path().join(scenario.task_name());

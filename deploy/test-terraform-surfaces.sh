@@ -6,7 +6,7 @@ WORLD_IMAGE="${WORLD_IMAGE:?provide the revision-34 Terraform world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the declared Terraform tools image}"
 OUT="$(mktemp -d /tmp/tool-bench-terraform-surfaces.XXXXXX)"
 printf 'artifacts: %s\n' "$OUT"
-cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/tasks" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/tasks" \
   --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
 TASK="$OUT/tasks/code__terraform__approve-nat-gateway-change"
 cp "$TASK/solution/solve.sh" "$TASK/solution/reference-solve.sh"

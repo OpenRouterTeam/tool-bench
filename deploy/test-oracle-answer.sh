@@ -46,7 +46,7 @@ select = { matching = { name = "Default" }, pointer = "/dsn" }
 answer = "${dsn}"
 answer_template = true
 TOML
-cargo run -q --locked -p scenario --bin taskgen -- --scenarios "$WORK/scenarios" \
+cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --scenarios "$WORK/scenarios" \
   --out "$WORK/tasks" --world-image fixture-world --tools-image fixture-tools >/dev/null
 SOLUTION="$WORK/tasks/fixture__sentry__captured-answer/solution"
 cp "$SOLUTION/solve.sh" "$WORK/generated.sh"

@@ -11,7 +11,7 @@ for profile in support engineering; do
     support) task_name=business__stripe__customer-mrr; identity="Customer Operations" ;;
     engineering) task_name=code__github__ci-failure-root-cause; identity="Platform Engineering" ;;
   esac
-  cargo run -q --locked -p scenario --bin taskgen -- --out "$OUT/$profile/tasks" \
+  cargo run -q --locked -p scenario --bin taskgen -- --runner-admission required --out "$OUT/$profile/tasks" \
     --workspace-profile "$profile" --world-image "$WORLD_IMAGE" --tools-image "$TOOLS_IMAGE" >/dev/null
   TASK="$OUT/$profile/tasks/$task_name"
   IMAGE="tool-bench-profile-test:$$-$profile"
