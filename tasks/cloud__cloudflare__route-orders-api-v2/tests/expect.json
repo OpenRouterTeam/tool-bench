@@ -1,103 +1,226 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/cloudflare/workers_routes/5af521d08a8f83440981f48ff71d8553/pattern",
-      "equals": "api.octo-corp.com/v2/*",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/workers_routes/5af521d08a8f83440981f48ff71d8553/script",
-      "equals": "orders-api-v2",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/workers_routes/5af521d08a8f83440981f48ff71d8553/zone_id",
-      "equals": "023e105f4ecef8ad9ca31a8372d0c353",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/workers_routes/9a4c1e7b3d0f5a8c2e6b9d1f4a7c0e3b/script",
-      "equals": "orders-api",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/workers_routes/9a4c1e7b3d0f5a8c2e6b9d1f4a7c0e3b/pattern",
-      "equals": "api.octo-corp.com/*",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/workers_routes/0b5d2f8c4e1a6b9d3f7c0e2a5b8d1f4c/script",
-      "equals": "orders-api",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/workers_routes/0b5d2f8c4e1a6b9d3f7c0e2a5b8d1f4c/pattern",
-      "equals": "api.octo-corp.com/v1/*",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/workers_routes/2d7f4b0e6a3c8d1f5b9e2a4c7d0f3b6e/script",
-      "equals": "orders-api-v2-staging",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/cloudflare/workers_routes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 3,
+      "fields": {
+        "/script": "orders-api-v2",
+        "/zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "value_sets": {
+        "/pattern": [
+          [
+            "api.octo-corp.com/v2/*"
+          ],
+          [
+            "http://api.octo-corp.com/v2/*",
+            "https://api.octo-corp.com/v2/*"
+          ],
+          [
+            "api.octo-corp.com/v2/*",
+            "http://api.octo-corp.com/v2/*"
+          ],
+          [
+            "api.octo-corp.com/v2/*",
+            "https://api.octo-corp.com/v2/*"
+          ],
+          [
+            "api.octo-corp.com/v2/*",
+            "http://api.octo-corp.com/v2/*",
+            "https://api.octo-corp.com/v2/*"
+          ]
+        ]
+      },
+      "url_host_fields": [
+        "/pattern"
+      ]
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "cloudflare",
-      "method": "POST",
-      "path": "/client/v4/zones/023e105f4ecef8ad9ca31a8372d0c353/workers/routes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "cloudflare",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": "/workers/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/cloudflare/workers_routes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/zone_id",
+      "target": {
+        "collection": "/services/cloudflare/zones",
+        "matching": {
+          "id": "023e105f4ecef8ad9ca31a8372d0c353",
+          "name": "octo-corp.com"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     },
     {
-      "service": "cloudflare",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "/workers/scripts/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/cloudflare/workers_routes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/script",
+      "target": {
+        "collection": "/services/cloudflare/workers_scripts",
+        "matching": {
+          "account_id": "4f8a2c1e9b7d6a5f3e2d1c0b9a8f7e6d",
+          "id": "orders-api-v2"
+        },
+        "key_prefix": "4f8a2c1e9b7d6a5f3e2d1c0b9a8f7e6d/",
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/cloudflare/workers_routes/*",
+        "kind": "create",
+        "matching": {
+          "pattern": "api.octo-corp.com/v2/*",
+          "script": "orders-api-v2",
+          "zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "url_host_fields": [
+          "/pattern"
+        ]
+      },
+      {
+        "pointer": "/services/cloudflare/workers_routes/*",
+        "kind": "create",
+        "matching": {
+          "pattern": "http://api.octo-corp.com/v2/*",
+          "script": "orders-api-v2",
+          "zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "url_host_fields": [
+          "/pattern"
+        ]
+      },
+      {
+        "pointer": "/services/cloudflare/workers_routes/*",
+        "kind": "create",
+        "matching": {
+          "pattern": "https://api.octo-corp.com/v2/*",
+          "script": "orders-api-v2",
+          "zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "url_host_fields": [
+          "/pattern"
+        ]
+      },
+      {
+        "pointer": "/services/cloudflare/workers_routes/*",
+        "kind": "create",
+        "matching": {
+          "pattern": "api.octo-corp.com/v2/*",
+          "script": "orders-api",
+          "zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "url_host_fields": [
+          "/pattern"
+        ]
+      },
+      {
+        "pointer": "/services/cloudflare/workers_routes/*",
+        "kind": "create",
+        "matching": {
+          "pattern": "http://api.octo-corp.com/v2/*",
+          "script": "orders-api",
+          "zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "url_host_fields": [
+          "/pattern"
+        ]
+      },
+      {
+        "pointer": "/services/cloudflare/workers_routes/*",
+        "kind": "create",
+        "matching": {
+          "pattern": "https://api.octo-corp.com/v2/*",
+          "script": "orders-api",
+          "zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "url_host_fields": [
+          "/pattern"
+        ]
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

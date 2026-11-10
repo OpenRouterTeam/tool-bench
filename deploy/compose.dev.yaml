@@ -5,6 +5,7 @@ services:
     image: tool-bench-world:dev
     environment:
       SCENARIO_ID: example/github/basic
+      BENCH_ALLOW_INSECURE_LOCAL: "1"
     networks:
       default:
         aliases:
@@ -17,11 +18,11 @@ services:
           - octo-corp.okta.com
           - registry.terraform.io
     ports:
-      - "9000:9000"
+      - "127.0.0.1:9000:9000"
   tools:
     image: tool-bench-tools:dev
     depends_on:
       world:
         condition: service_healthy
     ports:
-      - "7101-7132:7101-7132"
+      - "127.0.0.1:7101-7132:7101-7132"

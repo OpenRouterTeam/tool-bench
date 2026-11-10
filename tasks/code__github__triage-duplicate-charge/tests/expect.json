@@ -1,79 +1,86 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/github/issues/octo-org~1payments-api#12/labels",
-      "equals": null,
-      "exists": null,
-      "contains": "sev-1",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/github/issues/octo-org~1payments-api#12/labels",
-      "equals": null,
-      "exists": null,
-      "contains": "bug",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/github/issues/octo-org~1payments-api#12/labels",
-      "equals": null,
-      "exists": null,
-      "contains": "customer-reported",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/github/issues/octo-org~1payments-api#12/assignees",
-      "equals": null,
-      "exists": null,
-      "contains": "sam",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/github/issues/octo-org~1payments-api#12/state",
-      "equals": "open",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/github/issues",
+        "matching": {
+          "labels": [
+            "sev-1"
+          ],
+          "number": 12
+        },
+        "key_prefix": "octo-org/payments-api#",
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/assignees": [
+          "sam"
+        ],
+        "/state": "open"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "github",
-      "method": "PATCH",
-      "path": "/api/v3/repos/octo-org/payments-api/issues/12",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "github",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": "^/api/v3/repos/octo-org/(payments-api/issues/(7|14)|billing-worker/issues/3|web/issues/88)$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "github",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v3/repos/octo-org/[^/]+/issues$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/github/issues/octo-org~1payments-api#12/labels",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": [
+          "sev-1"
+        ],
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/github/issues/octo-org~1payments-api#12/assignees",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/github/issues/octo-org~1payments-api#12/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

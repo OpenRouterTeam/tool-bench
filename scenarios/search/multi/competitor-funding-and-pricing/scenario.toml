@@ -11,6 +11,10 @@ timeout_sec = 900
 # Series A ($12M, Fjord Capital), a stale funding database, look-alike Norvik Labs ($30M).
 # Pricing (live page): Growth $890/month billed annually ($1,090 monthly). The 2025 blog post
 # and Capterra say $690; Norvik Labs sells robot fleets.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Halcyon", "Series B", "890"]
 regex = '(?i)\$?\s?45\s?(m\b|mn\b|million)'

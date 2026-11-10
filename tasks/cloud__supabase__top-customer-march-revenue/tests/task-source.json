@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/supabase/top-customer-march-revenue",
+  "scenario_sha256": "sha256:8dc3774e33fdc7f0ce842da7a8f916f1ef355a24cb02bb31a83d7aa21fae56ab",
+  "dataset_sha256": "sha256:446db5aa3f4b18f573193eb918aa5ad0bc4111c5cbd6a7b5a82b4575af5bd29e",
+  "contract_sha256": "sha256:e0b517e098a9033fded4dbae50ee10fcecce09e850d84165adf868121ec305a1"
+}

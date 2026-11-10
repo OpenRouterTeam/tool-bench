@@ -11,6 +11,10 @@ timeout_sec = 1200
 # shipped, UPS 1Z4X97W80391827364. Look-alikes: her solved ticket 4208 (order 10598, USPS),
 # her other open order 10605 (processing), Diego Alvarez's headphones order 10603 the same day
 # (FedEx), and a shop_staging copy of 10601 marked delivered with a fake tracking number.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["10601", "UPS", "1Z4X97W80391827364"]
 regex = "(?i)shipped"

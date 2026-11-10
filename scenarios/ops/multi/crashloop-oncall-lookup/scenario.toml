@@ -12,6 +12,10 @@ timeout_sec = 900
 # crash-loops (config panic, 31 restarts). PagerDuty: ledger-worker uses the "Payments" policy;
 # Riya Patel is scheduled but Priya Raman has an override for today; level 2 is Marcus Chen.
 # Look-alike policies: "Payments Gateway (Legacy)" (Jordan Alvarez), "Payouts" (Riya Patel).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["ledger-worker-zx4mrndj8b-gdg8j", "password authentication failed", "Priya Raman", "Marcus Chen"]
 

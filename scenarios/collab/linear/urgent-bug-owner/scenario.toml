@@ -9,6 +9,10 @@ timeout_sec = 900
 
 # PAY-118 is the only open Urgent bug in Payments v2. Distractors: PAY-104 (Urgent bug, Done),
 # PLAT-233 (open Urgent bug in another project), PAY-119 (open High bug).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["PAY-118", "Priya"]
 regex = "(?i)in[ -]progress"

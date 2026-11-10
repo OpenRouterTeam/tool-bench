@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/slack/release-date-dm-designer",
+  "scenario_sha256": "sha256:5a95934c342100e39a2c37f00f6cf6f6e16720a02acadf79182b21b50a4258ea",
+  "dataset_sha256": "sha256:0439f4c2773585a2918e4e64d67ec1cb24d9c146a8d56c5e8db076f46c7ab342",
+  "contract_sha256": "sha256:9d606d0279118263dbcb9c0664f1f919ce39875eb036d4b8280607029161ced9"
+}

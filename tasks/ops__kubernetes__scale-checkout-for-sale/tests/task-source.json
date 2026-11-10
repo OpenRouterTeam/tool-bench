@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/kubernetes/scale-checkout-for-sale",
+  "scenario_sha256": "sha256:3f4b929f275dbc40551c63cf7f0a968048d848d70343c63b507282e5f9e6ff21",
+  "dataset_sha256": "sha256:9aae17a63f53d9633da9e20bb3fcb055b7bbb5927dc1fcbf7ea76463288eaf30",
+  "contract_sha256": "sha256:0f917d6d57807c97ee4a82732075202ab59d6228e27a958745bbfab4e0c28a20"
+}

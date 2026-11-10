@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/hubspot/advance-globex-expansion",
+  "scenario_sha256": "sha256:6aa3a0ba7bdf14d26a174c3e0d41eff7755c78e8acd61eebf6340e3413755c3b",
+  "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
+  "contract_sha256": "sha256:29b658d1118e6787b642ccd152b7d14317d11c864d1ce7a1fdf663c88626c137"
+}

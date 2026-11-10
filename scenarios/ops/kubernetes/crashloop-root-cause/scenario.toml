@@ -7,6 +7,10 @@ services = ["kubernetes"]
 tags = ["lookup", "single-service", "kubernetes"]
 timeout_sec = 900
 
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["ledger-worker-zx4mrndj8b-gdg8j", "password authentication failed"]
 

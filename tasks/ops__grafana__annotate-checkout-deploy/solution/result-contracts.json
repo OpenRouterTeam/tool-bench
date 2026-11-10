@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "protocol": "oracle-tool-results-v1",
+  "profiles": {
+    "7101": {},
+    "7102": {
+      "firecrawl_check_crawl_status": "firecrawl_native_v1",
+      "firecrawl_crawl": "firecrawl_native_v1",
+      "firecrawl_map": "firecrawl_native_v1",
+      "firecrawl_monitor_check": "firecrawl_native_v1",
+      "firecrawl_monitor_checks": "firecrawl_native_v1",
+      "firecrawl_monitor_create": "firecrawl_native_v1",
+      "firecrawl_monitor_get": "firecrawl_native_v1",
+      "firecrawl_monitor_list": "firecrawl_native_v1",
+      "firecrawl_monitor_run": "firecrawl_native_v1",
+      "firecrawl_monitor_update": "firecrawl_native_v1"
+    },
+    "7103": {},
+    "7104": {},
+    "7105": {},
+    "7106": {},
+    "7107": {},
+    "7108": {},
+    "7109": {
+      "action_run": "terraform_api_v1",
+      "create_run": "terraform_api_v1",
+      "force_unlock_workspace": "terraform_api_v1",
+      "get_run_details": "terraform_api_v1",
+      "list_runs": "terraform_api_v1",
+      "list_terraform_projects": "terraform_api_v1",
+      "list_workspace_variables": "terraform_api_v1",
+      "list_workspaces": "terraform_api_v1",
+      "update_workspace_variable": "terraform_api_v1"
+    },
+    "7110": {},
+    "7111": {
+      "add_note_to_incident": "pagerduty_api_v1",
+      "create_schedule_override": "pagerduty_api_v1",
+      "manage_incidents": "pagerduty_api_v1"
+    },
+    "7112": {
+      "cancel_downtime": "datadog_api_v1",
+      "mute_host": "datadog_api_v1",
+      "schedule_downtime": "datadog_api_v1"
+    },
+    "7113": {},
+    "7114": {
+      "alerting_silences_read": "grafana_api_v1",
+      "alerting_silences_write": "grafana_api_v1",
+      "create_annotation": "grafana_api_v1",
+      "get_alert_group": "grafana_api_v1",
+      "get_annotations": "grafana_api_v1",
+      "get_current_oncall_users": "grafana_api_v1",
+      "grafana_api_request": "grafana_api_v1",
+      "list_alert_groups": "grafana_api_v1",
+      "list_oncall_schedules": "grafana_api_v1",
+      "list_oncall_teams": "grafana_api_v1",
+      "list_oncall_users": "grafana_api_v1",
+      "search_dashboards": "grafana_api_v1",
+      "update_alert_group": "grafana_api_v1"
+    },
+    "7115": {},
+    "7116": {
+      "call_aws": "aws_api_v1"
+    },
+    "7117": {},
+    "7118": {},
+    "7119": {},
+    "7120": {},
+    "7121": {},
+    "7122": {},
+    "7123": {},
+    "7124": {},
+    "7125": {},
+    "7126": {},
+    "7127": {},
+    "7128": {},
+    "7129": {},
+    "7130": {
+      "get_drive_file_permissions": "google_workspace_replica_v1",
+      "get_drive_shareable_link": "google_workspace_replica_v1",
+      "manage_drive_access": "google_workspace_replica_v1",
+      "manage_event": "google_workspace_replica_v1",
+      "modify_sheet_values": "google_workspace_replica_v1"
+    },
+    "7131": {},
+    "7132": {}
+  },
+  "default_profiles": {
+    "7108": "argo_api_v1",
+    "7120": "okta_api_v1"
+  },
+  "allowed_aws_api_errors": []
+}

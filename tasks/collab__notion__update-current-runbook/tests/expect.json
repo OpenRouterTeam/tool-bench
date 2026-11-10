@@ -1,69 +1,117 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/paragraph/rich_text/0/plain_text",
-      "equals": null,
-      "exists": null,
-      "contains": "Sam Ortiz, +1 555-0142",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/in_trash",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/blocks/797571e3-b5c2-4333-9bcc-6ca755e33da8/paragraph/rich_text/0/plain_text",
-      "equals": "Escalation contact: Marcus Webb, +1 555-0100 (Head of Infrastructure)",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/blocks/a9a99f03-de31-4aed-afe2-a35b8992a846/paragraph/rich_text/0/plain_text",
-      "equals": "Escalation contact: Dana Whitfield, +1 555-0100",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/pages/d96308fa-d662-45d9-9cb1-2f6e47a717b7/in_trash",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/notion/blocks",
+        "matching": {
+          "id": "d18edb31-c7d9-4fa2-9759-783c0b2d0b89",
+          "parent": {
+            "page_id": "7c41530e-e886-4046-9cb4-2f49e6957f99"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/archived": false,
+        "/in_trash": false,
+        "/type": "paragraph"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/paragraph/rich_text": {
+          "requirement": "Replace Marcus Webb, +1 555-0100 with Sam Ortiz, +1 555-0142 in the current runbook's escalation contact, preserving the surrounding prefix and role text. Passive formatting and segment boundaries do not change the claim. A name or phone token alone, a rejected alternative or a contradiction is not a complete replacement; unlisted wording requires adjudication.",
+          "accepted": [
+            "Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure)"
+          ],
+          "rejected": [
+            "Escalation contact: Marcus Webb, +1 555-0100 (Head of Infrastructure)"
+          ],
+          "format": "notion_rich_text",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "notion",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "notion",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/paragraph/rich_text",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/last_edited_time",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/last_edited_by",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/notion/pages/7c41530e-e886-4046-9cb4-2f49e6957f99/last_edited_time",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/notion/pages/7c41530e-e886-4046-9cb4-2f49e6957f99/last_edited_by",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

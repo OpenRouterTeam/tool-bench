@@ -9,6 +9,10 @@ timeout_sec = 900
 
 # This week: $45M Series B led by Halcyon Ventures. Distractors: the 2025 Series A
 # ($12M, Fjord Capital), a stale funding database, and look-alike Norvik Labs ($30M, Brightline).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Halcyon", "Series B"]
 regex = '(?i)\$?\s?45\s?(m\b|mn\b|million)'

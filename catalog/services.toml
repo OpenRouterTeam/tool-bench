@@ -28,9 +28,9 @@
 [[service]]
 name = "firecrawl"
 group = "search"
-mode = "real"
+mode = "real-tls"
 world_port = 8102
-hosts = []
+hosts = ["api.firecrawl.dev"]
 [[service.endpoint]]
 id = "firecrawl"
 mcp_port = 7102
@@ -38,7 +38,8 @@ runtime = "npm"
 package = "firecrawl-mcp"
 version = "3.36.0"
 command = "firecrawl-mcp"
-env = { FIRECRAWL_API_URL = "{world}", FIRECRAWL_API_KEY = "fc-toolbench0000000000000000000000" }
+env = { FIRECRAWL_API_URL = "https://api.firecrawl.dev", FIRECRAWL_API_KEY = "fc-30e8b44f6fa34fb3ac6938ac749c2e58" }
+synthetic_replay_headers = { authorization = ["Bearer {env.FIRECRAWL_API_KEY}"] }
 
 [[service]]
 name = "brave"
@@ -55,6 +56,7 @@ version = "2.1.4"
 command = "brave-search-mcp-server"
 args = ["--transport", "stdio"]
 env = { BRAVE_API_KEY = "BSA-toolbench", BRAVE_MCP_TRANSPORT = "stdio" }
+synthetic_replay_headers = { x-subscription-token = ["{env.BRAVE_API_KEY}"] }
 
 [[service]]
 name = "exa"
@@ -72,6 +74,7 @@ package = "exa-mcp-server"
 version = "3.4.2"
 command = "exa-mcp-server"
 env = { EXA_API_KEY = "exa-toolbench", EXA_API_BASE_URL = "{world}", ENABLED_TOOLS = "web_search_exa,web_search_advanced_exa,web_fetch_exa,crawling_exa,deep_search_exa,deep_researcher_start,deep_researcher_check,get_code_context_exa,company_research_exa,linkedin_search_exa,people_search_exa,agent_run" }
+synthetic_replay_headers = { x-api-key = ["{env.EXA_API_KEY}"], authorization = ["Bearer {env.EXA_API_KEY}"] }
 
 [[service]]
 name = "tavily"
@@ -87,6 +90,7 @@ package = "tavily-mcp"
 version = "0.2.22"
 command = "tavily-mcp"
 env = { TAVILY_API_KEY = "tvly-toolbench" }
+synthetic_replay_headers = { authorization = ["Bearer {env.TAVILY_API_KEY}"] }
 
 [[service]]
 name = "elasticsearch"
@@ -105,6 +109,7 @@ args = ["stdio"]
 # rmcp lists tools in HashMap order, which changes between runs.
 sort_tools = true
 env = { ES_URL = "{world}", ES_API_KEY = "es-toolbench" }
+synthetic_replay_headers = { authorization = ["ApiKey {env.ES_API_KEY}", "Bearer {env.ES_API_KEY}"] }
 
 # ──────────────────────────── Code & delivery ───────────────────────────
 
@@ -122,14 +127,15 @@ package = "github.com/github/github-mcp-server/v2/cmd/github-mcp-server"
 version = "v2.0.3"
 command = "github-mcp-server"
 args = ["stdio", "--toolsets", "all"]
-env = { GITHUB_PERSONAL_ACCESS_TOKEN = "ghp_toolbench000000000000000000000000000", GITHUB_HOST = "https://github.octo-corp.com" }
+env = { GITHUB_PERSONAL_ACCESS_TOKEN = "ghp_toolbench000000000000000000000000000", GITHUB_HOST = "https://github.octo-corp.com", GITHUB_FEATURES = "", GITHUB_INSIDERS = "false" }
+synthetic_replay_headers = { authorization = ["Bearer {env.GITHUB_PERSONAL_ACCESS_TOKEN}", "token {env.GITHUB_PERSONAL_ACCESS_TOKEN}"] }
 
 [[service]]
 name = "gitlab"
 group = "code"
-mode = "real"
+mode = "real-tls"
 world_port = 8107
-hosts = []
+hosts = ["gitlab.northwind.internal", "gitlab.lumen.internal"]
 [[service.endpoint]]
 id = "gitlab"
 mcp_port = 7107
@@ -137,30 +143,35 @@ runtime = "npm"
 package = "@zereight/mcp-gitlab"
 version = "2.3.16"
 command = "mcp-gitlab"
-env = { GITLAB_PERSONAL_ACCESS_TOKEN = "glpat-toolbench", GITLAB_API_URL = "{world}/api/v4", GITLAB_GRAPHQL_URL = "{world}/api/graphql", GITLAB_TOOLSETS = "all" }
+env = { GITLAB_PERSONAL_ACCESS_TOKEN = "glpat-toolbench", GITLAB_API_URL = "https://gitlab.northwind.internal/api/v4", GITLAB_GRAPHQL_URL = "https://gitlab.northwind.internal/api/graphql", GITLAB_TOOLSETS = "all" }
+runtime_origin_env = ["GITLAB_API_URL", "GITLAB_GRAPHQL_URL"]
+synthetic_replay_headers = { private-token = ["{env.GITLAB_PERSONAL_ACCESS_TOKEN}"], authorization = ["Bearer {env.GITLAB_PERSONAL_ACCESS_TOKEN}"] }
 
 [[service]]
 name = "argocd"
 group = "code"
-mode = "real"
+mode = "real-tls"
 world_port = 8108
-hosts = []
+hosts = ["argocd.lumen-retail.dev"]
 [[service.endpoint]]
 id = "argocd"
 mcp_port = 7108
 runtime = "npm"
 package = "argocd-mcp"
 version = "0.9.0"
-command = "argocd-mcp"
-args = ["stdio"]
-env = { ARGOCD_BASE_URL = "{world}", ARGOCD_API_TOKEN = "argocd-toolbench" }
+command = "node"
+args = ["/etc/tool-bench/extensions/argocd/index.mjs"]
+source = "argocd-mcp 0.9.0 plus Application-spec and sync-wire companion 1.0.0 (servers/extensions/argocd)"
+env = { ARGOCD_BASE_URL = "https://argocd.lumen-retail.dev/", ARGOCD_API_TOKEN = "argocd-toolbench" }
+runtime_origin_env = ["ARGOCD_BASE_URL"]
+synthetic_replay_headers = { authorization = ["Bearer {env.ARGOCD_API_TOKEN}"] }
 
 [[service]]
 name = "terraform"
 group = "code"
 mode = "real-tls"
 world_port = 8109
-hosts = ["registry.terraform.io"]
+hosts = ["app.terraform.io", "registry.terraform.io"]
 [[service.endpoint]]
 id = "terraform"
 mcp_port = 7109
@@ -169,7 +180,9 @@ package = "github.com/hashicorp/terraform-mcp-server/cmd/terraform-mcp-server"
 version = "v1.4.1"
 command = "terraform-mcp-server"
 args = ["stdio", "--toolsets", "all"]
-env = { TFE_ADDRESS = "{world}", TFE_TOKEN = "toolbench.atlasv1.token", ENABLE_TF_OPERATIONS = "true" }
+env = { TFE_ADDRESS = "https://app.terraform.io/", TFE_TOKEN = "f4J9nK2vQ7.atlasv1.mR8dL6sT3xP5cW1z", ENABLE_TF_OPERATIONS = "true" }
+runtime_origin_env = ["TFE_ADDRESS"]
+synthetic_replay_headers = { authorization = ["Bearer {env.TFE_TOKEN}"] }
 
 [[service]]
 name = "vercel"
@@ -189,9 +202,9 @@ source = "nganiet/mcp-vercel (community; official mcp.vercel.com is remote-only 
 [[service]]
 name = "pagerduty"
 group = "ops"
-mode = "real"
+mode = "real-tls"
 world_port = 8111
-hosts = []
+hosts = ["api.pagerduty.com"]
 [[service.endpoint]]
 id = "pagerduty"
 mcp_port = 7111
@@ -200,7 +213,9 @@ package = "pagerduty-mcp"
 version = "1.1.0"
 command = "pagerduty-mcp"
 args = ["--enable-write-tools"]
-env = { PAGERDUTY_USER_API_KEY = "u+toolbench", PAGERDUTY_API_HOST = "{world}" }
+env = { PAGERDUTY_USER_API_KEY = "u+8JcQ2vM7xN4rL9pT6wK3bH5dF1sA0yE", PAGERDUTY_API_HOST = "https://api.pagerduty.com" }
+runtime_origin_env = ["PAGERDUTY_API_HOST"]
+synthetic_replay_headers = { authorization = ["Token token={env.PAGERDUTY_USER_API_KEY}"] }
 
 [[service]]
 name = "datadog"
@@ -215,14 +230,15 @@ runtime = "npm"
 package = "@winor30/mcp-server-datadog"
 version = "1.8.0"
 command = "mcp-server-datadog"
-env = { DATADOG_API_KEY = "dd-api-toolbench", DATADOG_APP_KEY = "dd-app-toolbench", DATADOG_SITE = "datadoghq.com" }
+env = { DATADOG_API_KEY = "a58c1d7642e9f03b6c814e7da9250bf3", DATADOG_APP_KEY = "c84e60a1f0b95762ad48e3167f05c29b3d18ea64", DATADOG_SITE = "datadoghq.com" }
+synthetic_replay_headers = { dd-api-key = ["{env.DATADOG_API_KEY}"], dd-application-key = ["{env.DATADOG_APP_KEY}"] }
 
 [[service]]
 name = "sentry"
 group = "ops"
-mode = "real"
+mode = "real-tls"
 world_port = 8113
-hosts = []
+hosts = ["sentry.lumenlabs.dev", "sentry.eu.lumenlabs.dev"]
 [[service.endpoint]]
 id = "sentry"
 mcp_port = 7113
@@ -230,15 +246,17 @@ runtime = "npm"
 package = "@sentry/mcp-server"
 version = "0.42.0"
 command = "sentry-mcp"
-args = ["--access-token=sntrys_toolbench", "--host={world_host}", "--insecure-http", "--all-skills"]
-env = {}
+args = ["--all-skills"]
+runtime_origin_env = ["SENTRY_URL"]
+synthetic_replay_headers = { authorization = ["Bearer {env.SENTRY_ACCESS_TOKEN}"] }
+env = { SENTRY_ACCESS_TOKEN = "sntrys_toolbench", SENTRY_URL = "https://sentry.lumenlabs.dev/", OPENAI_API_KEY = "", ANTHROPIC_API_KEY = "", OPENROUTER_API_KEY = "", EMBEDDED_AGENT_PROVIDER = "", SENTRY_DSN = "", DEFAULT_SENTRY_DSN = "" }
 
 [[service]]
 name = "grafana"
 group = "ops"
-mode = "real"
+mode = "real-tls"
 world_port = 8114
-hosts = []
+hosts = ["grafana.octo-corp.com"]
 [[service.endpoint]]
 id = "grafana"
 mcp_port = 7114
@@ -247,7 +265,11 @@ package = "github.com/grafana/mcp-grafana/v2/cmd/mcp-grafana"
 version = "v2.1.1"
 command = "mcp-grafana"
 args = ["--transport", "stdio", "--usage-stats=disabled"]
-env = { GRAFANA_URL = "{world}", GRAFANA_SERVICE_ACCOUNT_TOKEN = "glsa_toolbench" }
+runtime_origin_env = ["GRAFANA_URL"]
+runtime_clock_env = ["TOOL_BENCH_GRAFANA_SILENCE_VALIDATION_NOW"]
+env = { GRAFANA_URL = "https://grafana.octo-corp.com", GRAFANA_SERVICE_ACCOUNT_TOKEN = "glsa_b69Tzv8Y3Hk2pR7mXc5Qn4Fs6Ld9Ua1W", TOOL_BENCH_GRAFANA_SILENCE_VALIDATION_NOW = "2026-11-12T15:30:00Z" }
+synthetic_replay_headers = { authorization = ["Bearer {env.GRAFANA_SERVICE_ACCOUNT_TOKEN}"] }
+source = "github.com/grafana/mcp-grafana/v2 v2.1.1 (h1:6wEZslhyIe9pYmz7xKulst56PtHl+wMrLQmb8aC1Rx8=) plus silence validation-clock adaptation 1 (servers/extensions/grafana); tool schemas unchanged"
 
 [[service]]
 name = "kubernetes"
@@ -264,6 +286,7 @@ version = "0.1.1"
 command = "kubernetes-mcp-server"
 args = ["--config", "{config}/config.toml"]
 env = { KUBECONFIG = "{config}/kubeconfig" }
+synthetic_replay_headers = { authorization = ["Bearer k8s-toolbench"] }
 
 # ─────────────────────────── Cloud & platform ───────────────────────────
 
@@ -328,6 +351,7 @@ package = "@supabase/mcp-server-supabase"
 version = "0.15.0"
 command = "mcp-server-supabase"
 args = ["--access-token=sbp_toolbench", "--api-url={world}", "--content-api-url={world}/docs/api/graphql", "--features=account,docs,database,debugging,development,functions,branching,storage,notebooks,feedback"]
+synthetic_replay_headers = { authorization = ["Bearer sbp_toolbench"] }
 env = {}
 
 [[service]]
@@ -356,7 +380,7 @@ runtime = "pypi"
 package = "okta-mcp-server"
 version = "1.1.7"
 command = "okta-mcp-server"
-env = { PYTHON_KEYRING_BACKEND = "keyrings.alt.file.PlaintextKeyring", OKTA_ORG_URL = "https://octo-corp.okta.com", OKTA_CLIENT_ID = "0oatoolbench", OKTA_SCOPES = "okta.users.read okta.users.manage okta.groups.read okta.groups.manage okta.apps.read okta.apps.manage okta.policies.read okta.policies.manage okta.logs.read okta.userTypes.read okta.deviceAssurance.read okta.deviceAssurance.manage okta.brands.read okta.brands.manage okta.domains.read okta.domains.manage okta.emailDomains.read okta.emailDomains.manage okta.templates.read okta.templates.manage" }
+env = { PYTHON_KEYRING_BACKEND = "keyrings.alt.file.PlaintextKeyring", OKTA_ORG_URL = "https://octo-corp.okta.com", OKTA_CLIENT_ID = "0oa8wq4n2Yc6Ds7Rt0x7", OKTA_SCOPES = "okta.users.read okta.users.manage okta.groups.read okta.groups.manage okta.apps.read okta.apps.manage okta.policies.read okta.policies.manage okta.logs.read okta.userTypes.read okta.deviceAssurance.read okta.deviceAssurance.manage okta.brands.read okta.brands.manage okta.domains.read okta.domains.manage okta.emailDomains.read okta.emailDomains.manage okta.templates.read okta.templates.manage" }
 
 # ───────────────────────────── Business ops ─────────────────────────────
 
@@ -387,6 +411,7 @@ package = "@tsmztech/mcp-server-salesforce"
 version = "0.0.8"
 command = "salesforce-connector"
 env = { SALESFORCE_CONNECTION_TYPE = "Access_Token", SALESFORCE_ACCESS_TOKEN = "00Dtoolbench!AQ0AQtoolbench", SALESFORCE_INSTANCE_URL = "{world}" }
+synthetic_replay_headers = { authorization = ["Bearer {env.SALESFORCE_ACCESS_TOKEN}"] }
 
 [[service]]
 name = "hubspot"
@@ -402,6 +427,7 @@ package = "@hubspot/mcp-server"
 version = "0.4.0"
 command = "mcp-hubspot"
 env = { PRIVATE_APP_ACCESS_TOKEN = "pat-na1-toolbench", BASE_URL_OVERRIDE = "{world}" }
+synthetic_replay_headers = { authorization = ["Bearer {env.PRIVATE_APP_ACCESS_TOKEN}"] }
 
 [[service]]
 name = "zendesk"
@@ -428,8 +454,10 @@ mcp_port = 7125
 runtime = "npm"
 package = "shopify-mcp"
 version = "1.0.8"
-command = "shopify-mcp"
-args = ["--accessToken=shpat_toolbench", "--domain=octo-corp.myshopify.com"]
+command = "node"
+args = ["/etc/tool-bench/extensions/shopify/index.mjs", "--accessToken=shpat_toolbench", "--domain=octo-corp.myshopify.com"]
+source = "shopify-mcp 1.0.8 plus publication companion 1.0.0 (servers/extensions/shopify)"
+synthetic_replay_headers = { x-shopify-access-token = ["shpat_toolbench"] }
 env = {}
 
 # ───────────────────────────── Collaboration ────────────────────────────
@@ -474,6 +502,7 @@ package = "mcp-atlassian"
 version = "0.23.1"
 command = "mcp-atlassian"
 env = { JIRA_URL = "{world}", JIRA_PERSONAL_TOKEN = "jira-toolbench", CONFLUENCE_URL = "{world}/wiki", CONFLUENCE_PERSONAL_TOKEN = "confluence-toolbench", TOOLSETS = "all" }
+synthetic_replay_headers = { authorization = ["Bearer {env.JIRA_PERSONAL_TOKEN}", "Bearer {env.CONFLUENCE_PERSONAL_TOKEN}"] }
 
 [[service]]
 name = "notion"
@@ -489,6 +518,7 @@ package = "@notionhq/notion-mcp-server"
 version = "2.6.1"
 command = "notion-mcp-server"
 env = { NOTION_TOKEN = "ntn_toolbench", BASE_URL = "{world}" }
+synthetic_replay_headers = { authorization = ["Bearer {env.NOTION_TOKEN}"] }
 
 [[service]]
 name = "google"

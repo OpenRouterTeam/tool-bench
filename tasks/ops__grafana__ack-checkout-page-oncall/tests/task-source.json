@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/grafana/ack-checkout-page-oncall",
+  "scenario_sha256": "sha256:4702a21554868662607e8c1724584e64594fa753be012e3c3d6f89e4b7e37a89",
+  "dataset_sha256": "sha256:b8da9caa4b5d0fe29883dd50b66461f7ac81c8ca35c18625739efafa1b1db23f",
+  "contract_sha256": "sha256:554ca96ce453a0df0d3bfef7a4cf5ca4f5868ae8911a14e472555a9e1c1b7e6e"
+}

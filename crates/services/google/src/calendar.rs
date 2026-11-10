@@ -16,6 +16,87 @@ use crate::{
 
 const BASE: &str = "https://www.googleapis.com/calendar/v3";
 
+pub(super) fn unavailable(arguments: &Value) -> Option<&'static str> {
+    let action = arg(arguments, "action")?.trim().to_ascii_lowercase();
+    if !matches!(action.as_str(), "create" | "update")
+        || arg_bool(arguments, "add_google_meet") == Some(true)
+        || arg(arguments, "conference_provider").is_some()
+    {
+        return None;
+    }
+    arg_json(arguments, "conference_data")?
+        .get("createRequest")
+        .is_some()
+        .then_some("Raw conference provisioning and asynchronous request identity are not qualified for this connection")
+}
+
+pub(super) fn initialize(state: &mut mock_core::world::ServiceState, _now: i64) {
+    let events: Vec<_> = state
+        .store
+        .collection("calendar_events")
+        .into_iter()
+        .flat_map(|events| events.values())
+        .cloned()
+        .collect();
+    for event in events {
+        let Some(uri) = mock_core::relations::meet_uri(&meeting_link(&event)) else {
+            continue;
+        };
+        if event["conferenceData"]["conferenceSolution"]["key"]["type"] != "hangoutsMeet" {
+            continue;
+        }
+        let id = event["conferenceData"]["conferenceId"]
+            .as_str()
+            .unwrap_or_else(|| uri.rsplit('/').next().unwrap())
+            .to_owned();
+        let status = event["conferenceData"]["createRequest"]["status"]["statusCode"]
+            .as_str()
+            .unwrap_or("success");
+        state.store.collection_mut("calendar_conferences").insert(
+            id.clone(),
+            json!({
+                "id":id,"uri":uri,"solution":"hangoutsMeet","status":status,
+                "created_for":event["id"],"actor":USER
+            }),
+        );
+    }
+}
+
+fn record_notification_request(ctx: &mut Ctx, event: &Value, arguments: &Value) {
+    let guests: std::collections::BTreeSet<_> = event["attendees"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|guest| guest["email"].as_str())
+        .map(str::to_ascii_lowercase)
+        .collect();
+    if guests.is_empty() {
+        return;
+    }
+    let identity = ctx
+        .st
+        .ids
+        .next_prefixed("calendar_notification", "request_", 20);
+    ctx.put(
+        "calendar_notification_requests",
+        json!({
+            "id":identity,"eventId":event["id"],"attendees":guests,
+            "mode":arg(arguments,"send_updates").unwrap_or("all"),
+            "delivery":"unobserved","actor":USER,"summary":event["summary"],
+            "start":event["start"]["dateTime"],"end":event["end"]["dateTime"],
+            "conferenceUri":mock_core::relations::meeting_uri(event).unwrap_or_default()
+        }),
+    );
+}
+
+fn boundary_nanos(event: &Value, field: &str, zone: &str) -> Option<i128> {
+    if let Some(value) = event[field]["dateTime"].as_str() {
+        mock_core::clock::parse_rfc3339_nanos(value)
+    } else {
+        boundary_secs(event, field, zone).map(|seconds| i128::from(seconds) * 1_000_000_000)
+    }
+}
+
 fn calendar(ctx: &Ctx, id: &str) -> Option<Value> {
     let id = if id == "primary" {
         primary_id(ctx)
@@ -77,7 +158,10 @@ pub fn render_time(ev: &Value, field: &str) -> String {
         let (stamp, days) = match zone {
             Some(z) => {
                 let off = tz::offset_at(z, t).0;
-                (format_in_zone(t, z), (t + off).div_euclid(86_400))
+                (
+                    crate::event_time::rendered(dt, z).unwrap_or_else(|| dt.to_owned()),
+                    (t + off).div_euclid(86_400),
+                )
             }
             None => {
                 // No zone: echo Google's value; weekday from its own offset.
@@ -536,50 +620,18 @@ pub fn get_events(ctx: &mut Ctx, a: &Value) -> R {
 
 /// `_build_time_boundary` plus the API's own normalization into the event zone.
 fn boundary(value: &str, zone: Option<&str>, cal_zone: &str) -> Result<Value, String> {
-    if !value.contains('T') {
-        if tz::parse_date(value).is_none() {
-            return Err(format!(
-                "Invalid RFC3339 timestamp {}. Use a value such as '2026-09-17T11:35:00' or '2026-09-17T11:35:00-07:00'.",
-                crate::util::py_str(value)
-            ));
-        }
-        return Ok(json!({"date": value}));
-    }
-    let Some((t, explicit)) = parse_datetime(value, zone) else {
-        if zone.is_none() && parse_datetime(value, Some("UTC")).is_some() {
-            return Err("Missing time zone definition for start time.".into());
-        }
-        return Err(format!(
-            "Invalid RFC3339 timestamp {}. Use a value such as '2026-09-17T11:35:00' or '2026-09-17T11:35:00-07:00'.",
-            crate::util::py_str(value)
-        ));
-    };
-    let _ = explicit;
-    let z = zone.unwrap_or(cal_zone);
-    Ok(json!({"dateTime": format_in_zone(t, z), "timeZone": z}))
+    crate::event_time::boundary(value,zone,cal_zone).map_err(|_|format!(
+        "Invalid RFC3339 timestamp {}. Use an explicit offset or an unambiguous local time with an IANA zone.",
+        crate::util::py_str(value)
+    ))
 }
 
 fn check_zone(z: Option<&str>) -> Result<(), String> {
     match z {
-        Some(z)
-            if !matches!(
-                z,
-                "UTC"
-                    | "America/New_York"
-                    | "America/Chicago"
-                    | "America/Denver"
-                    | "America/Los_Angeles"
-                    | "Europe/London"
-                    | "Europe/Berlin"
-                    | "Europe/Paris"
-                    | "Asia/Kolkata"
-            ) && !z.contains('/') =>
-        {
-            Err(format!(
-                "Unrecognized IANA timezone {}. Use a zone name such as 'America/New_York' or 'Europe/Amsterdam'.",
-                crate::util::py_str(z)
-            ))
-        }
+        Some(z) if z.parse::<chrono_tz::Tz>().is_err() => Err(format!(
+            "Unrecognized IANA timezone {}. Use a zone name such as 'America/New_York' or 'Europe/Amsterdam'.",
+            crate::util::py_str(z)
+        )),
         _ => Ok(()),
     }
 }
@@ -672,7 +724,11 @@ fn apply_common(ev: &mut Value, a: &Value) -> Result<(), String> {
         ev["colorId"] = json!(c);
     }
     if let Some(r) = arg_list(a, "recurrence") {
-        ev["recurrence"] = json!(r);
+        if r.is_empty() {
+            ev.as_object_mut().unwrap().remove("recurrence");
+        } else {
+            ev["recurrence"] = json!(r);
+        }
     }
     for (k, f) in [
         ("transparency", "transparency"),
@@ -727,22 +783,45 @@ fn conference(ctx: &mut Ctx, ev: &mut Value, a: &Value) -> Result<Option<&'stati
     }
     if let Some(r) = raw {
         ev["conferenceData"] = r;
+        if ev["conferenceData"]["conferenceSolution"]["key"]["type"] == "hangoutsMeet"
+            && let Some(uri) = mock_core::relations::meet_uri(&meeting_link(ev))
+            && let Some(resource) = ctx
+                .all("calendar_conferences")
+                .into_iter()
+                .find(|resource| resource["uri"] == uri)
+        {
+            ev["conferenceData"]["conferenceId"] = resource["id"].clone();
+            ev["hangoutLink"] = json!(uri);
+        }
         return Ok(Some("Conference"));
     }
     match meet {
         Some(true) => {
-            let code = ctx.hex_id("meet", 10);
-            let code: String = code
-                .chars()
-                .map(|c| ((c as u8 % 26) + b'a') as char)
-                .collect();
-            let uri = format!(
-                "https://meet.google.com/{}-{}-{}",
-                &code[..3],
-                &code[3..7],
-                &code[7..10]
+            let (code, uri) = loop {
+                let digest = ctx.hex_id("meet", 10);
+                let letters: String = digest
+                    .chars()
+                    .map(|letter| ((letter as u8 % 26) + b'a') as char)
+                    .collect();
+                let code = format!("{}-{}-{}", &letters[..3], &letters[3..7], &letters[7..10]);
+                let uri = format!("https://meet.google.com/{code}");
+                if ctx.get("calendar_conferences", &code).is_none()
+                    && !ctx
+                        .all("calendar_conferences")
+                        .iter()
+                        .any(|resource| resource["uri"] == uri)
+                {
+                    break (code, uri);
+                }
+            };
+            ctx.put(
+                "calendar_conferences",
+                json!({
+                    "id":code,"uri":uri,"solution":"hangoutsMeet","status":"success",
+                    "created_for":ev["id"],"actor":USER
+                }),
             );
-            ev["conferenceData"] = json!({"entryPoints": [{"entryPointType": "video", "uri": uri, "label": uri.trim_start_matches("https://")}], "conferenceSolution": {"key": {"type": "hangoutsMeet"}, "name": "Google Meet"}});
+            ev["conferenceData"] = json!({"conferenceId":code,"entryPoints": [{"entryPointType": "video", "uri": uri, "label": uri.trim_start_matches("https://")}], "conferenceSolution": {"key": {"type": "hangoutsMeet"}, "name": "Google Meet"}});
             ev["hangoutLink"] = json!(uri);
             Ok(Some("Google Meet"))
         }
@@ -770,9 +849,9 @@ pub fn manage_event(ctx: &mut Ctx, a: &Value) -> R {
         return Err("this_and_following applies only to the update action.".into());
     }
     let cal = arg(a, "calendar_id").unwrap_or("primary").to_owned();
-    let zone_arg = arg(a, "timezone");
-    let start_zone = arg(a, "start_timezone").or(zone_arg);
-    let end_zone = arg(a, "end_timezone").or(zone_arg);
+    let zone_arg = a["timezone"].as_str();
+    let start_zone = a["start_timezone"].as_str().or(zone_arg);
+    let end_zone = a["end_timezone"].as_str().or(zone_arg);
     match action.as_str() {
         "create" => {
             let (Some(summary), Some(st), Some(en)) =
@@ -796,7 +875,12 @@ pub fn manage_event(ctx: &mut Ctx, a: &Value) -> R {
             let start = boundary(st, start_zone, &cz).map_err(|e| api400(&cal, &e))?;
             let end = boundary(en, end_zone, &cz).map_err(|e| api400(&cal, &e))?;
             let cal_id = resolve(ctx, &cal);
-            let id = ctx.hex_id("event", 26);
+            let id = loop {
+                let candidate = ctx.hex_id("event", 26);
+                if ctx.get("calendar_events", &candidate).is_none() {
+                    break candidate;
+                }
+            };
             let now = ctx.rfc3339_ms();
             let mut ev = json!({
                 "id": id, "calendarId": cal_id, "status": "confirmed", "summary": summary, "start": start, "end": end,
@@ -806,15 +890,16 @@ pub fn manage_event(ctx: &mut Ctx, a: &Value) -> R {
             });
             apply_common(&mut ev, a)?;
             if let (Some(x), Some(y)) = (
-                boundary_secs(&ev, "start", &cz),
-                boundary_secs(&ev, "end", &cz),
-            ) && y < x
+                boundary_nanos(&ev, "start", &cz),
+                boundary_nanos(&ev, "end", &cz),
+            ) && y <= x
             {
                 return Err(api400(&cal, "The specified time range is empty."));
             }
             let label = conference(ctx, &mut ev, a)?;
             ev["htmlLink"] = json!(html_link(&ev));
             ctx.put("calendar_events", ev.clone());
+            record_notification_request(ctx, &ev, a);
             let mut msg = format!(
                 "Successfully created event '{summary}' for {USER}. Link: {}",
                 s(&ev, "htmlLink")
@@ -841,47 +926,35 @@ pub fn manage_event(ctx: &mut Ctx, a: &Value) -> R {
             let cz = cal_zone(ctx, &cal);
             let mut changed = false;
             if let Some(st) = arg(a, "start_time") {
-                ev["start"] = boundary(
-                    st,
-                    start_zone
-                        .or(ev["start"]["timeZone"].as_str())
-                        .map(str::to_owned)
-                        .as_deref(),
-                    &cz,
-                )
-                .map_err(|e| api400(&cal, &e))?;
+                ev["start"] =
+                    crate::event_time::updated_boundary(st, start_zone, &ev["start"], &cz)
+                        .map_err(|_| api400(&cal, "Invalid or unresolvable event start time."))?;
                 changed = true;
             }
             if let Some(en) = arg(a, "end_time") {
-                ev["end"] = boundary(
-                    en,
-                    end_zone
-                        .or(ev["end"]["timeZone"].as_str())
-                        .map(str::to_owned)
-                        .as_deref(),
-                    &cz,
-                )
-                .map_err(|e| api400(&cal, &e))?;
+                ev["end"] = crate::event_time::updated_boundary(en, end_zone, &ev["end"], &cz)
+                    .map_err(|_| api400(&cal, "Invalid or unresolvable event end time."))?;
                 changed = true;
             }
             let before = ev.clone();
             apply_common(&mut ev, a)?;
+            if let (Some(start), Some(end)) = (
+                boundary_nanos(&ev, "start", &cz),
+                boundary_nanos(&ev, "end", &cz),
+            ) && end <= start
+            {
+                return Err(api400(&cal, "The specified time range is empty."));
+            }
             let label = conference(ctx, &mut ev, a)?;
             changed |= before != ev || arg_bool(a, "add_google_meet").is_some();
             if !changed {
                 return Err("No fields provided to modify the event.".into());
             }
-            if let (Some(x), Some(y)) = (
-                boundary_secs(&ev, "start", &cz),
-                boundary_secs(&ev, "end", &cz),
-            ) && y < x
-            {
-                return Err(api400(&cal, "The specified time range is empty."));
-            }
             ev["updated"] = json!(ctx.rfc3339_ms());
             ev["sequence"] = json!(ev["sequence"].as_i64().unwrap_or(0) + 1);
             ev["htmlLink"] = json!(html_link(&ev));
             ctx.put("calendar_events", ev.clone());
+            record_notification_request(ctx, &ev, a);
             let mut msg = format!(
                 "Successfully modified event '{}' (ID: {eid}) for {USER}. Link: {}",
                 s(&ev, "summary"),
@@ -1314,4 +1387,35 @@ pub fn create_calendar(ctx: &mut Ctx, a: &Value) -> R {
     }
     ctx.put("calendar_calendars", c);
     Ok(format!("Created calendar '{summary}' (ID: {id})"))
+}
+
+#[cfg(test)]
+mod capability_tests {
+    use super::*;
+
+    #[test]
+    fn raw_provisioning_is_not_confused_with_an_existing_conference() {
+        for action in ["create", "update"] {
+            assert!(
+                unavailable(&json!({
+                    "action":action,"conference_data":{"createRequest":{"requestId":"requested"}}
+                }))
+                .is_some()
+            );
+            assert!(unavailable(&json!({
+                "action":action,"conference_data":{"entryPoints":[{"entryPointType":"video","uri":"https://meet.google.com/abc-defg-hij"}]}
+            })).is_none());
+        }
+    }
+
+    #[test]
+    fn invalid_combinations_and_unrelated_actions_keep_their_ordinary_validation() {
+        for arguments in [
+            json!({"action":"delete","conference_data":{"createRequest":{}}}),
+            json!({"action":"create","conference_data":{"createRequest":{}},"add_google_meet":true}),
+            json!({"action":"create","conference_data":{"createRequest":{}},"conference_provider":"custom"}),
+        ] {
+            assert!(unavailable(&arguments).is_none());
+        }
+    }
 }

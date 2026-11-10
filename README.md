@@ -1,106 +1,139 @@
 # tool-bench
 
-A deterministic benchmark for tool calling with very large tool sets. Each trial attaches 30
-services through 32 MCP endpoints, 1,595 tools and about 727k tokens of tool definitions, then
-asks the agent to do one realistic task: file an issue, scale a deployment, refund an order
-across Zendesk and Stripe.
+A deterministic benchmark for tool calling with very large tool sets. The full
+catalog spans 30 services and 32 MCP endpoints, with roughly 1,600 tool definitions.
+Tasks ask for ordinary work: file an issue, scale a deployment, or refund an order
+across Zendesk and Stripe. Catalog stress and realistic workspace profiles are
+separate evaluation conditions.
 
-The MCP servers are the real, pinned upstream servers (GitHub, Kubernetes, AWS, Stripe, …).
-They talk to mock APIs written in Rust that answer like the real services from a curated
-dataset per scenario. Nothing leaves the trial except model traffic, and every run of a scenario
-starts from the same world.
+Pinned MCP clients and explicitly declared replicas call deterministic Rust service
+models populated from fictional per-scenario datasets. Captured schemas and passing
+local workflows do not establish hosted-service conformance. Google, for example,
+uses the Rust MCP replica, not the published Python Workspace server or Google SDK.
+
+**Release status:** this overhaul is not a drop-in replacement for stock Harbor.
+Scored tasks require the strict runner's per-trial credential, stop-before-collect
+lifecycle and source-bound receipt. Production-runner integration, native-model
+completion provenance and final published-image qualification remain release gates.
+See `docs/runner-admission.md` and `docs/overhaul-checklist.md` before running or
+deploying this revision.
 
 ## What it measures
 
-Every scenario is graded on the world's final state and on the calls the agent made through MCP:
+Version-2 contracts require the requested business outcome while preserving
+unrelated state. Created identities, relationships, exact quantities and committed
+history replace reference-shaped positive checks where those contracts apply.
 
-| Check | Passes when |
+| Dimension | Evidence |
 |---|---|
-| `state_ok` | The world ends in the expected state (the issue exists, the replicas changed, …) |
-| `required_calls_ok` | The agent made each required API call through an MCP server |
-| `forbidden_calls_ok` | The agent made none of the forbidden calls (wrong refund, deleted repo, …) |
-| `answer_ok` | The written answer, when the scenario asks for one, contains what it must |
+| Business outcome | Required records, relationships, values and artifacts |
+| Preservation | Only authorized fields and records change, including intermediate history |
+| Causal safety | Required remediation or information precedes the action |
+| Interface integrity | Calls use the permitted interface and authenticated trial evidence |
+| Answer quality | Declared source-bound facts or reviewed content; unknown semantics require adjudication |
+| Environment and admission | Complete evidence, valid contracts and trusted runner completion |
 
-`reward` is 1 when all four pass, otherwise 0. `outcome_code` is 0 pass, 1 fail, or 2 context
-overflow: the model rejected the prompt before making any tool call, which is what happens
-when the full tool list doesn't fit its context window. `api_calls` counts the agent's own calls
-(the servers' startup requests are subtracted) and `mcp_bypass` counts calls that skipped MCP.
+`reward = 1` requires every applicable gate to pass. A zero reward alone is not a
+model failure:
+
+| `outcome_code` | Meaning |
+|---|---|
+| 0 | Pass |
+| 1 | Proven task failure |
+| 2 | Context overflow |
+| 3 | Integrity violation |
+| 4 | Invalid contract |
+| 5 | Environment error |
+| 6 | Unresolved; adjudication required |
+
+Do not average invalid or unresolved trials into ordinary model accuracy. Retain
+`evaluator_version`, `contract_version`, failure details and the exact execution
+condition. `docs/contracts.md` defines the predicates and their limits;
+`docs/authoring-admission.md` explains static tool/schema admission.
+Tasks flagged `legacy_answer_semantics` in the inventory still use their declared
+substring/regex checks. Contract version 2 does not certify complete answer
+semantics or runtime support.
 
 ## Determinism
 
-The world runs on a logical clock with seeded IDs and records every request in a journal.
-`world-replay` re-issues a trial's journal against a fresh world, and the result must match byte
-for byte. Tool lists are captured offline and are hash-identical across runs.
+The world uses a logical business clock, seeded IDs, a request journal and committed
+record events. `world-replay` checks replay against a fresh world. Tool definitions
+are captured offline and versioned. Third-party client behavior, process clocks
+and hosted APIs require separate qualification; deterministic fixtures do not make
+those guarantees automatically.
 
-## Scenarios
+## Scenarios And Evidence
 
-150 scenarios in six groups (search, code, ops, cloud, business, collab): 120 use one service
-and 30 cross services. Each one is generated into a Harbor task in `tasks/`. Every task scores
-reward 1 with Harbor's oracle agent (which replays the solution over MCP) and 0 with the nop
-agent.
+The suite contains 150 scored task definitions: 120 single-service and 30
+cross-service workflows. Two examples are validated but not scored. The generated
+inventory in `docs/coverage/scenario-inventory.json` reports source declarations,
+not proof that every operation or task has runtime qualification.
 
-## Results so far
-
-- **Smoke run:** Claude Code with Claude Haiku 5.5 on OpenRouter passed 3 tasks with tool
-  search on and off. With every tool sent upfront, a single turn is about 820k Claude tokens
-  (`docs/research/smoke-2026-10-31.md`).
-- **Deferred-tools arms:** router-side tool search vs Claude Code's own ToolSearch vs all tools
-  upfront, 324 runs over Claude Haiku 5.5 and Kimi K2.7 Code
-  (`docs/research/arms-2026-10-31.md`).
-- **Tool payload:** tools, bytes and tokens per endpoint in `docs/research/tool-payload.md`.
+Historical model smoke runs and the 324-run tool-discovery experiment are documented
+in `docs/research/smoke-2026-10-31.md` and `docs/research/arms-2026-10-31.md`.
+They predate this overhaul and are not performance results for the current source.
+Firecrawl42B remains the latest admitted bounded scripted native-client condition,
+not a native-model or full-suite release. Checkpoint evidence currently retained
+only on the development machine is not independently downloadable by reviewers.
+Current acceptance gaps and retention boundaries are in `docs/overhaul-checklist.md`.
 
 ## Layout
 
 | Path | What |
 |---|---|
 | `catalog/services.toml` | Source of truth for the 30 services and 32 MCP endpoints: pins, launch commands, env, ports, TLS hostnames |
-| `crates/mock-core` | Shared mock library: logical clock, deterministic IDs, document store, datasets, request journal, grading, admin API |
+| `crates/mock-core` | Logical clock, deterministic IDs, datasets, evidence, grading and admin API |
 | `crates/services/*` | One mock API per service |
 | `crates/world` | Binary hosting every mock on its port, plus HTTPS on 443 (local CA) for clients with fixed hostnames |
 | `crates/mcp-tools` | Stdio↔streamable-HTTP bridge, replica backend, MCP clients, `toolmeter` (capture, report, import) |
 | `crates/catalog` | Catalog parser and CLI, plus `tools-supervisor` (the tools container entrypoint) |
-| `crates/scenario` | `taskgen`: turns `scenarios/` into `tasks/` |
-| `crates/report` | `bench-report`: compares two runs |
-| `scenarios/` | Scenario sources (`scenario.toml`, `instruction.md`, `dataset/`) |
-| `tasks/` | Generated Harbor tasks; never edit by hand |
+| `crates/scenario` | Source validation, inventory and Harbor task generation |
+| `crates/report` | Condition-aware result comparison |
 | `servers/` | npm and Python lockfiles, per-server config, capture scripts, tool-list snapshots |
 | `images/` | `world` and `tools` Dockerfiles |
-| `deploy/` | Local compose stack, capture, oracle and smoke-run scripts |
-| `docs/` | Design, authoring guide, runbook, research notes |
+| `deploy/` | Strict runner, local stack, capture, reference controls and evidence auditors |
+| `scenarios/` | Scenario sources (`scenario.toml`, `instruction.md`, `dataset/`) |
+| `tasks/` | Generated Harbor tasks; never edit by hand |
+| `docs/` | Contracts, runbook, authoring, research and qualification boundaries |
 
 ## Development
 
-Needs Rust 1.99 and Docker.
+Needs Rust 1.99 and Docker. Runner checks additionally require Python 3.12+ and the
+pinned Harbor environment in `deploy/runner/requirements.txt`.
 
 ```bash
-cargo test --workspace                                    # all tests
-cargo run -p catalog --bin catalog -- validate            # check the catalog
-cargo run -p scenario --bin taskgen                       # validate scenarios, regenerate tasks/
+cargo test --workspace --locked
+cargo run --locked -p catalog --bin catalog -- validate
+cargo run --locked -p scenario --bin taskgen -- --inventory docs/coverage/scenario-inventory.json
+cargo run --locked -p scenario --bin taskgen -- --check --inventory docs/coverage/scenario-inventory.json
 
 docker build -f images/world/Dockerfile -t tool-bench-world:dev .
 docker build -f images/tools/Dockerfile -t tool-bench-tools:dev .
 
-docker compose -f deploy/compose.dev.yaml up              # world + tools; MCP on localhost:7101-7132
-./deploy/capture-stack.sh                                 # offline capture of every endpoint -> servers/snapshots + crates/world/startup-calls.json
-cargo run -p mcp-tools --bin toolmeter -- report          # table of tools, bytes and tokens per endpoint
-deploy/oracle.sh code/github/file-login-bug               # oracle must score 1, nop 0 (needs Harbor)
+cargo run --locked -p mcp-tools --bin toolmeter -- report
 ```
 
-The world on its own:
+For local scripted oracle/no-op controls, build the tools image and use
+`deploy/oracle.sh <scenario-id>`, which invokes `deploy/run-trial.sh`. Follow
+`docs/runner-admission.md`; a raw `harbor run` does not establish admission.
+Native-model benchmark inference is not enabled by this diagnostic path.
+
+An explicitly insecure, unscored world-only development session:
 
 ```bash
-SCENARIO_DIR=scenarios/example/github/basic cargo run -p world
+BENCH_ALLOW_INSECURE_LOCAL=1 SCENARIO_DIR=scenarios/example/github/basic cargo run --locked -p world
 curl localhost:8101/api/v3/repos/octo-org/app/issues
 curl localhost:9000/_bench/journal
 ```
 
-Images, running on Harbor and comparing runs: `docs/runbook.md`. Architecture:
+Running, capturing and comparing declared conditions: `docs/runbook.md`. Architecture:
 `docs/superpowers/specs/2026-10-30-tool-bench-design.md`.
 
 ## Contributing
 
-Adding a service or a scenario: `docs/authoring.md`. See `CONTRIBUTING.md` for the checks a pull
-request must pass, and `SECURITY.md` to report a vulnerability.
+Start with `docs/authoring.md`. Keep generated tasks and the inventory synchronized,
+preserve fictional data and record the limits of every qualification claim. See
+`CONTRIBUTING.md` for validation and `SECURITY.md` for vulnerability reporting.
 
 ## Licence
 

@@ -10,6 +10,10 @@ timeout_sec = 900
 # Last hour in prod: payment-gateway 7 (6x "upstream timeout from acquirer", 1x tokenization),
 # cart-api 3, inventory 2. Distractors: cart-api's 9 errors between 12:00 and 13:00, staging's
 # 12 inventory errors, and yesterday's payment-gateway errors in the 2026.10.29 index.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["payment-gateway", "upstream timeout"]
 regex = '(?i)\b(7|seven)\b'

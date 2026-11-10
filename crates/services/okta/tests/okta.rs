@@ -1,10 +1,11 @@
-use std::path::Path;
+use std::{collections::BTreeSet, path::Path};
 
 use axum::{
     Router,
     body::{Body, to_bytes},
     http::{HeaderMap, Request, StatusCode},
 };
+use catalog::Catalog;
 use mock_core::{
     dataset::Dataset,
     serve::service_app,
@@ -118,8 +119,70 @@ async fn device_flow_completes_on_first_poll_with_a_long_lived_jwt() {
     assert_eq!(claims["iss"], "https://octo-corp.okta.com");
 }
 
+#[test]
+fn issued_credentials_match_the_catalogs_declared_client_and_scopes() {
+    let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
+    let catalog = Catalog::load(&directory.join("catalog/services.toml")).unwrap();
+    let endpoint = &catalog
+        .services
+        .iter()
+        .find(|service| service.name == "okta")
+        .unwrap()
+        .endpoints[0];
+    let claims = mock_okta::decode_claims(&mock_okta::access_token());
+    assert_eq!(
+        claims["cid"].as_str(),
+        Some(endpoint.env["OKTA_CLIENT_ID"].as_str())
+    );
+    let expected: BTreeSet<_> = endpoint.env["OKTA_SCOPES"].split_whitespace().collect();
+    let actual: BTreeSet<_> = claims["scp"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|scope| scope.as_str().unwrap())
+        .collect();
+    assert_eq!(actual, expected);
+}
+
 #[tokio::test]
-async fn api_requires_a_token_and_unknown_endpoints_are_okta_404s() {
+async fn deactivation_completion_has_no_json_body_and_does_not_reapply_to_a_terminal_user() {
+    let (world, app) = setup();
+    let uri = format!("/api/v1/users/{ALEX_C}/lifecycle/deactivate");
+    let (status, _, body) = call(&app, "POST", &uri, None).await;
+    assert_eq!((status, body), (StatusCode::OK, Value::Null));
+    let initial = state(&world);
+    let (status, _, _) = call(&app, "POST", &uri, None).await;
+    assert!(status.is_client_error());
+    assert_eq!(state(&world), initial);
+}
+
+#[tokio::test]
+async fn invalid_password_rule_shapes_cannot_commit_replacement_data_or_success_events() {
+    let (world, app) = setup();
+    let initial = state(&world);
+    let baseline = initial["policy_rules"][format!("{PW_CONTRACT}/0pr5rule0tr2Uv9Wx0x7")].clone();
+    for (pointer, value) in [
+        ("/type", json!(17)),
+        ("/actions", json!([])),
+        ("/conditions", json!("ANYWHERE")),
+        ("/actions/selfServicePasswordReset", json!("DENY")),
+    ] {
+        let mut rule = baseline.clone();
+        *rule.pointer_mut(pointer).unwrap() = value;
+        let (status, _, _) = call(
+            &app,
+            "PUT",
+            &format!("/api/v1/policies/{PW_CONTRACT}/rules/0pr5rule0tr2Uv9Wx0x7"),
+            Some(rule),
+        )
+        .await;
+        assert!(status.is_client_error(), "{pointer}: {status}");
+        assert_eq!(state(&world), initial);
+    }
+}
+
+#[tokio::test]
+async fn api_requires_a_token_and_distinguishes_unsupported_routes_from_missing_records() {
     let (_, app) = setup();
     let req = Request::get("/api/v1/users").body(Body::empty()).unwrap();
     let resp = app.clone().oneshot(req).await.unwrap();
@@ -129,8 +192,11 @@ async fn api_requires_a_token_and_unknown_endpoints_are_okta_404s() {
     assert_eq!(body["errorCode"], "E0000011");
 
     let (status, _, body) = get(&app, "/api/v1/nope").await;
-    assert_eq!(status, StatusCode::NOT_FOUND);
-    assert_eq!(body["errorCode"], "E0000007");
+    assert_eq!(status, StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(
+        body["message"],
+        "This operation is unavailable for this Okta connection."
+    );
     let (status, _, body) = get(&app, "/api/v1/users/00unope").await;
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert_eq!(
@@ -206,7 +272,7 @@ async fn creates_users_and_validates_like_okta() {
     .await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(u["status"], "STAGED");
-    assert_eq!(u["created"], "2026-03-14T09:00:07.000Z");
+    assert_eq!(u["created"], "2026-03-14T09:00:00.000Z");
     let id = u["id"].as_str().unwrap();
     assert!(id.starts_with("00u") && id.len() == 20);
     let s = state(&w);
@@ -286,7 +352,7 @@ async fn user_lifecycle_transitions_and_errors() {
         None,
     )
     .await;
-    assert_eq!((status, body), (StatusCode::OK, json!({})));
+    assert_eq!((status, body), (StatusCode::OK, Value::Null));
     let s = state(&w);
     assert_eq!(s["users"][ALEX_C]["status"], "DEPROVISIONED");
     let last = s["logs"]

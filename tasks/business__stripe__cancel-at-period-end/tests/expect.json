@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/status",
@@ -6,7 +7,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancel_at",
@@ -14,7 +18,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/ended_at",
@@ -22,15 +29,21 @@
       "exists": false,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/comment",
-      "equals": null,
+      "equals": "Customer requested cancellation via email",
       "exists": null,
-      "contains": "via email",
+      "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_50927iiN3XYUjf7BdJEsSV7n/status",
@@ -38,7 +51,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_50927iiN3XYUjf7BdJEsSV7n/canceled_at",
@@ -46,7 +62,10 @@
       "exists": false,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_Oz1daMzPMPupkoWAlwTJJ0UI/canceled_at",
@@ -54,7 +73,10 @@
       "exists": false,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_Oz1daMzPMPupkoWAlwTJJ0UI/status",
@@ -62,26 +84,56 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
+    },
     {
-      "service": "stripe",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "stripe_api_operation_id": "PostSubscriptionsSubscriptionExposedId"
-        },
-        "name": "stripe_api_write"
-      },
-      "body_contains": null,
-      "min_count": 1
+      "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/feedback",
+      "equals": null,
+      "exists": null,
+      "contains": null,
+      "any": null,
+      "key_prefix": null,
+      "is_null": true,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
+  "records": [
+    {
+      "selector": {
+        "collection": "/services/stripe/subscriptions",
+        "matching": {
+          "id": "sub_eAeIb5HpilxLht73ad3sTPEH"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/cancellation_details/comment": "Customer requested cancellation via email",
+        "/cancellation_details/reason": "cancellation_requested"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    }
+  ],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "stripe",
@@ -96,8 +148,101 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancel_at_period_end",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancel_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/canceled_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/comment",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/reason",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/feedback",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/events/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "object": {
+              "id": "sub_eAeIb5HpilxLht73ad3sTPEH"
+            }
+          },
+          "type": "customer.subscription.updated"
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

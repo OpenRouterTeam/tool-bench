@@ -9,6 +9,10 @@ timeout_sec = 900
 
 # v4: timeout_seconds, default 30. Distractors: v3 request_timeout (60), the Node SDK's
 # timeoutMs (120000), a README example using 10, and a 2024 Stack Overflow answer.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["timeout_seconds"]
 regex = '\b30\b'

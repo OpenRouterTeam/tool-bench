@@ -7,50 +7,59 @@ services = ["vercel"]
 tags = ["write", "single-service", "vercel"]
 timeout_sec = 900
 
-# env_by_target is the per-target view of each project's env vars (rebuilt on every change).
-[[expect.state]]
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/vercel/environment_bindings", matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", key = "NEXT_PUBLIC_ENABLE_GIFT_CARDS" } }
+equals = 2
+fields = { "/value" = "true", "/records" = 1 }
+any_fields = [{ "/scope" = "preview" }, { "/scope" = "development" }]
+
+[[expect.records]]
+selector = { collection = "/services/vercel/environment_bindings", matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", key = "PAYMENTS_API_URL", scope = "preview" } }
+equals = 1
+fields = { "/value" = "https://sandbox.pay.acme-shop.com", "/records" = 1 }
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_variables/*"
+kind = "create"
+matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", key = "NEXT_PUBLIC_ENABLE_GIFT_CARDS", value = "true" }
+field_patterns = { "/scope" = "^(development|preview|development,preview)$" }
+max_count = 2
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_variables/*"
+kind = "create"
+matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", key = "PAYMENTS_API_URL", value = "https://sandbox.pay.acme-shop.com", scope = "preview" }
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/env"
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/updatedAt"
+
+[[expect.preservation.allow]]
 pointer = "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/preview/NEXT_PUBLIC_ENABLE_GIFT_CARDS"
-equals = "true"
 
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/development/NEXT_PUBLIC_ENABLE_GIFT_CARDS"
-equals = "true"
 
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/production/NEXT_PUBLIC_ENABLE_GIFT_CARDS"
-exists = false
-
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/preview/PAYMENTS_API_URL"
-equals = "https://sandbox.pay.acme-shop.com"
 
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/development/PAYMENTS_API_URL"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_bindings/*"
+kind = "create"
+matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", key = "NEXT_PUBLIC_ENABLE_GIFT_CARDS", value = "true", records = 1 }
+field_patterns = { "/scope" = "^(preview|development)$" }
+max_count = 2
 
-# Production keeps its live payments URL.
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/production/PAYMENTS_API_URL"
-equals = "https://pay.acme-shop.com"
-
-# The similarly named admin app is untouched.
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_ysFUnRJiXZGcxlQubrXGJqx7GadE/preview/NEXT_PUBLIC_ENABLE_GIFT_CARDS"
-exists = false
-
-[[expect.required_calls]]
-service = "vercel"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "vercel-create-environment-variables" }
-
-[[expect.forbidden_calls]]
-service = "vercel"
-body = { name = "vercel-remove-environment-variable" }
-
-[[expect.forbidden_calls]]
-service = "vercel"
-body = { name = "vercel-delete-project" }
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_bindings/*"
+kind = "create"
+matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", key = "PAYMENTS_API_URL", value = "https://sandbox.pay.acme-shop.com", scope = "preview", records = 1 }
 
 [[solution.call]]
 endpoint = "vercel"

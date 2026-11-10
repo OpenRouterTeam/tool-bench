@@ -12,6 +12,10 @@ timeout_sec = 900
 # apart. Look-alikes: Jordan Leigh's 129.99 pair, J. Lee's (j.lee@example.com) 86.40 order
 # the same evening, and Jordan Lee's own already-refunded ORD-109311.
 
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/stripe/charges/ch_3Qb2MjLee109003aQs9uD/refunded"
 equals = true
@@ -20,54 +24,113 @@ equals = true
 pointer = "/services/stripe/charges/ch_3Qb2MjLee109003aQs9uD/amount_refunded"
 equals = 8640
 
-[[expect.state]]
-pointer = "/services/stripe/refunds"
-any = { charge = "ch_3Qb2MjLee109003aQs9uD", reason = "duplicate" }
+[[expect.records]]
+selector = { collection = "/services/stripe/refunds", matching = { charge = "ch_3Qb2MjLee109003aQs9uD" }, created = true }
+min_count = 1
+max_count = 8640
+fields = { "/currency" = "usd", "/reason" = "duplicate", "/status" = "succeeded", "/payment_intent" = "pi_3Qb2MjLee109003bXz4aE" }
+totals = { "/amount" = 8640 }
+integer_bounds = { "/amount" = { min = 1, max = 8640 } }
 
-[[expect.state]]
-pointer = "/services/stripe/charges/ch_3Qb2KjLee109002aPo7tB/amount_refunded"
-equals = 0
+[[expect.records]]
+selector = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+min_count = 1
+max_count = 8640
+fields = { "/currency" = "usd", "/fee" = 0, "/fee_details" = [], "/status" = "available" }
+totals = { "/amount" = -8640, "/net" = -8640 }
+integer_bounds = { "/amount" = { min = -8640, max = -1 }, "/net" = { min = -8640, max = -1 } }
 
-[[expect.state]]
-pointer = "/services/stripe/charges/ch_3Qb3AjLe2109010aRu1vF/amount_refunded"
-equals = 0
+[[expect.records]]
+selector = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+min_count = 1
+max_count = 8640
+fields = { "/data/object/charge" = "ch_3Qb2MjLee109003aQs9uD", "/data/object/reason" = "duplicate", "/data/object/currency" = "usd" }
+totals = { "/data/object/amount" = 8640 }
+integer_bounds = { "/data/object/amount" = { min = 1, max = 8640 } }
 
-[[expect.state]]
-pointer = "/services/stripe/charges/ch_3Qa7CgLgh108815aMw3pX/amount_refunded"
-equals = 0
+[[expect.records]]
+selector = { collection = "/services/stripe/events", matching = { type = "charge.refunded" }, created = true }
+min_count = 1
+max_count = 8640
+fields = { "/data/object/id" = "ch_3Qb2MjLee109003aQs9uD", "/data/object/currency" = "usd" }
+integer_bounds = { "/data/object/amount_refunded" = { min = 1, max = 8640 } }
 
-[[expect.state]]
-pointer = "/services/stripe/charges/ch_3Qa7DgLgh108816aNe8rS/amount_refunded"
-equals = 0
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", matching = { charge = "ch_3Qb2MjLee109003aQs9uD" }, created = true }
+source_field = "/balance_transaction"
+target = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+target_field = "/id"
+kind = "bijection"
+fields = [
+  { source_field = "/amount", target_field = "/amount", kind = "negated_integer" },
+  { source_field = "/amount", target_field = "/net", kind = "negated_integer" },
+  { source_field = "/currency", target_field = "/currency", kind = "equals" },
+]
 
-[[expect.required_calls]]
-service = "elasticsearch"
-method = "POST"
-path_regex = "(_search|_query)$"
+[[expect.relations]]
+source = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+source_field = "/source"
+target = { collection = "/services/stripe/refunds", matching = { charge = "ch_3Qb2MjLee109003aQs9uD" }, created = true }
+target_field = "/id"
+kind = "bijection"
 
-[[expect.required_calls]]
-service = "stripe"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostRefunds" } }
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", matching = { charge = "ch_3Qb2MjLee109003aQs9uD" }, created = true }
+source_field = "/id"
+target = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+target_field = "/data/object/id"
+kind = "bijection"
 
-[[expect.forbidden_calls]]
-service = "stripe"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostRefunds", parameters = { charge = "ch_3Qb2KjLee109002aPo7tB" } } }
+[[expect.relations]]
+source = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+source_field = "/request/id"
+target = { collection = "/services/stripe/events", matching = { type = "charge.refunded" }, created = true }
+target_field = "/request/id"
+kind = "bijection"
 
-[[expect.forbidden_calls]]
-service = "stripe"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostRefunds", parameters = { payment_intent = "pi_3Qb2KjLee109002bWx2yC" } } }
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", created = true }
+source_field = "/charge"
+target = { collection = "/services/elasticsearch/docs", matching = { order_id = "ORD-109003", customer_email = "jordan.lee@example.com" } }
+target_field = "/stripe_charge_id"
+kind = "foreign_key"
 
-[[expect.forbidden_calls]]
-service = "stripe"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostRefunds", parameters = { charge = "ch_3Qb3AjLe2109010aRu1vF" } } }
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", created = true }
+source_field = "/payment_intent"
+target = { collection = "/services/elasticsearch/docs", matching = { order_id = "ORD-109003", customer_email = "jordan.lee@example.com" } }
+target_field = "/payment_intent"
+kind = "foreign_key"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/charges/ch_3Qb2MjLee109003aQs9uD/amount_refunded"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/charges/ch_3Qb2MjLee109003aQs9uD/refunded"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/refunds/*"
+kind = "create"
+matching = { charge = "ch_3Qb2MjLee109003aQs9uD", reason = "duplicate", currency = "usd", status = "succeeded" }
+max_count = 8640
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/balance_transactions/*"
+kind = "create"
+matching = { type = "refund", currency = "usd" }
+max_count = 8640
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "refund.created", data = { object = { charge = "ch_3Qb2MjLee109003aQs9uD", reason = "duplicate", currency = "usd" } } }
+max_count = 8640
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "charge.refunded", data = { object = { id = "ch_3Qb2MjLee109003aQs9uD" } } }
+max_count = 8640
 
 [[solution.call]]
 endpoint = "elasticsearch"

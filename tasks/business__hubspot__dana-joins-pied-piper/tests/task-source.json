@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/hubspot/dana-joins-pied-piper",
+  "scenario_sha256": "sha256:b4db31610f265e14d0a6eb43c516a76c165069990980d16fdfb63d97559efc6f",
+  "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
+  "contract_sha256": "sha256:68200f67bde4e35be9be1c4215c223a697ba9735964dae3a71be7b143c9d330a"
+}

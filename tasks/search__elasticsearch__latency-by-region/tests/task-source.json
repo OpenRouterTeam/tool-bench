@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/elasticsearch/latency-by-region",
+  "scenario_sha256": "sha256:8cabd0ab79eb227ffe8abaf04bd4f5e99358c7cda7a691a08fc31c6c78091ae6",
+  "dataset_sha256": "sha256:50baf3bf1645633251012616f601b8caff25c411476daa3849baaefa7f66760b",
+  "contract_sha256": "sha256:941e8fbd44484f374a3602b565602f337dae1c3043d52ee70ec2f101b2fb750c"
+}

@@ -6,10 +6,13 @@ use std::{
 
 use serde::Deserialize;
 use serde_json::Value;
+use sha2::{Digest, Sha256};
 
 use crate::{
-    clock::LogicalClock,
+    clock::{ClockMode, LogicalClock},
     error::{Error, Result},
+    grading::Expect,
+    provenance::{DatasetSource, canonical_sha256},
     store::{Collection, Store},
 };
 
@@ -21,6 +24,8 @@ pub struct ScenarioMeta {
     pub seed: String,
     #[serde(default = "default_step")]
     pub clock_step_secs: i64,
+    #[serde(default)]
+    pub clock_mode: ClockMode,
 }
 
 fn default_step() -> i64 {
@@ -30,6 +35,8 @@ fn default_step() -> i64 {
 #[derive(Deserialize)]
 struct ScenarioFile {
     scenario: ScenarioMeta,
+    #[serde(default)]
+    expect: Expect,
 }
 
 /// A scenario's starting world: metadata plus one store per service directory.
@@ -37,44 +44,92 @@ struct ScenarioFile {
 pub struct Dataset {
     pub meta: ScenarioMeta,
     pub services: BTreeMap<String, Store>,
+    pub contract: Expect,
+    pub source: DatasetSource,
 }
 
 impl Dataset {
     /// Loads `<root>/scenario.toml` and every `<root>/dataset/<service>/<collection>.json`.
     pub fn load(root: &Path) -> Result<Self> {
         let meta_path = root.join("scenario.toml");
-        let file: ScenarioFile = toml::from_str(&read(&meta_path)?).map_err(|e| Error::Parse {
+        let scenario_text = read(&meta_path)?;
+        let file: ScenarioFile = toml::from_str(&scenario_text).map_err(|e| Error::Parse {
             path: meta_path.clone(),
             message: e.to_string(),
         })?;
+        LogicalClock::new(&file.scenario.now, file.scenario.clock_step_secs)?;
 
         let mut services = BTreeMap::new();
+        let mut source = Sha256::new();
+        source.update(b"tool-bench-dataset-source-v1\0");
         let data_dir = root.join("dataset");
         if data_dir.is_dir() {
             for service_dir in sorted_entries(&data_dir)? {
                 if !service_dir.is_dir() {
                     continue;
                 }
+                hash_source(&mut source, &service_dir, root, "directory", "")?;
                 let mut store = Store::default();
                 for file in sorted_entries(&service_dir)? {
                     if file.extension().is_some_and(|ext| ext == "json") {
                         let name = file_stem(&file);
-                        load_collection(&file, store.collection_mut(&name))?;
+                        let contents = read(&file)?;
+                        hash_source(&mut source, &file, root, "file", &contents)?;
+                        load_collection(&file, &contents, store.collection_mut(&name))?;
                     }
                 }
                 services.insert(file_stem(&service_dir), store);
             }
         }
 
+        let provenance = DatasetSource {
+            schema_version: 1,
+            scenario: file.scenario.id.clone(),
+            scenario_sha256: crate::runner::sha256(scenario_text.as_bytes()),
+            dataset_sha256: format!(
+                "sha256:{}",
+                source
+                    .finalize()
+                    .iter()
+                    .map(|byte| format!("{byte:02x}"))
+                    .collect::<String>()
+            ),
+            contract_sha256: canonical_sha256(&file.expect),
+        };
         Ok(Self {
             meta: file.scenario,
             services,
+            contract: file.expect,
+            source: provenance,
         })
     }
 }
 
-fn load_collection(path: &Path, collection: &mut Collection) -> Result<()> {
-    let value: Value = serde_json::from_str(&read(path)?).map_err(|e| Error::Parse {
+fn hash_source(
+    hash: &mut Sha256,
+    path: &Path,
+    root: &Path,
+    kind: &str,
+    contents: &str,
+) -> Result<()> {
+    let relative = path
+        .strip_prefix(root)
+        .expect("dataset source is beneath its root");
+    let path = relative
+        .components()
+        .map(|part| part.as_os_str().to_str())
+        .collect::<Option<Vec<_>>>()
+        .ok_or_else(|| dataset_error(path, "source paths must be valid UTF-8".into()))?
+        .join("/");
+    for part in [kind.as_bytes(), path.as_bytes(), contents.as_bytes()] {
+        hash.update((part.len() as u64).to_be_bytes());
+        hash.update(part);
+    }
+    Ok(())
+}
+
+fn load_collection(path: &Path, contents: &str, collection: &mut Collection) -> Result<()> {
+    let value: Value = serde_json::from_str(contents).map_err(|e| Error::Parse {
         path: path.to_owned(),
         message: e.to_string(),
     })?;

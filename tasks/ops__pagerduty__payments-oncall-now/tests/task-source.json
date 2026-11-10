@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/pagerduty/payments-oncall-now",
+  "scenario_sha256": "sha256:a35e3318e38b239d8b8eead99cbf2f5d96f4983a01c4139253a2323767a056ba",
+  "dataset_sha256": "sha256:ab1d2d7b5aca0a15c6289136644699087a52d2cb5d7ac97a7399267a41028e88",
+  "contract_sha256": "sha256:e3c087729b624bf5e7103054aea66a63135a0d1f0350a51f5cf1404a3feebec3"
+}

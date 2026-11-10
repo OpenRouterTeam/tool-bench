@@ -1,66 +1,192 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/grafana/oncall_alert_groups/IHQ4K2M7/state",
-      "equals": "acknowledged",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/oncall_alert_groups/IST7B3N1/state",
-      "equals": "new",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/oncall_alert_groups/IOLD9X1Z/state",
-      "equals": "resolved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/grafana/oncall_alert_groups",
+        "matching": {
+          "id": "IHQ4K2M7",
+          "integration_id": "CIGRAFAN"
+        },
+        "references": [
+          {
+            "source_field": "/team_id",
+            "target": {
+              "collection": "/services/grafana/oncall_teams",
+              "matching": {
+                "name": "Checkout"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/state": "acknowledged"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [
+        "/resolved_at",
+        "/resolved_by",
+        "/silenced_at"
+      ],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "grafana",
-      "method": "POST",
-      "path": "/oncall/api/v1/alert_groups/IHQ4K2M7/acknowledge",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "grafana",
       "method": "POST",
       "path": null,
-      "path_regex": "^/oncall/api/v1/alert_groups/(IST7B3N1|IOLD9X1Z|IPG2L8R4)/",
+      "path_regex": "^/oncall/api/v1/alert_groups/[^/]+/(resolve|silence)/*$",
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "grafana",
-      "method": "POST",
-      "path": null,
-      "path_regex": "/(resolve|silence)$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
     "contains": [],
-    "regex": "(?i)brennan"
-  }
+    "regex": null,
+    "oncall": {
+      "schedule": {
+        "collection": "/services/grafana/oncall_schedules",
+        "matching": {
+          "name": "Checkout Primary"
+        },
+        "references": [
+          {
+            "source_field": "/team_id",
+            "target": {
+              "collection": "/services/grafana/oncall_teams",
+              "matching": {
+                "name": "Checkout"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "directory": "/services/grafana/oncall_users",
+      "content": {
+        "requirement": "Identify exactly the current assignees of Checkout Primary, using authoritative schedule/directory relationships. Username, email, full name, unambiguous surname and truthful structured user records are acceptable. Do not negate current duty, substitute another schedule, or invent another assignee; unreviewed wording requires adjudication.",
+        "accepted": [
+          "${oncall}",
+          "On call: ${oncall}",
+          "Checkout Primary: ${oncall}",
+          "${oncall} is on call.",
+          "The current primary on-call engineer is ${oncall}.",
+          "On call right now on the Checkout Primary schedule: ${oncall}.",
+          "Acknowledged the production alert group IHQ4K2M7 (\"[prod] HighCheckoutLatency checkout p99 above 1.5s\"). On call right now on the Checkout Primary schedule: ${oncall}."
+        ],
+        "rejected": [
+          "${oncall} is not on call.",
+          "${oncall} is not on call. The primary on-call person is Mei Chen.",
+          "Do not contact ${oncall}; they are not on call."
+        ],
+        "format": "plain",
+        "bound": null
+      },
+      "allow_unambiguous_surnames": true,
+      "empty_answers": [
+        "Nobody is on call on Checkout Primary.",
+        "No one is currently on call on Checkout Primary."
+      ]
+    }
+  },
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/grafana/oncall_alert_groups/IHQ4K2M7/state",
+        "kind": "update",
+        "matching": {
+          "state": "acknowledged"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "grafana",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/oncall/api/v1/alert_groups/IHQ4K2M7/acknowledge/*$"
+        }
+      },
+      {
+        "pointer": "/services/grafana/oncall_alert_groups/IHQ4K2M7/acknowledged_at",
+        "kind": "update",
+        "matching": {
+          "state": "acknowledged"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "grafana",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/oncall/api/v1/alert_groups/IHQ4K2M7/acknowledge/*$"
+        }
+      },
+      {
+        "pointer": "/services/grafana/oncall_alert_groups/IHQ4K2M7/acknowledged_by",
+        "kind": "update",
+        "matching": {
+          "state": "acknowledged"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "grafana",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/oncall/api/v1/alert_groups/IHQ4K2M7/acknowledge/*$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

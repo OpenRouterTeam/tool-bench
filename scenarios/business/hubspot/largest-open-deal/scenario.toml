@@ -10,6 +10,10 @@ timeout_sec = 900
 # Northwind Logistics' Fleet Telemetry deal (412,000, Contract Sent) is the largest open
 # deal. Distractors: Northwind Traders (530,000, closed won), Vandelay (640,000, closed
 # lost), an archived 900,000 duplicate, and Hooli, whose three open deals sum to 450,000.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Northwind Logistics"]
 regex = "412,?000"

@@ -829,7 +829,7 @@ fn annotation_json(a: &Value) -> Value {
         "panelId": a["panelId"].as_i64().unwrap_or(0), "userId": a["userId"].as_i64().unwrap_or(1), "newState": "", "prevState": "",
         "created": a["created"], "updated": a["updated"], "time": a["time"], "timeEnd": a["timeEnd"].as_i64().unwrap_or_else(|| a["time"].as_i64().unwrap_or(0)),
         "text": a["text"], "tags": a["tags"].clone().as_array().cloned().unwrap_or_default(), "login": a["login"].as_str().unwrap_or("admin"),
-        "email": a["email"].as_str().unwrap_or("admin@localhost"), "avatarUrl": "/avatar/46d229b033af06a191ff2267bca9ae56", "data": {},
+        "email": a["email"].as_str().unwrap_or("admin@localhost"), "avatarUrl": "/avatar/46d229b033af06a191ff2267bca9ae56", "data": a.get("data").cloned().unwrap_or_else(|| json!({})),
     })
 }
 
@@ -880,12 +880,57 @@ fn list_annotations(ctx: &Ctx, req: &Req) -> Response {
     ))
 }
 
+fn annotation_input(body: &Value, graphite: bool, create: bool) -> Result<(), Response> {
+    if !body.is_object() {
+        return Err(error(StatusCode::BAD_REQUEST, "bad request data"));
+    }
+    let integer_fields = if graphite {
+        vec!["when"]
+    } else if create {
+        vec!["time", "timeEnd", "dashboardId", "panelId"]
+    } else {
+        vec!["time", "timeEnd", "id"]
+    };
+    let string_fields = if graphite {
+        vec!["what", "data"]
+    } else if create {
+        vec!["text", "dashboardUID"]
+    } else {
+        vec!["text"]
+    };
+    let invalid_integer = integer_fields
+        .iter()
+        .any(|field| !body[*field].is_null() && body[*field].as_i64().is_none());
+    let invalid_string = string_fields
+        .iter()
+        .any(|field| !body[*field].is_null() && !body[*field].is_string());
+    let tags_valid = match &body["tags"] {
+        Value::Null => !graphite,
+        Value::String(_) => graphite,
+        Value::Array(tags) => tags.iter().all(Value::is_string),
+        _ => false,
+    };
+    if invalid_integer || invalid_string || !tags_valid {
+        return Err(error(StatusCode::BAD_REQUEST, "bad request data"));
+    }
+    Ok(())
+}
+
+fn annotation_range(start: i64, end: i64) -> (i64, i64) {
+    let end = if end == 0 { start } else { end };
+    let start = if start == 0 { end } else { start };
+    (start.min(end), start.max(end))
+}
+
 fn create_annotation(ctx: &mut Ctx, req: &Req, graphite: bool) -> Response {
     let body = match req.json() {
         Ok(b) => b,
         Err(r) => return r,
     };
-    let text = if graphite {
+    if let Err(response) = annotation_input(&body, graphite, true) {
+        return response;
+    }
+    let mut text = if graphite {
         body["what"].as_str()
     } else {
         body["text"].as_str()
@@ -898,22 +943,49 @@ fn create_annotation(ctx: &mut Ctx, req: &Req, graphite: bool) -> Response {
             json!({"message": if graphite { "what field should not be empty" } else { "Failed to save annotation" }, "traceID": ""}),
         );
     }
+    if graphite && let Some(data) = body["data"].as_str().filter(|data| !data.is_empty()) {
+        text.push('\n');
+        text.push_str(data);
+    }
     let now_ms = (ctx.now * 1000.0) as i64;
     let time = if graphite {
-        body["when"].as_i64().map(|w| w * 1000)
+        body["when"].as_i64().map(|when| when.wrapping_mul(1000))
     } else {
         body["time"].as_i64()
     }
-    .filter(|t| *t > 0)
+    .filter(|time| *time != 0)
     .unwrap_or(now_ms);
-    let time_end = body["timeEnd"].as_i64().filter(|t| *t > 0).unwrap_or(time);
-    let mut dashboard_id = body["dashboardId"].as_i64().unwrap_or(0);
-    let dashboard_uid = body["dashboardUID"].as_str().unwrap_or_default().to_owned();
+    let time_end = if graphite {
+        time
+    } else {
+        body["timeEnd"].as_i64().unwrap_or(0)
+    };
+    let (time, time_end) = annotation_range(time, time_end);
+    let mut dashboard_id = if graphite {
+        0
+    } else {
+        body["dashboardId"].as_i64().unwrap_or(0)
+    };
+    let mut dashboard_uid = if graphite {
+        String::new()
+    } else {
+        body["dashboardUID"].as_str().unwrap_or_default().to_owned()
+    };
     if !dashboard_uid.is_empty() {
         match ctx.get("dashboards", &dashboard_uid) {
             Some(d) => dashboard_id = d["dashboard"]["id"].as_i64().unwrap_or(0),
             None => return not_found("Dashboard not found"),
         }
+    } else if dashboard_id != 0 {
+        let matches: Vec<_> = ctx
+            .coll("dashboards")
+            .into_iter()
+            .filter(|(_, row)| row["dashboard"]["id"] == dashboard_id)
+            .collect();
+        let [(uid, _)] = matches.as_slice() else {
+            return not_found("Dashboard not found");
+        };
+        dashboard_uid = uid.clone();
     }
     let tags: Vec<Value> = if graphite {
         match &body["tags"] {
@@ -926,10 +998,16 @@ fn create_annotation(ctx: &mut Ctx, req: &Req, graphite: bool) -> Response {
     };
     let id = ctx.next_id("annotations", "id", 0);
     let user = ctx.user();
+    let panel_id = if graphite {
+        0
+    } else {
+        body["panelId"].as_i64().unwrap_or(0)
+    };
     let a = json!({
-        "id": id, "dashboardId": dashboard_id, "dashboardUID": dashboard_uid, "panelId": body["panelId"].as_i64().unwrap_or(0),
+        "id": id, "dashboardId": dashboard_id, "dashboardUID": dashboard_uid, "panelId": panel_id,
         "userId": user["id"], "login": user["login"], "email": user["email"], "created": now_ms, "updated": now_ms,
         "time": time, "timeEnd": time_end, "text": text, "tags": tags,
+        "data":if graphite { Value::Null } else { body["data"].clone() },
     });
     ctx.put("annotations", &id.to_string(), a);
     ok(
@@ -942,17 +1020,43 @@ fn update_annotation(ctx: &mut Ctx, req: &Req, id: &str) -> Response {
         Ok(b) => b,
         Err(r) => return r,
     };
+    if let Err(response) = annotation_input(&body, false, false) {
+        return response;
+    }
     let Some(mut a) = ctx.get("annotations", id) else {
         return not_found("Annotation not found");
     };
     let patch = req.method == Method::PATCH;
-    for k in ["text", "tags", "time", "timeEnd"] {
-        if !body[k].is_null() {
-            a[k] = body[k].clone();
-        } else if !patch && k == "tags" {
-            a[k] = json!([]);
+    for field in ["time", "timeEnd"] {
+        if let Some(value) = body[field]
+            .as_i64()
+            .filter(|value| if patch { *value > 0 } else { *value != 0 })
+        {
+            a[field] = json!(value);
         }
     }
+    if let Some(text) = body["text"]
+        .as_str()
+        .filter(|text| !patch || !text.is_empty())
+    {
+        a["text"] = json!(text);
+    } else if !patch {
+        a["text"] = json!("");
+    }
+    if !body["tags"].is_null() {
+        a["tags"] = body["tags"].clone();
+    } else if !patch {
+        a["tags"] = json!([]);
+    }
+    if !body["data"].is_null() {
+        a["data"] = body["data"].clone();
+    }
+    let (time, time_end) = annotation_range(
+        a["time"].as_i64().unwrap_or(0),
+        a["timeEnd"].as_i64().unwrap_or(0),
+    );
+    a["time"] = json!(time);
+    a["timeEnd"] = json!(time_end);
     a["updated"] = json!((ctx.now * 1000.0) as i64);
     ctx.put("annotations", id, a);
     ok(json!({"message": if patch { "Annotation patched" } else { "Annotation updated" }}))

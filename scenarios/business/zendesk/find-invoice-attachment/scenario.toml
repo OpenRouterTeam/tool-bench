@@ -10,6 +10,10 @@ timeout_sec = 900
 # Ticket 3108 holds Priya Raman's invoice. Distractors: an invoice posted by an agent on her
 # colleague's ticket (3110), an invoice from Priya Ramesh at another company (3105), and
 # Priya Raman's other attachments (a screenshot, a HAR capture).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["3108", "Lumen-Invoice-INV-20931.pdf"]
 

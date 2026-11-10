@@ -7,40 +7,83 @@ services = ["kubernetes"]
 tags = ["write", "single-service", "kubernetes"]
 timeout_sec = 900
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/replicas"
-equals = 8
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/template/spec/containers/0/image"
-equals = "ghcr.io/octo-corp/checkout:4.18.2"
-
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/shop-staging~1checkout/spec/replicas"
+[[expect.records]]
+selector = { collection = "/services/kubernetes/deployments.apps", matching = { metadata = { name = "checkout", namespace = "shop-prod", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba" } } }
 equals = 1
+fields = { "/spec/replicas" = 8 }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout-worker/spec/replicas"
-equals = 2
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/apiVersion"
+matching = { apiVersion = "apps/v1", kind = "Deployment" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
 
-[[expect.required_calls]]
-service = "kubernetes"
-path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
-body = { spec = { replicas = 8 } }
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/kind"
+matching = { apiVersion = "apps/v1", kind = "Deployment" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
 
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/*/apiVersion"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
 
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "PUT"
-path_regex = "/namespaces/shop-staging/"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/*/kind"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
 
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "PATCH"
-path_regex = "/namespaces/shop-staging/"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/replicas"
+matching = { spec = { replicas = 8 } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/resourceVersion"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/generation"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/managedFields"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/status"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/*/spec/replicas"
+matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/*/metadata/resourceVersion"
+matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/*/metadata/generation"
+matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/*/status"
+matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "create"
+max_count = 8
+count_scope = "per_commit"
+matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", name = "checkout-tscdrh8t48", uid = "77a7ad33-adb2-4b6e-a56f-6c5b2e50cb7f", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" }
 
 [[solution.call]]
 endpoint = "kubernetes"

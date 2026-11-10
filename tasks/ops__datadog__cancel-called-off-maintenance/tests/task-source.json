@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/datadog/cancel-called-off-maintenance",
+  "scenario_sha256": "sha256:e88c41acc29ff2b7cd6a991e198bbd9fd3a3a4d39183aaccf507fd20929a56a3",
+  "dataset_sha256": "sha256:438a8a9827f1038c25c4f399704bcdc09aef4ef6efd55b489070e483315af239",
+  "contract_sha256": "sha256:e187ce849d73a43f40ab0ba50fccf2ad41d7322d125e8b9c78e479da88cda43d"
+}

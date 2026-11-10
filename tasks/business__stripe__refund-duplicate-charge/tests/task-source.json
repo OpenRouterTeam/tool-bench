@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/stripe/refund-duplicate-charge",
+  "scenario_sha256": "sha256:40d80c85e6a745edc208f404238ff3897a67aa1079a34a152dc7d911cd8d8f55",
+  "dataset_sha256": "sha256:6183f31dac0bd60372a02a02d3fcff1f2588aad250d845672460ad2cf7eb202e",
+  "contract_sha256": "sha256:cd1ff53362330368fab41e2b5d40088b454b664e2ff67c44df4218fcc7cef9ef"
+}

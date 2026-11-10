@@ -24,6 +24,53 @@ fn world() -> SharedWorld {
     shared(WorldState::from_dataset(Dataset::load(&dir).unwrap()).unwrap())
 }
 
+#[tokio::test]
+async fn multiple_migrations_at_one_reference_time_keep_distinct_versions_and_effects() {
+    let world = world();
+    let reference = world.lock().unwrap().clock.now_unix();
+    let app = service_app(world.clone(), &Supabase);
+    let endpoint = format!("/v1/projects/{PROD}/database/migrations");
+    let (_, initial) = call(&app, "GET", &endpoint, Value::Null).await;
+    for name in ["clock_first", "clock_second"] {
+        let (status, result) = call(
+            &app,
+            "POST",
+            &endpoint,
+            json!({
+                "name": name, "query": format!("create table public.{name} (id int primary key)")
+            }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{result}");
+    }
+    let (_, migrations) = call(&app, "GET", &endpoint, Value::Null).await;
+    assert_eq!(
+        migrations.as_array().unwrap().len(),
+        initial.as_array().unwrap().len() + 2
+    );
+    let added: Vec<_> = migrations
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|migration| {
+            migration["name"]
+                .as_str()
+                .is_some_and(|name| name.starts_with("clock_"))
+        })
+        .collect();
+    assert_eq!(added.len(), 2);
+    assert_ne!(added[0]["version"], added[1]["version"]);
+    let (_, tables) = sql(
+        &app,
+        PROD,
+        "select table_name from information_schema.tables where table_schema = 'public'",
+    )
+    .await;
+    let tables = tables.to_string();
+    assert!(tables.contains("clock_first") && tables.contains("clock_second"));
+    assert_eq!(world.lock().unwrap().clock.now_unix(), reference);
+}
+
 async fn raw(
     app: &Router,
     method: &str,
@@ -330,7 +377,7 @@ async fn sql_mutations_are_reflected_in_state_and_atomic() {
     .await;
     assert_eq!(
         rows,
-        json!([{ "id": 1111, "created_at": "2026-04-02T09:00:14+00:00" }])
+        json!([{ "id": 1111, "created_at": "2026-04-02T09:00:00+00:00" }])
     );
     // A failing statement rolls back the whole script.
     let (status, _) = sql(
@@ -361,8 +408,12 @@ async fn sql_mutations_are_reflected_in_state_and_atomic() {
 #[tokio::test]
 async fn introspection_queries_answer_list_tables_and_extensions() {
     let app = service_app(world(), &Supabase);
-    // The server's list_tables SQL (abridged; recognised by its catalog references).
-    let query = "with tables as (SELECT c.oid :: int8 AS id, nc.nspname AS schema, c.relrowsecurity AS rls_enabled FROM pg_namespace nc JOIN pg_class c ON nc.oid = c.relnamespace), columns as (select 1) select * from tables where schema in ($1)";
+    let contract: Value =
+        serde_json::from_str(include_str!("../assets/native-introspection-v0_15_0.json")).unwrap();
+    let query = format!(
+        "{}where schema in ($1)",
+        contract["tables_prefix"].as_str().unwrap()
+    );
     let (status, rows) = call(
         &app,
         "POST",
@@ -390,7 +441,7 @@ async fn introspection_queries_answer_list_tables_and_extensions() {
     );
     assert_eq!(status_col["id"], "17002.3");
 
-    let ext_sql = "SELECT e.name, n.nspname AS schema FROM pg_available_extensions() e(name, default_version, comment) LEFT JOIN pg_extension x ON e.name = x.extname";
+    let ext_sql = contract["extensions_query"].as_str().unwrap();
     let (_, exts) = sql(&app, PROD, ext_sql).await;
     assert_eq!(
         exts[0],
@@ -444,7 +495,7 @@ async fn migrations_apply_ddl_and_feed_advisors() {
     .await;
     assert_eq!(
         migrations.as_array().unwrap().last().unwrap(),
-        &json!({ "version": "20260402090007", "name": "enable_rls_on_invoices" })
+        &json!({ "version": "20260402090000", "name": "enable_rls_on_invoices" })
     );
     let (_, lints) = call(
         &app,
@@ -488,7 +539,7 @@ async fn migrations_apply_ddl_and_feed_advisors() {
     .await;
     assert_eq!(
         rows,
-        json!([{ "id": 1, "order_id": 5006, "reason": "damaged", "created_at": "2026-04-02T09:00:28+00:00" }])
+        json!([{ "id": 1, "order_id": 5006, "reason": "damaged", "created_at": "2026-04-02T09:00:00+00:00" }])
     );
     let (status, _) = sql(&app, PROD, "insert into refunds (order_id) values (999999)").await;
     assert_eq!(status, StatusCode::BAD_REQUEST);

@@ -7,57 +7,32 @@ services = ["supabase"]
 tags = ["write", "single-service", "supabase", "disambiguation"]
 timeout_sec = 900
 
-# Customer 1042 (priya.shah@fastmail.com) has pending orders 5003 and 5011 and paid order 5007.
-# Customer 1107 is another Priya Shah (pending 5020); 1110 is Priya Shahani (pending 5021);
-# staging has a copy of the fastmail customer with pending orders that must stay untouched.
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5003/status"
-equals = "cancelled"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5011/status"
-equals = "cancelled"
+[[expect.records]]
+selector = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers", matching = { email = "priya.shah@fastmail.com" } }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5003/total"
-equals = 89.9
+[[expect.records]]
+selector = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders", matching = { status = "pending" }, references = [{ source_field = "/customer_id", target = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers", matching = { email = "priya.shah@fastmail.com" } }, target_field = "/id" }] }
+equals = 0
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5007/status"
-equals = "paid"
+[[expect.preservation.allow]]
+pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/*/status"
+matching = { status = "cancelled" }
+initial_matching = { status = "pending" }
+initial_references = [{ source_field = "/customer_id", target = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers", matching = { email = "priya.shah@fastmail.com" } }, target_field = "/id" }]
+max_count = "all_matching"
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5020/status"
-equals = "pending"
-
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5021/status"
-equals = "pending"
-
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5009/status"
-equals = "pending"
-
-[[expect.state]]
-pointer = "/services/supabase/db.hzrkcwpxnqdlmvbtejsa.public.orders/3/status"
-equals = "pending"
-
-[[expect.state]]
-pointer = "/services/supabase/db.hzrkcwpxnqdlmvbtejsa.public.orders/4/status"
-equals = "pending"
-
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers/1042/email"
-equals = "priya.shah@fastmail.com"
-
-[[expect.required_calls]]
-service = "supabase"
-method = "POST"
-path = "/v1/projects/qmvbxtzkplrnwdhyfaco/database/query"
-
-[[expect.forbidden_calls]]
-service = "supabase"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/supabase/migrations/*"
+kind = "create"
+field_patterns = { "/version" = '\S' }
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "supabase", methods = ["POST"], path_regex = "^/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations$" }
 
 [[solution.call]]
 endpoint = "supabase"

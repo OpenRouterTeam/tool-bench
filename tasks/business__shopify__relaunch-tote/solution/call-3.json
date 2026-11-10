@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"manage-product-variants","arguments":{"productId":"${tote_id}","variants":[{"id":"${navy_id}","price":"42.00"}]}}}

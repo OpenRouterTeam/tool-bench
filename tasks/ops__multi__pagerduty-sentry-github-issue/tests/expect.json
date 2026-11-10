@@ -1,162 +1,598 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/github/issues",
-      "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "body": "4810",
-        "title": "CHECKOUT-API-3F"
+      "selector": {
+        "collection": "/services/github/issues",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "key_prefix": "lumen-labs/checkout#"
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/github/issues",
-      "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "body": "create_order",
-        "title": "CHECKOUT-API-3F"
+      "selector": {
+        "collection": "/services/github/issues",
+        "matching": {},
+        "field_patterns": {
+          "/title": "^CHECKOUT-API-3F: \\S"
+        },
+        "key_prefix": "lumen-labs/checkout#",
+        "created": true,
+        "identity_field": null
       },
-      "key_prefix": "lumen-labs/checkout#"
-    },
-    {
-      "pointer": "/services/github/issues",
-      "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "body": "could not obtain connection from pool",
-        "title": "CHECKOUT-API-3F"
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/assignees": [],
+        "/state": "open",
+        "/user": "hana"
       },
-      "key_prefix": "lumen-labs/checkout#"
-    },
-    {
-      "pointer": "/services/github/issues/lumen-labs~1checkout#214/state",
-      "equals": "open",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/github/issues/lumen-labs~1checkout#215",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/notes",
-      "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "content": "214"
+      "optional_fields": {
+        "/locked": false,
+        "/milestone": "",
+        "/parent": "",
+        "/type": ""
       },
-      "key_prefix": "Q7CHKAP15PCT1D/"
+      "optional_choices": {},
+      "null_fields": [
+        "/closed_at"
+      ],
+      "html_text": {},
+      "reviewed_text": {
+        "/body": {
+          "requirement": "The complete description must truthfully link the production PagerDuty incident number, the Sentry culprit checkout.views.orders in create_order and the error message could not obtain connection from pool within 5.0s to the Sentry issue. It must not cite the staging incident, another Sentry issue or project, claim the failure is resolved or fixed, or invent a root cause, owner or deployment. Event counts and the endpoint are optional only when they match the Sentry issue. Unlisted nonempty wording requires adjudication.",
+          "accepted": [],
+          "format": "plain",
+          "bound": {
+            "identities": {
+              "incident_number": {
+                "selector": {
+                  "collection": "/services/pagerduty/incidents",
+                  "matching": {
+                    "id": "Q7CHKAP15PCT1D",
+                    "service": {
+                      "id": "PSVCHKA"
+                    }
+                  },
+                  "key_prefix": null,
+                  "created": false,
+                  "identity_field": null
+                },
+                "field": "/incident_number",
+                "separator": null
+              },
+              "short_id": {
+                "selector": {
+                  "collection": "/services/sentry/issues",
+                  "matching": {
+                    "culprit": "checkout.views.orders in create_order",
+                    "project": "checkout-api"
+                  },
+                  "key_prefix": null,
+                  "created": false,
+                  "identity_field": null
+                },
+                "field": "/shortId",
+                "separator": null
+              }
+            },
+            "examples": [
+              "PagerDuty incident #${incident_number} (Checkout error rate above 5%, production).\n\nSentry: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s\nEndpoint: POST /api/orders/ (1,842 events, 611 users)",
+              "PagerDuty incident #${incident_number} (Checkout error rate above 5%, production).\n\nSentry: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s",
+              "PagerDuty incident #${incident_number}\nSentry: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s",
+              "PagerDuty incident #${incident_number}\nSentry issue: ${short_id}\nCulprit: checkout.views.orders in create_order\nError message: OperationalError: could not obtain connection from pool within 5.0s",
+              "PagerDuty incident ${incident_number}\nSentry: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s",
+              "PagerDuty incident ${incident_number}\nSentry issue: ${short_id}\nCulprit: checkout.views.orders in create_order\nError message: OperationalError: could not obtain connection from pool within 5.0s",
+              "Incident: PagerDuty #${incident_number}\nSentry issue: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s"
+            ]
+          }
+        },
+        "/title": {
+          "requirement": "The complete title must begin with the Sentry short ID CHECKOUT-API-3F followed by a colon and truthfully describe the production checkout database connection-pool failure behind the PagerDuty page. It must not name another Sentry issue, project, environment or error. Unlisted nonempty wording requires adjudication.",
+          "accepted": [],
+          "format": "plain",
+          "bound": {
+            "identities": {
+              "short_id": {
+                "selector": {
+                  "collection": "/services/sentry/issues",
+                  "matching": {
+                    "culprit": "checkout.views.orders in create_order",
+                    "project": "checkout-api"
+                  },
+                  "key_prefix": null,
+                  "created": false,
+                  "identity_field": null
+                },
+                "field": "/shortId",
+                "separator": null
+              }
+            },
+            "examples": [
+              "${short_id}: OperationalError: could not obtain connection from pool within 5.0s",
+              "${short_id}: OperationalError: could not obtain connection from pool",
+              "${short_id}: could not obtain connection from pool within 5.0s",
+              "${short_id}: could not obtain connection from pool",
+              "${short_id}: Checkout API OperationalError: could not obtain connection from pool within 5.0s",
+              "${short_id}: OperationalError in create_order: could not obtain connection from pool within 5.0s",
+              "${short_id}: could not obtain connection from pool in create_order",
+              "${short_id}: Checkout order creation fails with a database connection pool timeout"
+            ]
+          }
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/pagerduty/notes/Q8CHKSTG5PCT2F~11",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/github/issues",
+        "matching": {},
+        "field_patterns": {
+          "/body": "(^|[^0-9A-Za-z_-])4810($|[^0-9A-Za-z_-])"
+        },
+        "key_prefix": "lumen-labs/checkout#",
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/status",
-      "equals": "triggered",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/github/issues",
+        "matching": {},
+        "field_patterns": {
+          "/body": "checkout\\.views\\.orders in create_order"
+        },
+        "key_prefix": "lumen-labs/checkout#",
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/sentry/issues/CHECKOUT-API-3F/status",
-      "equals": "unresolved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/github/issues",
+        "matching": {},
+        "field_patterns": {
+          "/body": "could not obtain connection from pool within 5\\.0s"
+        },
+        "key_prefix": "lumen-labs/checkout#",
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "field_patterns": {
+          "/content": "[0-9]"
+        },
+        "key_prefix": "Q7CHKAP15PCT1D/",
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/user": {
+          "id": "PLWEBR5",
+          "type": "user_reference"
+        }
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/content": {
+          "requirement": "The complete note must truthfully tell responders that the GitHub issue the agent actually opened in lumen-labs/checkout, identified by the number the GitHub service emitted, tracks this production checkout incident. It must not cite any other issue number, repository or Sentry issue, claim a fix, deployment or resolution, or claim a notification was delivered elsewhere. Unlisted nonempty wording requires adjudication.",
+          "accepted": [],
+          "format": "plain",
+          "bound": {
+            "identities": {
+              "issue_number": {
+                "selector": {
+                  "collection": "/services/github/issues",
+                  "matching": {},
+                  "key_prefix": "lumen-labs/checkout#",
+                  "created": true,
+                  "identity_field": null
+                },
+                "field": "/number",
+                "separator": null
+              }
+            },
+            "examples": [
+              "Tracking the fix in GitHub issue lumen-labs/checkout#${issue_number} (Sentry CHECKOUT-API-3F).",
+              "Tracking the fix in GitHub issue lumen-labs/checkout#${issue_number}.",
+              "Tracking the fix in GitHub issue lumen-labs/checkout#${issue_number}",
+              "GitHub issue lumen-labs/checkout#${issue_number} tracks the fix (Sentry CHECKOUT-API-3F).",
+              "GitHub issue lumen-labs/checkout#${issue_number} tracks the fix.",
+              "GitHub issue lumen-labs/checkout#${issue_number} opened for Sentry CHECKOUT-API-3F.",
+              "Opened GitHub issue lumen-labs/checkout#${issue_number} for this incident.",
+              "Opened GitHub issue #${issue_number} in lumen-labs/checkout for this incident.",
+              "Created GitHub issue #${issue_number} in lumen-labs/checkout for Sentry CHECKOUT-API-3F.",
+              "GitHub issue lumen-labs/checkout#${issue_number}",
+              "GitHub issue #${issue_number} in lumen-labs/checkout",
+              "Tracking in lumen-labs/checkout#${issue_number}"
+            ]
+          }
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/pagerduty/incidents",
+        "matching": {
+          "id": "Q7CHKAP15PCT1D",
+          "incident_number": 4810,
+          "service": {
+            "id": "PSVCHKA"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "triggered"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/pagerduty/incidents",
+        "matching": {
+          "id": "Q8CHKSTG5PCT2F",
+          "incident_number": 4811,
+          "service": {
+            "id": "PSVCHKS"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "triggered"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/sentry/issues",
+        "matching": {
+          "project": "checkout-api",
+          "shortId": "CHECKOUT-API-3F"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "unresolved"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "github",
-      "method": "POST",
-      "path": "/api/v3/repos/lumen-labs/checkout/issues",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": "Q7CHKAP15PCT1D/",
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": []
     },
     {
-      "service": "pagerduty",
-      "method": "POST",
-      "path": "/incidents/Q7CHKAP15PCT1D/notes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/user/id",
+      "target": {
+        "collection": "/services/pagerduty/account",
+        "matching": {},
+        "key_prefix": "account",
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/user_id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
+  "audit_history": true,
+  "ordering": [
     {
-      "service": "github",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v3/repos/lumen-labs/(payments-worker|storefront)/issues",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "github",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "POST",
-      "path": "/incidents/Q8CHKSTG5PCT2F/notes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "sentry",
-      "method": "PUT",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/github/issues",
+          "matching": {},
+          "key_prefix": "lumen-labs/checkout#",
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/state",
+        "equals": "open"
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/pagerduty/notes",
+          "matching": {},
+          "key_prefix": "Q7CHKAP15PCT1D/",
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/content",
+        "nonempty_text": true
+      },
+      "require_transition": false,
+      "allow_same_commit": false
     }
   ],
-  "answer": null
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/github/issues/*",
+        "kind": "create",
+        "matching": {
+          "assignees": [],
+          "state": "open",
+          "user": "hana"
+        },
+        "field_patterns": {
+          "/title": "^CHECKOUT-API-3F: \\S"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "github",
+          "methods": [
+            "POST",
+            "PATCH"
+          ],
+          "path_regex": "^(/api/v3/repos/lumen-labs/checkout/issues(/[0-9]+)?|/api/graphql)$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/notes/*",
+        "kind": "create",
+        "matching": {
+          "user": {
+            "id": "PLWEBR5",
+            "type": "user_reference"
+          }
+        },
+        "field_patterns": {
+          "/content": "[0-9]"
+        },
+        "references": [
+          {
+            "source_field": "/user/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q7CHKAP15PCT1D/notes$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "service": {
+            "id": "PSVCHKA"
+          },
+          "type": "annotate_log_entry"
+        },
+        "references": [
+          {
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q7CHKAP15PCT1D/notes$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q7CHKAP15PCT1D/notes$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

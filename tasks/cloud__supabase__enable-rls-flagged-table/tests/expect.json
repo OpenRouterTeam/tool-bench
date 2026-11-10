@@ -1,77 +1,114 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.invoices/rls_enabled",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/supabase/tables",
+        "matching": {
+          "name": "invoices",
+          "schema": "public"
+        },
+        "key_prefix": "qmvbxtzkplrnwdhyfaco.",
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/policies": [],
+        "/rls_enabled": true
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.invoices/policies",
-      "equals": [],
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.customers/rls_enabled",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.orders/rls_enabled",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/tables/hzrkcwpxnqdlmvbtejsa.public.invoices/rls_enabled",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.invoices/1/number",
-      "equals": "INV-2026-00001",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/supabase/migrations",
+        "matching": {},
+        "field_patterns": {
+          "/statements/0": "\\S",
+          "/version": "\\S"
+        },
+        "key_prefix": "qmvbxtzkplrnwdhyfaco/",
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "supabase",
-      "method": "POST",
-      "path": "/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "supabase",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/v1/projects/hzrkcwpxnqdlmvbtejsa/database/migrations$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.invoices/rls_enabled",
+        "kind": "update",
+        "matching": {
+          "rls_enabled": true
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "supabase",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations$"
+        }
+      },
+      {
+        "pointer": "/services/supabase/migrations/*",
+        "kind": "create",
+        "matching": null,
+        "field_patterns": {
+          "/version": "\\S"
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "supabase",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

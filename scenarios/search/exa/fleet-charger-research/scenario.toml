@@ -7,10 +7,34 @@ services = ["exa"]
 tags = ["write", "single-service", "exa"]
 timeout_sec = 900
 
-# The first research task created in this world gets this ID (deterministic per seed).
-[[expect.state]]
-pointer = "/services/exa/research/r_01k4fOjR4gU5lXF1HsNUQMnA/model"
-equals = "exa-research-pro"
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/exa/research", created = true }
+equals = 1
+fields = { "/model" = "exa-research-pro", "/status" = "completed" }
+
+[[expect.relations]]
+source = { collection = "/services/exa/research", created = true }
+source_field = "/output/content"
+target = { collection = "/services/exa/research_reports", matching = { id = "report-bidirectional-depot-chargers-de" } }
+target_field = "/content"
+kind = "equals"
+
+[[expect.relations]]
+source = { collection = "/services/exa/research", created = true }
+source_field = "/citations"
+target = { collection = "/services/exa/research_reports", matching = { id = "report-bidirectional-depot-chargers-de" } }
+target_field = "/citations"
+kind = "equals"
+
+[[expect.preservation.allow]]
+pointer = "/services/exa/research/*"
+kind = "create"
+matching = { model = "exa-research-pro" }
+max_count = 1
 
 [[expect.required_calls]]
 service = "exa"
@@ -18,13 +42,11 @@ method = "POST"
 path = "/research/v1"
 body = { model = "exa-research-pro" }
 
-# The report has to be fetched to answer.
 [[expect.required_calls]]
 service = "exa"
 method = "GET"
-path_regex = "^/research/v1/r_"
+path_regex = "^/research/v1/r_[0-9A-Za-z]+$"
 
-# The user ruled out the cheaper models.
 [[expect.forbidden_calls]]
 service = "exa"
 method = "POST"
@@ -37,9 +59,53 @@ method = "POST"
 path = "/research/v1"
 body = { model = "exa-research" }
 
-[expect.answer]
-contains = ["VoltHaven"]
-regex = '6[,.]?900'
+[expect.answer.source_facts]
+requirement = "Name the vendor with the largest installed share in the authored depot report and attribute that same vendor's typical 22 kW bidirectional unit price to it, without negation or misattribution."
+source = { selector = { collection = "/services/exa/research_reports", matching = { id = "report-bidirectional-depot-chargers-de" } }, field = "/content" }
+key = "vendor"
+rows = { largest = "share" }
+claims = [
+  "Market leader: ${vendor} (${hq}), about ${share} of installed depot V2G units in Germany. Typical price of its 22 kW AC bidirectional unit: ${price}.",
+  "Market leader: ${vendor}, about ${share} of installed depot V2G units in Germany. Typical price of its 22 kW AC bidirectional unit: ${price}.",
+  "Market leader: ${vendor}. Typical price of its 22 kW AC bidirectional unit: ${price}.",
+  "Market leader: ${vendor}. Typical price of its 22 kW bidirectional unit: ${price}.",
+  "Market leader: ${vendor}, about ${price} per 22 kW unit.",
+  "Market leader: ${vendor} — typical 22 kW bidirectional unit price ${price}.",
+  "Market-leading vendor: ${vendor}. Typical 22 kW bidirectional unit price: ${price}.",
+  "${vendor} leads the German depot V2G market; its 22 kW bidirectional unit typically costs ${price}.",
+  "${vendor} is the market leader; its 22 kW bidirectional unit typically costs ${price}.",
+  "${vendor} is the market leader, and its 22 kW bidirectional unit typically costs ${price}.",
+  "${vendor} leads, and its 22 kW unit costs ${price}.",
+  "Marktführer: ${vendor}, 22-kW-Einheit ca. ${price}.",
+]
+rejected = [
+  "${vendor} is not the leader.",
+  "${vendor} is not the leader. ${vendor} leads, and its 22 kW unit costs ${price}.",
+  "${vendor} is not the market leader.",
+  "The market leader is not ${vendor}.",
+]
+
+[expect.answer.source_facts.columns.vendor]
+header = "Vendor"
+kind = "name"
+answer_headers = ["Market leader", "Leader", "Leading vendor", "Market-leading vendor"]
+
+[expect.answer.source_facts.columns.hq]
+header = "HQ"
+kind = "place"
+required = false
+answer_headers = ["Headquarters"]
+
+[expect.answer.source_facts.columns.share]
+header = "Share of installed depot V2G units (DE)"
+kind = "percent"
+required = false
+answer_headers = ["Share", "Market share", "Installed share"]
+
+[expect.answer.source_facts.columns.price]
+header = "Typical price, 22 kW AC bidirectional unit"
+kind = "money"
+answer_headers = ["Price", "Typical price", "22 kW price", "Price (22 kW)", "Typical price (22 kW)", "Typical 22 kW price", "Unit price", "22 kW unit price"]
 
 [solution]
 answer = "Market leader: VoltHaven (Hamburg), about 31% of installed depot V2G units in Germany. Typical price of its 22 kW AC bidirectional unit: EUR 6,900.\n"

@@ -7,30 +7,52 @@ services = ["slack"]
 tags = ["write", "single-service", "slack", "disambiguation"]
 timeout_sec = 900
 
-# Two Alexes (Alex Kim, designer; Alex Rivera, engineering manager), an archived
-# #releases-archive channel with an older "release moved" message, and the original
-# 2026-11-03 plan. The DM must go to Alex Kim with the new date.
-[[expect.state]]
-pointer = "/services/slack/posted/D09KIMDM4X1#1/text"
-contains = "2026-11-10"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/slack/posted/D0RIVDM2KQ8#1"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/slack/posted", created = true }
+equals = 1
+fields = { "/user" = "U02CMORG8RK" }
+reviewed_text = { "/text" = { requirement = "Tell Alex Kim in a DM that the current web 4.12 release date is 2026-11-10, written YYYY-MM-DD. The conversation supplies recipient context. No greeting, reason, old date or freeze date is mandatory; added facts must be grounded. Unlisted nonempty wording requires adjudication.", accepted = ["The web 4.12 release is scheduled for 2026-11-10.", "Hi Alex! The web 4.12 release moved from 2026-11-03 to 2026-11-10 (Tuesday) because of the payments SDK regression. Code freeze is now 2026-11-06."] } }
 
-[[expect.state]]
-pointer = "/services/slack/posted/C06RELEASE1#1"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/slack/messages", created = true }
+equals = 1
 
-[[expect.required_calls]]
-service = "slack"
-path = "/_mcp/tools/call"
-body = { name = "slack_send_message" }
+[[expect.relations]]
+source = { collection = "/services/slack/posted", created = true }
+source_field = "/channel"
+target = { collection = "/services/slack/channels", matching = { is_im = true, user = "U06AKIM3D2Q" } }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.forbidden_calls]]
-service = "slack"
-path = "/_mcp/tools/call"
-body = { name = "slack_send_message", arguments = { channel_id = "U04ARIVERA9" } }
+[[expect.relations]]
+source = { collection = "/services/slack/posted", created = true }
+source_field = "/ts"
+target = { collection = "/services/slack/messages", created = true }
+target_field = "/ts"
+kind = "bijection"
+fields = [
+  { source_field = "/channel", target_field = "/channel", kind = "equals" },
+  { source_field = "/text", target_field = "/text", kind = "equals" },
+]
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/posted/*"
+kind = "create"
+matching = { user = "U02CMORG8RK" }
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/messages/*"
+kind = "create"
+matching = { user = "U02CMORG8RK" }
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/channels/*"
+kind = "create"
+matching = { is_im = true, user = "U06AKIM3D2Q", members = ["U02CMORG8RK", "U06AKIM3D2Q"] }
 
 [[solution.call]]
 endpoint = "slack"

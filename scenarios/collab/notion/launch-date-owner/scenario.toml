@@ -9,6 +9,10 @@ timeout_sec = 900
 
 # The live row says 2026-11-12 / Lena Fischer. Distractors: a trashed duplicate row with
 # the same title (2026-11-05, Priya), the partner beta row, and the v1 GA row.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Lena Fischer"]
 regex = "(?i)(2026-11-12|nov(ember)?\\.?\\s+12)"

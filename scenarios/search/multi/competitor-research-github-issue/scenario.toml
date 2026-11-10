@@ -7,51 +7,78 @@ services = ["exa", "github"]
 tags = ["write", "multi-service", "exa", "github", "disambiguation"]
 timeout_sec = 900
 
-# GA (2026-10-27): Scale $349/month billed annually ($419 monthly), 50M events/month. Stale:
-# the 2025 beta post ($299, 25M events). Look-alike company: Lumenwise (Scale $499). The live
-# tracker is octo-org/competitive-intel (next issue #6; closed #3 covers the beta);
-# octo-org/competitive-intel-2024 is archived.
-[[expect.state]]
-pointer = "/services/github/issues"
-key_prefix = "octo-org/competitive-intel#"
-any = { title = "Lumenrail", body = "349", labels = ["pricing", "lumenrail"], state = "open" }
+# GA (2026-10-27): Scale $349/month billed annually ($419 monthly), 50M events/month. Two web
+# documents state it: the launch blog post and the live pricing page. Stale: the 2025 beta
+# post ($299, 25M events). Look-alike company: Lumenwise (Scale $499). The live tracker is
+# octo-org/competitive-intel (the created issue is the next number; closed #3 covers the
+# beta and must stay closed and unchanged); octo-org/competitive-intel-2024 is archived.
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/github/issues"
-key_prefix = "octo-org/competitive-intel#"
-any = { title = "Scale", body = "50" }
+[[expect.records]]
+selector = { collection = "/services/github/issues", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/github/issues/octo-org~1competitive-intel#3/state"
-equals = "closed"
+[[expect.records]]
+selector = { collection = "/services/github/issues", key_prefix = "octo-org/competitive-intel#", created = true }
+equals = 1
+fields = { "/state" = "open", "/user" = "mona", "/assignees" = [] }
+any_fields = [{ "/labels" = ["pricing", "lumenrail"] }, { "/labels" = ["lumenrail", "pricing"] }]
+optional_fields = { "/locked" = false, "/milestone" = "", "/type" = "", "/parent" = "" }
+null_fields = ["/closed_at"]
 
-[[expect.state]]
-pointer = "/services/github/issues/octo-org~1competitive-intel-2024#42"
-exists = false
+[expect.records.reviewed_text."/title"]
+requirement = "Name Lumenrail and its Scale plan in the new competitive-intel issue title, without naming another company or the beta plan, or claiming an unsupported price. No particular wording is required; the price and event allowance belong in the description."
+accepted = [
+  "Lumenrail Scale plan is generally available",
+  "Lumenrail Scale plan GA pricing",
+  "Lumenrail Scale plan pricing update",
+  "Lumenrail Scale plan: $349/month billed annually, 50M events",
+  "Lumenrail Scale plan GA: $349/month, 50M events per month",
+  "Lumenrail Scale plan out of beta: GA pricing",
+]
+rejected = [
+  "Lumenrail Scale plan in beta",
+  "Lumenwise Scale plan pricing",
+  "Lumenrail Scale plan beta pricing: $299/month",
+]
 
-[[expect.required_calls]]
-service = "exa"
-method = "POST"
-path_regex = "^/(search|contents)$"
+[expect.records.reviewed_text."/body"]
+requirement = "State the generally available Lumenrail Scale plan price of $349 per month when billed annually and its 50 million included events per month, and include the supporting Lumenrail source URL (the GA launch post or the live pricing page). Do not present the 2025 beta price or allowance ($299, 25M events) or Lumenwise's price as current. The $419 monthly-billing price, $6 per million overage, retention, SSO and beta-customer grandfathering are accurate optional context, not requirements."
+accepted = [
+  "Lumenrail took the Scale plan out of beta on 2026-10-27.\n\n- Price: $349/month billed annually ($419 billed monthly)\n- Included events: 50M events per month (extra events $6 per million)\n- Also: 13-month retention, SAML SSO\n\nThe 2025 beta was $299/month with 25M events; beta customers keep that price until renewal.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
+  "Lumenrail Scale plan (generally available): $349 per month billed annually, 50M events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
+  "Lumenrail Scale plan (generally available): $349 per month billed annually, 50M events per month included.\n\nSource: https://lumenrail.io/pricing",
+  "Lumenrail Scale plan (generally available): $349/month billed annually, 50 million events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
+  "Lumenrail Scale plan (generally available): $349/month billed annually, 50 million events per month included.\n\nSource: https://lumenrail.io/pricing",
+  "Scale plan is now generally available: $349/month billed annually ($419 billed monthly) with 50M events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
+  "Scale plan is now generally available: $349/month billed annually ($419 billed monthly) with 50M events per month included.\n\nSource: https://lumenrail.io/pricing",
+]
+rejected = [
+  "Lumenrail Scale plan: $299 per month, 25M events per month.\n\nSource: https://lumenrail.io/blog/introducing-scale-beta",
+  "Lumenrail Scale plan: $299 per month billed annually, 25M events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
+  "Lumenwise Scale plan: $499 per month.\n\nSource: https://www.lumenwise.com/pricing",
+  "Lumenrail Scale plan (generally available): $349 per month billed annually.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
+  "Lumenrail Scale plan (generally available): 50M events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
+  "Lumenrail Scale plan (generally available): $349 per month billed annually, 50M events per month included.",
+]
 
-[[expect.required_calls]]
-service = "github"
-method = "POST"
-path = "/api/v3/repos/octo-org/competitive-intel/issues"
+[[expect.information]]
+prerequisite = { service = "exa", method = "POST", path_regex = "^/(search|contents)$" }
+response_field = "/results"
+source = { collection = "/services/exa/documents", field_patterns = { "/url" = '^https://lumenrail\.io/(blog/scale-plan-generally-available|pricing)$' } }
+projection = [
+  { response = ["/url"], source = "/url" },
+  { response = ["/text", "/highlights", "/summary"], source = "/text", excerpts = ["$349", "billed annually", "50M events"] },
+]
+action = { service = "github", method = "POST", path_regex = "^/api/(graphql|v3/repos/octo-org/competitive-intel/issues)$" }
+action_effect = { selector = { collection = "/services/github/issues", created = true }, field = "/title", nonempty_text = true }
 
-[[expect.forbidden_calls]]
-service = "github"
-method = "PATCH"
-
-[[expect.forbidden_calls]]
-service = "github"
-method = "POST"
-path_regex = "^/api/v3/repos/[^/]+/[^/]+/issues/[0-9]+/comments$"
-
-[[expect.forbidden_calls]]
-service = "github"
-method = "POST"
-path = "/api/v3/repos/octo-org/competitive-intel-2024/issues"
+[[expect.preservation.allow]]
+pointer = "/services/github/issues/*"
+kind = "create"
+matching = { user = "mona", state = "open" }
 
 [[solution.call]]
 endpoint = "exa"

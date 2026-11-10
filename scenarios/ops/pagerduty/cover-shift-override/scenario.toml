@@ -7,45 +7,34 @@ services = ["pagerduty"]
 tags = ["write", "single-service", "pagerduty"]
 timeout_sec = 900
 
-# Alex Kim (the token owner) is on Platform Primary (PSPLTPR) this week. Jordan Lee is
-# PJ0RLEE; Jordan Alvarez (Payments) and the Platform Secondary / Data Platform Primary
-# schedules are look-alikes.
-[[expect.state]]
-pointer = "/services/pagerduty/overrides/PSPLTPR~11/user/id"
-equals = "PJ0RLEE"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/pagerduty/overrides/PSPLTPR~11/start"
-equals = "2026-10-31T09:00:00Z"
+[[expect.records]]
+selector = { collection = "/services/pagerduty/overrides", created = true }
+min_count = 1
+fields = { "/user/id" = "PJ0RLEE" }
+interval_coverage = { start_field = "/start", end_field = "/end", start = "2026-10-31T09:00:00Z", end = "2026-10-31T17:00:00Z" }
 
-[[expect.state]]
-pointer = "/services/pagerduty/overrides/PSPLTPR~11/end"
-equals = "2026-10-31T17:00:00Z"
+[[expect.relations]]
+source = { collection = "/services/pagerduty/overrides", created = true }
+source_field = "/id"
+target = { collection = "/services/pagerduty/overrides", key_prefix = "PSPLTPR/", created = true }
+target_field = "/id"
+kind = "bijection"
 
-[[expect.state]]
-pointer = "/services/pagerduty/overrides/PSPLTPR~12"
-exists = false
+[[expect.relations]]
+source = { collection = "/services/pagerduty/overrides", created = true }
+source_field = "/user/id"
+target = { collection = "/services/pagerduty/users", matching = { name = "Jordan Lee", email = "jordan.lee@tidewater.io", teams = [{ id = "PTPLATF" }] } }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.state]]
-pointer = "/services/pagerduty/overrides/PSPLTSC~11"
-exists = false
-
-[[expect.state]]
-pointer = "/services/pagerduty/overrides/PSDPLPR~11"
-exists = false
-
-[[expect.required_calls]]
-service = "pagerduty"
-method = "POST"
-path = "/schedules/PSPLTPR/overrides"
-
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "DELETE"
-
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "PUT"
+[expect.preservation]
+allow = [
+  { pointer = "/services/pagerduty/overrides/*", kind = "create", matching = { user = { id = "PJ0RLEE", type = "user_reference" } }, max_count = "all_matching", cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/schedules/PSPLTPR/overrides$" } },
+]
 
 [[solution.call]]
 endpoint = "pagerduty"

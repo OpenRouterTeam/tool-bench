@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/brave/caterer-saturday-hours",
+  "scenario_sha256": "sha256:67d8ceee0427b07f75535e75681d13299a4d0a8e7516c795d401a752d4aa3966",
+  "dataset_sha256": "sha256:4cb6924927056ef099afa13db9b6fedc71491a4c7613fb4b5fb1e0eb79d3eecb",
+  "contract_sha256": "sha256:a62f60621648865b133dcab79e4803ef459985480ca3dbf2c71a5166b240d28e"
+}

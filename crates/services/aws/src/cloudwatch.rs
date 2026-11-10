@@ -15,6 +15,9 @@ use crate::{
     util::{iso, json_response, s, value_time, with_header},
 };
 
+mod storage;
+pub(crate) use storage::initialize;
+
 const CT: &str = "application/x-amz-json-1.0";
 
 type Out = Result<Value, (StatusCode, &'static str, String)>;
@@ -35,7 +38,11 @@ fn missing(name: &str) -> (StatusCode, &'static str, String) {
 }
 
 pub fn handle(ctx: &mut Ctx, req: &Req) -> Response {
-    let op = req.target_op().unwrap_or_default();
+    let op = req
+        .header("x-amz-target")
+        .and_then(|target| target.strip_prefix("GraniteServiceVersion20100801."))
+        .unwrap_or_default()
+        .to_owned();
     let input = req.body_json();
     let result = match op.as_str() {
         "DescribeAlarms" => describe_alarms(ctx, &input),
@@ -67,7 +74,11 @@ pub fn handle(ctx: &mut Ctx, req: &Req) -> Response {
             "UnknownOperationException",
             String::new(),
         )),
-        _ => Ok(json!({})),
+        _ => Err((
+            StatusCode::BAD_REQUEST,
+            "UnknownOperationException",
+            format!("Operation {op} is not implemented."),
+        )),
     };
     match result {
         Ok(v) => json_response(StatusCode::OK, CT, &v),
@@ -249,6 +260,7 @@ fn describe_alarm_history(ctx: &mut Ctx, input: &Value) -> Out {
         .docs("alarm_history")
         .into_iter()
         .map(|(_, h)| h)
+        .filter(|h| ctx.in_region(h))
         .filter(|h| name.is_empty() || s(h, "AlarmName") == name)
         .filter(|h| kind.is_empty() || s(h, "HistoryItemType") == kind)
         .filter(|h| {
@@ -272,6 +284,9 @@ fn describe_alarm_history(ctx: &mut Ctx, input: &Value) -> Out {
     let items = items
         .into_iter()
         .map(|mut h| {
+            if let Some(fields) = h.as_object_mut() {
+                fields.retain(|key, _| !key.starts_with('_'));
+            }
             h["Timestamp"] = epoch(&h["Timestamp"]);
             if h.get("AlarmType").is_none() {
                 h["AlarmType"] = json!("MetricAlarm");
@@ -301,12 +316,11 @@ const COMPARISONS: [&str; 7] = [
 ];
 
 fn add_history(ctx: &mut Ctx, name: &str, kind: &str, summary: String, data: Value) {
-    let n = ctx.svc.ids.next_int("alarm-history", 1);
-    let key = format!("{name}#{n}");
-    ctx.put(
-        "alarm_history",
-        &key,
+    storage::add_history(
+        ctx,
+        name,
         json!({
+            "_region": ctx.region,
             "AlarmName": name,
             "AlarmType": "MetricAlarm",
             "Timestamp": iso(ctx.now),
@@ -365,7 +379,7 @@ fn put_metric_alarm(ctx: &mut Ctx, input: &Value) -> Out {
     if input.get("Threshold").is_none() && input.get("ThresholdMetricId").is_none() {
         return Err(missing("Threshold"));
     }
-    let existing = ctx.get("alarms", &name);
+    let existing = storage::get(ctx, &name);
     let mut alarm = Map::new();
     alarm.insert("AlarmName".into(), json!(name));
     alarm.insert("AlarmArn".into(), json!(alarm_arn(ctx, &name)));
@@ -427,10 +441,12 @@ fn put_metric_alarm(ctx: &mut Ctx, input: &Value) -> Out {
             alarm.insert("StateTransitionedTimestamp".into(), json!(iso(ctx.now)));
         }
     }
-    if let Some(tags) = input.get("Tags").filter(|t| t.is_array()) {
+    if let Some(previous) = &existing {
+        if let Some(tags) = previous.get("Tags") {
+            alarm.insert("Tags".into(), tags.clone());
+        }
+    } else if let Some(tags) = input.get("Tags").filter(|tags| tags.is_array()) {
         alarm.insert("Tags".into(), tags.clone());
-    } else if let Some(prev_tags) = existing.as_ref().and_then(|e| e.get("Tags")) {
-        alarm.insert("Tags".into(), prev_tags.clone());
     }
     let verb = if existing.is_some() {
         "updated"
@@ -438,7 +454,7 @@ fn put_metric_alarm(ctx: &mut Ctx, input: &Value) -> Out {
         "created"
     };
     let alarm = Value::Object(alarm);
-    ctx.put("alarms", &name, alarm.clone());
+    storage::put(ctx, &name, alarm.clone());
     let data = json!({"version": "1.0", "type": if verb == "created" {"Create"} else {"Update"}, "createdAlarm": alarm_out(ctx, &alarm)});
     add_history(
         ctx,
@@ -461,18 +477,18 @@ fn put_composite_alarm(ctx: &mut Ctx, input: &Value) -> Out {
     let mut alarm = input.clone();
     alarm["AlarmArn"] = json!(alarm_arn(ctx, &name));
     alarm["AlarmConfigurationUpdatedTimestamp"] = json!(iso(ctx.now));
-    if ctx.get("alarms", &name).is_none() {
+    if storage::get(ctx, &name).is_none() {
         alarm["StateValue"] = json!("INSUFFICIENT_DATA");
         alarm["StateReason"] = json!("Unchecked: Initial alarm creation");
         alarm["StateUpdatedTimestamp"] = json!(iso(ctx.now));
     }
-    ctx.put("alarms", &name, alarm);
+    storage::put(ctx, &name, alarm);
     Ok(json!({}))
 }
 
 fn delete_alarms(ctx: &mut Ctx, input: &Value) -> Out {
     let names = strings(input, "AlarmNames");
-    if let Some(missing_name) = names.iter().find(|n| ctx.get("alarms", n).is_none()) {
+    if let Some(missing_name) = names.iter().find(|n| storage::get(ctx, n).is_none()) {
         return Err((
             StatusCode::NOT_FOUND,
             "ResourceNotFound",
@@ -482,7 +498,7 @@ fn delete_alarms(ctx: &mut Ctx, input: &Value) -> Out {
         ));
     }
     for n in names {
-        ctx.remove("alarms", &n);
+        storage::remove(ctx, &n);
     }
     Ok(json!({}))
 }
@@ -495,7 +511,7 @@ fn set_alarm_state(ctx: &mut Ctx, input: &Value) -> Out {
             "1 validation error detected: Value '{value}' at 'stateValue' failed to satisfy constraint: Member must satisfy enum value set: [INSUFFICIENT_DATA, ALARM, OK]"
         )));
     }
-    let Some(mut alarm) = ctx.get("alarms", &name) else {
+    let Some(mut alarm) = storage::get(ctx, &name) else {
         return Err((
             StatusCode::NOT_FOUND,
             "ResourceNotFound",
@@ -509,7 +525,7 @@ fn set_alarm_state(ctx: &mut Ctx, input: &Value) -> Out {
     if old != value {
         alarm["StateTransitionedTimestamp"] = json!(iso(ctx.now));
     }
-    ctx.put("alarms", &name, alarm);
+    storage::put(ctx, &name, alarm);
     add_history(
         ctx,
         &name,
@@ -522,7 +538,7 @@ fn set_alarm_state(ctx: &mut Ctx, input: &Value) -> Out {
 
 fn alarm_actions(ctx: &mut Ctx, input: &Value, enabled: bool) -> Out {
     for n in strings(input, "AlarmNames") {
-        if let Some(a) = ctx.get_mut("alarms", &n) {
+        if let Some(a) = storage::get_mut(ctx, &n) {
             a["ActionsEnabled"] = json!(enabled);
         }
     }
@@ -1266,11 +1282,12 @@ fn delete_dashboards(ctx: &mut Ctx, input: &Value) -> Out {
 fn alarm_for_arn(ctx: &Ctx, arn: &str) -> Option<String> {
     ctx.docs("alarms")
         .into_iter()
-        .find(|(n, a)| {
-            a.get("AlarmArn")
-                .and_then(Value::as_str)
-                .unwrap_or(&alarm_arn(ctx, n))
-                == arn
+        .find(|(_, a)| {
+            ctx.in_region(a)
+                && a.get("AlarmArn")
+                    .and_then(Value::as_str)
+                    .unwrap_or(&alarm_arn(ctx, &s(a, "AlarmName")))
+                    == arn
         })
         .map(|(n, _)| n)
 }

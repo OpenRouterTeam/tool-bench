@@ -10,6 +10,7 @@
 //! `brands`, `themes` (`<brandId>/<themeId>`), `pages`, `email_customizations`,
 //! `email_settings`, `domains`, `email_domains`, `device_assurances`, `user_types`.
 
+mod account;
 mod apps;
 mod custom;
 pub mod filter;
@@ -55,6 +56,10 @@ impl MockService for Okta {
         &["octo-corp.okta.com"]
     }
 
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(account::initialize)
+    }
+
     fn router(&self) -> Router<SharedWorld> {
         Router::new()
             .route("/oauth2/v1/device/authorize", post(device_authorize))
@@ -67,10 +72,10 @@ async fn device_authorize() -> Response {
     json(
         StatusCode::OK,
         json_value!({
-            "device_code": "toolbench-device-code",
-            "user_code": "TOOLBNCH",
+            "device_code": "8fa4834ce6d748f08bb9711dc681d217",
+            "user_code": "PLQH-RVNT",
             "verification_uri": format!("{ORG_URL}/activate"),
-            "verification_uri_complete": format!("{ORG_URL}/activate?user_code=TOOLBNCH"),
+            "verification_uri_complete": format!("{ORG_URL}/activate?user_code=PLQH-RVNT"),
             "expires_in": 600,
             "interval": 1
         }),
@@ -84,32 +89,32 @@ async fn token() -> Response {
             "token_type": "Bearer",
             "expires_in": 3600,
             "access_token": access_token(),
-            "scope": "okta.users.read okta.users.manage okta.groups.read okta.groups.manage okta.apps.read okta.apps.manage",
-            "refresh_token": "toolbench-refresh-token"
+            "scope": account::SCOPES.join(" "),
+            "refresh_token": "1.8fa4834ce6d748f08bb9711dc681d217"
         }),
     )
 }
 
 /// A fixed JWT (signature not meaningful; the client decodes without verifying).
 pub fn access_token() -> String {
-    let header = json_value!({ "kid": "toolbench", "alg": "RS256" });
+    let header = json_value!({ "kid": "8fa4834ce6d748f08bb9711dc681d217", "alg": "RS256" });
     let claims = json_value!({
         "ver": 1,
-        "jti": "AT.toolbench",
+        "jti": "AT.8fa4834ce6d748f08bb9711dc681d217",
         "iss": ORG_URL,
         "aud": ORG_URL,
         "sub": "ops@octo-corp.example",
         "iat": 1_767_225_600_u64,
         "exp": TOKEN_EXP,
-        "cid": "0oatoolbench",
-        "uid": "00utoolbench",
-        "scp": ["okta.users.read", "okta.users.manage", "okta.groups.read", "okta.groups.manage", "okta.apps.read", "okta.apps.manage"]
+        "cid": account::CLIENT_ID,
+        "uid": account::PRINCIPAL_ID,
+        "scp": account::SCOPES
     });
     format!(
         "{}.{}.{}",
         b64url(header.to_string().as_bytes()),
         b64url(claims.to_string().as_bytes()),
-        b64url(b"toolbench-signature")
+        b64url(b"8fa4834ce6d748f08bb9711dc681d217")
     )
 }
 
@@ -132,7 +137,15 @@ async fn api(
     let request_id = util::svc(w).ids.next_prefixed("request", "", 20);
     let path = uri.path().trim_end_matches('/').to_owned();
     let Some(rest) = path.strip_prefix("/api/v1/") else {
-        return into_response(util::endpoint_not_found(), &request_id);
+        return into_response(
+            error(
+                StatusCode::NOT_FOUND,
+                "E0000007",
+                "Not found: Resource not found: (Endpoint)",
+                &[],
+            ),
+            &request_id,
+        );
     };
     if !headers.contains_key("authorization") {
         return into_response(
@@ -148,9 +161,13 @@ async fn api(
     let query: Vec<(String, String)> = Query::<Vec<(String, String)>>::try_from_uri(&uri)
         .map(|q| q.0)
         .unwrap_or_default();
+    let segments = match util::decoded_segments(rest) {
+        Ok(segments) => segments,
+        Err(reply) => return into_response(reply, &request_id),
+    };
     let req = Req {
         method,
-        segs: rest.split('/').map(str::to_owned).collect(),
+        segs: segments,
         path: path.clone(),
         query,
         body: serde_json::from_slice(&body).unwrap_or(Value::Null),
@@ -169,6 +186,18 @@ async fn api(
     let reply = match result {
         Ok(r) | Err(r) => r,
     };
+    if matches!(reply, Reply::Unsupported) {
+        let operation = mock_core::events::current()
+            .expect("unsupported API operations have an authenticated operation context");
+        w.fail_operation(
+            &operation,
+            "unsupported_okta_operation",
+            &format!(
+                "The connection does not implement {} {}.",
+                req.method, req.path
+            ),
+        );
+    }
     into_response(reply, &request_id)
 }
 
@@ -186,11 +215,11 @@ fn user_types(w: &mut mock_core::world::WorldState, req: &Req) -> util::Res {
                 "displayName": "User",
                 "description": "Okta user profile template with default permission settings",
                 "default": true,
-                "createdBy": "00utoolbench0000000",
-                "lastUpdatedBy": "00utoolbench0000000",
+                "createdBy": account::PRINCIPAL_ID,
+                "lastUpdatedBy": account::PRINCIPAL_ID,
                 "created": "2024-01-08T17:02:11.000Z",
                 "lastUpdated": "2024-01-08T17:02:11.000Z",
-                "_links": { "schema": util::href("/api/v1/meta/schemas/user/osc1toolbench0000001"), "self": util::href(&format!("/api/v1/meta/types/user/{}", users::DEFAULT_USER_TYPE)) }
+                "_links": { "schema": util::href(&format!("/api/v1/meta/schemas/user/{}", account::USER_SCHEMA_ID)), "self": util::href(&format!("/api/v1/meta/types/user/{}", users::DEFAULT_USER_TYPE)) }
             })]
         } else {
             from_dataset

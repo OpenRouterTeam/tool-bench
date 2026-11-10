@@ -11,40 +11,24 @@ timeout_sec = 900
 # #14 (duplicate idempotency keys in logs), billing-worker#3 (duplicate emails), web#88
 # (double-click). The last change to internal/charge/retry.go is sam's commit; the latest
 # commit on main overall is lin's dependency bump.
-[[expect.state]]
-pointer = "/services/github/issues/octo-org~1payments-api#12/labels"
-contains = "sev-1"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/github/issues/octo-org~1payments-api#12/labels"
-contains = "bug"
+[[expect.records]]
+selector = { collection = "/services/github/issues", key_prefix = "octo-org/payments-api#", matching = { number = 12, labels = ["sev-1"] } }
+equals = 1
+fields = { "/assignees" = ["sam"], "/state" = "open" }
 
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/github/issues/octo-org~1payments-api#12/labels"
-contains = "customer-reported"
+add_set_values = ["sev-1"]
 
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/github/issues/octo-org~1payments-api#12/assignees"
-contains = "sam"
 
-[[expect.state]]
-pointer = "/services/github/issues/octo-org~1payments-api#12/state"
-equals = "open"
-
-[[expect.required_calls]]
-service = "github"
-method = "PATCH"
-path = "/api/v3/repos/octo-org/payments-api/issues/12"
-
-[[expect.forbidden_calls]]
-service = "github"
-method = "PATCH"
-path_regex = "^/api/v3/repos/octo-org/(payments-api/issues/(7|14)|billing-worker/issues/3|web/issues/88)$"
-
-[[expect.forbidden_calls]]
-service = "github"
-method = "POST"
-path_regex = "^/api/v3/repos/octo-org/[^/]+/issues$"
+[[expect.preservation.allow]]
+pointer = "/services/github/issues/octo-org~1payments-api#12/updated_at"
 
 [[solution.call]]
 endpoint = "github"

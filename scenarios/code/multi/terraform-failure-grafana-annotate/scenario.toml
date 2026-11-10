@@ -7,69 +7,76 @@ services = ["terraform", "grafana"]
 tags = ["write", "multi-service", "terraform", "grafana", "disambiguation"]
 timeout_sec = 1200
 
-# The failed prod run is run-Gy4tBHGggKx49nbH (errored 2026-10-28T13:12:09Z during apply with
-# InvalidParameterCombination). Distractors: the older prod run that errored at plan time
-# (run-nAAGvVVuIe2rfmNM), the staging run (InvalidDBParameterGroupState), and the staging /
-# legacy Payments DB dashboards. The dataset's highest annotation id is 52, so the new one is 53.
+# The failed prod run is run-Gy4tBHGggKx49nbH on workspace payments-api-prod (ws-vJd7W10B1cG75Uxp):
+# "Upgrade payments DB to Postgres 16", errored at 2026-10-28T13:12:09Z (1793193129000 ms) during
+# apply with InvalidParameterCombination (visible only in its apply log). Distractors: the older
+# prod run that errored at plan time (run-nAAGvVVuIe2rfmNM), the staging run errored with
+# InvalidDBParameterGroupState (run-YF4vEQXaSoBg49H3) and the staging / legacy Payments DB
+# dashboards. The annotation is a new Grafana record whose identity the service emits; no id is
+# predicted. Local run metadata is only evidence of the recorded failure, never of real AWS state.
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/53/dashboardUID"
-equals = "payments-db-prod"
+[[expect.records]]
+selector = { collection = "/services/grafana/annotations", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/53/time"
-equals = 1793193129000
+[[expect.records]]
+selector = { collection = "/services/grafana/annotations", created = true, matching = { dashboardUID = "payments-db-prod" }, field_patterns = { "/text" = "(?s)run-Gy4tBHGggKx49nbH.*InvalidParameterCombination|InvalidParameterCombination.*run-Gy4tBHGggKx49nbH" } }
+equals = 1
+fields = { "/dashboardId" = 120, "/panelId" = 0, "/time" = 1793193129000, "/timeEnd" = 1793193129000 }
+null_fields = ["/data"]
+any_fields = [{ "/tags" = ["terraform", "payments"] }, { "/tags" = ["payments", "terraform"] }]
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/53/text"
-contains = "run-Gy4tBHGggKx49nbH"
+[expect.records.reviewed_text."/text"]
+requirement = "The complete annotation must truthfully mark the production payments-api-prod Terraform run that failed during the Postgres 16 database upgrade with the actual failed run ID and AWS error code. It must not claim success, an applied upgrade, a rollback, a database state or any other unsupported outcome, and must not blame another run, environment or error code. Do not require a particular phrasing, the run message, workspace or resource address. Unlisted nonempty wording requires adjudication."
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/53/text"
-contains = "InvalidParameterCombination"
+[expect.records.reviewed_text."/text".bound]
+examples = [
+  "Terraform ${failed_run} (Upgrade payments DB to Postgres 16) failed on payments-api-prod: InvalidParameterCombination on aws_db_instance.payments",
+  "Terraform ${failed_run} failed on payments-api-prod: InvalidParameterCombination",
+  "Terraform ${failed_run} errored on payments-api-prod: InvalidParameterCombination",
+  "Terraform ${failed_run} failed: InvalidParameterCombination",
+  "Terraform ${failed_run} errored: InvalidParameterCombination",
+  "Terraform run ${failed_run} failed on payments-api-prod with InvalidParameterCombination",
+  "Terraform run ${failed_run} errored on payments-api-prod with InvalidParameterCombination",
+  "Terraform run ${failed_run} failed with InvalidParameterCombination",
+  "Terraform run ${failed_run} errored with InvalidParameterCombination",
+  "Postgres 16 upgrade run ${failed_run} failed on payments-api-prod: InvalidParameterCombination",
+  "Postgres 16 upgrade run ${failed_run} errored on payments-api-prod: InvalidParameterCombination",
+  "Payments DB Postgres 16 upgrade failed in Terraform run ${failed_run}: InvalidParameterCombination",
+  "Payments DB Postgres 16 upgrade errored in Terraform run ${failed_run}: InvalidParameterCombination",
+  "Terraform apply failed in ${failed_run} on payments-api-prod: InvalidParameterCombination",
+  "Terraform apply errored in ${failed_run} on payments-api-prod: InvalidParameterCombination",
+]
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/53/tags"
-contains = "terraform"
+[expect.records.reviewed_text."/text".bound.identities.failed_run]
+selector = { collection = "/services/terraform/runs", matching = { workspace = "ws-vJd7W10B1cG75Uxp", status = "errored", message = "Upgrade payments DB to Postgres 16" } }
+field = "/id"
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/53/tags"
-contains = "payments"
+[[expect.relations]]
+source = { collection = "/services/grafana/annotations", created = true }
+source_field = "/dashboardUID"
+target = { collection = "/services/grafana/dashboards", matching = { folderUid = "f-prod", dashboard = { uid = "payments-db-prod", title = "Payments DB" } } }
+target_field = "/dashboard/uid"
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/54"
-exists = false
+[[expect.relations]]
+source = { collection = "/services/grafana/annotations", created = true }
+source_field = "/dashboardId"
+target = { collection = "/services/grafana/dashboards", matching = { dashboard = { uid = "payments-db-prod" } } }
+target_field = "/dashboard/id"
 
-[[expect.state]]
-pointer = "/services/terraform/runs/run-Gy4tBHGggKx49nbH/status"
-equals = "errored"
+[[expect.relations]]
+source = { collection = "/services/grafana/annotations", created = true }
+source_field = "/userId"
+target = { collection = "/services/grafana/user", key_prefix = "current" }
+target_field = "/id"
 
-[[expect.required_calls]]
-service = "grafana"
-method = "POST"
-path = "/api/annotations"
-body = { dashboardUID = "payments-db-prod" }
-
-[[expect.forbidden_calls]]
-service = "grafana"
-method = "DELETE"
-
-[[expect.forbidden_calls]]
-service = "grafana"
-method = "POST"
-path = "/api/dashboards/db"
-
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "PATCH"
-
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "DELETE"
+[expect.preservation]
+allow = [
+  { pointer = "/services/grafana/annotations/*", kind = "create", matching = { dashboardUID = "payments-db-prod", dashboardId = 120, panelId = 0, time = 1793193129000, timeEnd = 1793193129000 }, field_patterns = { "/text" = "(?s)run-Gy4tBHGggKx49nbH.*InvalidParameterCombination|InvalidParameterCombination.*run-Gy4tBHGggKx49nbH" }, references = [{ source_field = "/dashboardId", target_field = "/dashboard/id", target = { collection = "/services/grafana/dashboards", matching = { dashboard = { uid = "payments-db-prod" } } } }, { source_field = "/userId", target_field = "/id", target = { collection = "/services/grafana/user", key_prefix = "current" } }], cause = { service = "grafana", methods = ["POST"], path_regex = "^/api/annotations/*$" } },
+]
 
 [[solution.call]]
 endpoint = "terraform"

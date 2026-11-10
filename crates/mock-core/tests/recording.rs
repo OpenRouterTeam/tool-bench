@@ -34,7 +34,7 @@ impl MockService for Things {
     }
     fn router(&self) -> Router<SharedWorld> {
         Router::new()
-            .route("/now", get(now))
+            .route("/now", get(now).post(now))
             .route("/things", get(now).post(create))
     }
 }
@@ -57,8 +57,14 @@ async fn create(State(world): State<SharedWorld>, body: String) -> Response {
 }
 
 fn world() -> SharedWorld {
+    world_with_mode(mock_core::clock::ClockMode::Fixed)
+}
+
+fn world_with_mode(mode: mock_core::clock::ClockMode) -> SharedWorld {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../scenarios/example/github/basic");
-    shared(WorldState::from_dataset(Dataset::load(&dir).unwrap()).unwrap())
+    let mut dataset = Dataset::load(&dir).unwrap();
+    dataset.meta.clock_mode = mode;
+    shared(WorldState::from_dataset(dataset).unwrap())
 }
 
 async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode, Value) {
@@ -77,7 +83,7 @@ async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode,
 }
 
 #[tokio::test]
-async fn reads_do_not_tick_and_writes_do() {
+async fn fixed_reference_time_is_not_changed_by_reads_or_writes() {
     let w = world();
     let app = service_app(w.clone(), &Things);
     assert_eq!(
@@ -86,10 +92,54 @@ async fn reads_do_not_tick_and_writes_do() {
     );
     let (status, created) = call(&app, "POST", "/things", "hello").await;
     assert_eq!(status, StatusCode::CREATED);
-    assert_eq!(created["created_at"], "2026-03-14T09:00:07Z");
+    assert_eq!(created["created_at"], "2026-03-14T09:00:00Z");
     assert_eq!(
         call(&app, "GET", "/now", "").await.1["now"],
+        "2026-03-14T09:00:00Z"
+    );
+}
+
+#[tokio::test]
+async fn equivalent_get_and_post_reads_and_failed_exploration_keep_the_same_window() {
+    let world = world();
+    let app = service_app(world.clone(), &Things);
+    for _ in 0..100 {
+        for method in ["GET", "POST"] {
+            assert_eq!(
+                call(&app, method, "/now", "").await.1["now"],
+                "2026-03-14T09:00:00Z"
+            );
+        }
+        assert_eq!(
+            call(&app, "POST", "/missing", "").await.0,
+            StatusCode::NOT_FOUND
+        );
+    }
+    assert_eq!(
+        world.lock().unwrap().clock.now_rfc3339(),
+        "2026-03-14T09:00:00Z"
+    );
+}
+
+#[tokio::test]
+async fn legacy_transport_clock_is_a_declared_condition_not_the_default() {
+    let world = world_with_mode(mock_core::clock::ClockMode::LegacyTransport);
+    let app = service_app(world.clone(), &Things);
+    assert_eq!(
+        call(&app, "GET", "/now", "").await.1["now"],
+        "2026-03-14T09:00:00Z"
+    );
+    assert_eq!(
+        call(&app, "POST", "/now", "").await.1["now"],
         "2026-03-14T09:00:07Z"
+    );
+    assert_eq!(
+        call(&app, "POST", "/things", "created").await.1["created_at"],
+        "2026-03-14T09:00:14Z"
+    );
+    assert_eq!(
+        world.lock().unwrap().snapshot()["clock"]["mode"],
+        "legacy_transport"
     );
 }
 
@@ -122,7 +172,7 @@ async fn admin_exposes_health_journal_state_and_reset() {
 
     assert_eq!(
         call(&admin, "GET", "/_bench/health", "").await.1,
-        json!({"status": "ok", "scenario": "example/github/basic"})
+        json!({"status": "ok"})
     );
 
     let (_, created) = call(&app, "POST", "/things", "x").await;
@@ -133,7 +183,7 @@ async fn admin_exposes_health_journal_state_and_reset() {
 
     let (_, state) = call(&admin, "GET", "/_bench/state", "").await;
     assert_eq!(state["services"]["things"]["things"][&id]["body"], "x");
-    assert_eq!(state["now"], "2026-03-14T09:00:07Z");
+    assert_eq!(state["now"], "2026-03-14T09:00:00Z");
 
     assert_eq!(
         call(&admin, "POST", "/_bench/reset", "").await.1,

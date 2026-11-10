@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/terraform/scale-checkout-staging",
+  "scenario_sha256": "sha256:073191f369f4fccc20c284019ada4b02852406b8dd93960837a181bd8447a976",
+  "dataset_sha256": "sha256:bcfd6a353b7e5d509ad0308a2220e906007a61b2b4df043f99b6d99602e3e57c",
+  "contract_sha256": "sha256:c379d6f362113fd854ae9a4f4ace127b517046dcf1451e718f5ac3cad02b0e4e"
+}

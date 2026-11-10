@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/linear/issues/WEB-51/priority",
@@ -6,7 +7,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/linear/issues/WEB-51/assigneeId",
@@ -14,76 +18,139 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/linear/comments/WEB-51#2/body",
-      "equals": null,
-      "exists": null,
-      "contains": "Acme",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/linear/issues/PAY-97/priority",
-      "equals": 2,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/linear/issues/PAY-97/assigneeId",
-      "equals": "a4176131-9edb-57a6-9830-0638d2d2fa29",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/linear/issues/WEB-44/priority",
-      "equals": 3,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/linear/comments/PAY-97#1",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
-  "required_calls": [
+  "records": [
     {
-      "service": "linear",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "linear_createComment"
+      "selector": {
+        "collection": "/services/linear/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "linear",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "linear_archiveIssue"
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/body": {
+          "requirement": "Say the escalation came from Acme Retail. The issue association supplies the Safari checkout context; priority/assignment narration and one particular spelling are not mandatory. Other nonempty wording requires adjudication, not an invented model failure.",
+          "accepted": [
+            "Acme Retail escalated this Safari checkout issue.",
+            "Escalated to Urgent: Acme Retail raised this through support, it is blocking their enterprise checkouts. Assigned to Alex Kim."
+          ],
+          "format": "plain",
+          "bound": null
+        }
       },
-      "body_contains": null,
-      "min_count": 1
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "answer": null
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/linear/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/issueId",
+      "target": {
+        "collection": "/services/linear/issues",
+        "matching": {
+          "identifier": "WEB-51"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/linear/issues/WEB-51/priority",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/linear/issues/WEB-51/assigneeId",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/linear/issues/WEB-51/updatedAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/linear/comments/*",
+        "kind": "create",
+        "matching": {
+          "userId": "2dad689e-9ace-5467-9b02-0cc4e445cfa4"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/linear/issue_history/*",
+        "kind": "create",
+        "matching": {
+          "issueId": "d27f2e8f-39a2-58fa-be0d-a2b0f760cbb2"
+        },
+        "max_count": 6,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

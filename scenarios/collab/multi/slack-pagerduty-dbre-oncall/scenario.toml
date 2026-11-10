@@ -11,6 +11,10 @@ timeout_sec = 1200
 # Okafor only), then Sam Ortiz corrects it: production inventory-db, PD #4813, the production
 # DBRE rotation. Database Reliability (PEPDBRE): level 1 is the daily DBRE Primary schedule,
 # Dana Nguyen on 2026-10-30; level 2 is Sam Okafor.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Dana Nguyen", "Sam Okafor"]
 

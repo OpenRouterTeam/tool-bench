@@ -7,27 +7,62 @@ services = ["tavily"]
 tags = ["write", "single-service", "tavily", "disambiguation"]
 timeout_sec = 900
 
-# The first research task created in this world gets this ID (deterministic per seed).
-[[expect.state]]
-pointer = "/services/tavily/research/1436e5ca-12ef-80ea-ba57-3df5b71cdf69/model"
-equals = "pro"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/tavily/research/1436e5ca-12ef-80ea-ba57-3df5b71cdf69/input"
-contains = "Tallybook"
+[[expect.records]]
+selector = { collection = "/services/tavily/research", created = true }
+equals = 1
+fields = { "/model" = "pro", "/status" = "completed" }
 
-[[expect.state]]
-pointer = "/services/tavily/research/1436e5ca-12ef-80ea-ba57-3df5b71cdf69/input"
-contains = "Billfold"
+[expect.records.reviewed_text."/input"]
+requirement = "Ask for one comprehensive report on the current pricing plans of exactly Tallybook, Billfold and Sumwise, the competitors on the Ledgerly compare page, without adding other tools."
+accepted = [
+  "Compare the current pricing plans (plan names, monthly prices and what each plan includes) of the invoicing tools Tallybook, Billfold and Sumwise.",
+  "Research the current pricing plans of Tallybook, Billfold and Sumwise.",
+  "What are the current pricing plans of the invoicing tools Tallybook, Billfold and Sumwise?",
+  "Research the current pricing plans of Tallybook, Billfold and Sumwise, but not FreshBooks.",
+  "Research the current pricing plans of Tallybook, Billfold and Sumwise. Exclude Ledgerize, which is no longer on the compare page.",
+]
+rejected = [
+  "Current pricing plans of Tallybook, Billfold, Sumwise and FreshBooks.",
+  "Current pricing plans of Tallybook, Billfold, Sumwise and freshbooks.",
+  "Current pricing plans of Tallybook, Billfold, Sumwise and Invoice Ninja.",
+  "Current pricing plans of Tallybook, Billfold, Sumwise and Ledgerize.",
+]
 
-[[expect.state]]
-pointer = "/services/tavily/research/1436e5ca-12ef-80ea-ba57-3df5b71cdf69/input"
-contains = "Sumwise"
+[[expect.records]]
+selector = { collection = "/services/tavily/research", created = true, field_patterns = { "/input" = '(?i)\btallybook\b' } }
+equals = 1
 
-# Exactly one report.
-[[expect.state]]
-pointer = "/services/tavily/research/4eb773c7-a30f-81be-90de-5bfae36feba5"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/tavily/research", created = true, field_patterns = { "/input" = '(?i)\bbillfold\b' } }
+equals = 1
+
+[[expect.records]]
+selector = { collection = "/services/tavily/research", created = true, field_patterns = { "/input" = '(?i)\bsumwise\b' } }
+equals = 1
+
+[[expect.relations]]
+source = { collection = "/services/tavily/research", created = true }
+source_field = "/content"
+target = { collection = "/services/tavily/research_reports", matching = { id = "report-invoicing-competitor-pricing" } }
+target_field = "/content"
+kind = "equals"
+
+[[expect.relations]]
+source = { collection = "/services/tavily/research", created = true }
+source_field = "/sources"
+target = { collection = "/services/tavily/research_reports", matching = { id = "report-invoicing-competitor-pricing" } }
+target_field = "/sources"
+kind = "equals"
+
+[[expect.preservation.allow]]
+pointer = "/services/tavily/research/*"
+kind = "create"
+matching = { model = "pro" }
+max_count = 1
 
 [[expect.required_calls]]
 service = "tavily"
@@ -35,21 +70,16 @@ method = "POST"
 path = "/research"
 body = { model = "pro" }
 
-# Tools from third-party listings, not on the compare page.
-[[expect.forbidden_calls]]
-service = "tavily"
-path = "/research"
-body_contains = "InvoiceNinja"
-
-[[expect.forbidden_calls]]
-service = "tavily"
-path = "/research"
-body_contains = "Zervant"
-
-[[expect.forbidden_calls]]
-service = "tavily"
-path = "/research"
-body_contains = "FreshBooks"
+[[expect.information]]
+prerequisite = { service = "tavily", method = "POST", path_regex = "^/(search|extract|crawl)$" }
+response_field = "/results"
+source = { collection = "/services/tavily/pages", matching = { url = "https://www.ledgerlyhq.com/compare" } }
+projection = [
+  { response = ["/url"], source = "/url" },
+  { response = ["/content", "/raw_content"], source = "/content", excerpts = ["Tallybook", "Billfold", "Sumwise"] },
+]
+action = { service = "tavily", method = "POST", path = "/research" }
+action_effect = { selector = { collection = "/services/tavily/research", created = true }, field = "/input", nonempty_text = true }
 
 [[solution.call]]
 endpoint = "tavily"

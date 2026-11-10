@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/multi/terraform-failure-grafana-annotate",
+  "scenario_sha256": "sha256:89a0d06c8e1085fc4e4f99ee852e990784439b69f39dbc73c1832f2f382223f3",
+  "dataset_sha256": "sha256:cbc3e3350cc38a67285dbd38486ff07c590e6e8d8010e231c95b7eb908045ad5",
+  "contract_sha256": "sha256:70ddd198146092ab532b0c9e843ab50c1916ff104eb33778c69d85a1b1bff29a"
+}

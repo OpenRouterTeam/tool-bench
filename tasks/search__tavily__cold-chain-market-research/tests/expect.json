@@ -1,14 +1,81 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/tavily/research/0d62b10e-d2f9-8a7b-bb2f-c55f8e77d7f9/model",
-      "equals": "mini",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/model": "mini",
+        "/status": "completed"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/content",
+      "target": {
+        "collection": "/services/tavily/research_reports",
+        "matching": {
+          "id": "report-nordic-grocery-cold-chain"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/content",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/sources",
+      "target": {
+        "collection": "/services/tavily/research_reports",
+        "matching": {
+          "id": "report-nordic-grocery-cold-chain"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/sources",
+      "kind": "equals",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "tavily",
@@ -20,7 +87,9 @@
         "model": "mini"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -34,7 +103,9 @@
         "model": "pro"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "tavily",
@@ -46,13 +117,116 @@
         "model": "auto"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "FrostLink"
+    "contains": [],
+    "regex": null,
+    "source_facts": {
+      "requirement": "Name the vendor with the largest share in the authored Nordic grocery cold-chain report and attribute that same vendor's per-sensor monthly list price to it, without negation or misattribution.",
+      "source": {
+        "selector": {
+          "collection": "/services/tavily/research_reports",
+          "matching": {
+            "id": "report-nordic-grocery-cold-chain"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/content",
+        "separator": null
+      },
+      "key": "vendor",
+      "rows": {
+        "largest": "share"
+      },
+      "columns": {
+        "hq": {
+          "header": "HQ",
+          "kind": "place",
+          "required": false,
+          "answer_headers": [
+            "Headquarters"
+          ]
+        },
+        "price": {
+          "header": "List price",
+          "kind": "money",
+          "required": true,
+          "answer_headers": [
+            "Price",
+            "Price per sensor per month",
+            "Monthly price per sensor",
+            "List price per sensor per month",
+            "Per-sensor monthly price"
+          ]
+        },
+        "share": {
+          "header": "Est. share of monitored grocery cold rooms (Nordics)",
+          "kind": "percent",
+          "required": false,
+          "answer_headers": [
+            "Share",
+            "Market share",
+            "Est. share"
+          ]
+        },
+        "vendor": {
+          "header": "Vendor",
+          "kind": "name",
+          "required": true,
+          "answer_headers": [
+            "Market leader",
+            "Leader",
+            "Largest vendor",
+            "Leading vendor"
+          ]
+        }
+      },
+      "claims": [
+        "Market leader: ${vendor} (${hq}), about ${share} of monitored grocery cold rooms in the Nordics. List price: ${price} per sensor per month.",
+        "Market leader: ${vendor}, about ${share} of monitored grocery cold rooms in the Nordics. List price: ${price} per sensor per month.",
+        "Market leader: ${vendor}. List price: ${price} per sensor per month.",
+        "Largest market share: ${vendor}. List price: ${price} per sensor per month.",
+        "${vendor} has the largest share (${share}) and lists at ${price} per sensor per month.",
+        "${vendor} has the largest market share and lists at ${price} per sensor per month.",
+        "${vendor} has the largest share. ${vendor} charges ${price} per sensor per month.",
+        "${vendor} is the market leader at ${price} per sensor per month."
+      ],
+      "neutral_claims": [
+        "${vendor} — ${price} per sensor per month.",
+        "${vendor} — ${price} pro Sensor und Monat.",
+        "${vendor}: ${price} per sensor per month."
+      ],
+      "rejected": [
+        "${vendor} does not have the largest share.",
+        "${vendor} is not the market leader.",
+        "${vendor} is not the market leader. ${vendor} charges ${price} per sensor per month."
+      ]
+    }
+  },
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/tavily/research/*",
+        "kind": "create",
+        "matching": {
+          "model": "mini"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
     ],
-    "regex": "4[.,]20"
-  }
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

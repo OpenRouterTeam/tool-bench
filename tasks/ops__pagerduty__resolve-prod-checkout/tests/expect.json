@@ -1,118 +1,532 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/status",
-      "equals": "resolved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/pagerduty/incidents",
+        "matching": {
+          "id": "Q7CHKAP15PCT1D",
+          "incident_number": 4810,
+          "service": {
+            "id": "PSVCHKA"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/assignments": [],
+        "/pending_actions": [],
+        "/status": "resolved"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/pagerduty/notes/Q7CHKAP15PCT1D~11/content",
+      "selector": {
+        "collection": "/services/pagerduty/alerts",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 2,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "resolved"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
       "equals": null,
-      "exists": null,
-      "contains": "2026.10.29.3",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/incidents/Q8CHKSTG5PCT2F/status",
-      "equals": "triggered",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/incidents/Q9CHKWEB5XX3VK/status",
-      "equals": "acknowledged",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/notes/Q8CHKSTG5PCT2F~11",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "min_count": 1,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/content": {
+          "requirement": "The complete incident note must state that rolling back release 2026.10.29.3 resolved this production incident. Do not merely mention the release, negate the rollback or resolution, claim a roll-forward, or claim that the assistant performed the rollback.",
+          "accepted": [
+            "Resolved by rolling back release 2026.10.29.3.",
+            "Rolling back release 2026.10.29.3 resolved this incident.",
+            "Production checkout recovered after release 2026.10.29.3 was rolled back; the incident is resolved."
+          ],
+          "rejected": [
+            "2026.10.29.3",
+            "Release 2026.10.29.3 was not rolled back; this incident is still broken.",
+            "Resolved by rolling forward release 2026.10.29.3.",
+            "I rolled back release 2026.10.29.3 and resolved this incident."
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
-          {
-            "id": "Q7CHKAP15PCT1D",
-            "status": "resolved"
-          }
-        ]
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": "Q7CHKAP15PCT1D/",
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": []
     },
     {
-      "service": "pagerduty",
-      "method": "POST",
-      "path": "/incidents/Q7CHKAP15PCT1D/notes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/user/id",
+      "target": {
+        "collection": "/services/pagerduty/account",
+        "matching": {},
+        "key_prefix": "account",
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/user_id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
-          {
-            "id": "Q8CHKSTG5PCT2F"
-          }
-        ]
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
-          {
-            "id": "Q9CHKWEB5XX3VK"
-          }
-        ]
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/resolved_at",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "POST",
-      "path": "/incidents/Q9CHKWEB5XX3VK/notes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/assignments",
+        "kind": "update",
+        "matching": {
+          "assignments": [],
+          "status": "resolved"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/pending_actions",
+        "kind": "update",
+        "matching": {
+          "pending_actions": [],
+          "status": "resolved"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/last_status_change_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/last_status_change_by",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/last_status_change_by/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/acknowledgements",
+        "kind": "append",
+        "matching": {
+          "acknowledger": {
+            "id": "PLWEBR5",
+            "type": "user_reference"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": "/acknowledger/id",
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT",
+            "POST"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D(/notes)?)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/alerts/*/status",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "initial_matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          }
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/alerts/*/resolved_at",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "initial_matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          }
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/notes/*",
+        "kind": "create",
+        "matching": {
+          "user": {
+            "type": "user_reference"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/user/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q7CHKAP15PCT1D/notes$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "service": {
+            "id": "PSVCHKA"
+          },
+          "type": "resolve_log_entry"
+        },
+        "references": [
+          {
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "service": {
+            "id": "PSVCHKA"
+          },
+          "type": "acknowledge_log_entry"
+        },
+        "references": [
+          {
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "service": {
+            "id": "PSVCHKA"
+          },
+          "type": "annotate_log_entry"
+        },
+        "references": [
+          {
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q7CHKAP15PCT1D/notes$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

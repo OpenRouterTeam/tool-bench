@@ -10,6 +10,10 @@ timeout_sec = 900
 # CHECKOUT-API-3F (1,842 events) is the most frequent *unresolved* issue in checkout-api.
 # Distractors: CHECKOUT-API-2R (ignored, 3,104), CHECKOUT-API-31 (resolved, 2,310), and
 # PAYMENTS-WORKER-1K (same title, other project, 5,120).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 regex = "(?i)\\bCHECKOUT-API-3F\\b"
 

@@ -7,48 +7,41 @@ services = ["kubernetes"]
 tags = ["write", "single-service", "kubernetes", "disambiguation"]
 timeout_sec = 900
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/0/resources/limits/memory"
-equals = "1Gi"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/0/image"
-equals = "ghcr.io/octo-corp/report-builder:3.2.0"
+[[expect.records]]
+selector = { collection = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers", identity_field = "/name", matching = { name = "report-builder" } }
+equals = 1
+quantity_fields = { "/resources/limits/memory" = "1Gi" }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/replicas"
-equals = 2
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/apiVersion"
+matching = { apiVersion = "apps/v1", kind = "Deployment" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-api/spec/template/spec/containers/0/resources/limits/memory"
-equals = "512Mi"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/kind"
+matching = { apiVersion = "apps/v1", kind = "Deployment" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-scheduler/spec/template/spec/containers/0/resources/limits/memory"
-equals = "128Mi"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/*/resources/limits/memory"
+element_matching = { name = "report-builder" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics-staging~1report-builder/spec/template/spec/containers/0/resources/limits/memory"
-equals = "512Mi"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/resourceVersion"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
 
-[[expect.required_calls]]
-service = "kubernetes"
-path = "/apis/apps/v1/namespaces/analytics/deployments/report-builder"
-body_contains = "1Gi"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/generation"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
 
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "DELETE"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "PATCH"
-path_regex = "/namespaces/analytics-staging/|/deployments/report-(api|scheduler)"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "PUT"
-path_regex = "/namespaces/analytics-staging/|/deployments/report-(api|scheduler)"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/managedFields"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
 
 [[solution.call]]
 endpoint = "kubernetes"

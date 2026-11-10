@@ -10,6 +10,10 @@ timeout_sec = 900
 # Delivered February orders in shop.orders: outdoor 1457.5, electronics 1309, kitchen 798,
 # apparel 436. Counting cancelled/refunded/shipped orders too makes electronics win (2208);
 # the stale shop_staging copy has placeholder prices.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["outdoor"]
 regex = '1,?457\.5'

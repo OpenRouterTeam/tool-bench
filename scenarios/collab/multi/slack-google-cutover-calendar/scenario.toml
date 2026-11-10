@@ -8,40 +8,99 @@ tags = ["write", "multi-service", "slack", "google", "calendar", "disambiguation
 timeout_sec = 1200
 
 # The thread (C05DBMIG2RT, 1792600205.318801) first proposes Friday 2026-11-06 20:00-23:00 CT,
-# then agrees on Saturday 2026-11-07 22:00-01:00 CT (CST after the DST change: -06:00). The
-# event goes on the Ops team calendar (America/Chicago), not the primary ops@ calendar, with
-# Sam Ortiz and Priya Natarajan. The event ID comes from the agent's creates, so `any`.
-[[expect.state]]
-pointer = "/services/google/calendar_events"
-any = { calendarId = "c_ops_team@group.calendar.google.com", summary = "Payments cluster PG16 production cutover", start = { dateTime = "2026-11-07T22:00:00-06:00" }, end = { dateTime = "2026-11-08T01:00:00-06:00" }, attendees = [{ email = "sam.ortiz@octo-corp.example" }, { email = "priya.natarajan@octo-corp.example" }] }
+# then agrees on Saturday 2026-11-07 22:00-01:00 CT. US daylight time ended on 2026-11-01, so
+# the agreed window is -06:00: 2026-11-08T04:00:00Z to 2026-11-08T07:00:00Z. The event goes
+# on the Ops team calendar (America/Chicago), not the primary ops@ calendar, with exactly Sam
+# Ortiz and Priya Natarajan. No Meet link, recurrence or guest-email delivery is requested.
+[expect]
+version = 2
+audit_history = true
 
-# The staging rehearsal event is left alone.
-[[expect.state]]
-pointer = "/services/google/calendar_events/7c1e9a4f2b6d8e0a3c5f7b9d1e/start/dateTime"
-equals = "2026-10-19T20:00:00-05:00"
+[[expect.records]]
+selector = { collection = "/services/google/calendar_events", created = true }
+equals = 1
+calendar_meeting = { calendar_id = "c_ops_team@group.calendar.google.com", summary = "Payments cluster PG16 production cutover", start = "2026-11-08T04:00:00Z", end = "2026-11-08T07:00:00Z", attendees = ["sam.ortiz@octo-corp.example", "priya.natarajan@octo-corp.example"], require_meet = false }
+reviewed_text = { "/description" = { optional = true, requirement = "Optional event context must not contradict the agreed production cutover: Sam leads, Priya verifies payments, window 2026-11-07 22:00-01:00 CT and a 00:30 CT rollback deadline. Unreviewed wording requires adjudication.", accepted = ["Production PG16 cutover of the payments cluster. Lead: Sam. Payments verification: Priya. Rollback deadline 00:30 CT."], rejected = ["Production cutover is on 2026-11-06 from 20:00 to 23:00 CT.", "Cutover cancelled."] } }
 
-[[expect.state]]
-pointer = "/services/google/calendar_events/7c1e9a4f2b6d8e0a3c5f7b9d1e/summary"
-equals = "Payments cluster PG16 staging cutover"
+[[expect.records]]
+selector = { collection = "/services/slack/posted", created = true }
+equals = 1
+fields = { "/channel" = "C05DBMIG2RT", "/thread_ts" = "1792600205.318801", "/user" = "U02CMORG8RK" }
+reviewed_text = { "/text" = { requirement = "Reply in the production-cutover thread that the cutover is now on the calendar. The thread supplies the event context; no particular wording, invitees, date or time is mandatory, but any added claim must match the committed Ops team event. Denials, a wrong calendar/window or a not-yet-created claim are not accepted. Unlisted nonempty wording requires adjudication, not an invented model failure.", accepted = [
+  "It's on the Ops team calendar: Payments cluster PG16 production cutover, Saturday 2026-11-07 22:00-01:00 CT. Sam and Priya are invited.",
+  "The production cutover is on the Ops team calendar.",
+  "Added to the Ops team calendar for Saturday 2026-11-07, 22:00-01:00 CT, and invited Sam and Priya.",
+  "Done - the cutover is on the calendar.",
+], rejected = [
+  "It's on the Ops team calendar for Friday 2026-11-06, 20:00-23:00 CT.",
+  "I could not add the cutover to the calendar.",
+] } }
 
-[[expect.state]]
-pointer = "/services/slack/posted"
-key_prefix = "C05DBMIG2RT#"
-any = { thread_ts = "1792600205.318801" }
+[[expect.records]]
+selector = { collection = "/services/slack/messages", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/slack/posted/C01GENERAL0#1"
-exists = false
+[[expect.relations]]
+source = { collection = "/services/slack/posted", created = true }
+source_field = "/thread_ts"
+target = { collection = "/services/slack/messages", matching = { channel = "C05DBMIG2RT", ts = "1792600205.318801" } }
+target_field = "/ts"
+kind = "foreign_key"
 
-[[expect.required_calls]]
-service = "google"
-path = "/_mcp/tools/call"
-body = { name = "manage_event", arguments = { action = "create" } }
+[[expect.relations]]
+source = { collection = "/services/slack/posted", created = true }
+source_field = "/channel"
+target = { collection = "/services/slack/channels", matching = { name = "db-migration" } }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.required_calls]]
-service = "slack"
-path = "/_mcp/tools/call"
-body = { name = "slack_send_message" }
+[[expect.relations]]
+source = { collection = "/services/slack/posted", created = true }
+source_field = "/ts"
+target = { collection = "/services/slack/messages", created = true }
+target_field = "/ts"
+kind = "bijection"
+fields = [
+  { source_field = "/channel", target_field = "/channel", kind = "equals" },
+  { source_field = "/thread_ts", target_field = "/thread_ts", kind = "equals" },
+  { source_field = "/text", target_field = "/text", kind = "equals" },
+]
+
+[[expect.preservation.allow]]
+pointer = "/services/google/calendar_events/*"
+kind = "create"
+matching = { calendarId = "c_ops_team@group.calendar.google.com", summary = "Payments cluster PG16 production cutover", status = "confirmed" }
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/google/calendar_conferences/*"
+kind = "create"
+matching = { solution = "hangoutsMeet", status = "success" }
+references = [{ source_field = "/created_for", target_field = "/id", target = { collection = "/services/google/calendar_events", created = true } }]
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/google/calendar_notification_requests/*"
+kind = "create"
+max_count = "all_matching"
+matching = { delivery = "unobserved" }
+field_patterns = { "/mode" = "^(all|externalOnly|none)$" }
+references = [{ source_field = "/eventId", target_field = "/id", target = { collection = "/services/google/calendar_events", created = true } }]
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/posted/*"
+kind = "create"
+matching = { channel = "C05DBMIG2RT", thread_ts = "1792600205.318801", user = "U02CMORG8RK" }
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/messages/*"
+kind = "create"
+matching = { channel = "C05DBMIG2RT", thread_ts = "1792600205.318801", user = "U02CMORG8RK" }
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/google/calendar_events", created = true }, calendar_meeting = { calendar_id = "c_ops_team@group.calendar.google.com", summary = "Payments cluster PG16 production cutover", start = "2026-11-08T04:00:00Z", end = "2026-11-08T07:00:00Z", attendees = ["sam.ortiz@octo-corp.example", "priya.natarajan@octo-corp.example"], require_meet = false } }
+action = { selector = { collection = "/services/slack/posted", created = true }, field = "/text", nonempty_text = true }
 
 [[expect.forbidden_calls]]
 service = "google"

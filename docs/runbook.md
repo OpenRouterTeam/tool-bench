@@ -7,10 +7,12 @@ tag is a hash of the files that image is built from (`crates/scenario/src/images
 scenarios, crates, servers, the catalog or an image Dockerfile, regenerate and commit `tasks/`:
 
 ```bash
-cargo run -p scenario --bin taskgen
+CARGO_INCREMENTAL=0 cargo run --locked -p scenario --bin taskgen -- --inventory docs/coverage/scenario-inventory.json
 ```
 
-CI (`.github/workflows/tool-bench.yml`) runs `taskgen --check`, so a stale `tasks/` fails the PR.
+CI (`.github/workflows/tool-bench.yml`) checks both generated tasks and the source
+inventory. Tool/argument admission, capture deferrals and inventory claim limits
+are documented in [authoring admission](authoring-admission.md).
 On merge to `main`, `.github/workflows/tool-bench-images.yml` builds and pushes any tag that isn't
 published yet, so the tasks on `main` always point at images built from the same sources.
 `taskgen --print-images` prints the two references. The trial pulls them with its Workload
@@ -18,6 +20,20 @@ Identity; compose `image:` lines are not rewritten by the trial's mirror logic.
 
 For local runs, pass local tags: `--world-image tool-bench-world:dev --tools-image tool-bench-tools:dev`
 (`deploy/oracle.sh` does this).
+
+### Retained-source replay
+
+Build an extracted source archive with a fresh, per-extracted-root
+`CARGO_TARGET_DIR`, not a previously populated workspace target. A local
+revision-38 replay reused newer compiled libraries despite different extracted
+source bytes and reported evaluator 39. Source hashes alone did not detect the
+mixed executable. That attempt is retained but excluded from validation.
+
+Assert the executable's evaluator identity before interpreting replay results;
+also check the changed behavior, since matching revision numbers are not a
+complete build attestation. Retain mixed-artifact diagnostics separately rather
+than relabeling them as historical controls. See the
+[Google source checkpoint](checkpoints/evaluator-39-google.md).
 
 ## 2. Register the benchmark
 
@@ -41,20 +57,115 @@ that matter here:
 
 Run each arm as its own run, with everything else identical.
 
+### Required verifier capabilities
+
+Generated tasks now require Harbor's separate verifier, sidecar collect hooks, and
+service-scoped artifact collection/rematerialization. They declare
+`metadata.verification_protocol = "offline-world-evidence-v5"`. The runner must
+admit this protocol explicitly; silently ignoring new task fields is not supported.
+Since revision 15, tasks declare `metadata.runner_protocol = "tool-bench-runner-v3"`
+and require a runner-authored receipt bound to exact evidence and legacy-answer
+bytes, with post-stop main snapshot and protected execution/source proof. The supported scripted local path is
+`sh deploy/run-trial.sh -p <task-directory> -a oracle -o <output-directory>`.
+Stock `harbor run --env deploy.runner.strict_docker:StrictDockerEnvironment`
+alone lacks the required agent-end hook and cannot produce admitted results.
+See [runner-admission.md](runner-admission.md).
+The external Argo runner's equivalent admission and artifact behavior still need
+independent validation before publishing this revision.
+
+The strict adapter generates a fresh `HARBOR_TRIAL_ADMIN_TOKEN` for each trial. Compose
+passes it only to `world`, never `main`, `tools`, or the separate verifier.
+`deploy/oracle.sh` selects that controller and adapter for local validation.
+An unset credential now prevents startup; generated tasks do not enable insecure
+local access.
+
+`main` and `tools` share the frontend network. Only `tools` and `world` join the
+internal backend network. No world ports are published. For MCP-only tasks, the
+world also enforces the actual tools peer on both HTTP and TLS requests and on
+nonlocal admin requests. Forwarded headers cannot override the peer. This is
+necessary because some Docker runtimes permit known-IP traffic across bridges.
+At agent end, the strict controller stops `main` before main artifact collection.
+Harbor subsequently runs the world collect hook, which
+calls authenticated `POST /_bench/finalize`. This closes new world requests and
+drains admitted requests plus registered background work for at most the declared
+20-second window before atomically exporting `/exports/evidence.json`. The evidence
+contains the finalization state, execution proof, and separate drain timing.
+Only the sidecar artifact
+is authoritative; an agent-created file at the same path is not.
+
+The verifier builds from `tests/`, with no agent processes, no MCP connections,
+no admin credential, and no network access. It runs `bench-verify` on the trusted
+contract, expected scenario identity, exported evidence, and the collected legacy
+answer file when present. Missing, unsealed, failed-finalization, or incompatible
+evidence fails closed. A failed drain cannot later be retried into a passing attempt;
+retain that failure and start a fresh trial under the declared replacement policy.
+
+The installed stock Harbor treats a failure to stop `main` as a warning. The strict
+adapter permanently refuses sidecar collection after such a failure, independently
+inspects stopped container state, and publishes the required receipt only on valid
+collection. An unsupported runner cannot score merely by ignoring the metadata:
+the offline verifier rejects missing admission proof. This is not evidence that
+the external production runner already implements the protocol.
+
 ## 4. Read results
+
+The generated inventory's `summary.scored_source_gaps` counts each declared gap
+among scored tasks only, including `legacy_answer_semantics` and
+`legacy_answer_file_collection`. The per-scenario `source_gaps` remain
+authoritative for selecting a reviewed release. A version-2 declaration or
+`scored_declared_unscorable: 0` does not certify complete answer semantics or
+runtime admission. Do not derive a release denominator from migration counts
+alone, or average provisional rewards across environment/unresolved outcomes.
 
 - Per-trial metrics in `reward.json`:
   - `reward`
-  - `outcome_code`: 0 pass, 1 fail, 2 context overflow
-  - `state_ok`, `required_calls_ok`, `forbidden_calls_ok`, `answer_ok`
+  - `outcome_code`: 0 pass, 1 fail, 2 context overflow, 3 integrity violation,
+    4 invalid contract, 5 environment error, 6 unresolved/adjudication required
+  - Individual state, record, relation, history, preservation, interface, answer,
+    and call-check metrics, plus evaluator and contract versions
   - `api_calls` (world requests through MCP servers, minus the servers' own startup requests in `crates/world/startup-calls.json`), `mcp_bypass`
-- The verifier also keeps `journal.json` (every API call) and `state.json` (final world
-  state) next to `reward.json`.
+- The verifier keeps `assessment.json` with typed failed checks, `evidence.json`
+  with the complete atomic bundle, and `verification.json` with input hashes.
+  `journal.json`, `events.json`, `state.json`, and `initial-state.json` are derived
+  from that same bundle, not separate live snapshots.
+  The input evidence hash refers to the original collected
+  `artifacts/world/evidence.json`, not the verifier's reserialized diagnostic copy.
+- Evaluator revision 15 requires evidence schema 5, including world-loaded contract/data
+  fingerprints, initialized-state provenance and finalization ownership
+  proof, pre-dispatch request receipts, and declared clock policy. Historical results retain their original
+  evaluator and image labels.
+- `runner_admission_checked` and `runner_admission_ok` distinguish a validated
+  runner from world-only diagnostics; both must be 1 for admitted scored tasks.
+- `business/shopify/relaunch-tote` requires the composed publication-capable client.
+  `ACTIVE` is not channel publication. Revision 14 checks actual online-store
+  membership and price-before-visibility history; the upstream-only client is
+  not an equivalent condition. See [operation support](operation-support.md).
+- `adjudication_needed` records undecided checks. An unresolved-only result has
+  outcome code 6 and a provisional compatibility reward of zero, not a proven
+  model failure. By default, `bench-report` rejects unresolved or empty comparisons rather
+  than emitting an apparently final score. Production consumers must implement
+  the same distinction before admitting this revision.
+- The optional [source-bound content-review path](content-review.md) requires an
+  exact policy declared before execution, every required reviewer's signed
+  decisions, an external store and explicit report options. Raw/effective results
+  and reviewer kinds stay separate; missing/conflicting reviews block final
+  comparison. Agent-written approvals and cached summaries are not authority.
+  Local scripted controls do not establish human semantic accuracy or admit
+  native model runs.
+- Final comparisons also reject environment/contract errors, missing/unknown
+  assessments, reported trial exceptions, and inconsistent binary metrics.
+  Retain those attempts and apply only the prespecified repair/replacement policy.
 - The world's admin port (`world:9000`) answers only `/_bench/health` and `/_bench/ca.pem` without
-  `HARBOR_TRIAL_ADMIN_TOKEN`. The Argo trial runner generates a random token per trial and passes it
-  to compose (for `world`) and to the verifier, never to the agent, so the token is not in the task
-  repo. The agent shares the network with the world but cannot read the state or call the grader.
-  When the variable is unset (local compose, `deploy/oracle.sh`), the admin port stays open.
+  the world's admin token, and scored MCP-only tasks reject non-tools/nonlocal
+  callers even on those public paths. `main` does not share the backend network.
+  A manually started development world can explicitly enable
+  `BENCH_ALLOW_INSECURE_LOCAL=1`; this is not a scored-task configuration.
+- Legacy answer-file collection remains while trustworthy harness-final-response
+  adapters are implemented. The supported controller collects stopped-container
+  files and binds their bytes; this is not native completion authentication.
+  The offline Harbor path does not classify context
+  overflow by grepping agent-writable text. Structured inference rejection evidence
+  is still required before restoring that diagnostic there.
 - To compare arms, download both runs' artifacts
   (the run's artifact bucket) and run:
 
@@ -63,20 +174,58 @@ Run each arm as its own run, with everything else identical.
   cargo run -p report --bin bench-report -- runs/arm-a runs/arm-b --json
   ```
 
+  Retain exact collected world/answer inputs and the verifier's provenance copies,
+  not just scalar `result.json` rewards. Current admitted comparisons are explicitly
+  `source_bound_scripted_only`; native/model runtime comparisons remain unsupported
+  until trusted producers and isolated product runners are implemented. The only
+  declared difference currently supported is `--allow-agent-difference`, recorded
+  in the output; it does not permit changed worlds, tools, graders, task sets,
+  repeat counts or budgets. It is not proof of preregistration.
+  See [execution provenance](execution-provenance.md).
+
 ## 5. Verify determinism of any trial
 
 ```bash
 cargo run -p world --bin world-replay -- scenarios/<scenario-id> <trial>/verifier/journal.json
 ```
 
-This replays every API call against a fresh world and fails on any differing response. The
-tool lists themselves are covered by `deploy/capture-stack.sh`: run it twice and compare the
-`sha256` of every snapshot.
+The stricter player first validates complete request context for the whole journal.
+It restores only declared synthetic header references, sends the exact captured body,
+and does not automatically follow redirects. Missing/redacted context, unsupported
+services, and unsupported nonserial ordering are distinguished from response mismatches;
+no requests run after a preflight failure. It is not general concurrent-scheduler replay.
+
+The prior Firecrawl authorization failure is fixed for newly captured journals:
+fixture credentials are referenced safely instead of being omitted or invented.
+Legacy journals still lack this information and are explicitly non-replayable under
+the new player, rather than being mislabeled nondeterministic backends. Both world
+and tools content tags now include the catalog because its synthetic replay-header
+declarations affect runtime behavior.
+
+The tool lists themselves are covered by `deploy/capture-stack.sh`: run it twice and
+compare the `sha256` of every snapshot. Actual model-visible schema/exposure preflight
+remains a separate requirement.
 
 ## 6. Local checks before publishing
 
 ```bash
 cargo test --workspace && cargo clippy --workspace --all-targets -- -D warnings
-cargo run -p scenario --bin taskgen -- --check       # tasks/ matches scenarios/
+cargo run --locked -p scenario --bin taskgen -- --check --inventory docs/coverage/scenario-inventory.json
 deploy/oracle.sh --all                               # oracle = 1 and nop = 0 for every task
 ```
+
+After building local images, also run:
+
+```bash
+EXPECTED_EVALUATOR_VERSION=29 WORLD_IMAGE=tool-bench-world:dev TOOLS_IMAGE=tool-bench-tools:dev deploy/test-task-isolation.sh
+```
+
+Set `EXPECTED_EVALUATOR_VERSION` to the raw evaluator revision of the selected
+world image; `29` is an example, not an inferred or permanent default. The script
+requires that declaration before starting infrastructure.
+
+This checks actual frontend/backend routing, credential and hidden-file separation,
+unauthenticated sidecar access, successful main-container shutdown, and attempts to
+forge world evidence and rewards from the agent container. It uses only scripted
+oracle executions, not paid model inference. It is a targeted isolation regression,
+not a complete evaluation-awareness or information-leakage audit.

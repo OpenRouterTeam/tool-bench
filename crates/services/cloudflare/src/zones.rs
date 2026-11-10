@@ -553,13 +553,22 @@ fn build_record(
             }
         },
         "CNAME" | "NS" | "PTR" => {
-            if content.contains(' ') || !content.contains('.') {
+            if content.chars().any(char::is_whitespace)
+                || content.contains(['/', ':', '?', '#'])
+                || !content.contains('.')
+            {
                 return Err(validation(
                     9007,
                     &format!("Content for {kind} record is invalid."),
                 ));
             }
             content = content.trim_end_matches('.').to_lowercase();
+            if kind == "CNAME" && content == name {
+                return Err(validation(
+                    9007,
+                    "A CNAME record cannot target its own name.",
+                ));
+            }
         }
         "MX" => {
             content = content.trim_end_matches('.').to_lowercase();
@@ -570,10 +579,24 @@ fn build_record(
         None | Some(Value::Null) => 1,
         Some(v) => v.as_i64().unwrap_or(-1),
     };
-    if ttl != 1 && !(30..=86400).contains(&ttl) {
+    let enterprise = zone
+        .pointer("/plan/legacy_id")
+        .and_then(Value::as_str)
+        .is_some_and(|plan| plan.eq_ignore_ascii_case("enterprise"))
+        || zone
+            .pointer("/plan/name")
+            .and_then(Value::as_str)
+            .is_some_and(|plan| {
+                plan.eq_ignore_ascii_case("Enterprise")
+                    || plan.eq_ignore_ascii_case("Enterprise Website")
+            });
+    let minimum_ttl = if enterprise { 30 } else { 60 };
+    if ttl != 1 && !(minimum_ttl..=86400).contains(&ttl) {
         return Err(validation(
             9021,
-            "Invalid TTL. Must be between 60 and 86400 seconds, or 1 for Automatic.",
+            &format!(
+                "Invalid TTL. Must be between {minimum_ttl} and 86400 seconds, or 1 for Automatic."
+            ),
         ));
     }
     let proxied = fields
@@ -886,15 +909,30 @@ fn route_fields(
         return Err(fail(400, &[(10021, "pattern: required")]));
     };
     let zone_name = str_field(zone, "name");
-    let host = pattern
+    let without_scheme = pattern
         .trim_start_matches("https://")
-        .trim_start_matches("http://")
-        .split('/')
-        .next()
-        .unwrap_or("")
-        .trim_start_matches("*.")
-        .trim_start_matches('*')
-        .to_lowercase();
+        .trim_start_matches("http://");
+    let (host, path) = without_scheme
+        .split_once('/')
+        .unwrap_or((without_scheme, ""));
+    let unstarred_host = host
+        .strip_prefix("*.")
+        .or_else(|| host.strip_prefix('*'))
+        .unwrap_or(host);
+    if pattern.contains('?')
+        || pattern.chars().any(char::is_whitespace)
+        || unstarred_host.contains('*')
+        || path.strip_suffix('*').unwrap_or(path).contains('*')
+    {
+        return Err(fail(
+            400,
+            &[(
+                10021,
+                "Invalid route pattern: wildcards must delimit the host or path, and query selectors are not supported.",
+            )],
+        ));
+    }
+    let host = unstarred_host.to_lowercase();
     if host != zone_name && !host.ends_with(&format!(".{zone_name}")) {
         return Err(fail(
             400,

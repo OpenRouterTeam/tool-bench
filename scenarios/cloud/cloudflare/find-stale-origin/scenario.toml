@@ -11,6 +11,10 @@ timeout_sec = 900
 # legacy-reports.octo-corp.com (same IP, DNS only), cdn.octo-shop.com (203.0.113.41),
 # preview.octo-corp.dev (203.0.113.4) and a TXT record mentioning the address. The answer
 # must be that hostname alone, so listing look-alikes too fails.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 regex = '(?i)^\W*checkout\.octo-shop\.com\W*$'
 

@@ -7,40 +7,37 @@ services = ["grafana"]
 tags = ["write", "single-service", "grafana", "disambiguation"]
 timeout_sec = 900
 
-# The dataset's highest annotation id is 41, so the new annotation is 42.
-[[expect.state]]
-pointer = "/services/grafana/annotations/42/dashboardUID"
-equals = "checkout-prod"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/42/time"
-equals = 1794492300000
+[[expect.records]]
+selector = { collection = "/services/grafana/annotations", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/42/text"
-contains = "4.19.0"
+[[expect.records]]
+selector = { collection = "/services/grafana/annotations", created = true, matching = { dashboardUID = "checkout-prod", tags = ["deploy", "checkout"] } }
+equals = 1
+fields = { "/text" = "Deploy checkout v4.19.0", "/time" = 1794492300000, "/timeEnd" = 1794492300000 }
+any_fields = [{ "/panelId" = 0 }, { "/panelId" = 3 }]
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/42/tags"
-contains = "deploy"
+[[expect.relations]]
+source = { collection = "/services/grafana/annotations", created = true }
+source_field = "/dashboardUID"
+target = { collection = "/services/grafana/dashboards", matching = { folderUid = "f-prod", dashboard = { uid = "checkout-prod", title = "Checkout Service" } } }
+target_field = "/dashboard/uid"
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/42/tags"
-contains = "checkout"
+[[expect.relations]]
+source = { collection = "/services/grafana/annotations", created = true }
+source_field = "/dashboardId"
+target = { collection = "/services/grafana/dashboards", matching = { dashboard = { uid = "checkout-prod" } } }
+target_field = "/dashboard/id"
 
-[[expect.state]]
-pointer = "/services/grafana/annotations/43"
-exists = false
-
-[[expect.state]]
-pointer = "/services/grafana/annotations/39/text"
-equals = "Deploy checkout v4.19.0 to staging"
-
-[[expect.required_calls]]
-service = "grafana"
-method = "POST"
-path = "/api/annotations"
-body = { dashboardUID = "checkout-prod" }
+[[expect.relations]]
+source = { collection = "/services/grafana/annotations", created = true }
+source_field = "/userId"
+target = { collection = "/services/grafana/user", key_prefix = "current" }
+target_field = "/id"
 
 [[expect.forbidden_calls]]
 service = "grafana"
@@ -51,6 +48,12 @@ service = "grafana"
 method = "POST"
 path = "/api/dashboards/db"
 
+[expect.preservation]
+allow = [
+  { pointer = "/services/grafana/annotations/*", kind = "create", matching = { dashboardUID = "checkout-prod", panelId = 0, text = "Deploy checkout v4.19.0", time = 1794492300000, timeEnd = 1794492300000, tags = ["deploy", "checkout"] }, references = [{ source_field = "/dashboardId", target_field = "/dashboard/id", target = { collection = "/services/grafana/dashboards", matching = { dashboard = { uid = "checkout-prod" } } } }, { source_field = "/userId", target_field = "/id", target = { collection = "/services/grafana/user", key_prefix = "current" } }], cause = { service = "grafana", methods = ["POST"], path_regex = "^/api/annotations/*$" } },
+  { pointer = "/services/grafana/annotations/*", kind = "create", matching = { dashboardUID = "checkout-prod", panelId = 3, text = "Deploy checkout v4.19.0", time = 1794492300000, timeEnd = 1794492300000, tags = ["deploy", "checkout"] }, references = [{ source_field = "/dashboardId", target_field = "/dashboard/id", target = { collection = "/services/grafana/dashboards", matching = { dashboard = { uid = "checkout-prod" } } } }, { source_field = "/userId", target_field = "/id", target = { collection = "/services/grafana/user", key_prefix = "current" } }], cause = { service = "grafana", methods = ["POST"], path_regex = "^/api/annotations/*$" } },
+]
+
 [[solution.call]]
 endpoint = "grafana"
 tool = "search_dashboards"
@@ -60,3 +63,8 @@ arguments = { query = "Checkout Service" }
 endpoint = "grafana"
 tool = "create_annotation"
 arguments = { dashboardUid = "checkout-prod", time = 1794492300000, text = "Deploy checkout v4.19.0", tags = ["deploy", "checkout"] }
+
+[[solution.call]]
+endpoint = "grafana"
+tool = "get_annotations"
+arguments = { dashboardUid = "checkout-prod", from = 1794492300000, to = 1794492300000, tags = ["deploy", "checkout"] }

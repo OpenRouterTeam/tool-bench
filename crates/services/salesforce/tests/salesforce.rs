@@ -655,7 +655,7 @@ async fn create_get_update_delete_record() {
         .await
         .json();
     assert_eq!(rec["Name"], "Mina Patel");
-    assert_eq!(rec["CreatedDate"], "2026-05-12T15:00:07.000+0000");
+    assert_eq!(rec["CreatedDate"], "2026-05-12T15:00:00.000+0000");
     assert_eq!(rec["OwnerId"], "0055g00000yTKUGAA4");
     assert_eq!(rec["IsDeleted"], false);
     let some = get(
@@ -682,7 +682,7 @@ async fn create_get_update_delete_record() {
     );
     assert_eq!(
         s["services"]["salesforce"]["Contact"][&id]["LastModifiedDate"],
-        "2026-05-12T15:00:14.000+0000"
+        "2026-05-12T15:00:00.000+0000"
     );
 
     let r = send(
@@ -794,7 +794,7 @@ async fn derived_fields_follow_salesforce_rules() {
     .await;
     let c = state(&w)["services"]["salesforce"]["Case"][BLUEFIN_CASE].clone();
     assert_eq!(c["IsClosed"], true);
-    assert_eq!(c["ClosedDate"], "2026-05-12T15:00:14.000+0000");
+    assert_eq!(c["ClosedDate"], "2026-05-12T15:00:00.000+0000");
 
     let r = send(&app, "POST", &format!("{V}/sobjects/Task"), &format!(r#"{{"Subject":"Call","WhoId":"{DANA}","Status":"Completed","ActivityDate":"2026-05-12"}}"#), &[]).await;
     let id = r.json()["id"].as_str().unwrap().to_owned();

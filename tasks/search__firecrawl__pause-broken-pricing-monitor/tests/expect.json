@@ -1,58 +1,153 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11/status",
-      "equals": "paused",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/firecrawl/monitors",
+        "matching": {
+          "id": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "paused"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11/targets/0/urls/0",
-      "equals": "https://www.tailspintoys.com/pricing",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/firecrawl/monitors",
+        "matching": {
+          "id": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "active"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/status",
-      "equals": "active",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a13/status",
-      "equals": "active",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a14/status",
-      "equals": "active",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/firecrawl/monitor_checks",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12",
+        "/trigger": "manual"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [
+        {
+          "/status": "queued"
+        },
+        {
+          "/status": "running"
+        },
+        {
+          "/status": "completed"
+        }
+      ],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "firecrawl",
-      "method": "POST",
-      "path": "/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/run",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/firecrawl/monitor_checks",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/firecrawl/monitors",
+        "matching": {
+          "id": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/lastCheckId",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
+  "audit_history": true,
+  "ordering": [
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/firecrawl/monitors",
+          "matching": {
+            "id": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/status",
+        "equals": "paused"
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/firecrawl/monitor_checks",
+          "matching": {
+            "monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
+          },
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/trigger",
+        "equals": "manual"
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    }
+  ],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "firecrawl",
@@ -62,7 +157,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "firecrawl",
@@ -72,8 +169,277 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11/status",
+        "kind": "update",
+        "matching": {
+          "status": "paused"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11/updatedAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/lastRunAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/run$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/lastCheckId",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/run$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*",
+        "kind": "create",
+        "matching": {
+          "monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12",
+          "trigger": "manual"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/run$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/status",
+        "kind": "update",
+        "matching": {
+          "monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
+        },
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitor_checks",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/startedAt",
+        "kind": "update",
+        "matching": {
+          "monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
+        },
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitor_checks",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/completedAt",
+        "kind": "update",
+        "matching": {
+          "monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
+        },
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitor_checks",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/summary",
+        "kind": "update",
+        "matching": {
+          "monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
+        },
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitor_checks",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/pages",
+        "kind": "update",
+        "matching": {
+          "monitorId": "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12"
+        },
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitor_checks",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

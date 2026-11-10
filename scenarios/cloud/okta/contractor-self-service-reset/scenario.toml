@@ -7,62 +7,32 @@ services = ["okta"]
 tags = ["write", "single-service", "okta"]
 timeout_sec = 900
 
-# PASSWORD policies: Contractors 00p4pwcntr2Uv9Wx0x7 (rule 0pr5rule0tr2Uv9Wx0x7),
-# Employees 00p4pwempl4Yz1Ab2x7 (rule 0pr5rule1pl4Yz1Ab2x7), Default 00p4pwdflt0Pq7Rs8tx7
-# (system rule 0pr5rule2lt0Pq7Rs8tx). All start with reset ALLOW; unlock ALLOW except Default.
-[[expect.state]]
-pointer = "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/selfServicePasswordReset/access"
-equals = "DENY"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/selfServiceUnlock/access"
-equals = "DENY"
+[[expect.records]]
+selector = { collection = "/services/okta/policies", matching = { id = "00p4pwcntr2Uv9Wx0x7", name = "Contractors Password Policy", type = "PASSWORD" } }
+equals = 1
+fields = { "/status" = "ACTIVE" }
 
-# Contractors can still change their password while signed in, and the rule stays on.
-[[expect.state]]
-pointer = "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/passwordChange/access"
-equals = "ALLOW"
-
-[[expect.state]]
-pointer = "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/status"
-equals = "ACTIVE"
-
-[[expect.state]]
-pointer = "/services/okta/policies/00p4pwcntr2Uv9Wx0x7/status"
-equals = "ACTIVE"
-
-# Employees and the default policy are untouched.
-[[expect.state]]
-pointer = "/services/okta/policy_rules/00p4pwempl4Yz1Ab2x7~10pr5rule1pl4Yz1Ab2x7/actions/selfServicePasswordReset/access"
-equals = "ALLOW"
-
-[[expect.state]]
-pointer = "/services/okta/policy_rules/00p4pwempl4Yz1Ab2x7~10pr5rule1pl4Yz1Ab2x7/actions/selfServiceUnlock/access"
-equals = "ALLOW"
-
-[[expect.state]]
-pointer = "/services/okta/policy_rules/00p4pwdflt0Pq7Rs8tx7~10pr5rule2lt0Pq7Rs8tx/actions/selfServicePasswordReset/access"
-equals = "ALLOW"
-
-[[expect.required_calls]]
-service = "okta"
-method = "PUT"
-path = "/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7"
-
-[[expect.forbidden_calls]]
-service = "okta"
-method = "PUT"
-path_regex = "^/api/v1/policies/(00p4pwempl4Yz1Ab2x7|00p4pwdflt0Pq7Rs8tx7)"
+[[expect.records]]
+selector = { collection = "/services/okta/policy_rules", matching = { id = "0pr5rule0tr2Uv9Wx0x7", type = "PASSWORD" }, key_prefix = "00p4pwcntr2Uv9Wx0x7/" }
+equals = 1
+fields = { "/status" = "ACTIVE", "/actions/passwordChange/access" = "ALLOW", "/actions/selfServicePasswordReset/access" = "DENY", "/actions/selfServiceUnlock/access" = "DENY" }
 
 [[expect.forbidden_calls]]
 service = "okta"
 method = "DELETE"
 path_regex = "^/api/v1/policies"
 
-[[expect.forbidden_calls]]
-service = "okta"
-method = "POST"
-path_regex = "^/api/v1/policies/.*lifecycle/deactivate$"
+[expect.preservation]
+allow = [
+  { pointer = "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/selfServicePasswordReset/access", matching = { actions = { selfServicePasswordReset = { access = "DENY" } } }, cause = { service = "okta", methods = ["PUT"], path_regex = "^/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7$" } },
+  { pointer = "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/selfServiceUnlock/access", matching = { actions = { selfServiceUnlock = { access = "DENY" } } }, cause = { service = "okta", methods = ["PUT"], path_regex = "^/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7$" } },
+  { pointer = "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/lastUpdated", cause = { service = "okta", methods = ["PUT"], path_regex = "^/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7$" } },
+  { pointer = "/services/okta/logs/*", kind = "create", matching = { eventType = "policy.rule.update", outcome = { result = "SUCCESS" }, actor = { id = "0oa8wq4n2Yc6Ds7Rt0x7" } }, references = [{ source_field = "/target/0/id", target_field = "/id", target = { collection = "/services/okta/policy_rules", matching = { id = "0pr5rule0tr2Uv9Wx0x7" }, key_prefix = "00p4pwcntr2Uv9Wx0x7/" } }, { source_field = "/target/1/id", target_field = "/id", target = { collection = "/services/okta/policies", matching = { id = "00p4pwcntr2Uv9Wx0x7", type = "PASSWORD" } } }], count_scope = "per_commit", cause = { service = "okta", methods = ["PUT"], path_regex = "^/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7$" } },
+]
 
 [[solution.call]]
 endpoint = "okta"
@@ -76,15 +46,21 @@ arguments = { policy_id = "00p4pwcntr2Uv9Wx0x7" }
 
 [[solution.call]]
 endpoint = "okta"
+tool = "get_policy_rule"
+arguments = { policy_id = "00p4pwcntr2Uv9Wx0x7", rule_id = "0pr5rule0tr2Uv9Wx0x7" }
+capture = [{ name = "contractor_rule", pointer = "/content/0/text", json_pointer = "" }]
+
+[[solution.call]]
+endpoint = "okta"
 tool = "update_policy_rule"
+template = true
+arguments = { policy_id = "00p4pwcntr2Uv9Wx0x7", rule_id = "0pr5rule0tr2Uv9Wx0x7", rule_data = "${contractor_rule}" }
+replacements = [
+  { pointer = "/rule_data/actions/selfServicePasswordReset/access", value = "DENY" },
+  { pointer = "/rule_data/actions/selfServiceUnlock/access", value = "DENY" },
+]
 
-[solution.call.arguments]
-policy_id = "00p4pwcntr2Uv9Wx0x7"
-rule_id = "0pr5rule0tr2Uv9Wx0x7"
-
-[solution.call.arguments.rule_data]
-type = "PASSWORD"
-name = "Contractors rule"
-priority = 1
-conditions = { people = { users = { exclude = [] } }, network = { connection = "ANYWHERE" } }
-actions = { passwordChange = { access = "ALLOW" }, selfServicePasswordReset = { access = "DENY" }, selfServiceUnlock = { access = "DENY" } }
+[[solution.call]]
+endpoint = "okta"
+tool = "get_policy_rule"
+arguments = { policy_id = "00p4pwcntr2Uv9Wx0x7", rule_id = "0pr5rule0tr2Uv9Wx0x7" }

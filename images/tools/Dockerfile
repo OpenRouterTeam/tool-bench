@@ -31,8 +31,12 @@ FROM ${GO_IMAGE} AS go-build
 ENV GOBIN=/out GOTOOLCHAIN=auto CGO_ENABLED=0
 RUN --mount=type=cache,target=/root/go/pkg/mod \
     go install github.com/github/github-mcp-server/v2/cmd/github-mcp-server@v2.0.3 \
- && go install github.com/grafana/mcp-grafana/v2/cmd/mcp-grafana@v2.1.1 \
  && go install github.com/hashicorp/terraform-mcp-server/cmd/terraform-mcp-server@v1.4.1
+# mcp-grafana is NOT an unchanged go install: the sum-pinned v2.1.1 module plus
+# the declared silence validation-clock adaptation (servers/extensions/grafana).
+COPY servers/extensions/grafana /src/grafana-adapter
+RUN --mount=type=cache,target=/root/go/pkg/mod \
+    sh /src/grafana-adapter/build.sh binary /out
 
 # ── npm servers (exact versions + lockfile) ─────────────────────────────────
 FROM ${NODE_IMAGE} AS npm-build
@@ -60,6 +64,7 @@ RUN set -eu; mkdir -p /opt/py-bin; \
 FROM ${NODE_IMAGE} AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git \
  && rm -rf /var/lib/apt/lists/*
+COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/doc/tool-bench/
 COPY --from=ghcr.io/astral-sh/uv:0.12.10 /uv /uvx /usr/local/bin/
 ENV UV_PYTHON_INSTALL_DIR=/opt/python
 COPY --from=py-build /opt/python /opt/python
@@ -75,5 +80,6 @@ ENV PATH=/opt/bin:/opt/npm/node_modules/.bin:$PATH
 WORKDIR /opt/tool-bench
 COPY servers/snapshots /opt/tool-bench/snapshots
 COPY servers/config /etc/tool-bench
+COPY servers/extensions /etc/tool-bench/extensions
 EXPOSE 7101-7132
 ENTRYPOINT ["tools-supervisor", "--ca-url", "http://world:9000/_bench/ca.pem"]

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/sentry/triage-storefront-map-error",
+  "scenario_sha256": "sha256:a54eafaa1ec108ce0ea833b71477798f42103c6fc118d63080b37ac24f3c04d5",
+  "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
+  "contract_sha256": "sha256:e7c66f906e1bb4e98151f9c8621f8e618eca1735e1fb33fd52e841cd5fef79d5"
+}

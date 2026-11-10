@@ -8,59 +8,104 @@ tags = ["write", "multi-service", "linear", "cloudflare", "disambiguation"]
 timeout_sec = 1200
 
 # PLAT-241 (Todo) asks to point the existing api.octo-corp.com A record
-# (5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58) at 198.51.100.45, proxied. Look-alikes: the canceled
-# PLAT-238 with the old address 198.51.100.44, and the staging api.octo-corp.dev record
-# (e41a6d0c…) that must not move yet.
-[[expect.state]]
+# (5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58) at 198.51.100.45, proxied, without creating a second record. Look-alikes: the
+# canceled PLAT-238 with the old address 198.51.100.44, and the staging api.octo-corp.dev
+# record (e41a6d0c…) that must not move yet. The request does not ask for the record comment
+# or any metadata to change; the stale "origin-2 (new)" comment is preserved.
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/cloudflare/dns_records", matching = { zone_id = "023e105f4ecef8ad9ca31a8372d0c353", name = "api.octo-corp.com", type = "A" } }
+equals = 1
+fields = { "/id" = "5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58", "/content" = "198.51.100.45", "/proxied" = true, "/ttl" = 1 }
+
+[[expect.records]]
+selector = { collection = "/services/cloudflare/dns_records", created = true }
+equals = 0
+
+[[expect.records]]
+selector = { collection = "/services/linear/comments", created = true }
+equals = 1
+reviewed_text = { "/body" = { requirement = "Tell the PLAT-241 reader what was changed in Cloudflare: the existing api.octo-corp.com A record now points to 198.51.100.45. The comment association supplies the ticket context; no greeting, repeated ticket id, old address, proxy narration or staging remark is mandatory, but any added claim must be true. Do not accept the old/canceled address, a newly created record, or a failed/not-done report. Unlisted nonempty wording requires adjudication, not an invented model failure.", accepted = [
+  "Done: the api.octo-corp.com A record in Cloudflare now points to 198.51.100.45 (origin-3), still proxied. Staging api.octo-corp.dev is unchanged.",
+  "Updated the existing api.octo-corp.com A record to 198.51.100.45.",
+  "Changed the api.octo-corp.com A record from 198.51.100.21 to 198.51.100.45; it remains proxied.",
+  "api.octo-corp.com now resolves to origin-3: the A record content is 198.51.100.45 and proxying is still on.",
+], rejected = [
+  "Moved api.octo-corp.com to 198.51.100.44.",
+  "Created a new A record for api.octo-corp.com at 198.51.100.45.",
+  "I could not make the DNS change.",
+] } }
+
+[[expect.relations]]
+source = { collection = "/services/linear/comments", created = true }
+source_field = "/issueId"
+target = { collection = "/services/linear/issues", matching = { identifier = "PLAT-241" } }
+target_field = "/id"
+kind = "foreign_key"
+
+[[expect.relations]]
+source = { collection = "/services/linear/issues", matching = { identifier = "PLAT-241" } }
+source_field = "/stateId"
+target = { collection = "/services/linear/workflow_states", matching = { teamId = "a7c70c10-090f-50bf-a8ce-b4cdee9d8572", name = "Done", type = "completed" } }
+target_field = "/id"
+kind = "foreign_key"
+
+[[expect.relations]]
+source = { collection = "/services/cloudflare/dns_records", matching = { id = "5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58" } }
+source_field = "/zone_id"
+target = { collection = "/services/cloudflare/zones", matching = { name = "octo-corp.com" } }
+target_field = "/id"
+kind = "foreign_key"
+
+[[expect.preservation.allow]]
 pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/content"
-equals = "198.51.100.45"
+value_equals = "198.51.100.45"
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/type"
-equals = "A"
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/modified_on"
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/name"
-equals = "api.octo-corp.com"
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/settings"
+value_equals = {}
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/proxied"
-equals = true
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/comment_modified_on"
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/e41a6d0c9b2f7e5a3c8d1b6f4a9e2c07/content"
-equals = "203.0.113.12"
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/tags_modified_on"
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/372e67954025e0ba6aaa6d586b9e0b59/content"
-equals = "198.51.100.20"
-
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/linear/issues/PLAT-241/stateId"
-equals = "4ed11568-6dd0-5b94-bf4e-ba05dd563850"
+value_equals = "4ed11568-6dd0-5b94-bf4e-ba05dd563850"
 
-[[expect.state]]
-pointer = "/services/linear/comments"
-key_prefix = "PLAT-241#"
-any = { body = "198.51.100.45" }
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/PLAT-241/completedAt"
 
-[[expect.state]]
-pointer = "/services/linear/issues/PLAT-238/stateId"
-equals = "99afb074-55c3-5598-a54a-aeacf48ea5ff"
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/PLAT-241/updatedAt"
 
-[[expect.state]]
-pointer = "/services/linear/comments/PLAT-238#1"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/linear/comments/*"
+kind = "create"
+matching = { issueId = "9e3a7b52-1c84-5d6f-b0e2-7f4c8a1d6b93" }
 
-[[expect.required_calls]]
-service = "cloudflare"
-path_regex = "^/client/v4/zones/023e105f4ecef8ad9ca31a8372d0c353/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58$"
-body_contains = "198.51.100.45"
+[[expect.preservation.allow]]
+pointer = "/services/linear/issue_history/*"
+kind = "create"
+matching = { issueId = "9e3a7b52-1c84-5d6f-b0e2-7f4c8a1d6b93" }
+count_scope = "per_commit"
+max_count = 6
 
-[[expect.required_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
-body = { name = "linear_createComment" }
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/cloudflare/dns_records", matching = { id = "5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58" } }, field = "/content", equals = "198.51.100.45" }
+action = { selector = { collection = "/services/linear/comments", created = true }, field = "/body", nonempty_text = true }
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/cloudflare/dns_records", matching = { id = "5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58" } }, field = "/content", equals = "198.51.100.45" }
+action = { selector = { collection = "/services/linear/issues", matching = { identifier = "PLAT-241" } }, field = "/stateId", equals = "4ed11568-6dd0-5b94-bf4e-ba05dd563850" }
 
 [[expect.forbidden_calls]]
 service = "cloudflare"
@@ -109,7 +154,7 @@ async () => {
   const updated = await cloudflare.request({
     method: 'PATCH',
     path: `/zones/${zone}/dns_records/${rec.id}`,
-    body: { content: '198.51.100.45', proxied: true, comment: 'origin-3 (PLAT-241)' },
+    body: { content: '198.51.100.45', proxied: true },
   });
   return { before: rec.content, after: updated.result };
 }

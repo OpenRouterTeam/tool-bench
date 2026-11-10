@@ -12,6 +12,8 @@
 #   deploy/smoke-arms.sh <scenario-id>...   MODEL=anthropic/claude-haiku-5.5 (default), results in $OUT
 set -u
 M="$(cd "$(dirname "$0")/.." && pwd)"
+. "$M/deploy/host-agent-guard.sh"
+guard_host_agent || exit "$?"
 MODEL=${MODEL:-anthropic/claude-haiku-5.5}
 ARM=${ARM:-native}
 case "$ARM" in
@@ -33,7 +35,7 @@ for id in "$@"; do
   docker rm -f $WORLD $TOOLS >/dev/null 2>&1; docker network rm $NET >/dev/null 2>&1
   docker network create $NET >/dev/null
   aliases=""; for h in $(cd $M && cargo run -q -p catalog --bin catalog -- aliases); do aliases="$aliases --network-alias $h"; done
-  docker run -d --name $WORLD --network $NET --network-alias world $aliases -e SCENARIO_ID="$id" -p 127.0.0.1:$ADMIN_PORT:9000 ${WORLD_IMAGE:-tool-bench-world:dev} >/dev/null
+  docker run -d --name $WORLD --network $NET --network-alias world $aliases -e SCENARIO_ID="$id" -e BENCH_ALLOW_INSECURE_LOCAL=1 -p 127.0.0.1:$ADMIN_PORT:9000 ${WORLD_IMAGE:-tool-bench-world:dev} >/dev/null
   ports=""; for p in $(seq 7101 7132); do ports="$ports -p 127.0.0.1:$((MCP_BASE + p)):$p"; done
   docker run -d --name $TOOLS --network $NET --network-alias tools $ports tool-bench-tools:dev >/dev/null
   for i in $(seq 1 120); do curl -s -o /dev/null http://127.0.0.1:$((MCP_BASE + 7130))/mcp && break; sleep 1; done

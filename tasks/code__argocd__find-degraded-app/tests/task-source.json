@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/argocd/find-degraded-app",
+  "scenario_sha256": "sha256:5853bee8bb57bea625cd89163d70710bcc7f92343852ca92e24cdb72881f12e4",
+  "dataset_sha256": "sha256:7744a3b62facfb55b901c5059c1a7ef07279e5e58a02f7968f2a7b65d4bdd046",
+  "contract_sha256": "sha256:d87fceeef80cb893310c15960cca9ce06209f525b6a2281b0a9e803a84fbd58b"
+}

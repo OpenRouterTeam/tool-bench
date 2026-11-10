@@ -11,54 +11,106 @@ timeout_sec = 900
 # Stale numbers: deprecated v2 docs and a 2025 review (300), a forum post (500); Quillpad is a
 # different vendor (400). The right ticket is 5302 (Priya Shah, open). Look-alikes: her solved
 # ticket 5287, Priya Sharma's Quillpad ticket 5298, and Tomas's Quillstream ticket 5301.
-[[expect.state]]
-pointer = "/services/zendesk/comments"
-key_prefix = "5302/"
-any = { public = true, body = "750" }
+[expect]
+version = 2
+audit_history = true
 
 [[expect.state]]
 pointer = "/services/zendesk/tickets/5302/status"
 equals = "pending"
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5287/status"
-equals = "solved"
+[[expect.records]]
+selector = { collection = "/services/zendesk/comments", created = true }
+equals = 1
+fields = { "/ticket_id" = 5302, "/public" = true }
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5298/status"
-equals = "open"
+[expect.records.reviewed_text."/body"]
+requirement = "Tell Priya Shah, on her open Quillstream 429 ticket, that Quillstream's current v3 documentation allows 750 requests per minute on the Business plan, without contradictory or invented claims. The 120 burst, per-workspace sharing, Retry-After header, advice to space the sync, greeting and signature are accurate optional context, not requirements. The older v2 (300), forum (500) and review (300) numbers and Quillpad's 400 are stale or unrelated."
+accepted = [
+  "Hi Priya,\n\nAccording to Quillstream's current API documentation (v3, updated September 14, 2026), the Business plan allows 750 requests per minute, with bursts of up to 120. The limit is shared across the whole Quillstream workspace, not per API key, so any other integrations using the same workspace count towards it. When you go over it, Quillstream returns 429 with a Retry-After header.\n\nIf you space your sync below 750 requests per minute (including other tools on that workspace), the 429s should stop. Let us know how it goes!\n\nRita",
+  "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan allows 750 requests per minute.\n\nRita",
+  "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan allows 750 requests per minute, with bursts of up to 120.\n\nRita",
+  "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan allows 750 requests per minute per workspace, shared across all API keys in that workspace.\n\nRita",
+  "Quillstream's current API documentation (v3) says the Business plan allows 750 requests per minute.",
+  "Hi Priya,\n\nThe Quillstream Business plan allows 750 requests per minute according to their current API documentation (v3), with a burst of up to 120. The limit is per workspace, so other integrations in the same workspace count towards it.\n\nThanks,\nRita",
+]
+rejected = [
+  "Hi Priya,\n\nQuillstream's API documentation says the Business plan allows 300 requests per minute.\n\nRita",
+  "Hi Priya,\n\nQuillstream's API documentation says the Business plan allows 500 requests per minute.\n\nRita",
+  "Hi Priya,\n\nThe Business plan allows 400 requests per minute.\n\nRita",
+  "Hi Priya,\n\nWe are checking Quillstream's current documentation and will follow up with the Business plan requests-per-minute limit.\n\nRita",
+  "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan has a burst allowance of up to 120.\n\nRita",
+]
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5301/status"
-equals = "open"
+[expect.records.reviewed_text."/html_body"]
+format = "zendesk_html"
+requirement = "Tell Priya Shah, on her open Quillstream 429 ticket, that Quillstream's current v3 documentation allows 750 requests per minute on the Business plan, without contradictory or invented claims. The 120 burst, per-workspace sharing, Retry-After header, advice to space the sync, greeting and signature are accurate optional context, not requirements. The older v2 (300), forum (500) and review (300) numbers and Quillpad's 400 are stale or unrelated."
+accepted = [
+  "Hi Priya,\n\nAccording to Quillstream's current API documentation (v3, updated September 14, 2026), the Business plan allows 750 requests per minute, with bursts of up to 120. The limit is shared across the whole Quillstream workspace, not per API key, so any other integrations using the same workspace count towards it. When you go over it, Quillstream returns 429 with a Retry-After header.\n\nIf you space your sync below 750 requests per minute (including other tools on that workspace), the 429s should stop. Let us know how it goes!\n\nRita",
+  "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan allows 750 requests per minute.\n\nRita",
+  "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan allows 750 requests per minute, with bursts of up to 120.\n\nRita",
+  "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan allows 750 requests per minute per workspace, shared across all API keys in that workspace.\n\nRita",
+  "Quillstream's current API documentation (v3) says the Business plan allows 750 requests per minute.",
+  "Hi Priya,\n\nThe Quillstream Business plan allows 750 requests per minute according to their current API documentation (v3), with a burst of up to 120. The limit is per workspace, so other integrations in the same workspace count towards it.\n\nThanks,\nRita",
+]
+rejected = [
+  "Hi Priya,\n\nQuillstream's API documentation says the Business plan allows 300 requests per minute.\n\nRita",
+  "Hi Priya,\n\nQuillstream's API documentation says the Business plan allows 500 requests per minute.\n\nRita",
+  "Hi Priya,\n\nThe Business plan allows 400 requests per minute.\n\nRita",
+  "Hi Priya,\n\nWe are checking Quillstream's current documentation and will follow up with the Business plan requests-per-minute limit.\n\nRita",
+  "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan has a burst allowance of up to 120.\n\nRita",
+]
 
-[[expect.state]]
-pointer = "/services/zendesk/comments/5298~12"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/zendesk/audits", created = true }
+min_count = 1
+fields = { "/ticket_id" = 5302 }
 
-[[expect.state]]
-pointer = "/services/zendesk/comments/5287~13"
-exists = false
+[[expect.relations]]
+source = { collection = "/services/zendesk/comments", created = true }
+source_field = "/audit_id"
+target = { collection = "/services/zendesk/audits", created = true }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.state]]
-pointer = "/services/zendesk/comments/5301~12"
-exists = false
+[[expect.information]]
+prerequisite = { service = "tavily", method = "POST", path_regex = "^/(search|extract|crawl)$" }
+response_field = "/results"
+source = { collection = "/services/tavily/pages", matching = { url = "https://docs.quillstream.io/api/rate-limits" } }
+projection = [
+  { response = ["/url"], source = "/url" },
+  { response = ["/content", "/raw_content"], source = "/content", excerpts = ["Business", "750", "workspace"] },
+]
+action = { service = "zendesk", method = "POST", path = "/_mcp/tools/call" }
+action_effect = { selector = { collection = "/services/zendesk/comments", created = true }, field = "/body", nonempty_text = true }
 
-[[expect.required_calls]]
-service = "tavily"
-method = "POST"
-path_regex = "^/(search|extract|crawl|map|research)$"
+[[expect.information]]
+prerequisite = { service = "tavily", method = "POST", path_regex = "^/(search|extract|crawl)$" }
+response_field = "/results"
+source = { collection = "/services/tavily/pages", matching = { url = "https://docs.quillstream.io/api/rate-limits" } }
+projection = [
+  { response = ["/url"], source = "/url" },
+  { response = ["/content", "/raw_content"], source = "/content", excerpts = ["Business", "750", "workspace"] },
+]
+action = { service = "zendesk", method = "PUT", path_regex = "^/api/v2/tickets/[0-9]+(\\.json)?$" }
+action_effect = { selector = { collection = "/services/zendesk/comments", created = true }, field = "/body", nonempty_text = true }
 
-[[expect.required_calls]]
-service = "zendesk"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment", arguments = { ticket_id = 5302 } }
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/5302/status"
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket" }
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/5302/updated_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/comments/*"
+kind = "create"
+matching = { ticket_id = 5302, public = true }
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/audits/*"
+kind = "create"
+matching = { ticket_id = 5302 }
+count_scope = "per_commit"
 
 [[solution.call]]
 endpoint = "tavily"

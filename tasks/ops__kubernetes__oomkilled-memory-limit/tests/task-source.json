@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/kubernetes/oomkilled-memory-limit",
+  "scenario_sha256": "sha256:14ddbe1a41f13ef30765b0ec41f6ecf2f96c511be8eb926f9a1af5b7ee81659c",
+  "dataset_sha256": "sha256:b0ca0d55a98576477e4780a4ec2a197f865d385c4b7a2ee1ddb21933a1f0d2f3",
+  "contract_sha256": "sha256:0de54ca4d7abfc4b48f169de1ee17710676e87f4631931f88153314f9aa4586d"
+}

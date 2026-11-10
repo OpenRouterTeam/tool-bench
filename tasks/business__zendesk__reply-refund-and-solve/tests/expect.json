@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/zendesk/tickets/4217/status",
@@ -6,193 +7,195 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
+    }
+  ],
+  "records": [
+    {
+      "selector": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/public": true,
+        "/ticket_id": 4217
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/body": {
+          "requirement": "Tell Marcus Chen that billing issued the refund for his duplicate October charge, identify reference RF-88213, and state expected card arrival within 5-7 business days, without contradictory or invented claims. Invoice INV-55120 is corroborated by his ticket but need not be repeated.",
+          "accepted": [
+            "Hi Marcus,\n\nGood news: our billing team has refunded the duplicate October charge for invoice INV-55120. The refund reference is RF-88213, and it should appear on your card within 5-7 business days.\n\nSorry for the trouble, and thanks for your patience.\n\nJordan",
+            "Marcus, billing has issued the refund for the duplicate October charge. Reference RF-88213; it should reach your card within 5-7 business days."
+          ],
+          "format": "plain",
+          "bound": null
+        },
+        "/html_body": {
+          "requirement": "The visible customer reply must truthfully convey the issued duplicate-October-charge refund, reference RF-88213, and 5-7 business-day card arrival estimate, without hidden, contradictory or invented claims.",
+          "accepted": [
+            "Hi Marcus,\n\nGood news: our billing team has refunded the duplicate October charge for invoice INV-55120. The refund reference is RF-88213, and it should appear on your card within 5-7 business days.\n\nSorry for the trouble, and thanks for your patience.\n\nJordan",
+            "Marcus, billing has issued the refund for the duplicate October charge. Reference RF-88213; it should reach your card within 5-7 business days."
+          ],
+          "format": "zendesk_html",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/zendesk/comments",
+      "selector": {
+        "collection": "/services/zendesk/audits",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
       "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "body": "RF-88213",
-        "public": true
+      "min_count": 1,
+      "max_count": null,
+      "fields": {
+        "/ticket_id": 4217
       },
-      "key_prefix": "4217/"
-    },
-    {
-      "pointer": "/services/zendesk/tickets/4201/status",
-      "equals": "solved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "zendesk",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
+      "source": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/audit_id",
+      "target": {
+        "collection": "/services/zendesk/audits",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/zendesk/comments",
+          "matching": {
+            "public": true,
+            "ticket_id": 4217
+          },
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/public",
+        "equals": true
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/zendesk/tickets",
+          "matching": {
+            "id": 4217
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/status",
+        "equals": "solved"
+      },
+      "require_transition": false,
+      "allow_same_commit": true
+    }
+  ],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/zendesk/tickets/4217/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/tickets/4217/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/comments/*",
+        "kind": "create",
+        "matching": {
+          "public": true,
           "ticket_id": 4217
         },
-        "name": "create_ticket_comment"
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
+      {
+        "pointer": "/services/zendesk/audits/*",
+        "kind": "create",
+        "matching": {
           "ticket_id": 4217
         },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 4201
-        },
-        "name": "create_ticket_comment"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 4201
-        },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 4219
-        },
-        "name": "create_ticket_comment"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 4219
-        },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 4220
-        },
-        "name": "create_ticket_comment"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 4220
-        },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 4215
-        },
-        "name": "create_ticket_comment"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 4215
-        },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "create_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

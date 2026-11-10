@@ -5,17 +5,31 @@
 //! <task>/instruction.md
 //! <task>/environment/Dockerfile       the agent ("main") container
 //! <task>/environment/docker-compose.yaml   world + tools images
-//! <task>/tests/test.sh, expect.json   grading via the world's /_bench/grade
+//! <task>/tests/                       isolated, offline evidence verification
 //! <task>/solution/solve.sh, call-N.json   oracle: replays tool calls over MCP
 //! ```
 
-use std::{fmt::Write as _, fs, path::Path};
+use std::{collections::BTreeMap, fmt::Write as _, fs, path::Path};
 
 use anyhow::Context;
 use catalog::Catalog;
+use mock_core::grading::InterfacePolicy;
+use mock_core::runner::{RUNNER_PROTOCOL, RunnerPolicy, VERIFICATION_PROTOCOL};
 use serde_json::json;
+use sha2::{Digest, Sha256};
 
-use crate::{ANSWER_PATH, Scenario};
+use crate::{
+    ANSWER_PATH, Scenario,
+    framing::{self, Framing, FramingManifest},
+    profile::{self, ProfileManifest, WorkspaceProfile},
+};
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Conditions<'a> {
+    pub workspace_profile: WorkspaceProfile,
+    pub framing: Framing,
+    pub review_policy: Option<&'a mock_core::review::ReviewPolicy>,
+}
 
 /// Images the generated compose files reference.
 #[derive(Debug, Clone)]
@@ -34,6 +48,56 @@ pub fn write_task(
     images: &Images,
     out_root: &Path,
 ) -> anyhow::Result<()> {
+    write_task_with_profile(
+        scenario,
+        catalog,
+        images,
+        out_root,
+        WorkspaceProfile::Minimal,
+    )
+}
+
+pub fn write_task_with_profile(
+    scenario: &Scenario,
+    catalog: &Catalog,
+    images: &Images,
+    out_root: &Path,
+    workspace_profile: WorkspaceProfile,
+) -> anyhow::Result<()> {
+    write_task_with_conditions(
+        scenario,
+        catalog,
+        images,
+        out_root,
+        Conditions {
+            workspace_profile,
+            framing: Framing::Neutral,
+            review_policy: None,
+        },
+    )
+}
+
+pub fn write_task_with_conditions(
+    scenario: &Scenario,
+    catalog: &Catalog,
+    images: &Images,
+    out_root: &Path,
+    conditions: Conditions<'_>,
+) -> anyhow::Result<()> {
+    let review_policy_sha256 = conditions
+        .review_policy
+        .map(mock_core::review::ReviewPolicy::sha256)
+        .transpose()
+        .map_err(anyhow::Error::msg)?;
+    let workspace_profile = conditions.workspace_profile;
+    let dataset = mock_core::dataset::Dataset::load(&scenario.dir)?;
+    let source = dataset.source.clone();
+    let connections = crate::connections::materialize(&dataset, catalog)?;
+    if source.contract_sha256 != mock_core::provenance::canonical_sha256(&scenario.expect) {
+        anyhow::bail!("materialized contract differs from its authored scenario source");
+    }
+    let materialized = profile::materialize(workspace_profile, &scenario.meta.now, catalog)?;
+    let (instruction, framing) = framing::render(&scenario.instruction, conditions.framing);
     let dir = out_root.join(scenario.task_name());
     if dir.exists() {
         fs::remove_dir_all(&dir)?;
@@ -41,21 +105,125 @@ pub fn write_task(
     for sub in ["environment", "tests", "solution"] {
         fs::create_dir_all(dir.join(sub))?;
     }
-    write(&dir.join("task.toml"), &task_toml(scenario, catalog))?;
-    write(&dir.join("instruction.md"), &scenario.instruction)?;
-    write(&dir.join("environment/Dockerfile"), MAIN_DOCKERFILE)?;
+    write(
+        &dir.join("task.toml"),
+        &task_toml(scenario, catalog, &materialized.manifest, &framing),
+    )?;
+    write(&dir.join("instruction.md"), &instruction)?;
+    write(
+        &dir.join("tests/framing.json"),
+        &(serde_json::to_string_pretty(&framing)? + "\n"),
+    )?;
+    let mut dockerfile = MAIN_DOCKERFILE.to_owned();
+    if workspace_profile != WorkspaceProfile::Minimal {
+        dockerfile.push_str("COPY profile/workspace/ /app/\nCOPY profile/home/ /root/\n");
+    }
+    write(&dir.join("environment/Dockerfile"), &dockerfile)?;
+    for (path, content) in &materialized.files {
+        let destination = dir.join("environment/profile").join(path);
+        fs::create_dir_all(destination.parent().context("profile file parent")?)?;
+        write(&destination, content)?;
+    }
+    write(
+        &dir.join("tests/profile.json"),
+        &(serde_json::to_string_pretty(&materialized.manifest)? + "\n"),
+    )?;
+    write(
+        &dir.join("tests/runner-policy.json"),
+        &(serde_json::to_string_pretty(&runner_policy())? + "\n"),
+    )?;
+    write(
+        &dir.join("tests/connections.json"),
+        &(serde_json::to_string_pretty(&connections.manifest)? + "\n"),
+    )?;
+    if let Some(policy) = conditions.review_policy {
+        write(
+            &dir.join("tests/review-policy.json"),
+            &(serde_json::to_string_pretty(policy)? + "\n"),
+        )?;
+    }
     let expect = serde_json::to_string_pretty(&scenario.expect)? + "\n";
     write(
         &dir.join("environment/docker-compose.yaml"),
-        &compose(scenario, catalog, images),
+        &compose(scenario, catalog, images, &connections.environment),
     )?;
     write(&dir.join("tests/expect.json"), &expect)?;
+    write(
+        &dir.join("tests/task-source.json"),
+        &(serde_json::to_string_pretty(&source)? + "\n"),
+    )?;
+    write(
+        &dir.join("tests/scenario.txt"),
+        &format!("{}\n", scenario.meta.id),
+    )?;
+    write(
+        &dir.join("tests/Dockerfile"),
+        &format!(
+            "FROM {}\nHEALTHCHECK NONE\nENTRYPOINT []\nCOPY . /tests\nWORKDIR /tests\n",
+            images.world
+        ),
+    )?;
     write_executable(&dir.join("tests/test.sh"), TEST_SH)?;
     write_solution(scenario, catalog, &dir.join("solution"))?;
+    let context = mock_core::provenance::TaskContext {
+        schema_version: 1,
+        scenario: scenario.meta.id.clone(),
+        instruction_sha256: mock_core::runner::sha256(instruction.as_bytes()),
+        profile_sha256: mock_core::runner::sha256(&fs::read(dir.join("tests/profile.json"))?),
+        framing_sha256: mock_core::runner::sha256(&fs::read(dir.join("tests/framing.json"))?),
+        environment_files: environment_files(&dir.join("environment"))?,
+        world_reference: images.world.clone(),
+        tools_reference: images.tools.clone(),
+        review_policy_sha256,
+        connector_env_sha256: connections
+            .environment
+            .iter()
+            .map(|(name, value)| (name.clone(), mock_core::runner::sha256(value.as_bytes())))
+            .collect(),
+    };
+    write(
+        &dir.join("tests/task-context.json"),
+        &(serde_json::to_string_pretty(&context)? + "\n"),
+    )?;
     Ok(())
 }
 
-fn task_toml(scenario: &Scenario, catalog: &Catalog) -> String {
+fn environment_files(root: &Path) -> anyhow::Result<BTreeMap<String, String>> {
+    fn collect(
+        root: &Path,
+        directory: &Path,
+        result: &mut BTreeMap<String, String>,
+    ) -> anyhow::Result<()> {
+        for entry in fs::read_dir(directory)? {
+            let path = entry?.path();
+            if path.is_symlink() {
+                anyhow::bail!("environment sources cannot contain links");
+            }
+            if path.is_dir() {
+                collect(root, &path, result)?;
+            } else {
+                result.insert(
+                    path.strip_prefix(root)?
+                        .to_str()
+                        .context("UTF-8 environment path")?
+                        .replace('\\', "/"),
+                    mock_core::runner::sha256(&fs::read(path)?),
+                );
+            }
+        }
+        Ok(())
+    }
+    let mut result = BTreeMap::new();
+    collect(root, root, &mut result)?;
+    Ok(result)
+}
+
+fn task_toml(
+    scenario: &Scenario,
+    catalog: &Catalog,
+    profile: &ProfileManifest,
+    framing: &FramingManifest,
+) -> String {
     let m = &scenario.meta;
     let mut s = String::new();
     let quote = |v: &str| json!(v).to_string();
@@ -65,7 +233,26 @@ fn task_toml(scenario: &Scenario, catalog: &Catalog) -> String {
         m.id
     )
     .unwrap();
-    writeln!(s, "schema_version = \"1.1\"\n").unwrap();
+    writeln!(s, "schema_version = \"1.4\"\n").unwrap();
+    writeln!(
+        s,
+        "[[artifacts]]\nsource = \"/app/answer.md\"\ndestination = \"agent/answer.md\"\n"
+    )
+    .unwrap();
+    writeln!(
+        s,
+        "[[artifacts]]\nsource = \"/exports/evidence.json\"\ndestination = \"world/evidence.json\"\nservice = \"world\"\n"
+    )
+    .unwrap();
+    writeln!(
+        s,
+        "[[artifacts]]\nsource = \"/exports/runner-admission.json\"\ndestination = \"world/runner-admission.json\"\nservice = \"world\"\n"
+    )
+    .unwrap();
+    writeln!(
+        s,
+        "[[artifacts]]\nsource = \"/exports/realized-manifest.json\"\ndestination = \"world/realized-manifest.json\"\nservice = \"world\"\n"
+    ).unwrap();
     writeln!(
         s,
         "[task]\nname = {}",
@@ -76,13 +263,43 @@ fn task_toml(scenario: &Scenario, catalog: &Catalog) -> String {
     writeln!(s, "keywords = {}\n", json!(m.tags)).unwrap();
     writeln!(
         s,
-        "[metadata]\nscenario = {}\nservices = {}\n",
+        "[metadata]\nscenario = {}\nservices = {}\nverification_protocol = {}\nrunner_protocol = {}\nclock_mode = {}\nbusiness_reference_time = {}\n",
         quote(&m.id),
-        json!(m.services)
+        json!(m.services),
+        quote(VERIFICATION_PROTOCOL),
+        quote(RUNNER_PROTOCOL),
+        json!(m.clock_mode),
+        quote(&m.now),
     )
     .unwrap();
+    writeln!(
+        s,
+        "workspace_profile = {}\nworkspace_profile_version = {}\nworkspace_profile_sha256 = {}\n",
+        json!(profile.id),
+        profile.version,
+        quote(&profile.files_sha256),
+    )
+    .unwrap();
+    writeln!(s, "framing = {}\nframing_version = {}\nbase_instruction_sha256 = {}\nrendered_instruction_sha256 = {}\n",
+        json!(framing.framing), framing.version, quote(&framing.base_instruction_sha256),
+        quote(&framing.rendered_instruction_sha256)).unwrap();
     writeln!(s, "[agent]\ntimeout_sec = {}.0\n", m.timeout_sec).unwrap();
-    writeln!(s, "[verifier]\ntimeout_sec = 120.0\n").unwrap();
+    writeln!(
+        s,
+        "[verifier]\ntimeout_sec = 120.0\nenvironment_mode = \"separate\"\n"
+    )
+    .unwrap();
+    writeln!(
+        s,
+        "[verifier.environment]\nnetwork_mode = \"no-network\"\ncpus = 1\nmemory_mb = 1024\nstorage_mb = 2048\n"
+    )
+    .unwrap();
+    writeln!(
+        s,
+        "[[verifier.collect]]\nservice = \"world\"\ncommand = {}\ntimeout_sec = 30.0\n",
+        quote("mkdir -p /exports && curl -fsS -X POST -H \"authorization: Bearer $BENCH_ADMIN_TOKEN\" http://localhost:9000/_bench/finalize -o /exports/evidence.json.tmp && mv /exports/evidence.json.tmp /exports/evidence.json")
+    )
+    .unwrap();
     writeln!(s, "[environment]\nbuild_timeout_sec = 900.0\ncpus = {CPUS}\nmemory_mb = {MEMORY_MB}\nstorage_mb = 20480\n").unwrap();
     for service in &catalog.services {
         for endpoint in &service.endpoints {
@@ -98,11 +315,57 @@ fn task_toml(scenario: &Scenario, catalog: &Catalog) -> String {
     s
 }
 
-/// Per-trial secret for the world's admin port. The trial runner generates it and passes it
-/// to compose (for `world`) and to the verifier, never to the agent, so it is not in the task.
+fn runner_policy() -> RunnerPolicy {
+    let mut digest = Sha256::new();
+    for (name, bytes) in [
+        (
+            "admission.py",
+            include_bytes!("../../../deploy/runner/admission.py").as_slice(),
+        ),
+        (
+            "strict_docker.py",
+            include_bytes!("../../../deploy/runner/strict_docker.py").as_slice(),
+        ),
+        (
+            "snapshot.py",
+            include_bytes!("../../../deploy/runner/snapshot.py").as_slice(),
+        ),
+        (
+            "controller.py",
+            include_bytes!("../../../deploy/runner/controller.py").as_slice(),
+        ),
+        (
+            "manifest.py",
+            include_bytes!("../../../deploy/runner/manifest.py").as_slice(),
+        ),
+    ] {
+        digest.update(name.as_bytes());
+        digest.update([0]);
+        digest.update((bytes.len() as u64).to_be_bytes());
+        digest.update(bytes);
+    }
+    RunnerPolicy {
+        schema_version: 1,
+        runner_protocol: RUNNER_PROTOCOL.into(),
+        verification_protocol: VERIFICATION_PROTOCOL.into(),
+        harbor_version: "0.23.0".into(),
+        adapter_sha256: digest
+            .finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect(),
+    }
+}
+
+/// Per-trial secret for the world's admin port, provided only to the world container.
 const ADMIN_TOKEN_ENV: &str = "HARBOR_TRIAL_ADMIN_TOKEN";
 
-fn compose(scenario: &Scenario, catalog: &Catalog, images: &Images) -> String {
+fn compose(
+    scenario: &Scenario,
+    catalog: &Catalog,
+    images: &Images,
+    connector_environment: &BTreeMap<String, String>,
+) -> String {
     let last_port = catalog
         .services
         .iter()
@@ -111,40 +374,130 @@ fn compose(scenario: &Scenario, catalog: &Catalog, images: &Images) -> String {
         .max()
         .unwrap_or(7101);
     let mut s = String::from(
-        "# Generated by taskgen. world = mock APIs + grader; tools = every MCP server.\nservices:\n",
+        "# Generated by taskgen. Only tools can reach the backend; verification is offline.\nservices:\n",
     );
     s.push_str("  main:\n    depends_on:\n      tools:\n        condition: service_healthy\n");
-    writeln!(s, "  world:\n    image: {}\n    environment:\n      SCENARIO_ID: {}\n      BENCH_ADMIN_TOKEN: \"${{{ADMIN_TOKEN_ENV}:-}}\"\n    networks:\n      default:\n        aliases:", images.world, json!(scenario.meta.id)).unwrap();
+    if scenario.expect.interfaces == InterfacePolicy::DirectAllowed {
+        s.push_str("    networks:\n      default: {}\n      backend: {}\n");
+    }
+    let caller_host = match scenario.expect.interfaces {
+        InterfacePolicy::McpOnly => "tools",
+        InterfacePolicy::DirectAllowed => "",
+    };
+    writeln!(s, "  world:\n    image: {}\n    environment:\n      SCENARIO_ID: {}\n      BENCH_ADMIN_TOKEN: \"${{{ADMIN_TOKEN_ENV}:?a fresh trial admin token is required}}\"\n      BENCH_API_CALLER_HOST: {}\n    networks:\n      backend:\n        aliases:", images.world, json!(scenario.meta.id), json!(caller_host)).unwrap();
     for host in catalog.world_aliases() {
         writeln!(s, "          - {host}").unwrap();
     }
     writeln!(s, "    healthcheck:\n      test: [\"CMD\", \"curl\", \"-fs\", \"http://localhost:9000/_bench/health\"]\n      interval: 1s\n      timeout: 3s\n      retries: 60").unwrap();
-    writeln!(s, "  tools:\n    image: {}\n    depends_on:\n      world:\n        condition: service_healthy", images.tools).unwrap();
+    writeln!(s, "  tools:\n    image: {}\n    networks:\n      default: {{}}\n      backend: {{}}\n    depends_on:\n      world:\n        condition: service_healthy", images.tools).unwrap();
+    let mut tools_environment = connector_environment.clone();
+    tools_environment.insert(catalog::SCENARIO_NOW_ENV.into(), scenario.meta.now.clone());
+    s.push_str("    environment:\n");
+    for (name, value) in &tools_environment {
+        writeln!(s, "      {}: {}", name, json!(value)).unwrap();
+    }
     writeln!(
         s,
         "    healthcheck:\n      test: [\"CMD\", \"curl\", \"-s\", \"-o\", \"/dev/null\", \"http://localhost:{last_port}/mcp\"]\n      interval: 1s\n      timeout: 3s\n      retries: 120"
     )
     .unwrap();
+    s.push_str("networks:\n  backend:\n    internal: true\n");
     s
 }
 
 fn write_solution(scenario: &Scenario, catalog: &Catalog, dir: &Path) -> anyhow::Result<()> {
     let mut script = String::from(SOLVE_HEAD);
+    write(
+        &dir.join("response.jq"),
+        include_str!("../assets/oracle-response.jq"),
+    )?;
+    write(
+        &dir.join("tool-result.jq"),
+        include_str!("../assets/oracle-tool-result.jq"),
+    )?;
+    write(
+        &dir.join("google-replica.jq"),
+        include_str!("../assets/google-replica.jq"),
+    )?;
+    write(
+        &dir.join("firecrawl-native.jq"),
+        include_str!("../assets/firecrawl-native.jq"),
+    )?;
+    write(
+        &dir.join("result-contracts.json"),
+        &(serde_json::to_string_pretty(&crate::oracle_results::registry(
+            catalog,
+            &scenario.solution.calls,
+        )?)? + "\n"),
+    )?;
+    let bindings = scenario.solution.answer_template
+        || scenario
+            .solution
+            .calls
+            .iter()
+            .any(|call| call.template || !call.capture.is_empty());
+    if bindings {
+        script.push_str(BOUND_HEAD);
+        write(
+            &dir.join("render.jq"),
+            include_str!("../assets/oracle-render.jq"),
+        )?;
+        write(
+            &dir.join("capture.jq"),
+            include_str!("../assets/oracle-capture.jq"),
+        )?;
+    }
     for (i, call) in scenario.solution.calls.iter().enumerate() {
         let (_, endpoint) = catalog
             .endpoint(&call.endpoint)
             .context("solution endpoint")?;
-        let body = json!({
+        let mut body = json!({
             "jsonrpc": "2.0", "id": 2, "method": "tools/call",
             "params": { "name": call.tool, "arguments": call.arguments },
         });
+        if !call.replacements.is_empty() {
+            body["argument_replacements"] = serde_json::to_value(&call.replacements)?;
+        }
         let file = format!("call-{i}.json");
         write(&dir.join(&file), &(body.to_string() + "\n"))?;
-        writeln!(script, "call {} \"$DIR/{file}\"", endpoint.mcp_port).unwrap();
+        if bindings {
+            let captures = format!("call-{i}.capture.json");
+            write(
+                &dir.join(&captures),
+                &(serde_json::to_string(&call.capture)? + "\n"),
+            )?;
+            writeln!(
+                script,
+                "bound_call {} \"$DIR/{file}\" \"$DIR/{captures}\" {}",
+                endpoint.mcp_port,
+                u8::from(call.template)
+            )
+            .unwrap();
+        } else {
+            writeln!(script, "call {} \"$DIR/{file}\"", endpoint.mcp_port).unwrap();
+        }
     }
     if let Some(answer) = &scenario.solution.answer {
         write(&dir.join("answer.md"), answer)?;
-        writeln!(script, "cp \"$DIR/answer.md\" {ANSWER_PATH}").unwrap();
+        if scenario.solution.answer_template {
+            write(
+                &dir.join("answer.template.json"),
+                &(serde_json::to_string(&json!({"params":{"arguments":answer}}))? + "\n"),
+            )?;
+            writeln!(
+                script,
+                "jq --slurpfile bindings \"$WORK/bindings.json\" -f \"$DIR/render.jq\" \"$DIR/answer.template.json\" > \"$WORK/answer.json\""
+            )
+            .unwrap();
+            writeln!(
+                script,
+                "jq -j '.params.arguments | if type == \"string\" then . else tojson end' \"$WORK/answer.json\" > \"$WORK/answer.md\""
+            )
+            .unwrap();
+            writeln!(script, "cp \"$WORK/answer.md\" {ANSWER_PATH}").unwrap();
+        } else {
+            writeln!(script, "cp \"$DIR/answer.md\" {ANSWER_PATH}").unwrap();
+        }
     }
     write_executable(&dir.join("solve.sh"), &script)
 }
@@ -166,32 +519,31 @@ fn write_executable(path: &Path, text: &str) -> anyhow::Result<()> {
 const MAIN_DOCKERFILE: &str = "\
 # Agent container. Harbor installs the harness (Claude Code, Codex, ...) into it.
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git procps \\
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git jq procps \\
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ";
 
 const TEST_SH: &str = r#"#!/bin/sh
-# Grades the trial: the world scores its own final state and journal against expect.json.
-set -u
+set -eu
 mkdir -p /logs/verifier
-WORLD=http://world:9000
-AUTH="authorization: Bearer ${HARBOR_TRIAL_ADMIN_TOKEN:-}"
+if [ -f /tests/connections.json ]; then
+  cp /tests/connections.json /logs/verifier/connections.json
+fi
+set -- bench-verify \
+  --scenario "$(cat /tests/scenario.txt)" \
+  --contract /tests/expect.json \
+  --task-source /tests/task-source.json \
+  --task-context /tests/task-context.json \
+  --evidence /exports/evidence.json \
+  --runner-policy /tests/runner-policy.json \
+  --runner-admission /exports/runner-admission.json \
+  --realized-manifest /exports/realized-manifest.json \
+  --output /logs/verifier
 if [ -f /app/answer.md ]; then
-  curl -fsS -H "$AUTH" -X POST --data-binary @/app/answer.md "$WORLD/_bench/answer" >/dev/null
+  set -- "$@" --answer /app/answer.md
 fi
-overflow=0
-if grep -rqiE 'prompt is too long|context_length_exceeded|maximum context length|exceeds the context window|input is too long|too many total text bytes|request too large' /logs/agent 2>/dev/null; then
-  overflow=1
-fi
-# Evidence for debugging and the determinism replay (world-replay <scenario> journal.json).
-curl -fsS -H "$AUTH" "$WORLD/_bench/journal" -o /logs/verifier/journal.json || true
-curl -fsS -H "$AUTH" "$WORLD/_bench/state" -o /logs/verifier/state.json || true
-if ! curl -fsS -H "$AUTH" -X POST -H 'content-type: application/json' --data-binary @/tests/expect.json \
-    "$WORLD/_bench/grade?context_overflow=$overflow" -o /logs/verifier/reward.json; then
-  echo '{"reward": 0, "grader_error": 1}' > /logs/verifier/reward.json
-fi
-cat /logs/verifier/reward.json
+exec "$@"
 "#;
 
 const SOLVE_HEAD: &str = r#"#!/bin/sh
@@ -199,11 +551,52 @@ const SOLVE_HEAD: &str = r#"#!/bin/sh
 set -eu
 DIR="$(cd "$(dirname "$0")" && pwd)"
 INIT='{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"tool-bench-oracle","version":"1"}}}'
-call() {
+call() (
   url="http://tools:$1/mcp"
   sid=$(curl -fsS -D - -o /dev/null -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' -d "$INIT" "$url" | tr -d '\r' | awk -F': ' 'tolower($1)=="mcp-session-id" {print $2}')
   curl -fsS -o /dev/null -H 'content-type: application/json' -H "mcp-session-id: $sid" -d '{"jsonrpc":"2.0","method":"notifications/initialized"}' "$url"
-  curl -fsS -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' -H "mcp-session-id: $sid" --data-binary @"$2" "$url"
-  echo
+  response="$(mktemp)"
+  decoded="$(mktemp)"
+  trap 'rm -f "$response" "$decoded"' EXIT
+  if [ -n "${ORACLE_REQUEST_CAPTURE_DIR:-}" ]; then
+    mkdir -p "$ORACLE_REQUEST_CAPTURE_DIR"
+    request_capture="$(mktemp -d "$ORACLE_REQUEST_CAPTURE_DIR/call.XXXXXX")"
+    cp "$2" "$request_capture/request.json"
+    printf '%s\n' "$1" > "$request_capture/endpoint.txt"
+  fi
+  curl -fsS -H 'content-type: application/json' -H 'accept: application/json, text/event-stream' -H "mcp-session-id: $sid" --data-binary @"$2" "$url" > "$response"
+  if ! jq -Rse -f "$DIR/response.jq" "$response" > "$decoded"; then
+    cat "$response" >&2
+    exit 1
+  fi
+  if ! jq -e -L "$DIR" --arg endpoint "$1" --slurpfile request "$2" \
+      --slurpfile contracts "$DIR/result-contracts.json" -f "$DIR/tool-result.jq" "$decoded" > /dev/null; then
+    cat "$response" >&2
+    exit 1
+  fi
+  cat "$response"
+)
+"#;
+
+const BOUND_HEAD: &str = r#"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+printf '%s\n' '{}' > "$WORK/bindings.json"
+bound_call() {
+  if [ "$4" = 1 ]; then
+    jq --slurpfile bindings "$WORK/bindings.json" -f "$DIR/render.jq" "$2" > "$WORK/call.json"
+  else
+    cp "$2" "$WORK/call.json"
+  fi
+  call "$1" "$WORK/call.json" > "$WORK/response.json"
+  cat "$WORK/response.json"
+  printf '\n'
+  count=$(jq -er 'if type == "array" then length else error("capture definitions must be an array") end' "$3")
+  if [ "$count" -gt 0 ]; then
+    jq -Rse -f "$DIR/response.jq" "$WORK/response.json" > "$WORK/result.json"
+    jq -n --slurpfile bindings "$WORK/bindings.json" --slurpfile captures "$3" \
+      --slurpfile result "$WORK/result.json" -f "$DIR/capture.jq" > "$WORK/new-bindings.json"
+    mv "$WORK/new-bindings.json" "$WORK/bindings.json"
+  fi
 }
 "#;

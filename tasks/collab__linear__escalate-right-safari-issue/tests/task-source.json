@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/linear/escalate-right-safari-issue",
+  "scenario_sha256": "sha256:0bffd4de0ae3e4514780729050c7e24e7da07f7b3d563e8d0425fb82e3fede63",
+  "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
+  "contract_sha256": "sha256:191ff117f07c489cfa949464effbeb59797e74b9bb5cd95458f12b44de882e57"
+}

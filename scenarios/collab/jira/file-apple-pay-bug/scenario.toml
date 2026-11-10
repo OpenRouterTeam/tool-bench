@@ -7,39 +7,32 @@ services = ["jira"]
 tags = ["write", "single-service", "jira", "disambiguation"]
 timeout_sec = 900
 
-# The new issue is WEB-56. "Alex Kim" is alex.kim, not Alex Kimball or the inactive
-# "Alex Kim (contractor)". WEB-53 (an older, Done Apple Pay bug) must not be reopened.
-[[expect.state]]
-pointer = "/services/jira/issues/WEB-56/fields/issuetype"
-equals = "Bug"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/jira/issues/WEB-56/fields/summary"
-contains = "Apple Pay"
+[[expect.records]]
+selector = { collection = "/services/jira/issues", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/jira/issues/WEB-56/fields/priority"
-equals = "High"
+[[expect.records]]
+selector = { collection = "/services/jira/issues", matching = { fields = { project = "WEB", components = ["Checkout"], labels = ["ios"] } }, created = true }
+equals = 1
+fields = { "/fields/issuetype" = "Bug", "/fields/priority" = "High", "/fields/assignee" = "alex.kim" }
+null_fields = ["/fields/resolution", "/fields/resolutiondate"]
 
-[[expect.state]]
-pointer = "/services/jira/issues/WEB-56/fields/assignee"
-equals = "alex.kim"
+[expect.records.reviewed_fields]
+requirement = "The summary and optional description together must report that the Apple Pay button is missing at checkout on iOS 18 Safari, without contradictory or invented claims. Facts may be conveyed in the summary alone or distributed across these fields; no exact title or description is requested."
+accepted = [
+  { "/fields/summary" = "Apple Pay button missing at checkout on iOS 18 Safari", "/fields/description" = "The Apple Pay button does not render on the checkout payment step in Safari on iOS 18." },
+  { "/fields/summary" = "Apple Pay button missing at checkout on iOS 18 Safari", "/fields/description" = "" },
+  { "/fields/summary" = "Missing Apple Pay button", "/fields/description" = "At checkout in Safari on iOS 18, the Apple Pay button is missing." },
+]
 
-[[expect.state]]
-pointer = "/services/jira/issues/WEB-56/fields/components"
-equals = ["Checkout"]
-
-[[expect.state]]
-pointer = "/services/jira/issues/WEB-56/fields/labels"
-contains = "ios"
-
-[[expect.state]]
-pointer = "/services/jira/issues/WEB-57"
-exists = false
-
-[[expect.state]]
-pointer = "/services/jira/issues/WEB-53/fields/status"
-equals = "Done"
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/*"
+kind = "create"
+matching = { fields = { project = "WEB" } }
 
 [[solution.call]]
 endpoint = "atlassian"

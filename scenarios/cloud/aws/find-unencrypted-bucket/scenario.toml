@@ -1,6 +1,6 @@
 [scenario]
 id = "cloud/aws/find-unencrypted-bucket"
-title = "Find the S3 bucket without default encryption"
+title = "Find the S3 bucket whose default encryption does not meet the KMS policy"
 now = "2026-03-14T09:00:00Z"
 seed = "cloud-aws-find-unencrypted-bucket"
 services = ["aws"]
@@ -8,6 +8,10 @@ tags = ["lookup", "single-service", "aws"]
 timeout_sec = 900
 
 # Exactly the bucket name: "northwind-legacy-exports-2019" (encrypted) does not match.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 regex = '^\W*northwind-legacy-exports\W*$'
 
@@ -16,6 +20,12 @@ service = "aws"
 method = "GET"
 path = "/northwind-legacy-exports"
 query_contains = "encryption"
+response_status = [200]
+
+[[expect.records]]
+selector = { collection = "/services/aws/buckets", matching = { Encryption = { SSEAlgorithm = "AES256" } } }
+equals = 1
+fields = { "/Name" = "northwind-legacy-exports" }
 
 # Read-only task: no bucket configuration changes.
 [[expect.forbidden_calls]]

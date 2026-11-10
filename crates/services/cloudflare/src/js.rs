@@ -13,6 +13,7 @@ use serde_json::Value;
 const PRELUDE: &str = include_str!("../assets/js/prelude.js");
 const TRUNCATE: &str = include_str!("../assets/js/truncate.js");
 const EXECUTE: &str = include_str!("../assets/js/execute.js");
+const CLOCK: &str = include_str!("../assets/js/clock.js");
 
 /// QuickJS calls the interrupt handler about every 10,000 operations; this caps a program
 /// at roughly 50 million operations.
@@ -40,8 +41,8 @@ pub enum Mode {
     },
 }
 
-pub fn run(mode: Mode, code: &str, truncate: Option<bool>) -> Outcome {
-    match run_inner(mode, code, truncate) {
+pub fn run(mode: Mode, code: &str, truncate: Option<bool>, now_ms: i64) -> Outcome {
+    match run_inner(mode, code, truncate, now_ms) {
         Ok(outcome) => outcome,
         Err(e) => Outcome::Err(e),
     }
@@ -71,7 +72,12 @@ fn eval_script<'js>(ctx: &Ctx<'js>, source: &str) -> Result<JsValue<'js>, String
         .map_err(exception_text)
 }
 
-fn run_inner(mode: Mode, code: &str, truncate: Option<bool>) -> Result<Outcome, String> {
+fn run_inner(
+    mode: Mode,
+    code: &str,
+    truncate: Option<bool>,
+    now_ms: i64,
+) -> Result<Outcome, String> {
     let rt = Runtime::new().map_err(|e| e.to_string())?;
     rt.set_memory_limit(MEMORY_LIMIT);
     rt.set_max_stack_size(STACK_LIMIT);
@@ -86,6 +92,8 @@ fn run_inner(mode: Mode, code: &str, truncate: Option<bool>) -> Result<Outcome, 
     let is_search = matches!(mode, Mode::Search { .. });
     let setup: Result<(), String> = ctx.with(|ctx| {
         let globals = ctx.globals();
+        globals.set("__business_now_ms", now_ms).map_err(|error| error.to_string())?;
+        eval_script(&ctx, CLOCK)?;
         match mode {
             Mode::Search { spec } => {
                 let f = Function::new(ctx.clone(), move || spec.to_owned())

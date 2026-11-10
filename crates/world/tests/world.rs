@@ -145,11 +145,19 @@ async fn admin_token_guards_everything_but_health_and_ca() {
     let admin = running.admin;
     assert_eq!(get(admin, "/_bench/health").await.0, 200);
     assert_eq!(get(admin, "/_bench/ca.pem").await.0, 200);
-    for path in ["/_bench/state", "/_bench/journal"] {
+    for path in [
+        "/_bench/state",
+        "/_bench/initial_state",
+        "/_bench/journal",
+        "/_bench/events",
+        "/_bench/evidence",
+    ] {
         assert_eq!(get(admin, path).await.0, 401, "{path}");
     }
     assert_eq!(post(admin, "/_bench/reset", "").await.0, 401);
     assert_eq!(post(admin, "/_bench/answer", "x").await.0, 401);
+    assert_eq!(post(admin, "/_bench/assessment", "").await.0, 401);
+    assert_eq!(post(admin, "/_bench/finalize", "").await.0, 401);
     let wrong = client()
         .get(format!("http://{admin}/_bench/state"))
         .bearer_auth("nope")

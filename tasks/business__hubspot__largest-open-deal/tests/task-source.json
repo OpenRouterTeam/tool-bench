@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/hubspot/largest-open-deal",
+  "scenario_sha256": "sha256:099de8debef344a7dd3be8698968e8adbf3f7310aa5a0fe4f628e2a7d331fa56",
+  "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
+  "contract_sha256": "sha256:3f52a7adf481aa57dd4b9a2a7cafe801deef018a5f5c4b27f0e2c004bffa1c5d"
+}

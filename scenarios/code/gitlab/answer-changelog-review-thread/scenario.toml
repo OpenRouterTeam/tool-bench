@@ -7,44 +7,63 @@ services = ["gitlab"]
 tags = ["single-service", "write", "gitlab", "disambiguation"]
 timeout_sec = 900
 
-# The reply is checked by its request, not by a note id: other writes an agent makes first
-# (e.g. approving, which adds a system note) would shift the next id.
-[[expect.required_calls]]
-service = "gitlab"
-method = "POST"
-path_regex = "/merge_requests/88/discussions/d7e8c986532452a2290d7e7255e2b2cae36e36ce/notes$"
-body_contains = "24f172e5"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/gitlab/notes/81503/resolved"
-equals = true
+[[expect.records]]
+selector = { collection = "/services/gitlab/notes", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/gitlab/notes/81502/resolved"
-equals = false
+[[expect.records]]
+selector = { collection = "/services/gitlab/notes", created = true, matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce", system = false, author = "sam.okafor" } }
+equals = 1
+fields = { "/resolved" = true, "/resolvable" = true }
+reviewed_text = { "/body" = { requirement = "Say the changelog entry was added in commit 24f172e5, in Dana's existing review thread. The surrounding MR supplies the payments-SDK context. A commit token alone or contradictory wording cannot establish the requested reply; unlisted wording requires adjudication.", accepted = ["The changelog entry was added in commit 24f172e5.", "Yes, the changelog entry for the 4.2.0 bump was added in commit 24f172e5."] } }
 
-[[expect.state]]
-pointer = "/services/gitlab/notes/81601/resolved"
-equals = false
+[[expect.records]]
+selector = { collection = "/services/gitlab/notes", matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce", resolvable = true } }
+min_count = 2
+fields = { "/resolved" = true }
 
-[[expect.state]]
-pointer = "/services/gitlab/merge_requests/northwind~1billing~1billing-service!88/state"
-equals = "opened"
+[[expect.relations]]
+source = { collection = "/services/gitlab/events", created = true, matching = { project = "northwind/billing/billing-service", target_type = "Note" } }
+source_field = "/target_id"
+target = { collection = "/services/gitlab/notes", created = true, matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce" } }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.forbidden_calls]]
-service = "gitlab"
-method = "POST"
-path_regex = "^/api/v4/projects/(northwind%2Fmobile%2Fcheckout-ios|204)/"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/gitlab/notes", created = true, matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce", author = "sam.okafor", system = false } }, field = "/body", nonempty_text = true }
+action = { selector = { collection = "/services/gitlab/notes", matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce", author = "dana.kowalski", body = "Did you update CHANGELOG.md for the 4.2 bump? Support reads it before every billing release." } }, field = "/resolved", equals = true }
 
-[[expect.forbidden_calls]]
-service = "gitlab"
-method = "PUT"
-path_regex = "^/api/v4/projects/(northwind%2Fmobile%2Fcheckout-ios|204)/"
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/notes/*"
+kind = "create"
+matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce", author = "sam.okafor", system = false }
 
-[[expect.forbidden_calls]]
-service = "gitlab"
-method = "PUT"
-path_regex = "^/api/v4/projects/[^/]+/merge_requests/88/merge$"
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/notes/*/resolved"
+matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce", resolvable = true }
+max_count = 2
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/notes/*/resolved_by"
+matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce", resolvable = true }
+max_count = 2
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/notes/*/resolved_at"
+matching = { noteable = "northwind/billing/billing-service!88", discussion_id = "d7e8c986532452a2290d7e7255e2b2cae36e36ce", resolvable = true }
+max_count = 2
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1billing~1billing-service!88/updated_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/events/*"
+kind = "create"
+matching = { project = "northwind/billing/billing-service", author = "sam.okafor", action_name = "commented on", target_type = "Note", target_iid = 88 }
 
 [[solution.call]]
 endpoint = "gitlab"

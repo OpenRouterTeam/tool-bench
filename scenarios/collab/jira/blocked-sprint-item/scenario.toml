@@ -10,6 +10,10 @@ timeout_sec = 900
 # In PAY Sprint 23 (active), PAY-119 "Switch production traffic to the v2 gateway" is
 # blocked by PAY-117 "Rotate payment gateway API credentials", assigned to Sam Ortiz.
 # Distractor: PAY-116 blocks PAY-120 (the other direction), and the future sprint.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["PAY-119", "PAY-117", "Sam Ortiz"]
 

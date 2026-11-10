@@ -10,57 +10,179 @@ timeout_sec = 1200
 # The complaint (thread c41e7a2b9d03f615) is from priya.shah@acme.io = customer 1107, whose
 # October 20 order is 5024 ($62.00, ch_Hk5TzQ9wNc2RbV6mXa8LuE4P). Look-alikes: the other
 # Priya Shah (priya.shah@fastmail.com, 1042) also has a $62.00 order on October 20 (5025,
-# ch_Gd7W…), and 1107's earlier order 5023 ($249.00, ch_Vq2m…).
-[[expect.state]]
+# ch_Gd7W…), 1107's earlier order 5023 ($249.00, ch_Vq2m…) and 1107's March $62.00 order 5022.
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers", matching = { email = "priya.shah@acme.io" } }
+equals = 1
+
+[[expect.records]]
+selector = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders", matching = { id = 5024 }, references = [{ source_field = "/customer_id", target = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers", matching = { email = "priya.shah@acme.io" } }, target_field = "/id" }] }
+equals = 1
+fields = { "/status" = "refunded", "/currency" = "USD" }
+numeric_fields = { "/total" = 62 }
+
+[[expect.records]]
+selector = { collection = "/services/stripe/refunds", matching = { charge = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" }, created = true }
+min_count = 1
+max_count = 6200
+fields = { "/currency" = "usd", "/status" = "succeeded", "/payment_intent" = "pi_Yb3KdR8mWq1ZtN6xLc4VhP9s" }
+totals = { "/amount" = 6200 }
+integer_bounds = { "/amount" = { min = 1, max = 6200 } }
+
+[[expect.records]]
+selector = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+min_count = 1
+max_count = 6200
+fields = { "/fee" = 0, "/fee_details" = [], "/currency" = "usd", "/status" = "available" }
+totals = { "/amount" = -6200, "/net" = -6200 }
+integer_bounds = { "/amount" = { min = -6200, max = -1 }, "/net" = { min = -6200, max = -1 } }
+
+[[expect.records]]
+selector = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+min_count = 1
+max_count = 6200
+fields = { "/data/object/charge" = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P", "/data/object/currency" = "usd" }
+totals = { "/data/object/amount" = 6200 }
+integer_bounds = { "/data/object/amount" = { min = 1, max = 6200 } }
+
+[[expect.records]]
+selector = { collection = "/services/stripe/events", matching = { type = "charge.refunded" }, created = true }
+min_count = 1
+max_count = 6200
+fields = { "/data/object/id" = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P", "/data/object/currency" = "usd" }
+integer_bounds = { "/data/object/amount_refunded" = { min = 1, max = 6200 } }
+
+[[expect.records]]
+selector = { collection = "/services/google/gmail_messages", created = true, field_patterns = { "/headers/To" = '(?i)\A(?:[^<>,;@]*<)?priya[.]shah@acme[.]io>?\z' } }
+equals = 1
+fields = { "/labelIds" = ["SENT"] }
+optional_fields = { "/headers/Cc" = "", "/headers/Bcc" = "" }
+
+[expect.records.reviewed_text."/body_text"]
+requirement = "Tell Priya Shah that the refund of her broken desk-lamp order was issued in full and state the refunded amount, $62.00. The reply thread supplies the order and customer context. No greeting, signature, order number, card detail, apology, processing time or Stripe reference is mandatory; any added factual claim must be supported by the order/payment records. Denials, a wrong amount, a partial refund or an unsupported timeline are not accepted; unlisted nonempty wording requires adjudication, not an invented model failure."
+accepted = [
+  "Hi Priya,\n\nSorry the lamp arrived damaged. We've refunded order #5024 in full ($62.00) to your Visa ending 4242.\n\nBest,\nOcto Shop team",
+  "Hi Priya, your order #5024 has been refunded in full: $62.00.",
+  "We've issued a full refund of $62.00 for your desk lamp order. Sorry about the cracked base.",
+  "Your desk lamp order has been refunded in full ($62.00).",
+  "Hi Priya,\n\nWe refunded the full $62.00 for the damaged desk lamp from your October 20 order.\n\nOcto Shop team",
+]
+rejected = [
+  "Your refund of $6200.00 has been issued.",
+  "We refunded $26.00 for your desk lamp order.",
+  "We cannot refund your order.",
+  "Your desk lamp order has been refunded in full ($62.00). The money will arrive within 5-10 business days.",
+]
+
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", matching = { charge = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" }, created = true }
+source_field = "/charge"
+target = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders", matching = { id = 5024 } }
+target_field = "/stripe_charge_id"
+kind = "foreign_key"
+
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", matching = { charge = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" }, created = true }
+source_field = "/balance_transaction"
+target = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+target_field = "/id"
+kind = "bijection"
+fields = [
+  { source_field = "/amount", target_field = "/amount", kind = "negated_integer" },
+  { source_field = "/amount", target_field = "/net", kind = "negated_integer" },
+  { source_field = "/currency", target_field = "/currency", kind = "equals" },
+]
+
+[[expect.relations]]
+source = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+source_field = "/source"
+target = { collection = "/services/stripe/refunds", matching = { charge = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" }, created = true }
+target_field = "/id"
+kind = "bijection"
+
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", matching = { charge = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" }, created = true }
+source_field = "/id"
+target = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+target_field = "/data/object/id"
+kind = "bijection"
+
+[[expect.relations]]
+source = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+source_field = "/request/id"
+target = { collection = "/services/stripe/events", matching = { type = "charge.refunded" }, created = true }
+target_field = "/request/id"
+kind = "bijection"
+
+[[expect.relations]]
+source = { collection = "/services/google/gmail_messages", created = true }
+source_field = "/threadId"
+target = { collection = "/services/google/gmail_messages", matching = { id = "c41e7a2b9d03f615" } }
+target_field = "/threadId"
+kind = "equals"
+
+[[expect.preservation.allow]]
 pointer = "/services/stripe/charges/ch_Hk5TzQ9wNc2RbV6mXa8LuE4P/amount_refunded"
-equals = 6200
 
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/stripe/charges/ch_Hk5TzQ9wNc2RbV6mXa8LuE4P/refunded"
-equals = true
 
-[[expect.state]]
-pointer = "/services/stripe/charges/ch_Gd7WnY3kPs9QtF2hZr5MbC8X/amount_refunded"
-equals = 0
+[[expect.preservation.allow]]
+pointer = "/services/stripe/refunds/*"
+kind = "create"
+matching = { charge = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P", currency = "usd", status = "succeeded" }
+max_count = 6200
 
-[[expect.state]]
-pointer = "/services/stripe/charges/ch_Vq2mLx8RtB4nKe7YpW1sHd3J/amount_refunded"
-equals = 0
+[[expect.preservation.allow]]
+pointer = "/services/stripe/balance_transactions/*"
+kind = "create"
+matching = { type = "refund", currency = "usd" }
+references = [{ source_field = "/source", target_field = "/id", target = { collection = "/services/stripe/refunds", created = true, matching = { charge = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" } } }]
+max_count = 6200
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5024/status"
-equals = "refunded"
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "refund.created", data = { object = { charge = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" } } }
+max_count = 6200
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5024/total"
-equals = 62.0
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "charge.refunded", data = { object = { id = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" } } }
+max_count = 6200
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5025/status"
-equals = "shipped"
+[[expect.preservation.allow]]
+pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/*/status"
+matching = { id = 5024, status = "refunded" }
+initial_matching = { id = 5024 }
+initial_references = [{ source_field = "/customer_id", target = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers", matching = { email = "priya.shah@acme.io" } }, target_field = "/id" }]
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5023/status"
-equals = "shipped"
+[[expect.preservation.allow]]
+pointer = "/services/supabase/migrations/*"
+kind = "create"
+field_patterns = { "/version" = '\S' }
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "supabase", methods = ["POST"], path_regex = "^/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations$" }
 
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5007/status"
-equals = "paid"
+[[expect.preservation.allow]]
+pointer = "/services/google/gmail_messages/*"
+kind = "create"
+matching = { threadId = "c41e7a2b9d03f615", labelIds = ["SENT"] }
+field_patterns = { "/headers/To" = '(?i)\A(?:[^<>,;@]*<)?priya[.]shah@acme[.]io>?\z' }
 
-[[expect.state]]
-pointer = "/services/google/gmail_messages"
-any = { labelIds = ["SENT"], threadId = "c41e7a2b9d03f615", headers = { To = "priya.shah@acme.io" }, body_text = "62" }
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/stripe/charges", matching = { id = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" } }, field = "/amount_refunded", equals = 6200 }
+action = { selector = { collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders", matching = { id = 5024 } }, field = "/status", equals = "refunded" }
 
-[[expect.required_calls]]
-service = "stripe"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostRefunds" } }
-
-[[expect.required_calls]]
-service = "google"
-path = "/_mcp/tools/call"
-body = { name = "send_gmail_message" }
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/stripe/charges", matching = { id = "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P" } }, field = "/amount_refunded", equals = 6200 }
+action = { selector = { collection = "/services/google/gmail_messages", created = true }, field = "/labelIds", has_value = "SENT" }
 
 [[expect.forbidden_calls]]
 service = "stripe"
@@ -112,4 +234,4 @@ arguments = { project_id = "qmvbxtzkplrnwdhyfaco", query = "update public.orders
 [[solution.call]]
 endpoint = "google-workspace"
 tool = "send_gmail_message"
-arguments = { to = "priya.shah@acme.io", thread_id = "c41e7a2b9d03f615", in_reply_to = "<CAJ7pS2x9Lw4q@mail.acme.io>", subject = "Re: Desk lamp arrived broken - refund please", body = "Hi Priya,\n\nSorry the lamp arrived damaged. We've refunded order #5024 in full ($62.00) to your Visa ending 4242; it should appear within 5-10 business days.\n\nBest,\nOcto Shop team" }
+arguments = { to = "priya.shah@acme.io", thread_id = "c41e7a2b9d03f615", in_reply_to = "<CAJ7pS2x9Lw4q@mail.acme.io>", subject = "Re: Desk lamp arrived broken - refund please", body = "Hi Priya,\n\nSorry the lamp arrived damaged. We've refunded order #5024 in full ($62.00) to your Visa ending 4242.\n\nBest,\nOcto Shop team" }

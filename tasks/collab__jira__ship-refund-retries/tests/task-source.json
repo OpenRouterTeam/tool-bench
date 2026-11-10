@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/jira/ship-refund-retries",
+  "scenario_sha256": "sha256:96e9d853d5cf38acfba735709ef649708cac2a7d27f978faa4ea7806bcbb72f4",
+  "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
+  "contract_sha256": "sha256:b844542e780533288945660b45b1ee7d7eaa685415eb35d70a11e5a37a4a383b"
+}

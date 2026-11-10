@@ -1,0 +1,1 @@
+search/tavily/vendor-rate-limit

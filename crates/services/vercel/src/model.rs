@@ -30,6 +30,10 @@ pub const DOMAINS: &str = "domains";
 pub const CUSTOM_ENVS: &str = "custom_environments";
 pub const FILES: &str = "deployment_files";
 pub const ENV_BY_TARGET: &str = "env_by_target";
+pub const ENV_VARS: &str = "environment_variables";
+pub const ENV_BINDINGS: &str = "environment_bindings";
+pub const ALIASES: &str = "aliases";
+pub const SOURCES: &str = "deployment_sources";
 
 pub type Query = BTreeMap<String, String>;
 
@@ -198,11 +202,38 @@ pub fn project_deployments(s: &ServiceState, project_id: &str) -> Vec<Value> {
     out
 }
 
-/// The deployment serving production: the newest READY production deployment.
 pub fn current_production(s: &ServiceState, project_id: &str) -> Option<Value> {
-    project_deployments(s, project_id).into_iter().find(|d| {
-        str_of(d, "target") == Some("production") && str_of(d, "readyState") == Some("READY")
+    let domains = production_domains(s, project_id);
+    let first = domains.first()?;
+    let binding = doc(s, ALIASES, first)?;
+    let deployment_id = str_of(&binding, "deploymentId")?;
+    if !domains.iter().all(|domain| {
+        doc(s, ALIASES, domain).is_some_and(|binding| {
+            str_of(&binding, "deploymentId") == Some(deployment_id)
+                && str_of(&binding, "projectId") == Some(project_id)
+        })
+    }) {
+        return None;
+    }
+    doc(s, DEPLOYMENTS, deployment_id).filter(|deployment| {
+        str_of(deployment, "projectId") == Some(project_id)
+            && str_of(deployment, "target") == Some("production")
+            && str_of(deployment, "readyState") == Some("READY")
     })
+}
+
+pub fn production_domains(service: &ServiceState, project_id: &str) -> Vec<String> {
+    docs(service, DOMAINS)
+        .into_iter()
+        .map(|(_, domain)| domain)
+        .filter(|domain| {
+            str_of(domain, "projectId") == Some(project_id)
+                && domain["redirect"].is_null()
+                && domain["gitBranch"].is_null()
+                && domain["customEnvironmentId"].is_null()
+        })
+        .filter_map(|domain| str_of(&domain, "name").map(str::to_owned))
+        .collect()
 }
 
 pub fn find_deployment(s: &ServiceState, id_or_url: &str) -> Option<Value> {
@@ -210,13 +241,14 @@ pub fn find_deployment(s: &ServiceState, id_or_url: &str) -> Option<Value> {
         .trim_start_matches("https://")
         .trim_start_matches("http://")
         .trim_end_matches('/');
-    docs(s, DEPLOYMENTS).into_iter().map(|(_, d)| d).find(|d| {
-        str_of(d, "id") == Some(needle)
-            || str_of(d, "url") == Some(needle)
-            || d["alias"]
-                .as_array()
-                .is_some_and(|a| a.iter().any(|x| x.as_str() == Some(needle)))
-    })
+    docs(s, DEPLOYMENTS)
+        .into_iter()
+        .map(|(_, d)| d)
+        .find(|d| str_of(d, "id") == Some(needle) || str_of(d, "url") == Some(needle))
+        .or_else(|| {
+            let binding = doc(s, ALIASES, needle)?;
+            doc(s, DEPLOYMENTS, str_of(&binding, "deploymentId")?)
+        })
 }
 
 fn alias_assigned(d: &Value) -> Value {
@@ -342,6 +374,23 @@ pub fn project_view(s: &ServiceState, p: &Value, with_env: bool) -> Value {
     Value::Object(out)
 }
 
+pub fn refresh_deployment_views(service: &mut ServiceState, project_id: &str) {
+    let latest: Vec<Value> = project_deployments(service, project_id)
+        .iter()
+        .take(3)
+        .map(deployment_summary)
+        .collect();
+    let production =
+        current_production(service, project_id).map(|value| deployment_summary(&value));
+    if let Some(project) = service.store.collection_mut(PROJECTS).get_mut(project_id) {
+        project["latestDeployments"] = Value::Array(latest);
+        project["targets"] = match production {
+            Some(production) => json!({"production":production}),
+            None => json!({}),
+        };
+    }
+}
+
 // ───────────────────────────── environment variables ─────────────────────────────
 
 fn base64(bytes: &[u8]) -> String {
@@ -383,6 +432,8 @@ fn ciphertext(id: &str, value: &str) -> String {
 /// `sensitive` values never.
 pub fn env_view(e: &Value, decrypt: bool) -> Value {
     let mut out = e.as_object().cloned().unwrap_or_default();
+    out.shift_remove("projectId");
+    out.shift_remove("scope");
     match str_of(e, "type") {
         Some("encrypted") | Some("secret") => {
             if !decrypt {
@@ -400,42 +451,173 @@ pub fn env_view(e: &Value, decrypt: bool) -> Value {
     Value::Object(out)
 }
 
-/// Rebuilds the derived `env_by_target` collection for every project.
+fn environment_scopes(variable: &Value) -> Vec<String> {
+    let mut scopes: Vec<String> = variable["target"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+        .map(
+            |target| match str_of(variable, "gitBranch").filter(|branch| !branch.is_empty()) {
+                Some(branch) if target == "preview" => format!("preview:{branch}"),
+                _ => target.to_owned(),
+            },
+        )
+        .chain(
+            variable["customEnvironmentIds"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(Value::as_str)
+                .map(|environment| format!("custom:{environment}")),
+        )
+        .collect();
+    scopes.sort();
+    scopes.dedup();
+    scopes
+}
+
+pub fn environment_scope(variable: &Value) -> String {
+    environment_scopes(variable).join(",")
+}
+
+pub fn project_environment(service: &ServiceState, project_id: &str) -> Vec<(String, Value)> {
+    docs(service, ENV_VARS)
+        .into_iter()
+        .filter(|(_, variable)| str_of(variable, "projectId") == Some(project_id))
+        .collect()
+}
+
 pub fn rebuild_env_index(s: &mut ServiceState) {
     let projects = docs(s, PROJECTS);
-    let stale: Vec<String> = docs(s, ENV_BY_TARGET)
-        .into_iter()
-        .map(|(k, _)| k)
-        .filter(|k| !projects.iter().any(|(pk, _)| pk == k))
-        .collect();
-    let index = s.store.collection_mut(ENV_BY_TARGET);
-    for k in stale {
-        index.remove(&k);
-    }
-    for (key, p) in projects {
+    let previous = docs(s, ENV_BINDINGS);
+    s.store.take_collection(ENV_BY_TARGET);
+    s.store.take_collection(ENV_BINDINGS);
+    for (key, _) in projects {
         let mut by_target: Map<String, Value> = ["production", "preview", "development"]
             .iter()
             .map(|t| ((*t).to_owned(), json!({})))
             .collect();
-        for e in p["env"].as_array().into_iter().flatten() {
-            let (Some(k), Some(targets)) = (str_of(e, "key"), e["target"].as_array()) else {
+        let variables = project_environment(s, &key);
+        let mut bindings: BTreeMap<String, Value> = previous
+            .iter()
+            .filter(|(_, binding)| str_of(binding, "projectId") == Some(key.as_str()))
+            .map(|(identity, binding)| {
+                let mut absent = binding.clone();
+                absent["records"] = json!(0);
+                absent["value"] = Value::Null;
+                absent["type"] = Value::Null;
+                (identity.clone(), absent)
+            })
+            .collect();
+        for (_, variable) in &variables {
+            let Some(name) = str_of(variable, "key") else {
                 continue;
             };
-            let value = e.get("value").cloned().unwrap_or(Value::Null);
-            for t in targets.iter().filter_map(Value::as_str) {
-                let slot = match str_of(e, "gitBranch") {
-                    Some(branch) => format!("{t}:{branch}"),
-                    None => t.to_owned(),
-                };
+            let value = variable.get("value").cloned().unwrap_or(Value::Null);
+            for scope in environment_scopes(variable) {
+                let identity = format!("{key}/{scope}/{name}");
+                let binding = bindings.entry(identity).or_insert_with(|| {
+                    json!({"projectId":key,"scope":scope,"key":name,
+                        "value":value,"type":variable["type"],"records":0})
+                });
+                let count = binding["records"].as_u64().expect("binding count") + 1;
+                binding["records"] = json!(count);
+                if count == 1 {
+                    binding["value"] = value.clone();
+                    binding["type"] = variable["type"].clone();
+                } else {
+                    binding["value"] = Value::Null;
+                    binding["type"] = Value::Null;
+                }
                 by_target
-                    .entry(slot)
+                    .entry(scope)
                     .or_insert_with(|| json!({}))
                     .as_object_mut()
                     .expect("object")
-                    .insert(k.to_owned(), value.clone());
+                    .insert(name.to_owned(), binding["value"].clone());
             }
         }
-        index.insert(key, Value::Object(by_target));
+        let projection: Vec<Value> = variables
+            .into_iter()
+            .map(|(_, mut variable)| {
+                let fields = variable.as_object_mut().expect("environment record");
+                fields.shift_remove("projectId");
+                fields.shift_remove("scope");
+                variable
+            })
+            .collect();
+        s.store
+            .collection_mut(PROJECTS)
+            .get_mut(&key)
+            .expect("project")["env"] = Value::Array(projection);
+        s.store
+            .collection_mut(ENV_BY_TARGET)
+            .insert(&key, Value::Object(by_target));
+        for (identity, binding) in bindings {
+            s.store
+                .collection_mut(ENV_BINDINGS)
+                .insert(identity, binding);
+        }
+    }
+}
+
+pub fn initialize(service: &mut ServiceState, _now: i64) {
+    let declared_aliases: std::collections::BTreeSet<String> = docs(service, ALIASES)
+        .into_iter()
+        .map(|(alias, _)| alias)
+        .collect();
+    for (project_id, project) in docs(service, PROJECTS) {
+        for variable in project["env"].as_array().into_iter().flatten() {
+            let id = str_of(variable, "id").expect("fixture environment record needs an ID");
+            let mut variable = variable.clone();
+            variable["projectId"] = json!(project_id);
+            variable["scope"] = json!(environment_scope(&variable));
+            let identity = format!("{project_id}/{id}");
+            if let Some(existing) = doc(service, ENV_VARS, &identity) {
+                assert_eq!(
+                    existing, variable,
+                    "conflicting authoritative environment fixtures"
+                );
+            } else {
+                service
+                    .store
+                    .collection_mut(ENV_VARS)
+                    .insert(identity, variable);
+            }
+        }
+    }
+    for (deployment_id, deployment) in docs(service, DEPLOYMENTS) {
+        if doc(service, SOURCES, &deployment_id).is_none() {
+            service.store.collection_mut(SOURCES).insert(
+                &deployment_id,
+                json!({"deploymentId":deployment_id,"projectId":deployment["projectId"],
+                    "gitSource":deployment["gitSource"]}),
+            );
+        }
+        for alias in deployment["alias"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_str)
+        {
+            if let Some(binding) = doc(service, ALIASES, alias) {
+                assert!(
+                    declared_aliases.contains(alias)
+                        || str_of(&binding, "deploymentId") == Some(deployment_id.as_str()),
+                    "ambiguous fixture aliases require explicit current bindings"
+                );
+            } else {
+                service.store.collection_mut(ALIASES).insert(
+                    alias,
+                    json!({"alias":alias,"projectId":deployment["projectId"],"deploymentId":deployment_id}),
+                );
+            }
+        }
+    }
+    rebuild_env_index(service);
+    for (project_id, _) in docs(service, PROJECTS) {
+        refresh_deployment_views(service, &project_id);
     }
 }
 

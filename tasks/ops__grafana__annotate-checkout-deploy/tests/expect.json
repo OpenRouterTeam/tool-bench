@@ -1,76 +1,144 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/grafana/annotations/42/dashboardUID",
-      "equals": "checkout-prod",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/42/time",
-      "equals": 1794492300000,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/42/text",
-      "equals": null,
-      "exists": null,
-      "contains": "4.19.0",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/42/tags",
-      "equals": null,
-      "exists": null,
-      "contains": "deploy",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/42/tags",
-      "equals": null,
-      "exists": null,
-      "contains": "checkout",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/43",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/39/text",
-      "equals": "Deploy checkout v4.19.0 to staging",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
-    {
-      "service": "grafana",
-      "method": "POST",
-      "path": "/api/annotations",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "dashboardUID": "checkout-prod"
+      "selector": {
+        "collection": "/services/grafana/annotations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/grafana/annotations",
+        "matching": {
+          "dashboardUID": "checkout-prod",
+          "tags": [
+            "deploy",
+            "checkout"
+          ]
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/text": "Deploy checkout v4.19.0",
+        "/time": 1794492300000,
+        "/timeEnd": 1794492300000
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [
+        {
+          "/panelId": 0
+        },
+        {
+          "/panelId": 3
+        }
+      ],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/grafana/annotations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/dashboardUID",
+      "target": {
+        "collection": "/services/grafana/dashboards",
+        "matching": {
+          "dashboard": {
+            "title": "Checkout Service",
+            "uid": "checkout-prod"
+          },
+          "folderUid": "f-prod"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/dashboard/uid",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/grafana/annotations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/dashboardId",
+      "target": {
+        "collection": "/services/grafana/dashboards",
+        "matching": {
+          "dashboard": {
+            "uid": "checkout-prod"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/dashboard/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/grafana/annotations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/userId",
+      "target": {
+        "collection": "/services/grafana/user",
+        "matching": {},
+        "key_prefix": "current",
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "grafana",
@@ -80,7 +148,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "grafana",
@@ -90,8 +160,129 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/grafana/annotations/*",
+        "kind": "create",
+        "matching": {
+          "dashboardUID": "checkout-prod",
+          "panelId": 0,
+          "tags": [
+            "deploy",
+            "checkout"
+          ],
+          "text": "Deploy checkout v4.19.0",
+          "time": 1794492300000,
+          "timeEnd": 1794492300000
+        },
+        "references": [
+          {
+            "source_field": "/dashboardId",
+            "target": {
+              "collection": "/services/grafana/dashboards",
+              "matching": {
+                "dashboard": {
+                  "uid": "checkout-prod"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/dashboard/id"
+          },
+          {
+            "source_field": "/userId",
+            "target": {
+              "collection": "/services/grafana/user",
+              "matching": {},
+              "key_prefix": "current",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "grafana",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/annotations/*$"
+        }
+      },
+      {
+        "pointer": "/services/grafana/annotations/*",
+        "kind": "create",
+        "matching": {
+          "dashboardUID": "checkout-prod",
+          "panelId": 3,
+          "tags": [
+            "deploy",
+            "checkout"
+          ],
+          "text": "Deploy checkout v4.19.0",
+          "time": 1794492300000,
+          "timeEnd": 1794492300000
+        },
+        "references": [
+          {
+            "source_field": "/dashboardId",
+            "target": {
+              "collection": "/services/grafana/dashboards",
+              "matching": {
+                "dashboard": {
+                  "uid": "checkout-prod"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/dashboard/id"
+          },
+          {
+            "source_field": "/userId",
+            "target": {
+              "collection": "/services/grafana/user",
+              "matching": {},
+              "key_prefix": "current",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "grafana",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/annotations/*$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

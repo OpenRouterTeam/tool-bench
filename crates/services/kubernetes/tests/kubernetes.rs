@@ -19,10 +19,16 @@ const HELM: &str = "uninstall-finished-loadtest";
 const BAD_POD: &str = "ledger-worker-zx4mrndj8b-gdg8j";
 
 fn world(slug: &str) -> SharedWorld {
+    world_with(slug, |_| {})
+}
+
+fn world_with(slug: &str, prepare: impl FnOnce(&mut Dataset)) -> SharedWorld {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../scenarios/ops/kubernetes")
         .join(slug);
-    shared(WorldState::from_dataset(Dataset::load(&dir).unwrap()).unwrap())
+    let mut dataset = Dataset::load(&dir).unwrap();
+    prepare(&mut dataset);
+    shared(WorldState::from_dataset(dataset).unwrap())
 }
 
 struct Resp {
@@ -33,6 +39,16 @@ struct Resp {
 }
 
 async fn send(app: &Router, method: &str, uri: &str, headers: &[(&str, &str)], body: &str) -> Resp {
+    send_bytes(app, method, uri, headers, body.as_bytes()).await
+}
+
+async fn send_bytes(
+    app: &Router,
+    method: &str,
+    uri: &str,
+    headers: &[(&str, &str)],
+    body: &[u8],
+) -> Resp {
     let mut req = Request::builder()
         .method(method)
         .uri(uri)
@@ -47,7 +63,7 @@ async fn send(app: &Router, method: &str, uri: &str, headers: &[(&str, &str)], b
     }
     let resp = app
         .clone()
-        .oneshot(req.body(Body::from(body.to_owned())).unwrap())
+        .oneshot(req.body(Body::from(body.to_vec())).unwrap())
         .await
         .unwrap();
     let (parts, body) = resp.into_parts();
@@ -269,7 +285,7 @@ async fn create_conflict_and_validation() {
     assert_eq!(created.body["metadata"]["namespace"], "payments");
     assert_eq!(
         created.body["metadata"]["creationTimestamp"],
-        "2026-11-03T08:40:07Z"
+        "2026-11-03T08:40:00Z"
     );
     assert!(created.body["metadata"]["uid"].as_str().unwrap().len() == 36);
 
@@ -891,6 +907,529 @@ async fn deleting_a_job_removes_its_pods() {
     )
     .await;
     assert_eq!(names(&staging.body).len(), 1);
+}
+
+#[tokio::test]
+async fn a_reused_job_name_does_not_make_a_different_uid_its_dependent() {
+    let world = world_with(HELM, |dataset| {
+        let pods = dataset
+            .services
+            .get_mut("kubernetes")
+            .unwrap()
+            .collection_mut("pods");
+        let mut stale = pods.get("perf/checkout-loadtest-mrbgn").unwrap().clone();
+        stale["metadata"]["name"] = json!("checkout-loadtest-stale");
+        stale["metadata"]["uid"] = json!("00000000-0000-0000-0000-000000000001");
+        stale["metadata"]["ownerReferences"][0]["uid"] =
+            json!("00000000-0000-0000-0000-000000000002");
+        pods.insert("perf/checkout-loadtest-stale", stale);
+    });
+    let app = service_app(world.clone(), &Kubernetes);
+    let deleted = send(
+        &app,
+        "DELETE",
+        "/apis/batch/v1/namespaces/perf/jobs/checkout-loadtest",
+        &[],
+        "",
+    )
+    .await;
+    assert_eq!(deleted.status, StatusCode::OK);
+    assert_eq!(
+        get(&app, "/api/v1/namespaces/perf/pods/checkout-loadtest-stale")
+            .await
+            .status,
+        StatusCode::OK
+    );
+    assert_eq!(
+        get(&app, "/api/v1/namespaces/perf/pods/checkout-loadtest-mrbgn")
+            .await
+            .status,
+        StatusCode::NOT_FOUND
+    );
+}
+
+#[tokio::test]
+async fn deployment_scaling_ignores_a_same_named_owner_with_a_different_uid() {
+    let world = world_with("scale-checkout-for-sale", |dataset| {
+        let sets = dataset
+            .services
+            .get_mut("kubernetes")
+            .unwrap()
+            .collection_mut("replicasets.apps");
+        let mut stale = sets.get("shop-prod/checkout-tscdrh8t48").unwrap().clone();
+        stale["metadata"]["name"] = json!("checkout-stale");
+        stale["metadata"]["uid"] = json!("00000000-0000-0000-0000-000000000001");
+        stale["metadata"]["ownerReferences"][0]["uid"] =
+            json!("00000000-0000-0000-0000-000000000002");
+        stale["metadata"]["annotations"]["deployment.kubernetes.io/revision"] = json!("999");
+        sets.insert("shop-prod/checkout-stale", stale);
+    });
+    let app = service_app(world.clone(), &Kubernetes);
+    let scaled = send(
+        &app,
+        "PATCH",
+        "/apis/apps/v1/namespaces/shop-prod/deployments/checkout/scale",
+        &[("content-type", "application/merge-patch+json")],
+        r#"{"spec":{"replicas":8}}"#,
+    )
+    .await;
+    assert_eq!(scaled.status, StatusCode::OK);
+    let state = world.lock().unwrap().snapshot();
+    let sets = &state["services"]["kubernetes"]["replicasets.apps"];
+    assert_eq!(sets["shop-prod/checkout-tscdrh8t48"]["spec"]["replicas"], 8);
+    assert_eq!(sets["shop-prod/checkout-stale"]["spec"]["replicas"], 3);
+}
+
+#[tokio::test]
+async fn noncontrolling_owner_references_do_not_select_the_deployment_replica_set() {
+    let world = world_with("scale-checkout-for-sale", |dataset| {
+        let sets = dataset
+            .services
+            .get_mut("kubernetes")
+            .unwrap()
+            .collection_mut("replicasets.apps");
+        let mut unrelated = sets.get("shop-prod/checkout-tscdrh8t48").unwrap().clone();
+        unrelated["metadata"]["name"] = json!("checkout-observed");
+        unrelated["metadata"]["uid"] = json!("00000000-0000-0000-0000-000000000001");
+        unrelated["metadata"]["ownerReferences"][0]["controller"] = json!(false);
+        unrelated["metadata"]["annotations"]["deployment.kubernetes.io/revision"] = json!("999");
+        sets.insert("shop-prod/checkout-observed", unrelated);
+    });
+    let app = service_app(world.clone(), &Kubernetes);
+    let scaled = send(
+        &app,
+        "PATCH",
+        "/apis/apps/v1/namespaces/shop-prod/deployments/checkout/scale",
+        &[("content-type", "application/merge-patch+json")],
+        r#"{"spec":{"replicas":8}}"#,
+    )
+    .await;
+    assert_eq!(scaled.status, StatusCode::OK);
+    let state = world.lock().unwrap().snapshot();
+    let sets = &state["services"]["kubernetes"]["replicasets.apps"];
+    assert_eq!(sets["shop-prod/checkout-tscdrh8t48"]["spec"]["replicas"], 8);
+    assert_eq!(sets["shop-prod/checkout-observed"]["spec"]["replicas"], 3);
+}
+
+#[tokio::test]
+async fn typed_quantity_validation_accepts_exact_alternatives_and_rejects_invalid_resources() {
+    let path = "/apis/apps/v1/namespaces/analytics/deployments/report-builder";
+    for quantity in [
+        json!("1024Mi"),
+        json!(1073741824),
+        json!("1.073741824e9"),
+        json!(" 1Gi "),
+    ] {
+        let world = world("oomkilled-memory-limit");
+        let app = service_app(world.clone(), &Kubernetes);
+        let body = json!({"spec":{"template":{"spec":{"containers":[{
+            "name":"report-builder","resources":{"limits":{"memory":quantity}}
+        }]}}}});
+        let response = send(
+            &app,
+            "PATCH",
+            path,
+            &[("content-type", "application/strategic-merge-patch+json")],
+            &body.to_string(),
+        )
+        .await;
+        assert_eq!(response.status, StatusCode::OK, "{}", response.text);
+    }
+    for memory in [json!("-1Gi"), json!("1gi"), json!(true), json!("128Mi")] {
+        let world = world("oomkilled-memory-limit");
+        let app = service_app(world.clone(), &Kubernetes);
+        let initial = world.lock().unwrap().snapshot()["services"].clone();
+        let body = json!({"spec":{"template":{"spec":{"containers":[{
+            "name":"report-builder","resources":{"limits":{"memory":memory}}
+        }]}}}});
+        let response = send(
+            &app,
+            "PATCH",
+            path,
+            &[("content-type", "application/strategic-merge-patch+json")],
+            &body.to_string(),
+        )
+        .await;
+        assert_eq!(
+            response.status,
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "{}",
+            response.text
+        );
+        assert_eq!(world.lock().unwrap().snapshot()["services"], initial);
+    }
+}
+
+#[tokio::test]
+async fn deployment_and_scale_writes_honor_supplied_uid_and_version_preconditions() {
+    for subresource in ["", "/scale"] {
+        for method in ["PUT", "PATCH"] {
+            for field in ["uid", "resourceVersion"] {
+                let world = world("scale-checkout-for-sale");
+                let app = service_app(world.clone(), &Kubernetes);
+                let path =
+                    format!("/apis/apps/v1/namespaces/shop-prod/deployments/checkout{subresource}");
+                let mut candidate = get(&app, &path).await.body;
+                candidate["spec"]["replicas"] = json!(8);
+                candidate["metadata"][field] = if field == "resourceVersion" {
+                    json!("1")
+                } else {
+                    json!("stale-or-unrelated")
+                };
+                let initial = world.lock().unwrap().snapshot()["services"].clone();
+                let response = send(
+                    &app,
+                    method,
+                    &path,
+                    &[("content-type", "application/merge-patch+json")],
+                    &candidate.to_string(),
+                )
+                .await;
+                assert_eq!(
+                    response.status,
+                    if method == "PATCH" && subresource.is_empty() && field == "uid" {
+                        StatusCode::UNPROCESSABLE_ENTITY
+                    } else {
+                        StatusCode::CONFLICT
+                    },
+                    "{method} {path} {field}: {}",
+                    response.text
+                );
+                assert_eq!(world.lock().unwrap().snapshot()["services"], initial);
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn zero_and_equivalent_numeric_resource_versions_are_valid_unconditional_or_current_updates()
+{
+    for (slug, path) in [
+        (
+            "scale-checkout-for-sale",
+            "/apis/apps/v1/namespaces/shop-prod/deployments/checkout",
+        ),
+        (
+            "scale-checkout-for-sale",
+            "/apis/apps/v1/namespaces/shop-prod/deployments/checkout/scale",
+        ),
+        (
+            HELM,
+            "/api/v1/namespaces/perf/secrets/sh.helm.release.v1.checkout-loadtest.v2",
+        ),
+    ] {
+        for version in ["0", "000", "current_alias"] {
+            let world = world(slug);
+            let app = service_app(world.clone(), &Kubernetes);
+            let mut candidate = get(&app, path).await.body;
+            let requested = if version == "current_alias" {
+                format!(
+                    "0{}",
+                    candidate["metadata"]["resourceVersion"].as_str().unwrap()
+                )
+            } else {
+                version.to_owned()
+            };
+            candidate["metadata"]["resourceVersion"] = json!(requested);
+            candidate["metadata"]["uid"] = json!("");
+            if slug != HELM {
+                candidate["spec"]["replicas"] = json!(8);
+            }
+            let response = send(&app, "PUT", path, &[], &candidate.to_string()).await;
+            assert_eq!(
+                response.status,
+                StatusCode::OK,
+                "{path} {version}: {}",
+                response.text
+            );
+            assert!(
+                !response.body["metadata"]["uid"]
+                    .as_str()
+                    .unwrap()
+                    .is_empty()
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn unconditional_version_does_not_disable_an_independent_uid_precondition() {
+    for (slug, path) in [
+        (
+            "scale-checkout-for-sale",
+            "/apis/apps/v1/namespaces/shop-prod/deployments/checkout",
+        ),
+        (
+            "scale-checkout-for-sale",
+            "/apis/apps/v1/namespaces/shop-prod/deployments/checkout/scale",
+        ),
+        (
+            HELM,
+            "/api/v1/namespaces/perf/secrets/sh.helm.release.v1.checkout-loadtest.v2",
+        ),
+    ] {
+        for method in ["PUT", "PATCH"] {
+            for wrong_uid in [true, false] {
+                let world = world(slug);
+                let app = service_app(world.clone(), &Kubernetes);
+                let mut candidate = get(&app, path).await.body;
+                candidate["metadata"]["uid"] =
+                    json!(if wrong_uid { "unrelated-owner" } else { "" });
+                candidate["metadata"]["resourceVersion"] = json!(if wrong_uid { "0" } else { "1" });
+                if slug != HELM {
+                    candidate["spec"]["replicas"] = json!(8);
+                }
+                let initial = world.lock().unwrap().snapshot()["services"].clone();
+                let response = send(
+                    &app,
+                    method,
+                    path,
+                    &[("content-type", "application/merge-patch+json")],
+                    &candidate.to_string(),
+                )
+                .await;
+                let expected = if wrong_uid && method == "PATCH" && !path.ends_with("/scale") {
+                    StatusCode::UNPROCESSABLE_ENTITY
+                } else {
+                    StatusCode::CONFLICT
+                };
+                assert_eq!(
+                    response.status, expected,
+                    "{method} {path}: {}",
+                    response.text
+                );
+                assert_eq!(world.lock().unwrap().snapshot()["services"], initial);
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn deployment_annotations_change_generation_without_faking_a_completed_rollout() {
+    let world = world("oomkilled-memory-limit");
+    let app = service_app(world.clone(), &Kubernetes);
+    let path = "/apis/apps/v1/namespaces/analytics/deployments/report-builder";
+    let before = get(&app, path).await.body;
+    let response = send(&app, "PATCH", path, &[("content-type","application/merge-patch+json")],
+        r#"{"metadata":{"annotations":{"deployment.kubernetes.io/revision":"9","change-ticket":"OPS-100"}}}"#).await;
+    assert_eq!(response.status, StatusCode::OK);
+    assert_eq!(
+        response.body["metadata"]["generation"],
+        before["metadata"]["generation"].as_u64().unwrap() + 1
+    );
+    assert_eq!(response.body["status"], before["status"]);
+}
+
+#[tokio::test]
+async fn compressed_helm_secret_updates_preserve_observable_release_identity_and_history() {
+    use std::io::Write;
+    let world = world(HELM);
+    let app = service_app(world.clone(), &Kubernetes);
+    let path = "/api/v1/namespaces/perf/secrets/sh.helm.release.v1.checkout-loadtest.v2";
+    let mut secret = get(&app, path).await.body;
+    let mut release = world.lock().unwrap().snapshot()["services"]["kubernetes"]["helm_releases"]["perf/checkout-loadtest.v2"].clone();
+    release["info"]["status"] = json!("uninstalled");
+    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
+    encoder.write_all(release.to_string().as_bytes()).unwrap();
+    let encoded = mock_kubernetes::util::b64_encode(&encoder.finish().unwrap());
+    secret["data"]["release"] = json!(mock_kubernetes::util::b64_encode(encoded.as_bytes()));
+    secret["metadata"]["labels"]["status"] = json!("uninstalled");
+    let response = send(&app, "PUT", path, &[], &secret.to_string()).await;
+    assert_eq!(response.status, StatusCode::OK, "{}", response.text);
+    let state = world.lock().unwrap().snapshot();
+    assert_eq!(
+        state["services"]["kubernetes"]["helm_releases"]["perf/checkout-loadtest.v2"],
+        release
+    );
+    assert_eq!(
+        state["services"]["kubernetes"]["helm_releases"]["perf/checkout-loadtest.v1"]["info"]["status"],
+        "superseded"
+    );
+    let listed = get(
+        &app,
+        "/api/v1/namespaces/perf/secrets?labelSelector=owner%3Dhelm",
+    )
+    .await;
+    assert_eq!(
+        names(&listed.body)
+            .iter()
+            .filter(|name| *name == "sh.helm.release.v1.checkout-loadtest.v2")
+            .count(),
+        1
+    );
+    let deleted = send(&app, "DELETE", path, &[], "").await;
+    assert_eq!(deleted.status, StatusCode::OK);
+    let state = world.lock().unwrap().snapshot();
+    assert!(
+        state["services"]["kubernetes"]["helm_releases"]
+            .get("perf/checkout-loadtest.v2")
+            .is_none()
+    );
+    assert!(
+        state["services"]["kubernetes"]["secrets"]
+            .get("perf/sh.helm.release.v1.checkout-loadtest.v2")
+            .is_none()
+    );
+}
+
+fn protobuf_bytes(number: u64, bytes: &[u8]) -> Vec<u8> {
+    let mut output = Vec::new();
+    for mut value in [(number << 3) | 2, bytes.len() as u64] {
+        while value >= 128 {
+            output.push((value as u8 & 127) | 128);
+            value >>= 7;
+        }
+        output.push(value as u8);
+    }
+    output.extend_from_slice(bytes);
+    output
+}
+
+#[tokio::test]
+async fn typed_helm_protobuf_writes_default_namespace_from_the_request_before_decoding_storage() {
+    use std::io::Write;
+    let world = world(HELM);
+    let app = service_app(world.clone(), &Kubernetes);
+    let path = "/api/v1/namespaces/perf/secrets/sh.helm.release.v1.checkout-loadtest.v2";
+    let mut release = world.lock().unwrap().snapshot()["services"]["kubernetes"]["helm_releases"]["perf/checkout-loadtest.v2"].clone();
+    release["info"]["status"] = json!("uninstalling");
+    let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
+    encoder.write_all(release.to_string().as_bytes()).unwrap();
+    let encoded = mock_kubernetes::util::b64_encode(&encoder.finish().unwrap());
+    let mut metadata = protobuf_bytes(1, b"sh.helm.release.v1.checkout-loadtest.v2");
+    metadata.extend(protobuf_bytes(3, b""));
+    for (key, value) in [
+        ("owner", "helm"),
+        ("name", "checkout-loadtest"),
+        ("status", "uninstalling"),
+        ("version", "2"),
+    ] {
+        let pair = [
+            protobuf_bytes(1, key.as_bytes()),
+            protobuf_bytes(2, value.as_bytes()),
+        ]
+        .concat();
+        metadata.extend(protobuf_bytes(11, &pair));
+    }
+    let data = [
+        protobuf_bytes(1, b"release"),
+        protobuf_bytes(2, encoded.as_bytes()),
+    ]
+    .concat();
+    let raw = [
+        protobuf_bytes(1, &metadata),
+        protobuf_bytes(2, &data),
+        protobuf_bytes(3, b"helm.sh/release.v1"),
+    ]
+    .concat();
+    let type_meta = [protobuf_bytes(1, b"v1"), protobuf_bytes(2, b"Secret")].concat();
+    let body = [
+        b"k8s\0".to_vec(),
+        protobuf_bytes(1, &type_meta),
+        protobuf_bytes(2, &raw),
+    ]
+    .concat();
+    let response = send_bytes(
+        &app,
+        "PUT",
+        path,
+        &[("content-type", "application/vnd.kubernetes.protobuf")],
+        &body,
+    )
+    .await;
+    assert_eq!(response.status, StatusCode::OK, "{}", response.text);
+    assert_eq!(response.body["metadata"]["namespace"], "perf");
+    assert_eq!(
+        world.lock().unwrap().snapshot()["services"]["kubernetes"]["helm_releases"]["perf/checkout-loadtest.v2"],
+        release
+    );
+}
+
+#[tokio::test]
+async fn json_helm_writes_accept_absent_or_empty_namespace_but_not_a_different_namespace() {
+    for namespace in [Value::Null, json!(""), json!("perf"), json!("perf-staging")] {
+        let world = world(HELM);
+        let app = service_app(world.clone(), &Kubernetes);
+        let path = "/api/v1/namespaces/perf/secrets/sh.helm.release.v1.checkout-loadtest.v2";
+        let mut secret = get(&app, path).await.body;
+        if namespace.is_null() {
+            secret["metadata"]
+                .as_object_mut()
+                .unwrap()
+                .remove("namespace");
+        } else {
+            secret["metadata"]["namespace"] = namespace.clone();
+        }
+        secret["metadata"]["resourceVersion"] = json!("");
+        secret["metadata"]["uid"] = json!("");
+        let initial = world.lock().unwrap().snapshot()["services"].clone();
+        let response = send(&app, "PUT", path, &[], &secret.to_string()).await;
+        if namespace == "perf-staging" {
+            assert_eq!(
+                response.status,
+                StatusCode::BAD_REQUEST,
+                "{}",
+                response.text
+            );
+            assert_eq!(world.lock().unwrap().snapshot()["services"], initial);
+        } else {
+            assert_eq!(response.status, StatusCode::OK, "{}", response.text);
+            assert_eq!(response.body["metadata"]["namespace"], "perf");
+        }
+    }
+}
+
+#[tokio::test]
+async fn request_namespace_defaulting_is_shared_by_create_patch_and_apply_create() {
+    for (method, path, media_type) in [
+        (
+            "POST",
+            "/api/v1/namespaces/perf/configmaps",
+            "application/json",
+        ),
+        (
+            "PATCH",
+            "/api/v1/namespaces/perf/configmaps/new-script",
+            "application/apply-patch+yaml",
+        ),
+        (
+            "PATCH",
+            "/api/v1/namespaces/perf/configmaps/checkout-loadtest-script",
+            "application/merge-patch+json",
+        ),
+    ] {
+        for namespace in ["", "perf-staging"] {
+            let world = world(HELM);
+            let app = service_app(world.clone(), &Kubernetes);
+            let name = if path.ends_with("checkout-loadtest-script") {
+                "checkout-loadtest-script"
+            } else {
+                "new-script"
+            };
+            let body = json!({"apiVersion":"v1","kind":"ConfigMap","metadata":{"name":name,"namespace":namespace},"data":{"script.js":"test"}});
+            let initial = world.lock().unwrap().snapshot()["services"].clone();
+            let response = send(
+                &app,
+                method,
+                path,
+                &[("content-type", media_type)],
+                &body.to_string(),
+            )
+            .await;
+            if namespace.is_empty() {
+                assert!(response.status.is_success(), "{}", response.text);
+                assert_eq!(response.body["metadata"]["namespace"], "perf");
+            } else {
+                assert_eq!(
+                    response.status,
+                    StatusCode::BAD_REQUEST,
+                    "{}",
+                    response.text
+                );
+                assert_eq!(world.lock().unwrap().snapshot()["services"], initial);
+            }
+        }
+    }
 }
 
 #[tokio::test]

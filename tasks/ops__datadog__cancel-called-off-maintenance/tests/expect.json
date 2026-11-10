@@ -1,54 +1,42 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/datadog/downtimes/2207731/disabled",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/downtimes/2207752/disabled",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/downtimes/2207745/disabled",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/downtimes/2207702/disabled",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/downtimes/2207760/disabled",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/downtimes/2207761",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/datadog/downtimes",
+        "matching": {
+          "id": 2207731
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/active": false,
+        "/disabled": true
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/canceled": 1793354400,
+        "/updater_id": 1445416
+      }
     }
   ],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "datadog",
@@ -58,7 +46,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -70,8 +60,112 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/datadog/downtimes/2207731/canceled",
+        "kind": "update",
+        "matching": {
+          "active": false,
+          "disabled": true,
+          "id": 2207731
+        },
+        "numeric_fields": {
+          "/canceled": 1793354400,
+          "/updater_id": 1445416
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "datadog",
+          "methods": [
+            "DELETE"
+          ],
+          "path_regex": "^/api/v1/downtime/2207731$"
+        }
+      },
+      {
+        "pointer": "/services/datadog/downtimes/2207731/disabled",
+        "kind": "update",
+        "matching": {
+          "active": false,
+          "disabled": true,
+          "id": 2207731
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "datadog",
+          "methods": [
+            "DELETE"
+          ],
+          "path_regex": "^/api/v1/downtime/2207731$"
+        }
+      },
+      {
+        "pointer": "/services/datadog/downtimes/2207731/active",
+        "kind": "update",
+        "matching": {
+          "active": false,
+          "disabled": true,
+          "id": 2207731
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "datadog",
+          "methods": [
+            "DELETE"
+          ],
+          "path_regex": "^/api/v1/downtime/2207731$"
+        }
+      },
+      {
+        "pointer": "/services/datadog/downtimes/2207731/updater_id",
+        "kind": "update",
+        "matching": {
+          "active": false,
+          "disabled": true,
+          "id": 2207731
+        },
+        "numeric_fields": {
+          "/updater_id": 1445416
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "datadog",
+          "methods": [
+            "DELETE"
+          ],
+          "path_regex": "^/api/v1/downtime/2207731$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

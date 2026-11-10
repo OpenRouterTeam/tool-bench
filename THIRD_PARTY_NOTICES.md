@@ -302,3 +302,77 @@ Used in: `crates/services/cloudflare/assets/spec.json (trimmed from its generate
    See the License for the specific language governing permissions and
    limitations under the License.
 ```
+
+## [supabase/mcp](https://github.com/supabase/mcp) (`@supabase/mcp-server-supabase` 0.15.0)
+
+Used in: `crates/services/supabase/assets/native-introspection-v0_15_0.json` (SQL text copied from the package's `src/pg-meta/{tables,columns,extensions}.sql`; the file is a modified copy, see `docs/provenance.md`) and the Supabase tool list in `servers/snapshots/supabase.json`.
+
+Licensed under the Apache License, Version 2.0, Copyright 2025 Supabase (the package's own `LICENSE` appendix). The full, unmodified Apache-2.0 text is reproduced once above under `cloudflare/mcp` and applies here unchanged. The npm package and the repository contain no `NOTICE` file, so there is no NOTICE text to carry forward.
+
+## [supabase/postgres-meta](https://github.com/supabase/postgres-meta)
+
+Used in: the same SQL, which Supabase adapted from postgres-meta (`src/lib/sql/table.sql.ts`, `columns.sql.ts`, `extensions.sql.ts`). tool-bench receives it through `@supabase/mcp-server-supabase`, not directly.
+
+The repository `LICENSE` is the unmodified Apache License, Version 2.0 template (no copyright holder filled in), its README states "Apache 2.0", and the repository has no `NOTICE` file. The text above applies. Note: its `package.json` declares `"license": "MIT"`, which conflicts with the `LICENSE` file; no copyright holder is stated in the repository (`package.json` author is "Supabase"). This notice follows the `LICENSE` file and README and has not been resolved with Supabase.
+
+## [argoproj-labs/mcp-for-argocd](https://github.com/argoproj-labs/mcp-for-argocd) (`argocd-mcp` 0.9.0)
+
+Used in: tool names, descriptions and schemas captured in `servers/snapshots/argocd.json` (the `update_application_spec` entry is repository-authored).
+
+Apache License, Version 2.0, Copyright 2025 Argoproj Contributors (the package's `LICENSE` appendix). The full text above applies unchanged. No `NOTICE` file in the npm package or repository.
+
+## [GeLi2001/shopify-mcp](https://github.com/GeLi2001/shopify-mcp) (`shopify-mcp` 1.0.8)
+
+Used in: tool names, descriptions and schemas captured in `servers/snapshots/shopify.json` (the `get-publications` and `publish-product` entries are repository-authored).
+
+```text
+MIT License
+
+Copyright (c) 2023 Shopify MCP Server Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## [taylorwilsdon/google_workspace_mcp](https://github.com/taylorwilsdon/google_workspace_mcp) (`workspace-mcp` 2.2.1)
+
+Used in: tool names, descriptions and schemas captured in `servers/snapshots/google-workspace.json`, which also defines the surface the `crates/services/google` replica implements.
+
+```text
+MIT License
+
+Copyright (c) 2025 Taylor Wilsdon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

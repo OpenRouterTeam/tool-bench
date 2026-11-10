@@ -460,16 +460,15 @@ async fn tool_list_and_get_deployment_format_like_the_server() {
         json!({"idOrUrl": "dpl_nope"}),
     )
     .await;
-    assert_eq!(
-        r,
-        json!({"content": [{"type": "text", "text": "Failed to retrieve deployment"}]})
-    );
+    assert_eq!(r["isError"], true);
+    assert_eq!(r["structuredContent"]["status"], 404);
+    assert_eq!(r["structuredContent"]["error"]["code"], "not_found");
     let r = tool(&app, "vercel-get-deployment", json!({})).await;
     assert!(texts(&r)[0].starts_with("Error: ZodError: [\n  {\n    \"code\": \"invalid_type\""));
 }
 
 #[tokio::test]
-async fn tool_list_deployment_files_fails_like_the_server() {
+async fn tool_list_deployment_files_returns_the_actual_api_array() {
     let w = world("storefront-production-status");
     let r = tool(
         &app(&w),
@@ -477,10 +476,9 @@ async fn tool_list_deployment_files_fails_like_the_server() {
         json!({"id": LIVE_STOREFRONT}),
     )
     .await;
-    assert_eq!(
-        r,
-        json!({"content": [{"type": "text", "text": "Failed to retrieve deployment files or no files found", "isError": true}]})
-    );
+    assert_ne!(r["isError"], true);
+    let files: Value = serde_json::from_str(&texts(&r)[1]).unwrap();
+    assert_eq!(files[0]["name"], "src");
 }
 
 #[tokio::test]
@@ -503,10 +501,8 @@ async fn tool_projects_find_domain_and_environments() {
         format!("Found project: checkout-api-next ({CHECKOUT_NEXT})")
     );
     let r = tool(&app, "vercel-find-project", json!({"idOrName": "nope"})).await;
-    assert_eq!(
-        r,
-        json!({"content": [{"type": "text", "text": "Project not found", "isError": true}]})
-    );
+    assert_eq!(r["isError"], true);
+    assert_eq!(r["structuredContent"]["status"], 404);
     let r = tool(
         &app,
         "vercel-get-project-domain",
@@ -523,7 +519,8 @@ async fn tool_projects_find_domain_and_environments() {
         json!({"idOrName": "checkout-api", "domain": "api.acme-shop.com"}),
     )
     .await;
-    assert_eq!(texts(&r)[0], "Domain not found");
+    assert_eq!(r["isError"], true);
+    assert_eq!(r["structuredContent"]["status"], 404);
     let r = tool(
         &app,
         "vercel-get-environments",
@@ -540,10 +537,8 @@ async fn tool_projects_find_domain_and_environments() {
         "Invalid request: idOrName parameter must be a non-empty string, received: undefined"
     );
     let r = tool(&app, "vercel-get-environments", json!({"idOrName": "nope"})).await;
-    assert_eq!(
-        texts(&r)[0],
-        "Failed to retrieve environment variables for project: nope"
-    );
+    assert_eq!(r["isError"], true);
+    assert_eq!(r["structuredContent"]["status"], 404);
 }
 
 #[tokio::test]
@@ -553,7 +548,11 @@ async fn tool_env_rotation_updates_state() {
     let create = json!({"projectId": "checkout-api-next", "environmentVariables": [
         {"key": "STRIPE_SECRET_KEY", "value": "sk_live_new", "target": ["production"], "type": "sensitive"}]});
     let r = tool(&app, "vercel-create-environment-variables", create.clone()).await;
-    assert_eq!(texts(&r)[0], "Successfully created 0 environment variables");
+    assert_eq!(r["isError"], true);
+    assert_eq!(
+        texts(&r)[0],
+        "Created 0 environment variables; batch has failures"
+    );
     assert!(texts(&r)[1].contains("ENV_CONFLICT"));
     let r = tool(
         &app,
@@ -577,14 +576,14 @@ async fn tool_env_rotation_updates_state() {
     assert!(texts(&r)[0].contains(
         "Invalid enum value. Expected 'production' | 'preview' | 'development', received 'prod'"
     ));
-    // A missing project: the server prints its null branch.
     let r = tool(
         &app,
         "vercel-remove-environment-variable",
         json!({"idOrName": "nope", "id": "x"}),
     )
     .await;
-    assert_eq!(texts(&r)[1], "null");
+    assert_eq!(r["isError"], true);
+    assert_eq!(r["structuredContent"]["status"], 404);
 }
 
 #[tokio::test]
@@ -615,8 +614,9 @@ async fn tool_redeploy_moves_production() {
     );
     assert_eq!(
         s["deployments"]["dpl_7wC1vKiBnuwDgHLXzdLRklqAYci5"]["alias"],
-        json!([])
+        json!(["acme-shop.com", "storefront-acme-shop.vercel.app"])
     );
+    assert_eq!(s["aliases"]["acme-shop.com"]["deploymentId"], prod["id"]);
 
     // Redeploying a failed build fails again and production stays put.
     tool(
@@ -637,10 +637,8 @@ async fn tool_redeploy_moves_production() {
         json!({"name": "storefront"}),
     )
     .await;
-    assert_eq!(
-        r,
-        json!({"content": [{"type": "text", "text": "Failed to create deployment", "isError": true}]})
-    );
+    assert_eq!(r["isError"], true);
+    assert_eq!(r["structuredContent"]["error"]["code"], "missing_files");
     let r = tool(&app, "vercel-create-deployment", json!({"project": "storefront", "gitSource": {"type": "github", "ref": "fix/cart-badge"}, "target": "preview"})).await;
     let d: Value = serde_json::from_str(&texts(&r)[1]).unwrap();
     assert_eq!(d["target"], Value::Null);
@@ -675,10 +673,8 @@ async fn tool_project_team_and_custom_env_creation() {
         json!({"name": "status-page", "teamId": ACME}),
     )
     .await;
-    assert_eq!(
-        texts(&r),
-        ["Project undefined (undefined) created successfully", "null"]
-    );
+    assert_eq!(r["isError"], true);
+    assert_eq!(r["structuredContent"]["error"]["code"], "conflict");
     let r = tool(
         &app,
         "vercel-delete-project",
@@ -692,7 +688,8 @@ async fn tool_project_team_and_custom_env_creation() {
     let r = tool(&app, "vercel-create-team", json!({"slug": "acme-data"})).await;
     assert!(texts(&r)[0].starts_with("Team created successfully: acme-data (team_"));
     let r = tool(&app, "vercel-create-team", json!({"slug": "acme-data"})).await;
-    assert_eq!(texts(&r), ["Failed to create team"]);
+    assert_eq!(r["isError"], true);
+    assert_eq!(r["structuredContent"]["status"], 409);
 
     let r = tool(
         &app,

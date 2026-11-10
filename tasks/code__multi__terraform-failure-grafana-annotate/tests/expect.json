@@ -1,135 +1,256 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/grafana/annotations/53/dashboardUID",
-      "equals": "payments-db-prod",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/53/time",
-      "equals": 1793193129000,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/53/text",
-      "equals": null,
-      "exists": null,
-      "contains": "run-Gy4tBHGggKx49nbH",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/53/text",
-      "equals": null,
-      "exists": null,
-      "contains": "InvalidParameterCombination",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/53/tags",
-      "equals": null,
-      "exists": null,
-      "contains": "terraform",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/53/tags",
-      "equals": null,
-      "exists": null,
-      "contains": "payments",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/grafana/annotations/54",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/terraform/runs/run-Gy4tBHGggKx49nbH/status",
-      "equals": "errored",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
-    {
-      "service": "grafana",
-      "method": "POST",
-      "path": "/api/annotations",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "dashboardUID": "payments-db-prod"
+      "selector": {
+        "collection": "/services/grafana/annotations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/grafana/annotations",
+        "matching": {
+          "dashboardUID": "payments-db-prod"
+        },
+        "field_patterns": {
+          "/text": "(?s)run-Gy4tBHGggKx49nbH.*InvalidParameterCombination|InvalidParameterCombination.*run-Gy4tBHGggKx49nbH"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/dashboardId": 120,
+        "/panelId": 0,
+        "/time": 1793193129000,
+        "/timeEnd": 1793193129000
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [
+        "/data"
+      ],
+      "html_text": {},
+      "reviewed_text": {
+        "/text": {
+          "requirement": "The complete annotation must truthfully mark the production payments-api-prod Terraform run that failed during the Postgres 16 database upgrade with the actual failed run ID and AWS error code. It must not claim success, an applied upgrade, a rollback, a database state or any other unsupported outcome, and must not blame another run, environment or error code. Do not require a particular phrasing, the run message, workspace or resource address. Unlisted nonempty wording requires adjudication.",
+          "accepted": [],
+          "format": "plain",
+          "bound": {
+            "identities": {
+              "failed_run": {
+                "selector": {
+                  "collection": "/services/terraform/runs",
+                  "matching": {
+                    "message": "Upgrade payments DB to Postgres 16",
+                    "status": "errored",
+                    "workspace": "ws-vJd7W10B1cG75Uxp"
+                  },
+                  "key_prefix": null,
+                  "created": false,
+                  "identity_field": null
+                },
+                "field": "/id",
+                "separator": null
+              }
+            },
+            "examples": [
+              "Terraform ${failed_run} (Upgrade payments DB to Postgres 16) failed on payments-api-prod: InvalidParameterCombination on aws_db_instance.payments",
+              "Terraform ${failed_run} failed on payments-api-prod: InvalidParameterCombination",
+              "Terraform ${failed_run} errored on payments-api-prod: InvalidParameterCombination",
+              "Terraform ${failed_run} failed: InvalidParameterCombination",
+              "Terraform ${failed_run} errored: InvalidParameterCombination",
+              "Terraform run ${failed_run} failed on payments-api-prod with InvalidParameterCombination",
+              "Terraform run ${failed_run} errored on payments-api-prod with InvalidParameterCombination",
+              "Terraform run ${failed_run} failed with InvalidParameterCombination",
+              "Terraform run ${failed_run} errored with InvalidParameterCombination",
+              "Postgres 16 upgrade run ${failed_run} failed on payments-api-prod: InvalidParameterCombination",
+              "Postgres 16 upgrade run ${failed_run} errored on payments-api-prod: InvalidParameterCombination",
+              "Payments DB Postgres 16 upgrade failed in Terraform run ${failed_run}: InvalidParameterCombination",
+              "Payments DB Postgres 16 upgrade errored in Terraform run ${failed_run}: InvalidParameterCombination",
+              "Terraform apply failed in ${failed_run} on payments-api-prod: InvalidParameterCombination",
+              "Terraform apply errored in ${failed_run} on payments-api-prod: InvalidParameterCombination"
+            ]
+          }
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [
+        {
+          "/tags": [
+            "terraform",
+            "payments"
+          ]
+        },
+        {
+          "/tags": [
+            "payments",
+            "terraform"
+          ]
+        }
+      ],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "forbidden_calls": [
+  "relations": [
     {
-      "service": "grafana",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/grafana/annotations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/dashboardUID",
+      "target": {
+        "collection": "/services/grafana/dashboards",
+        "matching": {
+          "dashboard": {
+            "title": "Payments DB",
+            "uid": "payments-db-prod"
+          },
+          "folderUid": "f-prod"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/dashboard/uid",
+      "kind": "equals",
+      "fields": []
     },
     {
-      "service": "grafana",
-      "method": "POST",
-      "path": "/api/dashboards/db",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/grafana/annotations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/dashboardId",
+      "target": {
+        "collection": "/services/grafana/dashboards",
+        "matching": {
+          "dashboard": {
+            "uid": "payments-db-prod"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/dashboard/id",
+      "kind": "equals",
+      "fields": []
     },
     {
-      "service": "terraform",
-      "method": "POST",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/grafana/annotations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/userId",
+      "target": {
+        "collection": "/services/grafana/user",
+        "matching": {},
+        "key_prefix": "current",
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
     }
   ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/grafana/annotations/*",
+        "kind": "create",
+        "matching": {
+          "dashboardId": 120,
+          "dashboardUID": "payments-db-prod",
+          "panelId": 0,
+          "time": 1793193129000,
+          "timeEnd": 1793193129000
+        },
+        "field_patterns": {
+          "/text": "(?s)run-Gy4tBHGggKx49nbH.*InvalidParameterCombination|InvalidParameterCombination.*run-Gy4tBHGggKx49nbH"
+        },
+        "references": [
+          {
+            "source_field": "/dashboardId",
+            "target": {
+              "collection": "/services/grafana/dashboards",
+              "matching": {
+                "dashboard": {
+                  "uid": "payments-db-prod"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/dashboard/id"
+          },
+          {
+            "source_field": "/userId",
+            "target": {
+              "collection": "/services/grafana/user",
+              "matching": {},
+              "key_prefix": "current",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "grafana",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/annotations/*$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

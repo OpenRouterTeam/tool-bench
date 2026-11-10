@@ -7,10 +7,34 @@ services = ["tavily"]
 tags = ["write", "single-service", "tavily"]
 timeout_sec = 900
 
-# The first research task created in this world gets this ID (deterministic per seed).
-[[expect.state]]
-pointer = "/services/tavily/research/0d62b10e-d2f9-8a7b-bb2f-c55f8e77d7f9/model"
-equals = "mini"
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/tavily/research", created = true }
+equals = 1
+fields = { "/model" = "mini", "/status" = "completed" }
+
+[[expect.relations]]
+source = { collection = "/services/tavily/research", created = true }
+source_field = "/content"
+target = { collection = "/services/tavily/research_reports", matching = { id = "report-nordic-grocery-cold-chain" } }
+target_field = "/content"
+kind = "equals"
+
+[[expect.relations]]
+source = { collection = "/services/tavily/research", created = true }
+source_field = "/sources"
+target = { collection = "/services/tavily/research_reports", matching = { id = "report-nordic-grocery-cold-chain" } }
+target_field = "/sources"
+kind = "equals"
+
+[[expect.preservation.allow]]
+pointer = "/services/tavily/research/*"
+kind = "create"
+matching = { model = "mini" }
+max_count = 1
 
 [[expect.required_calls]]
 service = "tavily"
@@ -18,7 +42,6 @@ method = "POST"
 path = "/research"
 body = { model = "mini" }
 
-# The user ruled out the expensive models.
 [[expect.forbidden_calls]]
 service = "tavily"
 method = "POST"
@@ -31,9 +54,53 @@ method = "POST"
 path = "/research"
 body = { model = "auto" }
 
-[expect.answer]
-contains = ["FrostLink"]
-regex = "4[.,]20"
+[expect.answer.source_facts]
+requirement = "Name the vendor with the largest share in the authored Nordic grocery cold-chain report and attribute that same vendor's per-sensor monthly list price to it, without negation or misattribution."
+source = { selector = { collection = "/services/tavily/research_reports", matching = { id = "report-nordic-grocery-cold-chain" } }, field = "/content" }
+key = "vendor"
+rows = { largest = "share" }
+claims = [
+  "Market leader: ${vendor} (${hq}), about ${share} of monitored grocery cold rooms in the Nordics. List price: ${price} per sensor per month.",
+  "Market leader: ${vendor}, about ${share} of monitored grocery cold rooms in the Nordics. List price: ${price} per sensor per month.",
+  "Market leader: ${vendor}. List price: ${price} per sensor per month.",
+  "Largest market share: ${vendor}. List price: ${price} per sensor per month.",
+  "${vendor} has the largest share (${share}) and lists at ${price} per sensor per month.",
+  "${vendor} has the largest market share and lists at ${price} per sensor per month.",
+  "${vendor} has the largest share. ${vendor} charges ${price} per sensor per month.",
+  "${vendor} is the market leader at ${price} per sensor per month.",
+]
+neutral_claims = [
+  "${vendor} — ${price} per sensor per month.",
+  "${vendor} — ${price} pro Sensor und Monat.",
+  "${vendor}: ${price} per sensor per month.",
+]
+rejected = [
+  "${vendor} does not have the largest share.",
+  "${vendor} is not the market leader.",
+  "${vendor} is not the market leader. ${vendor} charges ${price} per sensor per month.",
+]
+
+[expect.answer.source_facts.columns.vendor]
+header = "Vendor"
+kind = "name"
+answer_headers = ["Market leader", "Leader", "Largest vendor", "Leading vendor"]
+
+[expect.answer.source_facts.columns.hq]
+header = "HQ"
+kind = "place"
+required = false
+answer_headers = ["Headquarters"]
+
+[expect.answer.source_facts.columns.share]
+header = "Est. share of monitored grocery cold rooms (Nordics)"
+kind = "percent"
+required = false
+answer_headers = ["Share", "Market share", "Est. share"]
+
+[expect.answer.source_facts.columns.price]
+header = "List price"
+kind = "money"
+answer_headers = ["Price", "Price per sensor per month", "Monthly price per sensor", "List price per sensor per month", "Per-sensor monthly price"]
 
 [solution]
 answer = "Market leader: FrostLink (Oslo), about 38% of monitored grocery cold rooms in the Nordics. List price: EUR 4.20 per sensor per month.\n"

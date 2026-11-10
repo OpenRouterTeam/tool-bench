@@ -7,35 +7,19 @@ services = ["supabase"]
 tags = ["write", "single-service", "supabase", "disambiguation"]
 timeout_sec = 900
 
-[[expect.state]]
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/supabase/projects", matching = { id = "wgtplxkqrzvnmbcdhfye", name = "marketing-site-legacy", organization_id = "northwind-marketing" } }
+equals = 1
+fields = { "/status" = "INACTIVE" }
+
+[[expect.preservation.allow]]
 pointer = "/services/supabase/projects/wgtplxkqrzvnmbcdhfye/status"
-equals = "INACTIVE"
-
-[[expect.state]]
-pointer = "/services/supabase/projects/bdnfrjskvlqmzpxtwcgh/status"
-equals = "ACTIVE_HEALTHY"
-
-[[expect.state]]
-pointer = "/services/supabase/projects/qmvbxtzkplrnwdhyfaco/status"
-equals = "ACTIVE_HEALTHY"
-
-[[expect.state]]
-pointer = "/services/supabase/projects/hzrkcwpxnqdlmvbtejsa/status"
-equals = "ACTIVE_HEALTHY"
-
-[[expect.required_calls]]
-service = "supabase"
-method = "POST"
-path = "/v1/projects/wgtplxkqrzvnmbcdhfye/pause"
-
-[[expect.forbidden_calls]]
-service = "supabase"
-method = "POST"
-path_regex = '^/v1/projects/(bdnfrjskvlqmzpxtwcgh|qmvbxtzkplrnwdhyfaco|hzrkcwpxnqdlmvbtejsa)/pause$'
-
-[[expect.forbidden_calls]]
-service = "supabase"
-method = "DELETE"
+field_patterns = { "/status" = "^(PAUSING|GOING_DOWN|INACTIVE)$" }
+cause = { service = "supabase", methods = ["POST"], path_regex = "^/v1/projects/wgtplxkqrzvnmbcdhfye/pause$" }
 
 [[solution.call]]
 endpoint = "supabase"
@@ -46,3 +30,8 @@ arguments = {}
 endpoint = "supabase"
 tool = "pause_project"
 arguments = { project_id = "wgtplxkqrzvnmbcdhfye" }
+
+[[solution.call]]
+endpoint = "supabase"
+tool = "get_project"
+arguments = { id = "wgtplxkqrzvnmbcdhfye" }

@@ -7,91 +7,100 @@ services = ["pagerduty", "kubernetes"]
 tags = ["write", "multi-service", "pagerduty", "kubernetes", "disambiguation"]
 timeout_sec = 900
 
-# PagerDuty: two triggered incidents titled "Checkout API saturated: p95 latency above 2s".
-# Q7CHKAP15PCT1D (checkout-api, production) runbook: scale shop-prod/checkout to 9 replicas.
-# Q8CHKSTG5PCT2F (checkout-api-staging) runbook: scale shop-staging/checkout to 3. The runbook
-# step is on each incident's first Datadog alert (body.details.runbook): pagerduty-mcp's
-# Incident model drops the incident body, so get_incident never shows it. checkout-web
-# has a third, acknowledged incident. Kubernetes: shop-prod/checkout runs 3 replicas;
-# checkout-worker (2) must not be scaled; shop-staging/checkout stays at 1.
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/replicas"
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/kubernetes/deployments.apps", matching = { metadata = { name = "checkout", namespace = "shop-prod", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba" } } }
+equals = 1
+fields = { "/spec/replicas" = 9, "/status/replicas" = 9, "/status/updatedReplicas" = 9, "/status/readyReplicas" = 9, "/status/availableReplicas" = 9 }
+
+[[expect.records]]
+selector = { collection = "/services/kubernetes/pods", matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", name = "checkout-tscdrh8t48", uid = "77a7ad33-adb2-4b6e-a56f-6c5b2e50cb7f", controller = true }] } } }
+equals = 9
+fields = { "/status/phase" = "Running" }
+
+[[expect.records]]
+selector = { collection = "/services/kubernetes/pods", matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", name = "checkout-tscdrh8t48", uid = "77a7ad33-adb2-4b6e-a56f-6c5b2e50cb7f", controller = true }] }, status = { conditions = [{ type = "Ready", status = "True" }], containerStatuses = [{ name = "checkout", ready = true }] } } }
 equals = 9
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/template/spec/containers/0/image"
-equals = "ghcr.io/tidewater/checkout:4.18.2"
-
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout-worker/spec/replicas"
-equals = 2
-
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/shop-staging~1checkout/spec/replicas"
+[[expect.records]]
+selector = { collection = "/services/pagerduty/incidents", matching = { id = "Q7CHKAP15PCT1D", incident_number = 4810, service = { id = "PSVCHKA" } } }
 equals = 1
+fields = { "/status" = "resolved", "/assignments" = [], "/pending_actions" = [] }
 
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/status"
-equals = "resolved"
+[[expect.records]]
+selector = { collection = "/services/pagerduty/alerts", matching = { incident = { id = "Q7CHKAP15PCT1D" } } }
+equals = 2
+fields = { "/status" = "resolved" }
 
-[[expect.state]]
-pointer = "/services/pagerduty/notes"
-key_prefix = "Q7CHKAP15PCT1D/"
-any = { content = "9" }
+[[expect.records]]
+selector = { collection = "/services/pagerduty/notes", created = true }
+min_count = 1
+reviewed_text = { "/content" = { requirement = "The complete note must truthfully state that production shop-prod/checkout was scaled to 9 replicas per its runbook. A bare number, staging claim, denial or changed-image claim is not a remediation note. Unlisted wording requires adjudication.", accepted = ["Per RB-CHK-07: scaled the checkout Deployment in shop-prod from 3 to 9 replicas.", "Scaled production shop-prod/checkout from 3 to 9 replicas per RB-CHK-07; all 9 pods are Ready.", "Production checkout is now at 9 replicas in shop-prod, as required by the incident runbook."], rejected = ["9", "Staging was scaled to 9; production was left unchanged.", "Production checkout was not scaled to 9 replicas.", "Scaled production checkout to 9 and changed its image."] } }
 
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q8CHKSTG5PCT2F/status"
-equals = "triggered"
+[[expect.relations]]
+source = { collection = "/services/pagerduty/notes", created = true }
+source_field = "/id"
+target = { collection = "/services/pagerduty/notes", key_prefix = "Q7CHKAP15PCT1D/", created = true }
+target_field = "/id"
+kind = "bijection"
 
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q9CHKWEB5XX3VK/status"
-equals = "acknowledged"
+[[expect.relations]]
+source = { collection = "/services/pagerduty/notes", created = true }
+source_field = "/user/id"
+target = { collection = "/services/pagerduty/account", key_prefix = "account" }
+target_field = "/user_id"
+kind = "foreign_key"
 
-[[expect.state]]
-pointer = "/services/pagerduty/notes/Q8CHKSTG5PCT2F~11"
-exists = false
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/kubernetes/deployments.apps", matching = { metadata = { uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba" } } }, field = "/spec/replicas", equals = 9 }
+action = { selector = { collection = "/services/pagerduty/incidents", matching = { id = "Q7CHKAP15PCT1D" } }, field = "/status", equals = "resolved" }
 
-[[expect.required_calls]]
-service = "kubernetes"
-path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
-body = { spec = { replicas = 9 } }
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/kubernetes/deployments.apps", matching = { metadata = { uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba" } } }, field = "/status/readyReplicas", equals = 9 }
+action = { selector = { collection = "/services/pagerduty/incidents", matching = { id = "Q7CHKAP15PCT1D" } }, field = "/status", equals = "resolved" }
 
-[[expect.required_calls]]
-service = "pagerduty"
-method = "POST"
-path = "/incidents/Q7CHKAP15PCT1D/notes"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/kubernetes/deployments.apps", matching = { metadata = { uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba" } } }, field = "/spec/replicas", equals = 9 }
+action = { selector = { collection = "/services/pagerduty/notes", created = true, key_prefix = "Q7CHKAP15PCT1D/" }, field = "/content", nonempty_text = true }
 
-[[expect.required_calls]]
-service = "pagerduty"
-method = "PUT"
-path = "/incidents"
-body = { incidents = [{ id = "Q7CHKAP15PCT1D", status = "resolved" }] }
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/kubernetes/deployments.apps", matching = { metadata = { uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba" } } }, field = "/status/readyReplicas", equals = 9 }
+action = { selector = { collection = "/services/pagerduty/notes", created = true, key_prefix = "Q7CHKAP15PCT1D/" }, field = "/content", nonempty_text = true }
 
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "DELETE"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-path_regex = "/namespaces/shop-staging/"
-method = "PUT"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-path_regex = "/namespaces/shop-staging/"
-method = "PATCH"
-
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "PUT"
-path = "/incidents"
-body = { incidents = [{ id = "Q8CHKSTG5PCT2F" }] }
-
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "PUT"
-path = "/incidents"
-body = { incidents = [{ id = "Q9CHKWEB5XX3VK" }] }
+[expect.preservation]
+allow = [
+  { pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/apiVersion", matching = { apiVersion = "apps/v1", kind = "Deployment" }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/kind", matching = { apiVersion = "apps/v1", kind = "Deployment" }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/replicas", cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/resourceVersion", cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/generation", cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/managedFields", cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/deployments.apps/shop-prod~1checkout/status", cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/replicasets.apps/*/apiVersion", matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/replicasets.apps/*/kind", matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/replicasets.apps/*/spec/replicas", matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/replicasets.apps/*/metadata/resourceVersion", matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/replicasets.apps/*/metadata/generation", matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/replicasets.apps/*/status", matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "checkout", uid = "67feaa03-727f-434e-ad4f-1a87c645e3ba", controller = true }] } }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/kubernetes/pods/*", kind = "create", max_count = 6, matching = { metadata = { namespace = "shop-prod", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", name = "checkout-tscdrh8t48", uid = "77a7ad33-adb2-4b6e-a56f-6c5b2e50cb7f", controller = true }] } }, cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/status", cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/resolved_at", matching = { status = "resolved" }, cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/assignments", matching = { status = "resolved", assignments = [] }, cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/pending_actions", matching = { status = "resolved", pending_actions = [] }, cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/last_status_change_at", cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/last_status_change_by", references = [{ source_field = "/last_status_change_by/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/acknowledgements", kind = "append", identity_field = "/acknowledger/id", matching = { acknowledger = { id = "PLWEBR5", type = "user_reference" } }, cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/updated_at", cause = { service = "pagerduty", methods = ["PUT", "POST"], path_regex = "^/incidents(/Q7CHKAP15PCT1D(/notes)?)?$" } },
+  { pointer = "/services/pagerduty/alerts/*/status", initial_matching = { incident = { id = "Q7CHKAP15PCT1D" } }, matching = { status = "resolved" }, max_count = "all_matching", cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/alerts/*/resolved_at", initial_matching = { incident = { id = "Q7CHKAP15PCT1D" } }, matching = { status = "resolved" }, max_count = "all_matching", cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/notes/*", kind = "create", matching = { user = { type = "user_reference" } }, references = [{ source_field = "/user/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], max_count = "all_matching", cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q7CHKAP15PCT1D/notes$" } },
+  { pointer = "/services/pagerduty/log_entries/*", kind = "create", matching = { type = "resolve_log_entry", incident = { id = "Q7CHKAP15PCT1D" }, service = { id = "PSVCHKA" } }, references = [{ source_field = "/agent/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], max_count = "all_matching", cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/log_entries/*", kind = "create", matching = { type = "acknowledge_log_entry", incident = { id = "Q7CHKAP15PCT1D" }, service = { id = "PSVCHKA" } }, references = [{ source_field = "/agent/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], max_count = "all_matching", cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q7CHKAP15PCT1D)?$" } },
+  { pointer = "/services/pagerduty/log_entries/*", kind = "create", matching = { type = "annotate_log_entry", incident = { id = "Q7CHKAP15PCT1D" }, service = { id = "PSVCHKA" } }, references = [{ source_field = "/agent/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], max_count = "all_matching", cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q7CHKAP15PCT1D/notes$" } },
+]
 
 [[solution.call]]
 endpoint = "pagerduty"
@@ -117,6 +126,16 @@ arguments = { apiVersion = "apps/v1", kind = "Deployment", namespace = "shop-pro
 endpoint = "kubernetes"
 tool = "resources_scale"
 arguments = { apiVersion = "apps/v1", kind = "Deployment", namespace = "shop-prod", name = "checkout", scale = 9 }
+
+[[solution.call]]
+endpoint = "kubernetes"
+tool = "resources_get"
+arguments = { apiVersion = "apps/v1", kind = "Deployment", namespace = "shop-prod", name = "checkout" }
+
+[[solution.call]]
+endpoint = "kubernetes"
+tool = "pods_list_in_namespace"
+arguments = { namespace = "shop-prod" }
 
 [[solution.call]]
 endpoint = "pagerduty"

@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/StageName",
@@ -6,7 +7,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/IsWon",
@@ -14,7 +18,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/CloseDate",
@@ -22,64 +29,211 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
-      "pointer": "/services/salesforce/Opportunity/0065g00000zqiLyAAI/StageName",
-      "equals": "Negotiation/Review",
+      "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/IsClosed",
+      "equals": true,
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/salesforce/Opportunity/0065g00000N039FAAR/StageName",
-      "equals": "Proposal/Price Quote",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/salesforce/Opportunity/0065g00000jfTUgAAM/CloseDate",
-      "equals": "2025-06-27",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/salesforce/Opportunity/0065g0000024COoAAM/StageName",
-      "equals": "Proposal/Price Quote",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
-  "required_calls": [
-    {
-      "service": "salesforce",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": "^/services/data/v[0-9.]+/(composite/sobjects|sobjects/Opportunity/0065g000006FoSr(AAK)?)$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "salesforce",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/StageName",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/CloseDate",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/IsWon",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/IsClosed",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/Probability",
+        "kind": "update",
+        "matching": {
+          "Probability": 100.0,
+          "StageName": "Closed Won"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/Probability",
+        "kind": "update",
+        "matching": {
+          "Probability": 100,
+          "StageName": "Closed Won"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/ExpectedRevenue",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/ForecastCategory",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/ForecastCategoryName",
+        "kind": "update",
+        "matching": {
+          "ForecastCategoryName": "Closed",
+          "StageName": "Closed Won"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/Fiscal",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/FiscalYear",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/FiscalQuarter",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/LastModifiedDate",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/LastModifiedById",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Opportunity/0065g000006FoSrAAK/SystemModstamp",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": [
+      "/services/salesforce/Opportunity/0065g000006FoSrAAK/Amount"
+    ]
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

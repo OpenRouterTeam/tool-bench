@@ -306,11 +306,18 @@ pub enum SetBody {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Query {
-    pub ctes: Vec<(String, Query)>,
+    pub ctes: Vec<CommonTableExpression>,
     pub body: SetBody,
     pub order_by: Vec<OrderItem>,
     pub limit: Option<Expr>,
     pub offset: Option<Expr>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct CommonTableExpression {
+    pub name: String,
+    pub columns: Vec<String>,
+    pub query: Query,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -349,6 +356,10 @@ pub enum AlterAction {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Stmt {
     Query(Query),
+    With {
+        ctes: Vec<CommonTableExpression>,
+        statement: Box<Stmt>,
+    },
     Insert {
         table: ObjName,
         columns: Vec<String>,
@@ -427,18 +438,21 @@ pub enum Stmt {
         text: Option<String>,
     },
     Truncate(Vec<ObjName>),
-    /// Accepted with no visible effect (BEGIN, GRANT, CREATE FUNCTION, ...).
-    Noop(String),
+    Unsupported(String),
 }
 
 impl Stmt {
     pub fn mutates(&self) -> bool {
-        !matches!(self, Stmt::Query(_) | Stmt::Noop(_))
+        match self {
+            Stmt::With { statement, .. } => statement.mutates(),
+            _ => !matches!(self, Stmt::Query(_) | Stmt::Unsupported(_)),
+        }
     }
 
     pub fn verb(&self) -> &'static str {
         match self {
             Stmt::Query(_) => "SELECT",
+            Stmt::With { statement, .. } => statement.verb(),
             Stmt::Insert { .. } => "INSERT",
             Stmt::Update { .. } => "UPDATE",
             Stmt::Delete { .. } => "DELETE",
@@ -453,7 +467,7 @@ impl Stmt {
             Stmt::DropExtension { .. } => "DROP EXTENSION",
             Stmt::Comment { .. } => "COMMENT",
             Stmt::Truncate(_) => "TRUNCATE TABLE",
-            Stmt::Noop(_) => "",
+            Stmt::Unsupported(_) => "",
         }
     }
 }
@@ -715,7 +729,14 @@ impl Parser<'_> {
 
     fn statement(&mut self) -> Result<Stmt, SqlError> {
         let start = self.pos;
-        if self.is_kw("select") || self.is_kw("with") || self.is_kw("values") || self.is_sym("(") {
+        if self.is_kw("with") {
+            let ctes = self.common_tables()?;
+            return Ok(Stmt::With {
+                ctes,
+                statement: Box::new(self.statement()?),
+            });
+        }
+        if self.is_kw("select") || self.is_kw("values") || self.is_sym("(") {
             return Ok(Stmt::Query(self.query()?));
         }
         if self.eat_kw("insert") {
@@ -744,7 +765,7 @@ impl Parser<'_> {
                 return self.alter_table();
             }
             self.skip_statement();
-            return Ok(Stmt::Noop(self.text_since(start)));
+            return Ok(Stmt::Unsupported(self.text_since(start)));
         }
         if self.eat_kw("drop") {
             return self.drop(start);
@@ -752,7 +773,7 @@ impl Parser<'_> {
         if self.eat_kw("comment") {
             return self.comment(start);
         }
-        const NOOPS: [&str; 18] = [
+        const UNSUPPORTED: [&str; 18] = [
             "begin",
             "commit",
             "rollback",
@@ -772,9 +793,9 @@ impl Parser<'_> {
             "release",
             "show",
         ];
-        if NOOPS.iter().any(|k| self.is_kw(k)) {
+        if UNSUPPORTED.iter().any(|k| self.is_kw(k)) {
             self.skip_statement();
-            return Ok(Stmt::Noop(self.text_since(start)));
+            return Ok(Stmt::Unsupported(self.text_since(start)));
         }
         Err(self.unexpected())
     }
@@ -880,9 +901,8 @@ impl Parser<'_> {
                 if_not_exists,
             });
         }
-        // Functions, triggers, types, schemas, views: accepted, no visible effect.
         self.skip_statement();
-        Ok(Stmt::Noop(self.text_since(start)))
+        Ok(Stmt::Unsupported(self.text_since(start)))
     }
 
     fn drop(&mut self, start: usize) -> Result<Stmt, SqlError> {
@@ -929,7 +949,7 @@ impl Parser<'_> {
             return Ok(Stmt::DropExtension { name, if_exists });
         }
         self.skip_statement();
-        Ok(Stmt::Noop(self.text_since(start)))
+        Ok(Stmt::Unsupported(self.text_since(start)))
     }
 
     fn comment(&mut self, start: usize) -> Result<Stmt, SqlError> {
@@ -960,7 +980,7 @@ impl Parser<'_> {
             }
         } else {
             self.skip_statement();
-            return Ok(Stmt::Noop(self.text_since(start)));
+            return Ok(Stmt::Unsupported(self.text_since(start)));
         };
         self.expect_kw("is")?;
         let text = match self.peek().cloned() {
@@ -1458,27 +1478,56 @@ impl Parser<'_> {
         })
     }
 
-    pub fn query(&mut self) -> Result<Query, SqlError> {
+    fn common_tables(&mut self) -> Result<Vec<CommonTableExpression>, SqlError> {
         let mut ctes = Vec::new();
         if self.eat_kw("with") {
-            self.eat_kw("recursive");
+            if self.eat_kw("recursive") {
+                return Err(SqlError::unsupported());
+            }
             loop {
                 let name = self.ident()?;
-                if self.is_sym("(") {
-                    self.ident_list()?;
-                }
+                let columns = if self.is_sym("(") {
+                    self.ident_list()?
+                } else {
+                    Vec::new()
+                };
                 self.expect_kw("as")?;
-                self.eat_kw("materialized");
-                self.eat_kws(&["not", "materialized"]);
+                if !self.eat_kw("materialized") {
+                    self.eat_kws(&["not", "materialized"]);
+                }
                 self.expect_sym("(")?;
-                let q = self.query()?;
+                if ["insert", "update", "delete", "merge"]
+                    .iter()
+                    .any(|keyword| self.is_kw(keyword))
+                {
+                    return Err(SqlError::unsupported());
+                }
+                let query = self.query()?;
                 self.expect_sym(")")?;
-                ctes.push((name, q));
+                if ctes
+                    .iter()
+                    .any(|prior: &CommonTableExpression| prior.name == name)
+                {
+                    return Err(SqlError::new(
+                        "42712",
+                        format!("WITH query name \"{name}\" specified more than once"),
+                    ));
+                }
+                ctes.push(CommonTableExpression {
+                    name,
+                    columns,
+                    query,
+                });
                 if !self.eat_sym(",") {
                     break;
                 }
             }
         }
+        Ok(ctes)
+    }
+
+    pub fn query(&mut self) -> Result<Query, SqlError> {
+        let ctes = self.common_tables()?;
         let mut body = self.set_term()?;
         while self.eat_kw("union") {
             let all = self.eat_kw("all");
@@ -1753,7 +1802,11 @@ impl Parser<'_> {
             TableSource::Subquery(Box::new(q))
         } else {
             self.eat_kw("only");
-            TableSource::Table(self.obj_name()?)
+            let name = self.obj_name()?;
+            if self.is_sym("(") {
+                return Err(SqlError::unsupported());
+            }
+            TableSource::Table(name)
         };
         let alias = self.table_alias()?;
         if alias.is_some() && self.is_sym("(") {
@@ -2251,7 +2304,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(stmts.len(), 7);
-        assert!(matches!(stmts[6], Stmt::Noop(_)));
+        assert!(matches!(stmts[6], Stmt::Unsupported(_)));
         let Stmt::CreateTable { columns, .. } = &stmts[3] else {
             panic!()
         };

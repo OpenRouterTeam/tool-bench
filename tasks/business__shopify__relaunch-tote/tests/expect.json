@@ -1,131 +1,287 @@
 {
+  "version": 2,
   "state": [
-    {
-      "pointer": "/services/shopify/products/8201/variants/0/price",
-      "equals": "42.00",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/shopify/products/8201/variants/0/title",
-      "equals": "Navy",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/shopify/products/8201/variants/1/price",
-      "equals": "48.00",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/shopify/products/8201/variants/2/price",
-      "equals": "48.00",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
     {
       "pointer": "/services/shopify/products/8201/status",
       "equals": "ACTIVE",
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
-      "pointer": "/services/shopify/products/8202/variants/0/price",
-      "equals": "32.00",
+      "pointer": "/services/shopify/products/8201/onlineStoreVisible",
+      "equals": true,
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/shopify/products/8203/status",
-      "equals": "DRAFT",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/shopify/products/8203/variants/0/price",
-      "equals": "89.00",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/shopify/products/8204/status",
-      "equals": "ARCHIVED",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
-  "required_calls": [
+  "records": [
     {
-      "service": "shopify",
-      "method": "POST",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "productVariantsBulkUpdate",
-      "min_count": 1
+      "selector": {
+        "collection": "/services/shopify/products/8201/variants",
+        "matching": {
+          "selectedOptions": [
+            {
+              "name": "Color",
+              "value": "Navy"
+            }
+          ]
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": "/id"
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/price": "42.00",
+        "/title": "Navy"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "service": "shopify",
-      "method": "POST",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "productUpdate(",
-      "min_count": 1
+      "selector": {
+        "collection": "/services/shopify/publications",
+        "matching": {
+          "isOnlineStore": true
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "forbidden_calls": [
+  "relations": [
     {
-      "service": "shopify",
-      "method": null,
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "productDelete",
-      "min_count": 1
-    },
-    {
-      "service": "shopify",
-      "method": null,
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "productVariantsBulkDelete",
-      "min_count": 1
-    },
-    {
-      "service": "shopify",
-      "method": null,
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "productOptionsDelete",
-      "min_count": 1
+      "source": {
+        "collection": "/services/shopify/publications",
+        "matching": {
+          "isOnlineStore": true
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/shopify/resource_publications",
+        "matching": {
+          "isPublished": true,
+          "productId": 8201
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/publicationId",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/shopify/products/8201/variants",
+          "matching": {
+            "selectedOptions": [
+              {
+                "name": "Color",
+                "value": "Navy"
+              }
+            ]
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": "/id"
+        },
+        "field": "/price",
+        "equals": "42.00"
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/shopify/products",
+          "matching": {
+            "id": 8201
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/onlineStoreVisible",
+        "equals": true
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    }
+  ],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/shopify/products/8201/variants/*/price",
+        "kind": "update",
+        "matching": {
+          "onlineStoreVisible": false
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": {
+          "selectedOptions": [
+            {
+              "name": "Color",
+              "value": "Navy"
+            }
+          ]
+        },
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/shopify/products/8201/variants/*/price",
+        "kind": "update",
+        "matching": {
+          "onlineStoreVisible": true,
+          "variants": [
+            {
+              "price": "42.00",
+              "selectedOptions": [
+                {
+                  "name": "Color",
+                  "value": "Navy"
+                }
+              ]
+            }
+          ]
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": {
+          "selectedOptions": [
+            {
+              "name": "Color",
+              "value": "Navy"
+            }
+          ]
+        },
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/shopify/products/8201/variants/*/updatedAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": {
+          "selectedOptions": [
+            {
+              "name": "Color",
+              "value": "Navy"
+            }
+          ]
+        },
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/shopify/products/8201/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/shopify/products/8201/publishedAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/shopify/products/8201/onlineStoreVisible",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/shopify/products/8201/updatedAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/shopify/resource_publications/*",
+        "kind": "create",
+        "matching": {
+          "isPublished": true,
+          "productId": 8201
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

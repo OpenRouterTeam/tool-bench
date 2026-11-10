@@ -10,6 +10,10 @@ timeout_sec = 900
 # Priya Raman: 1,130.00 across 3 orders. Distractors: Marcus Bell has the most orders (6,
 # 740.00); Elena Novak and Hannah Wright have larger raw order totals, but those big orders
 # were refunded / voided; Tom Achebe is a close second at 1,050.00.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Priya Raman", "priya.raman@outlook.com"]
 regex = '1,?130(\.\d+)?'

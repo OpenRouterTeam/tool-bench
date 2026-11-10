@@ -10,6 +10,10 @@ timeout_sec = 900
 # PR #42's latest CI run (9005) failed in unit-tests: TestRetryBackoffCapsAtMaxDelay,
 # "expected delay 30s, got 32s". Distractors: a flaky integration failure on main (run 9001),
 # a lint failure on PR #41 (run 9003), and an earlier green run on PR #42 (run 9004).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["TestRetryBackoffCapsAtMaxDelay", "32s"]
 

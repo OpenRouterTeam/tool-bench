@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/mongodb/top-category-revenue",
+  "instruction_sha256": "sha256:2bc8f280cce06b2beb8adb5a8c170f29cfafe243aa66f5fad441bb3cb3da73e8",
+  "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
+  "framing_sha256": "sha256:fae7895f6930aebc21bf6218bdc6323043183973d7b9dbd682ec938c47c46313",
+  "environment_files": {
+    "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
+    "docker-compose.yaml": "sha256:c67cc5848b7859617834f1b7594bfcccc22bd4aee94809d6b1c90400a2a28d45"
+  },
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:184124f51e851dee",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:edc97358c1ef93a4",
+  "connector_env_sha256": {
+    "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
+    "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",
+    "GITLAB_GRAPHQL_URL": "sha256:2bcf2e0ea397c95358dc7c585bf9b2c1e2f03dac4546cf1c7c2e5c3de00d72a5",
+    "GRAFANA_URL": "sha256:8bd1e965a4c9bea85fe11b6874e2bad23b224e8c2320a4e4717c7458a0f34df9",
+    "PAGERDUTY_API_HOST": "sha256:cabebf5eecc72736f0ce0a1bb2359d97f47d0d9caf4bda64ed783aa8c0c81d00",
+    "SENTRY_URL": "sha256:512d2da48937e07d146746c614a87d380bbeb14b4055a338a877bd127db7a974",
+    "TFE_ADDRESS": "sha256:dbbaea8eb57f330940dbeba66d3acae2aa6b726969fd37b70d80105faeb71030"
+  }
+}

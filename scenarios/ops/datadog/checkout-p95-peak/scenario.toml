@@ -10,6 +10,10 @@ timeout_sec = 900
 # Prod peaks at 1843 ms at 14:35 inside the window. Distractors: staging peaks at 2210 ms
 # (14:15), prod is higher just outside the window (2950 ms at 13:30, 2400 ms at 15:15), and
 # cart-api peaks at 2120 ms.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["1843", "14:35"]
 

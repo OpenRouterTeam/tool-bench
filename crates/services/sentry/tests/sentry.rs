@@ -192,7 +192,7 @@ async fn create_team_project_and_keys_write_state() {
     assert_eq!(public.len(), 32);
     assert_eq!(
         keys[0]["dsn"]["public"],
-        format!("http://{public}@world:8113/4508812006")
+        format!("https://{public}@sentry.lumenlabs.dev/4508812006")
     );
     let (status, _, edge) = call(
         &app,
@@ -215,10 +215,7 @@ async fn create_team_project_and_keys_write_state() {
     assert_eq!(upd["rateLimit"], json!({ "window": 60, "count": 100 }));
 
     let s = state(&w);
-    assert_eq!(
-        s["projects"]["notification-service"]["teams"],
-        json!(["payments"])
-    );
+    assert_eq!(s["projects"]["4508812006"]["teams"], json!(["payments"]));
     assert_eq!(s["keys"]["notification-service/Default"]["isActive"], true);
     assert_eq!(s["keys"]["notification-service/edge"]["isActive"], false);
     assert_eq!(s["teams"]["notifications"]["name"], "Notifications");

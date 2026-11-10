@@ -7,49 +7,39 @@ services = ["linear"]
 tags = ["write", "single-service", "linear"]
 timeout_sec = 900
 
-# The new issue is WEB-58 (next Web App number) with the Bug and Safari labels, High
-# priority, the Web 4.12 release project and Alex Kim (not Alex Rivera) as assignee.
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-58/title"
-equals = "Saved carts tab reloads in a loop on Safari 17"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-58/teamId"
-equals = "6da75b4c-0e7c-5ac7-a415-f09a129582b1"
+[[expect.records]]
+selector = { collection = "/services/linear/issues", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-58/priority"
-equals = 2
+[[expect.records]]
+selector = { collection = "/services/linear/issues", matching = { teamId = "6da75b4c-0e7c-5ac7-a415-f09a129582b1", labelIds = ["75dbca3d-6368-502e-8e56-0c82837ea691", "b528a42a-7d96-511c-ab34-1b8cb0bf0c8d"] }, created = true }
+equals = 1
+fields = { "/title" = "Saved carts tab reloads in a loop on Safari 17", "/priority" = 2, "/projectId" = "665e6e05-9585-5351-a871-913d9e5b298f", "/assigneeId" = "0bfae6ae-01d0-58d1-a611-7d1973102c45" }
+null_fields = ["/archivedAt", "/completedAt", "/canceledAt"]
+reviewed_text = { "/description" = { requirement = "Record that opening Saved carts on Safari 17.1/macOS 14 causes a reload loop, Chrome/Firefox are fine, and the regression began with the 4.12 release candidate. Do not invent customer counts or other unsupported facts. Unlisted nonempty wording requires adjudication.", accepted = ["On Safari 17.1 (macOS 14), opening the Saved carts tab makes the page reload in a loop. Chrome and Firefox are fine. It started with the 4.12 release candidate."] } }
 
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-58/labelIds"
-contains = "75dbca3d-6368-502e-8e56-0c82837ea691"
+[[expect.relations]]
+source = { collection = "/services/linear/issue_history", created = true }
+source_field = "/issueId"
+target = { collection = "/services/linear/issues", created = true }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-58/labelIds"
-contains = "b528a42a-7d96-511c-ab34-1b8cb0bf0c8d"
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/*"
+kind = "create"
+matching = { teamId = "6da75b4c-0e7c-5ac7-a415-f09a129582b1" }
 
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-58/projectId"
-equals = "665e6e05-9585-5351-a871-913d9e5b298f"
-
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-58/assigneeId"
-equals = "0bfae6ae-01d0-58d1-a611-7d1973102c45"
-
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-59"
-exists = false
-
-[[expect.required_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
-body_contains = "Saved carts tab reloads in a loop on Safari 17"
-
-[[expect.forbidden_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
-body = { name = "linear_archiveIssue" }
+[[expect.preservation.allow]]
+pointer = "/services/linear/issue_history/*"
+kind = "create"
+matching = { actorId = "2dad689e-9ace-5467-9b02-0cc4e445cfa4" }
+count_scope = "per_commit"
+max_count = 6
 
 [[solution.call]]
 endpoint = "linear"
@@ -64,4 +54,4 @@ arguments = {}
 [[solution.call]]
 endpoint = "linear"
 tool = "linear_createIssue"
-arguments = { title = "Saved carts tab reloads in a loop on Safari 17", teamId = "6da75b4c-0e7c-5ac7-a415-f09a129582b1", description = "On Safari 17.1 (macOS 14), opening the Saved carts tab makes the page reload in a loop. Chrome and Firefox are fine. Reported by support for several customers since the 4.12 release candidate.", priority = 2, labelIds = ["75dbca3d-6368-502e-8e56-0c82837ea691", "b528a42a-7d96-511c-ab34-1b8cb0bf0c8d"], projectId = "665e6e05-9585-5351-a871-913d9e5b298f", assigneeId = "0bfae6ae-01d0-58d1-a611-7d1973102c45" }
+arguments = { title = "Saved carts tab reloads in a loop on Safari 17", teamId = "6da75b4c-0e7c-5ac7-a415-f09a129582b1", description = "On Safari 17.1 (macOS 14), opening the Saved carts tab makes the page reload in a loop. Chrome and Firefox are fine. It started with the 4.12 release candidate.", priority = 2, labelIds = ["75dbca3d-6368-502e-8e56-0c82837ea691", "b528a42a-7d96-511c-ab34-1b8cb0bf0c8d"], projectId = "665e6e05-9585-5351-a871-913d9e5b298f", assigneeId = "0bfae6ae-01d0-58d1-a611-7d1973102c45" }

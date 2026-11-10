@@ -12,6 +12,10 @@ timeout_sec = 900
 # cluster in August). GitHub: m.okafor@octo-org.example is `mokafor` (Mira Okafor), not
 # `sam` (Sam Okafor). Her PR is octo-org/deploy-pipeline#58, still open (unmerged).
 # Look-alikes: #57 (rchen, staging key, merged) and #44 (asantos, legacy key, merged).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["m.okafor", "mokafor", "16:42"]
 regex = '#\s?58\b'

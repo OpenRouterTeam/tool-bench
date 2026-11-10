@@ -2,6 +2,7 @@
 
 pub mod grade;
 pub mod replay;
+pub mod replay_headers;
 pub mod tls;
 
 use std::{
@@ -12,7 +13,7 @@ use std::{
 
 use axum::{
     Router,
-    extract::Request,
+    extract::{ConnectInfo, Request},
     http::{StatusCode, header::AUTHORIZATION},
     middleware::{self, Next},
     response::{IntoResponse, Response},
@@ -20,8 +21,9 @@ use axum::{
 };
 use axum_server::tls_rustls::RustlsConfig;
 use mock_core::{
+    access::require_caller,
     admin::admin_app,
-    serve::{serve, service_app},
+    serve::{serve, service_app_with_caller},
     service::MockService,
     world::SharedWorld,
 };
@@ -74,6 +76,12 @@ pub enum PortChoice {
     Ephemeral,
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct AccessPolicy {
+    pub admin_token: Option<String>,
+    pub tools_host: Option<String>,
+}
+
 pub struct Running {
     pub admin: SocketAddr,
     /// HTTPS listener that dispatches by `Host` to the service owning that hostname.
@@ -111,12 +119,38 @@ pub async fn spawn_guarded(
     ports: PortChoice,
     admin_token: Option<String>,
 ) -> io::Result<Running> {
+    spawn_with_access(
+        world,
+        ip,
+        ports,
+        AccessPolicy {
+            admin_token,
+            tools_host: None,
+        },
+    )
+    .await
+}
+
+pub async fn spawn_with_access(
+    world: SharedWorld,
+    ip: IpAddr,
+    ports: PortChoice,
+    access: AccessPolicy,
+) -> io::Result<Running> {
+    world
+        .configure_replay_headers(replay_headers::registry().map_err(io::Error::other)?)
+        .map_err(io::Error::other)?;
     let port = |fixed: u16| match ports {
         PortChoice::Fixed => fixed,
         PortChoice::Ephemeral => 0,
     };
     let mut tasks = JoinSet::new();
     let services = services();
+    for service in &services {
+        world
+            .prepare_service(service.name(), service.initializer())
+            .map_err(io::Error::other)?;
+    }
     let ca = tls::LocalCa::generate(&tls::all_hosts(&services)).map_err(io::Error::other)?;
 
     let admin_listener = TcpListener::bind((ip, port(ADMIN_PORT))).await?;
@@ -131,9 +165,15 @@ pub async fn spawn_guarded(
                 async move { pem }
             }),
         ));
-    let admin_routes = match admin_token {
+    let admin_routes = match access.admin_token {
         Some(token) => admin_routes.layer(middleware::from_fn(move |request, next| {
             require_admin_token(token.clone(), request, next)
+        })),
+        None => admin_routes,
+    };
+    let admin_routes = match access.tools_host.clone() {
+        Some(host) => admin_routes.layer(middleware::from_fn(move |request, next| {
+            require_admin_caller(host.clone(), request, next)
         })),
         None => admin_routes,
     };
@@ -147,7 +187,7 @@ pub async fn spawn_guarded(
         ca.leaf_key_pem.clone().into_bytes(),
     )
     .await?;
-    let tls_app = tls::host_router(world.clone(), &services);
+    let tls_app = tls::host_router_with_caller(world.clone(), &services, access.tools_host.clone());
     tasks.spawn(async move {
         axum_server::from_tcp_rustls(tls_listener, config)?
             .serve(tls_app.into_make_service_with_connect_info::<SocketAddr>())
@@ -160,7 +200,7 @@ pub async fn spawn_guarded(
         bound.insert(service.name(), listener.local_addr()?);
         tasks.spawn(serve(
             listener,
-            service_app(world.clone(), service.as_ref()),
+            service_app_with_caller(world.clone(), service.as_ref(), access.tools_host.clone()),
         ));
     }
 
@@ -171,6 +211,17 @@ pub async fn spawn_guarded(
         services: bound,
         tasks,
     })
+}
+
+async fn require_admin_caller(host: String, request: Request, next: Next) -> Response {
+    let source = request
+        .extensions()
+        .get::<ConnectInfo<SocketAddr>>()
+        .map(|info| info.0.ip());
+    match require_caller(&host, source, true).await {
+        Ok(()) => next.run(request).await,
+        Err(status) => status.into_response(),
+    }
 }
 
 async fn require_admin_token(token: String, request: Request, next: Next) -> Response {

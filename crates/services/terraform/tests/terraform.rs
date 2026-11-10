@@ -595,6 +595,16 @@ async fn plans_applies_logs_and_json_output() {
 async fn create_run_plans_immediately_and_records_inputs() {
     let world = world();
     let app = service_app(world.clone(), &Terraform);
+    let updated = send(
+        &app,
+        "PATCH",
+        &format!("/api/v2/workspaces/{CHECKOUT_STG}/vars/{DESIRED_COUNT}"),
+        Some(json!({"data":{"type":"vars","id":DESIRED_COUNT,
+            "attributes":{"key":"desired_count","value":"4"}}})),
+        true,
+    )
+    .await;
+    assert_eq!(updated.status, StatusCode::OK);
     let body = json!({ "data": { "type": "runs", "attributes": { "message": "Scale up", "auto-apply": false },
         "relationships": { "workspace": { "data": { "type": "workspaces", "id": CHECKOUT_STG } } } } });
     let created = send(&app, "POST", "/api/v2/runs", Some(body), true).await;
@@ -611,7 +621,7 @@ async fn create_run_plans_immediately_and_records_inputs() {
     assert_eq!(ws["latest-run-summary"]["status"], "planned");
     assert_eq!(
         ws["latest-run-summary"]["input-variables"]["desired_count"],
-        "2"
+        "4"
     );
     assert_eq!(
         ws["latest-run-summary"]["input-variables"]["DD_API_KEY"],
@@ -645,6 +655,9 @@ async fn create_run_plans_immediately_and_records_inputs() {
 async fn run_actions_apply_discard_cancel() {
     let world = world();
     let app = service_app(world.clone(), &Terraform);
+    let initial_count = state(&world)["workspaces"][NET_PROD]["resource-count"]
+        .as_u64()
+        .unwrap();
     let apply = send(
         &app,
         "POST",
@@ -661,7 +674,10 @@ async fn run_actions_apply_discard_cancel() {
         "Approved per CHG-2291"
     );
     assert_eq!(snap["workspaces"][NET_PROD]["locked"], false);
-    assert_eq!(snap["workspaces"][NET_PROD]["resource-count"], 60);
+    assert_eq!(
+        snap["workspaces"][NET_PROD]["resource-count"],
+        initial_count + 2
+    );
     let sv = snap["workspaces"][NET_PROD]["current-state-version"]
         .as_str()
         .unwrap();

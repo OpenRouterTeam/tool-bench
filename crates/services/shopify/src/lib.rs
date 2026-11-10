@@ -10,6 +10,7 @@ mod exec;
 pub mod graphql;
 mod model;
 mod mutations;
+mod publication;
 mod schema;
 mod search;
 
@@ -47,6 +48,10 @@ impl MockService for Shopify {
 
     fn hosts(&self) -> &'static [&'static str] {
         &["octo-corp.myshopify.com"]
+    }
+
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(publication::initialize)
     }
 
     fn router(&self) -> Router<SharedWorld> {
@@ -115,7 +120,7 @@ async fn access_token() -> Response {
         StatusCode::OK,
         json_value!({
             "access_token": ACCESS_TOKEN,
-            "scope": "read_products,write_products,read_orders,write_orders,read_customers,write_customers",
+            "scope": "read_products,write_products,read_orders,write_orders,read_customers,write_customers,read_publications,write_publications",
             "expires_in": 86399
         }),
     )

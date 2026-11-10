@@ -40,6 +40,8 @@ async fn main() -> anyhow::Result<()> {
     }
     let catalog = Catalog::load(&catalog_path)?;
     catalog.validate()?;
+    let inherited = std::env::vars().collect();
+    catalog.validate_runtime_environment(&inherited)?;
 
     let trust = match ca_url {
         Some(url) => trust_env(&fetch_ca(&url).await?)?,
@@ -67,7 +69,7 @@ async fn main() -> anyhow::Result<()> {
                 );
                 front::router(ReplicaBackend::new(snapshot).forward_to(forward))
             } else {
-                let mut spec = catalog.launch(&endpoint.id)?;
+                let mut spec = catalog.launch_with_environment(&endpoint.id, &inherited)?;
                 spec.env.extend(trust.clone());
                 front::router(StdioBackend::new(spec).sort_tools(endpoint.sort_tools))
             };

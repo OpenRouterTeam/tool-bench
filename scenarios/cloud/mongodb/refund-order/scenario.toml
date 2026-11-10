@@ -7,67 +7,44 @@ services = ["mongodb"]
 tags = ["write", "single-service", "mongodb"]
 timeout_sec = 900
 
-# Order #10482 (Priya Natarajan, total 214.5) is shop.orders 65f1a000000000000000000a.
-# Look-alikes: #10428 (Diego Alvarez), Priya's other order #10517, and the stale copy of
-# #10482 in shop_staging.
-[[expect.state]]
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/mongodb/db.shop.orders", matching = { orderNumber = 10482, customer = { customerId = { "$oid" = "65d1c0000000000000000001" } } } }
+equals = 1
+fields = { "/status" = "refunded", "/refund/reason" = "damaged in transit" }
+
+[[expect.relations]]
+source = { collection = "/services/mongodb/db.shop.orders", matching = { orderNumber = 10482, customer = { customerId = { "$oid" = "65d1c0000000000000000001" } } } }
+source_field = "/refund/amount"
+target = { collection = "/services/mongodb/db.shop.orders", matching = { orderNumber = 10482, customer = { customerId = { "$oid" = "65d1c0000000000000000001" } } } }
+target_field = "/total"
+kind = "bson_numeric_equals"
+
+[[expect.preservation.allow]]
 pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/status"
-equals = "refunded"
+matching = { status = "refunded" }
 
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refund/reason"
-equals = "damaged in transit"
+matching = { refund = { reason = "damaged in transit" } }
 
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refund/amount"
-equals = 214.5
-
-[[expect.state]]
-pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/total"
-equals = 214.5
-
-[[expect.state]]
-pointer = "/services/mongodb/db.shop.orders/65f1a0000000000000000002/status"
-equals = "delivered"
-
-[[expect.state]]
-pointer = "/services/mongodb/db.shop.orders/65f1a0000000000000000002/refund"
-exists = false
-
-[[expect.state]]
-pointer = "/services/mongodb/db.shop.orders/65f1a0000000000000000010/status"
-equals = "delivered"
-
-[[expect.state]]
-pointer = "/services/mongodb/db.shop_staging.orders/65f7aa000000000000000007/status"
-equals = "delivered"
-
-[[expect.required_calls]]
-service = "mongodb"
-path = "/_mcp/tools/call"
-body = { name = "update-many", arguments = { database = "shop", collection = "orders" } }
-
-[[expect.forbidden_calls]]
-service = "mongodb"
-path = "/_mcp/tools/call"
-body = { name = "delete-many" }
-
-[[expect.forbidden_calls]]
-service = "mongodb"
-path = "/_mcp/tools/call"
-body = { name = "drop-collection" }
-
-[[expect.forbidden_calls]]
-service = "mongodb"
-path = "/_mcp/tools/call"
-body = { name = "insert-many", arguments = { collection = "orders" } }
 
 [[solution.call]]
 endpoint = "mongodb"
 tool = "find"
-arguments = { connectionId = "preconfigured", database = "shop", collection = "orders", filter = { orderNumber = 10482 } }
+arguments = { connectionId = "preconfigured", database = "shop", collection = "orders", filter = { orderNumber = 10482, "customer.name" = "Priya Natarajan" } }
+capture = [
+  { name = "order_id", pointer = "/structuredContent/documents/0/_id" },
+  { name = "order_total", pointer = "/structuredContent/documents/0/total" },
+]
 
 [[solution.call]]
 endpoint = "mongodb"
 tool = "update-many"
-arguments = { connectionId = "preconfigured", database = "shop", collection = "orders", filter = { orderNumber = 10482 }, update = { "$set" = { status = "refunded", "refund.reason" = "damaged in transit", "refund.amount" = 214.5 } } }
+template = true
+arguments = { connectionId = "preconfigured", database = "shop", collection = "orders", filter = { "_id" = "${order_id}" }, update = { "$set" = { status = "refunded", "refund.reason" = "damaged in transit", "refund.amount" = "${order_total}" } } }

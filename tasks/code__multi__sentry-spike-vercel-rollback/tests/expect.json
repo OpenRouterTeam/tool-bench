@@ -1,105 +1,171 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/meta/githubCommitSha",
-      "equals": "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/readyState",
-      "equals": "READY",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/alias",
-      "equals": null,
-      "exists": null,
-      "contains": "acme-shop.com",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/issues/STOREFRONT-5R/assignedTo/type",
-      "equals": "team",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/issues/STOREFRONT-5R/assignedTo/name",
-      "equals": "payments-web",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/issues/STOREFRONT-5R/status",
-      "equals": "unresolved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/issues/STOREFRONT-5T/assignedTo/type",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/issues/STOREFRONT-4W/assignedTo/type",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
-    {
-      "service": "vercel",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "vercel-create-deployment"
+      "selector": {
+        "collection": "/services/vercel/deployments",
+        "matching": {
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": null,
+      "min_count": 1,
+      "max_count": null,
+      "fields": {
+        "/gitSource/sha": "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9",
+        "/meta/githubCommitSha": "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9",
+        "/meta/originalDeploymentId": "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF",
+        "/readyState": "READY",
+        "/source": "redeploy",
+        "/target": "production"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "service": "sentry",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "(?i)^/api/0/organizations/acme-shop/issues/(STOREFRONT-5R|7201330418)/$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "selector": {
+        "collection": "/services/vercel/aliases",
+        "matching": {
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX"
+        },
+        "field_patterns": {
+          "/alias": "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 2,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/sentry/issues",
+        "matching": {
+          "id": "7201330418",
+          "project": "storefront",
+          "shortId": "STOREFRONT-5R"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/assignedTo/type": "team",
+        "/status": "unresolved"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "forbidden_calls": [
+  "relations": [
     {
-      "service": "sentry",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "(?i)/issues/(STOREFRONT-5T|7201331102|STOREFRONT-4W|7201298877|STOREFRONT-ADMIN-1C|7201312240)/$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/vercel/aliases",
+        "matching": {
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX"
+        },
+        "field_patterns": {
+          "/alias": "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/deploymentId",
+      "target": {
+        "collection": "/services/vercel/deployments",
+        "matching": {
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+          "readyState": "READY",
+          "target": "production"
+        },
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/vercel/deployment_sources",
+              "matching": {
+                "originalDeploymentId": "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF",
+                "sourcePreserved": true
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/deploymentId"
+          }
+        ],
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     },
+    {
+      "source": {
+        "collection": "/services/sentry/issues",
+        "matching": {
+          "id": "7201330418",
+          "shortId": "STOREFRONT-5R"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/assignedTo/id",
+      "target": {
+        "collection": "/services/sentry/teams",
+        "matching": {
+          "slug": "payments-web"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [
     {
       "service": "sentry",
       "method": "DELETE",
@@ -108,7 +174,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "vercel",
@@ -120,7 +188,9 @@
         "name": "vercel-delete-project"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "vercel",
@@ -132,7 +202,9 @@
         "name": "vercel-remove-environment-variable"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "vercel",
@@ -144,8 +216,281 @@
         "name": "vercel-create-environment-variables"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/vercel/deployments/*",
+        "kind": "create",
+        "matching": {
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+          "source": "redeploy",
+          "target": "production"
+        },
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/vercel/deployment_sources",
+              "matching": {
+                "originalDeploymentId": "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF",
+                "sourcePreserved": true
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/deploymentId"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/deployment_sources/*",
+        "kind": "create",
+        "matching": {
+          "originalDeploymentId": "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF",
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+          "sourcePreserved": true
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/aliases/*/deploymentId",
+        "kind": "update",
+        "matching": null,
+        "field_patterns": {
+          "/alias": "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$"
+        },
+        "references": [
+          {
+            "source_field": "/deploymentId",
+            "target": {
+              "collection": "/services/vercel/deployments",
+              "matching": {
+                "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+                "readyState": "READY",
+                "target": "production"
+              },
+              "references": [
+                {
+                  "source_field": "/id",
+                  "target": {
+                    "collection": "/services/vercel/deployment_sources",
+                    "matching": {
+                      "originalDeploymentId": "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF",
+                      "sourcePreserved": true
+                    },
+                    "key_prefix": null,
+                    "created": true,
+                    "identity_field": null
+                  },
+                  "target_field": "/deploymentId"
+                }
+              ],
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "initial_matching": {
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX"
+        },
+        "max_count": 2,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/targets/production/id",
+            "target": {
+              "collection": "/services/vercel/deployments",
+              "matching": {
+                "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+                "readyState": "READY",
+                "target": "production"
+              },
+              "references": [
+                {
+                  "source_field": "/id",
+                  "target": {
+                    "collection": "/services/vercel/deployment_sources",
+                    "matching": {
+                      "originalDeploymentId": "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF",
+                      "sourcePreserved": true
+                    },
+                    "key_prefix": null,
+                    "created": true,
+                    "identity_field": null
+                  },
+                  "target_field": "/deploymentId"
+                }
+              ],
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/latestDeployments",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/updatedAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/sentry/issues/STOREFRONT-5R/assignedTo",
+        "kind": "update",
+        "matching": {
+          "assignedTo": {
+            "type": "team"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/assignedTo/id",
+            "target": {
+              "collection": "/services/sentry/teams",
+              "matching": {
+                "slug": "payments-web"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/0/organizations/(acme-shop|1180911)/issues/(STOREFRONT-5R|7201330418)/$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/activities/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "assigneeType": "team"
+          },
+          "type": "assigned"
+        },
+        "references": [
+          {
+            "source_field": "/issue",
+            "target": {
+              "collection": "/services/sentry/issues",
+              "matching": {
+                "id": "7201330418",
+                "shortId": "STOREFRONT-5R"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/data/assignee",
+            "target": {
+              "collection": "/services/sentry/teams",
+              "matching": {
+                "slug": "payments-web"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/user",
+            "target": {
+              "collection": "/services/sentry/users",
+              "matching": {
+                "email": "riley@acme-shop.com"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/0/organizations/(acme-shop|1180911)/issues/(STOREFRONT-5R|7201330418)/$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

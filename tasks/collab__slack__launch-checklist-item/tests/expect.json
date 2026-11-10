@@ -1,68 +1,74 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/slack/lists/F0PAYV2LST1/records",
-      "equals": null,
-      "exists": null,
-      "contains": {
-        "fields": {
-          "Col0DUED0004": "2026-11-05",
-          "Col0OWNR0002": [
-            "U03PRIYAN4T"
-          ],
-          "Col0STAT0003": [
-            "in_progress"
-          ],
-          "Col0TASK0001": "Rotate webhook signing secrets"
-        }
+      "selector": {
+        "collection": "/services/slack/lists/F0PAYV2LST1/records",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": "/id"
       },
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/slack/lists/F0PAYV1LST9/records/2",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/slack/lists/F0PAYV2LST1/columns/4",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/fields/Col0DUED0004": "2026-11-05",
+        "/fields/Col0OWNR0002": [
+          "U03PRIYAN4T"
+        ],
+        "/fields/Col0STAT0003": [
+          "in_progress"
+        ],
+        "/fields/Col0TASK0001": "Rotate webhook signing secrets"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "slack",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "slack_add_list_record"
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/slack/lists/F0PAYV2LST1/records",
+        "kind": "append",
+        "matching": {
+          "created_by": "U02CMORG8RK"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": "/id"
       },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "slack",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "slack_update_list"
-      },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+      {
+        "pointer": "/services/slack/lists/F0PAYV2LST1/next_rec",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

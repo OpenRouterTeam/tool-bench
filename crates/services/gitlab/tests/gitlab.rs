@@ -198,7 +198,7 @@ async fn create_and_update_issue_reflect_in_state() {
     assert_eq!(r.status, StatusCode::CREATED);
     assert_eq!(r.json["iid"], 5);
     assert_eq!(
-        r.json["created_at"], "2026-03-14T09:00:14.000Z",
+        r.json["created_at"], "2026-03-14T09:00:00.000Z",
         "logical clock: two writes"
     );
     let r = call(

@@ -7,33 +7,50 @@ services = ["firecrawl"]
 tags = ["write", "single-service", "firecrawl", "disambiguation"]
 timeout_sec = 900
 
-# ...a11 "Tailspin pricing" watches the retired /pricing URL and every check since
-# Oct 27 failed; ...a12 "Tailspin plans" is the healthy US plans monitor; ...a13 is the
-# EU look-alike and ...a14 is unrelated.
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11/status"
-equals = "paused"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11/targets/0/urls/0"
-equals = "https://www.tailspintoys.com/pricing"
+[[expect.records]]
+selector = { collection = "/services/firecrawl/monitors", matching = { id = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11" } }
+equals = 1
+fields = { "/status" = "paused" }
 
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/status"
-equals = "active"
+[[expect.records]]
+selector = { collection = "/services/firecrawl/monitors", matching = { id = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" } }
+equals = 1
+fields = { "/status" = "active" }
 
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a13/status"
-equals = "active"
+[[expect.records]]
+selector = { collection = "/services/firecrawl/monitor_checks", created = true }
+equals = 1
+fields = { "/monitorId" = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12", "/trigger" = "manual" }
+any_fields = [{ "/status" = "queued" }, { "/status" = "running" }, { "/status" = "completed" }]
 
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a14/status"
-equals = "active"
+[[expect.relations]]
+kind = "foreign_key"
+source = { collection = "/services/firecrawl/monitor_checks", created = true }
+source_field = "/id"
+target = { collection = "/services/firecrawl/monitors", matching = { id = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" } }
+target_field = "/lastCheckId"
 
-[[expect.required_calls]]
-service = "firecrawl"
-method = "POST"
-path = "/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/run"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/firecrawl/monitors", matching = { id = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11" } }, field = "/status", equals = "paused" }
+action = { selector = { collection = "/services/firecrawl/monitor_checks", created = true, matching = { monitorId = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" } }, field = "/trigger", equals = "manual" }
+
+[expect.preservation]
+allow = [
+  { pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11/status", matching = { status = "paused" }, cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11$" } },
+  { pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11/updatedAt", cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11$" } },
+  { pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/lastRunAt", cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/run$" } },
+  { pointer = "/services/firecrawl/monitors/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/lastCheckId", cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/run$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*", kind = "create", matching = { monitorId = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12", trigger = "manual" }, cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/run$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/status", matching = { monitorId = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" }, references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitor_checks", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/startedAt", matching = { monitorId = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" }, references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitor_checks", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/completedAt", matching = { monitorId = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" }, references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitor_checks", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/summary", matching = { monitorId = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" }, references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitor_checks", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/pages", matching = { monitorId = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" }, references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitor_checks", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12/checks/[^/]+$" } },
+]
 
 [[expect.forbidden_calls]]
 service = "firecrawl"

@@ -1,124 +1,492 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/stripe/charges/ch_Hk5TzQ9wNc2RbV6mXa8LuE4P/amount_refunded",
-      "equals": 6200,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/stripe/charges/ch_Hk5TzQ9wNc2RbV6mXa8LuE4P/refunded",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/stripe/charges/ch_Gd7WnY3kPs9QtF2hZr5MbC8X/amount_refunded",
-      "equals": 0,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/stripe/charges/ch_Vq2mLx8RtB4nKe7YpW1sHd3J/amount_refunded",
-      "equals": 0,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5024/status",
-      "equals": "refunded",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5024/total",
-      "equals": 62.0,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5025/status",
-      "equals": "shipped",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5023/status",
-      "equals": "shipped",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5007/status",
-      "equals": "paid",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/google/gmail_messages",
-      "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "body_text": "62",
-        "headers": {
-          "To": "priya.shah@acme.io"
+      "selector": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+        "matching": {
+          "email": "priya.shah@acme.io"
         },
-        "labelIds": [
-          "SENT"
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders",
+        "matching": {
+          "id": 5024
+        },
+        "references": [
+          {
+            "source_field": "/customer_id",
+            "target": {
+              "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+              "matching": {
+                "email": "priya.shah@acme.io"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
         ],
-        "threadId": "c41e7a2b9d03f615"
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
       },
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
-    {
-      "service": "stripe",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "stripe_api_operation_id": "PostRefunds"
-        },
-        "name": "stripe_api_write"
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/currency": "USD",
+        "/status": "refunded"
       },
-      "body_contains": null,
-      "min_count": 1
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/total": 62
+      }
     },
     {
-      "service": "google",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "send_gmail_message"
+      "selector": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": null,
+      "min_count": 1,
+      "max_count": 6200,
+      "fields": {
+        "/currency": "usd",
+        "/payment_intent": "pi_Yb3KdR8mWq1ZtN6xLc4VhP9s",
+        "/status": "succeeded"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/amount": 6200
+      },
+      "integer_bounds": {
+        "/amount": {
+          "min": 1,
+          "max": 6200
+        }
+      }
+    },
+    {
+      "selector": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 6200,
+      "fields": {
+        "/currency": "usd",
+        "/fee": 0,
+        "/fee_details": [],
+        "/status": "available"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/amount": -6200,
+        "/net": -6200
+      },
+      "integer_bounds": {
+        "/amount": {
+          "min": -6200,
+          "max": -1
+        },
+        "/net": {
+          "min": -6200,
+          "max": -1
+        }
+      }
+    },
+    {
+      "selector": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 6200,
+      "fields": {
+        "/data/object/charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P",
+        "/data/object/currency": "usd"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/data/object/amount": 6200
+      },
+      "integer_bounds": {
+        "/data/object/amount": {
+          "min": 1,
+          "max": 6200
+        }
+      }
+    },
+    {
+      "selector": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "charge.refunded"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 6200,
+      "fields": {
+        "/data/object/currency": "usd",
+        "/data/object/id": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {
+        "/data/object/amount_refunded": {
+          "min": 1,
+          "max": 6200
+        }
+      }
+    },
+    {
+      "selector": {
+        "collection": "/services/google/gmail_messages",
+        "matching": {},
+        "field_patterns": {
+          "/headers/To": "(?i)\\A(?:[^<>,;@]*<)?priya[.]shah@acme[.]io>?\\z"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/labelIds": [
+          "SENT"
+        ]
+      },
+      "optional_fields": {
+        "/headers/Bcc": "",
+        "/headers/Cc": ""
+      },
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/body_text": {
+          "requirement": "Tell Priya Shah that the refund of her broken desk-lamp order was issued in full and state the refunded amount, $62.00. The reply thread supplies the order and customer context. No greeting, signature, order number, card detail, apology, processing time or Stripe reference is mandatory; any added factual claim must be supported by the order/payment records. Denials, a wrong amount, a partial refund or an unsupported timeline are not accepted; unlisted nonempty wording requires adjudication, not an invented model failure.",
+          "accepted": [
+            "Hi Priya,\n\nSorry the lamp arrived damaged. We've refunded order #5024 in full ($62.00) to your Visa ending 4242.\n\nBest,\nOcto Shop team",
+            "Hi Priya, your order #5024 has been refunded in full: $62.00.",
+            "We've issued a full refund of $62.00 for your desk lamp order. Sorry about the cracked base.",
+            "Your desk lamp order has been refunded in full ($62.00).",
+            "Hi Priya,\n\nWe refunded the full $62.00 for the damaged desk lamp from your October 20 order.\n\nOcto Shop team"
+          ],
+          "rejected": [
+            "Your refund of $6200.00 has been issued.",
+            "We refunded $26.00 for your desk lamp order.",
+            "We cannot refund your order.",
+            "Your desk lamp order has been refunded in full ($62.00). The money will arrive within 5-10 business days."
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/charge",
+      "target": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders",
+        "matching": {
+          "id": 5024
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/stripe_charge_id",
+      "kind": "foreign_key",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/balance_transaction",
+      "target": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": [
+        {
+          "source_field": "/amount",
+          "target_field": "/amount",
+          "kind": "negated_integer"
+        },
+        {
+          "source_field": "/amount",
+          "target_field": "/net",
+          "kind": "negated_integer"
+        },
+        {
+          "source_field": "/currency",
+          "target_field": "/currency",
+          "kind": "equals"
+        }
+      ]
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/source",
+      "target": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/data/object/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/request/id",
+      "target": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "charge.refunded"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/request/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/google/gmail_messages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/threadId",
+      "target": {
+        "collection": "/services/google/gmail_messages",
+        "matching": {
+          "id": "c41e7a2b9d03f615"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/threadId",
+      "kind": "equals",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/stripe/charges",
+          "matching": {
+            "id": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/amount_refunded",
+        "equals": 6200
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders",
+          "matching": {
+            "id": 5024
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/status",
+        "equals": "refunded"
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    },
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/stripe/charges",
+          "matching": {
+            "id": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/amount_refunded",
+        "equals": 6200
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/google/gmail_messages",
+          "matching": {},
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/labelIds",
+        "has_value": "SENT"
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    }
+  ],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "stripe",
@@ -136,7 +504,9 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "stripe",
@@ -154,7 +524,9 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "google",
@@ -169,8 +541,191 @@
         "name": "send_gmail_message"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/stripe/charges/ch_Hk5TzQ9wNc2RbV6mXa8LuE4P/amount_refunded",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/charges/ch_Hk5TzQ9wNc2RbV6mXa8LuE4P/refunded",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/refunds/*",
+        "kind": "create",
+        "matching": {
+          "charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P",
+          "currency": "usd",
+          "status": "succeeded"
+        },
+        "max_count": 6200,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/balance_transactions/*",
+        "kind": "create",
+        "matching": {
+          "currency": "usd",
+          "type": "refund"
+        },
+        "references": [
+          {
+            "source_field": "/source",
+            "target": {
+              "collection": "/services/stripe/refunds",
+              "matching": {
+                "charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 6200,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/events/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "object": {
+              "charge": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+            }
+          },
+          "type": "refund.created"
+        },
+        "max_count": 6200,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/events/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "object": {
+              "id": "ch_Hk5TzQ9wNc2RbV6mXa8LuE4P"
+            }
+          },
+          "type": "charge.refunded"
+        },
+        "max_count": 6200,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/*/status",
+        "kind": "update",
+        "matching": {
+          "id": 5024,
+          "status": "refunded"
+        },
+        "initial_matching": {
+          "id": 5024
+        },
+        "initial_references": [
+          {
+            "source_field": "/customer_id",
+            "target": {
+              "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+              "matching": {
+                "email": "priya.shah@acme.io"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/supabase/migrations/*",
+        "kind": "create",
+        "matching": null,
+        "field_patterns": {
+          "/version": "\\S"
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "supabase",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations$"
+        }
+      },
+      {
+        "pointer": "/services/google/gmail_messages/*",
+        "kind": "create",
+        "matching": {
+          "labelIds": [
+            "SENT"
+          ],
+          "threadId": "c41e7a2b9d03f615"
+        },
+        "field_patterns": {
+          "/headers/To": "(?i)\\A(?:[^<>,;@]*<)?priya[.]shah@acme[.]io>?\\z"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

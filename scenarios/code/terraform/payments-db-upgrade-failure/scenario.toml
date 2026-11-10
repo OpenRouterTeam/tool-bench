@@ -10,6 +10,10 @@ timeout_sec = 900
 # The latest prod run errored during apply (not plan): the error is only in the apply log.
 # Distractors: an older prod run that errored at plan time, and a staging run that errored
 # with a different RDS error.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = [
   "run-Gy4tBHGggKx49nbH",

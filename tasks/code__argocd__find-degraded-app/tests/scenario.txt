@@ -1,0 +1,1 @@
+code/argocd/find-degraded-app

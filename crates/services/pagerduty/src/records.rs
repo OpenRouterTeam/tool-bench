@@ -6,7 +6,8 @@ use mock_core::world::SharedWorld;
 use serde_json::{Value, json};
 
 use crate::util::{
-    ApiErr, Ctx, Kind, Query, Req, Res, classic, default, ok, ref_id, run, stored_ref, time_of,
+    ApiErr, Ctx, Kind, Query, Req, Res, classic, default, exact_time_of, ok, ref_id, run,
+    stored_ref, time_of,
 };
 
 /// Log entry types shown when `is_overview=true`.
@@ -89,11 +90,8 @@ pub fn render_log_entry(ctx: &Ctx, mut doc: Value) -> Value {
 }
 
 fn by_time_desc(items: &mut [Value], field: &str) {
-    items.sort_by(|a, b| {
-        time_of(b, field)
-            .cmp(&time_of(a, field))
-            .then_with(|| b["id"].as_str().cmp(&a["id"].as_str()))
-    });
+    items.reverse();
+    items.sort_by_key(|entry| std::cmp::Reverse(exact_time_of(entry, field)));
 }
 
 /// Log entries filtered by `since`/`until`/`team_ids[]`/`is_overview`, newest first.
@@ -102,8 +100,8 @@ pub fn filtered_log_entries(
     q: &Query,
     incident: Option<&str>,
 ) -> Result<Vec<Value>, ApiErr> {
-    let since = q.time("since")?;
-    let until = q.time("until")?;
+    let since = q.exact_time("since")?;
+    let until = q.exact_time("until")?;
     let teams = q.list("team_ids");
     let overview = q.flag("is_overview");
     let mut items: Vec<Value> = ctx
@@ -111,7 +109,7 @@ pub fn filtered_log_entries(
         .into_iter()
         .filter(|e| incident.is_none_or(|i| e["incident"]["id"] == i))
         .filter(|e| {
-            let t = time_of(e, "created_at");
+            let t = exact_time_of(e, "created_at");
             since.is_none_or(|s| t.is_some_and(|t| t >= s))
                 && until.is_none_or(|u| t.is_some_and(|t| t < u))
         })

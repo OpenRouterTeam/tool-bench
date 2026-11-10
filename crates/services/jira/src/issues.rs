@@ -1517,6 +1517,13 @@ fn apply_fields(
         let old = stored.get(&id).cloned().unwrap_or(Value::Null);
         let new = match id.as_str() {
             "project" | "issuekey" => continue,
+            "status" | "created" | "updated" | "resolutiondate" | "creator" => {
+                errors.insert(
+                    id.clone(),
+                    json!(format!("Field '{id}' cannot be set through issue fields.")),
+                );
+                continue;
+            }
             "summary" => {
                 let t = v.as_str().unwrap_or("").trim().to_owned();
                 if t.is_empty() {
@@ -1902,6 +1909,10 @@ pub fn next_issue_key(ctx: &Ctx, project: &str) -> String {
 
 /// Creates an issue from a create body. Returns (key, response) or the error response.
 pub fn create_issue(ctx: &mut Ctx, body: &Value) -> Result<(String, Value), Out> {
+    ctx.transaction(|staged| create_issue_inner(staged, body))
+}
+
+fn create_issue_inner(ctx: &mut Ctx, body: &Value) -> Result<(String, Value), Out> {
     let input = body["fields"].as_object().cloned().unwrap_or_default();
     let mut errors = Map::new();
     let project = match input
@@ -2008,6 +2019,9 @@ pub fn create_issue(ctx: &mut Ctx, body: &Value) -> Result<(String, Value), Out>
             &mut errors,
             &mut Vec::new(),
         );
+        if !errors.is_empty() {
+            return Err(field_errors(Value::Object(errors)));
+        }
         doc["fields"] = Value::Object(stored2);
     }
     ctx.put("issues", &key, doc);
@@ -2052,6 +2066,11 @@ fn bulk_create(ctx: &mut Ctx, req: &Req) -> Out {
 }
 
 fn edit_issue(ctx: &mut Ctx, key: &str, body: &Value) -> Out {
+    ctx.transaction(|staged| edit_issue_inner(staged, key, body).into_result())
+        .unwrap_or_else(|error| error)
+}
+
+fn edit_issue_inner(ctx: &mut Ctx, key: &str, body: &Value) -> Out {
     let Some(mut doc) = issue_doc(ctx, key) else {
         return issue_missing();
     };
@@ -2570,6 +2589,11 @@ fn available_transitions(ctx: &Ctx, i: &Value, with_fields: bool) -> Vec<Value> 
 }
 
 fn transition(ctx: &mut Ctx, key: &str, body: &Value) -> Out {
+    ctx.transaction(|staged| transition_inner(staged, key, body).into_result())
+        .unwrap_or_else(|error| error)
+}
+
+fn transition_inner(ctx: &mut Ctx, key: &str, body: &Value) -> Out {
     let Some(mut doc) = issue_doc(ctx, key) else {
         return issue_missing();
     };
@@ -2659,6 +2683,9 @@ fn transition(ctx: &mut Ctx, key: &str, body: &Value) -> Out {
             &mut errors,
             &mut changes,
         );
+        if !errors.is_empty() {
+            return field_errors(Value::Object(errors));
+        }
         doc = issue_doc(ctx, key).unwrap_or(doc);
         doc["fields"] = Value::Object(stored);
     }

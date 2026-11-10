@@ -58,11 +58,28 @@ impl MockService for Mongodb {
         &[]
     }
 
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(initialize)
+    }
+
     fn router(&self) -> Router<SharedWorld> {
         Router::new()
             .route(TOOLS_CALL_PATH, post(tools_call))
             .fallback(not_found)
     }
+}
+
+fn initialize(service: &mut ServiceState, now: i64) {
+    for name in ["_meta", "connections", "exports"] {
+        if let Some(collection) = service.store.take_collection(name) {
+            *service.session.collection_mut(name) = collection;
+        }
+    }
+    db::ensure_initialized(&mut Ctx {
+        svc: service,
+        now,
+        clock_mode: mock_core::clock::ClockMode::Fixed,
+    });
 }
 
 async fn not_found() -> Response {
@@ -75,8 +92,13 @@ async fn not_found() -> Response {
 async fn tools_call(State(world): State<SharedWorld>, Json(call): Json<ToolCall>) -> Json<Value> {
     let mut guard = world.lock().expect("world lock");
     let now = guard.clock.now_unix();
+    let clock_mode = guard.meta.clock_mode;
     let svc = guard.service_mut(NAME);
-    let mut ctx = Ctx { svc, now };
+    let mut ctx = Ctx {
+        svc,
+        now,
+        clock_mode,
+    };
     Json(ctx.call(&call.name, &call.arguments))
 }
 
@@ -85,6 +107,7 @@ pub struct Ctx<'a> {
     pub svc: &'a mut ServiceState,
     /// Logical time, unix seconds.
     pub now: i64,
+    pub clock_mode: mock_core::clock::ClockMode,
 }
 
 /// Arguments of every tool: (name, required, optional), from the snapshot's input schemas.
@@ -476,11 +499,19 @@ impl Ctx<'_> {
     }
 
     pub fn coll(&self, name: &str) -> Option<&Collection> {
-        self.svc.store.collection(name)
+        if session_collection(name) {
+            self.svc.session.collection(name)
+        } else {
+            self.svc.store.collection(name)
+        }
     }
 
     pub fn coll_mut(&mut self, name: &str) -> &mut Collection {
-        self.svc.store.collection_mut(name)
+        if session_collection(name) {
+            self.svc.session.collection_mut(name)
+        } else {
+            self.svc.store.collection_mut(name)
+        }
     }
 
     /// Documents of a collection in dataset order.
@@ -524,6 +555,10 @@ impl Ctx<'_> {
         }
         out
     }
+}
+
+fn session_collection(name: &str) -> bool {
+    matches!(name, "_meta" | "connections" | "exports")
 }
 
 pub fn str_arg<'a>(args: &'a Value, key: &str) -> Option<&'a str> {

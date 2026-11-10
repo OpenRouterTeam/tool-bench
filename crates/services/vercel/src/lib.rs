@@ -44,6 +44,10 @@ impl MockService for Vercel {
         &[]
     }
 
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(model::initialize)
+    }
+
     fn router(&self) -> Router<SharedWorld> {
         Router::new()
             .route(TOOLS_CALL_PATH, post(tools_call))

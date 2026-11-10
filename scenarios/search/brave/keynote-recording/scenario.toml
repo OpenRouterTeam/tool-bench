@@ -9,6 +9,10 @@ timeout_sec = 900
 
 # Right video: Zt4mQeL1x9c, 47:12, Marta Lindqvist. Distractors: a 12:05 highlights re-cut,
 # the 28:40 2025 meetup version, and a different speaker's similar talk (39:55).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Lindqvist", "47:12", "Zt4mQeL1x9c"]
 

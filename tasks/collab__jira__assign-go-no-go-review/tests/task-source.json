@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/jira/assign-go-no-go-review",
+  "scenario_sha256": "sha256:9d27d37886964048a7032129447d41903ef2b0e7f5aa49437e7a7088bd0d1dff",
+  "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
+  "contract_sha256": "sha256:58ade06ac71bc74083cf3987f715afd9d01c16ad7b87d63078d56e608cff1f4e"
+}

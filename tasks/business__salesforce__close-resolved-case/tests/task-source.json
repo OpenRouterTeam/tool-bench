@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/salesforce/close-resolved-case",
+  "scenario_sha256": "sha256:9b103307a9df73ce515f893d16e756708ab40b31b948284ddbb9c9e7f7bdf238",
+  "dataset_sha256": "sha256:af25c3f156c00d97e82a5b00357d306ad4d1c96f61d3adfc707b76639723d671",
+  "contract_sha256": "sha256:6eab7e77e5275eb5eabe1b2abfe5fc04405315a492908fc76d36146d0baefea9"
+}

@@ -104,7 +104,7 @@ async fn creates_issue_with_next_number_and_logical_time() {
     assert_eq!(issue["number"], 4);
     assert_eq!(issue["id"], 2004);
     assert_eq!(issue["state"], "open");
-    assert_eq!(issue["created_at"], "2026-03-14T09:00:07Z");
+    assert_eq!(issue["created_at"], "2026-03-14T09:00:00Z");
     assert_eq!(issue["user"]["login"], "mona");
     assert_eq!(
         issue["url"],

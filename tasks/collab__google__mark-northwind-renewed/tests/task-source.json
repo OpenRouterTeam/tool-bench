@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/google/mark-northwind-renewed",
+  "scenario_sha256": "sha256:02bddb071b8ce2a2e822d43139bce23be16cb0bf015c16f9a18eeb2af938f759",
+  "dataset_sha256": "sha256:73b4fef1b385270d496c465e92edb5e73b43ced1bbdd1873d34521c5cfdd2852",
+  "contract_sha256": "sha256:19637325bd0da0ed63069d7fa263e75760f92bb9deec48c571a69531f87ba19e"
+}

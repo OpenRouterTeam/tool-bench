@@ -767,8 +767,7 @@ async fn manage_incidents_requires_from_and_records_timeline() {
     let s = state(&w);
     let inc = &s["incidents"]["Q7CHKAP15PCT1D"];
     assert_eq!(inc["status"], "resolved");
-    // Third mutating request (the rejected one ticks the clock too).
-    assert_eq!(inc["resolved_at"], "2026-10-30T14:00:21Z");
+    assert_eq!(inc["resolved_at"], "2026-10-30T14:00:00Z");
     assert_eq!(inc["assignments"], json!([]));
     assert_eq!(s["alerts"]["PALR001"]["status"], "resolved");
     let (_, body) = get(&app, "/incidents/Q7CHKAP15PCT1D/log_entries").await;
@@ -785,6 +784,14 @@ async fn manage_incidents_requires_from_and_records_timeline() {
             "acknowledge_log_entry",
             "trigger_log_entry"
         ]
+    );
+    assert!(
+        body["log_entries"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .take(2)
+            .all(|entry| entry["created_at"] == "2026-10-30T14:00:00Z")
     );
 
     let (status, body) = send(
@@ -825,7 +832,7 @@ async fn reassign_and_escalate_use_oncall() {
     assert_eq!(status, StatusCode::OK);
     let inc = &state(&w)["incidents"]["Q0AP1GW5XX9LMZ"];
     assert_eq!(inc["assignments"][0]["assignee"]["id"], "PDNGYN2");
-    assert_eq!(inc["assignments"][0]["at"], "2026-10-30T14:00:07Z");
+    assert_eq!(inc["assignments"][0]["at"], "2026-10-30T14:00:00Z");
     assert_eq!(
         inc["status"], "triggered",
         "reassigning an acknowledged incident re-triggers it"

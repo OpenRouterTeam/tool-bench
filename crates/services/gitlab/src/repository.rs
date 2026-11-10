@@ -502,9 +502,8 @@ fn author_of(st: &Store, username: &str) -> (String, String) {
         .unwrap_or_else(|| (username.to_owned(), format!("{username}@example.com")))
 }
 
-/// Records a commit on `branch` (moving its head) and returns the sha.
 #[allow(clippy::too_many_arguments)]
-fn add_commit(
+fn store_commit(
     st: &mut Store,
     project: &str,
     branch: &str,
@@ -512,14 +511,11 @@ fn add_commit(
     username: &str,
     now: &str,
     diffs: Vec<Value>,
-    extra_parents: Vec<String>,
+    parents: Vec<String>,
 ) -> String {
-    let parent = branch_head(st, project, branch);
     let n = all(st, "commits").len();
     let sha = fake_sha(&format!("{project}:{branch}:{n}:{message}:{now}"));
     let (name, email) = author_of(st, username);
-    let mut parents: Vec<String> = parent.into_iter().collect();
-    parents.extend(extra_parents);
     let title = message.lines().next().unwrap_or("").to_owned();
     st.collection_mut("commits").insert(
         format!("{project}@{sha}"),
@@ -538,6 +534,24 @@ fn add_commit(
             "diffs": diffs,
         }),
     );
+    sha
+}
+
+/// Records a commit on `branch` (moving its head) and returns the sha.
+#[allow(clippy::too_many_arguments)]
+fn add_commit(
+    st: &mut Store,
+    project: &str,
+    branch: &str,
+    message: &str,
+    username: &str,
+    now: &str,
+    diffs: Vec<Value>,
+    extra_parents: Vec<String>,
+) -> String {
+    let mut parents: Vec<String> = branch_head(st, project, branch).into_iter().collect();
+    parents.extend(extra_parents);
+    let sha = store_commit(st, project, branch, message, username, now, diffs, parents);
     let key = format!("{project}:{branch}");
     match st.collection_mut("branches").get_mut(&key) {
         Some(b) => b["commit"] = json!(sha),
@@ -550,6 +564,11 @@ fn add_commit(
         p["last_activity_at"] = json!(now);
     }
     sha
+}
+
+pub(crate) struct MergeOutcome {
+    pub sha: String,
+    pub squash_sha: Option<String>,
 }
 
 fn write_file(st: &mut Store, project: &str, branch: &str, path: &str, content: Option<&str>) {
@@ -572,7 +591,8 @@ pub(crate) fn merge_branches(
     message: &str,
     username: &str,
     now: &str,
-) -> String {
+    squash_message: Option<&str>,
+) -> MergeOutcome {
     let src = files_at(st, source_project, source);
     let dst = files_at(st, project, target);
     let mut diffs = Vec::new();
@@ -599,10 +619,25 @@ pub(crate) fn merge_branches(
             }
         }
     }
-    let source_head: Vec<String> = branch_head(st, source_project, source)
+    let squash_sha = squash_message.map(|message| {
+        let parents = branch_head(st, project, target).into_iter().collect();
+        store_commit(
+            st,
+            project,
+            source,
+            message,
+            username,
+            now,
+            diffs.clone(),
+            parents,
+        )
+    });
+    let source_head: Vec<String> = squash_sha
+        .clone()
+        .or_else(|| branch_head(st, source_project, source))
         .into_iter()
         .collect();
-    add_commit(
+    let sha = add_commit(
         st,
         project,
         target,
@@ -611,7 +646,8 @@ pub(crate) fn merge_branches(
         now,
         diffs,
         source_head,
-    )
+    );
+    MergeOutcome { sha, squash_sha }
 }
 
 pub(crate) fn remove_branch(st: &mut Store, project: &str, branch: &str) {

@@ -773,8 +773,10 @@ fn perform_write(
             coll.clone(),
             true,
         ),
-        WriteStage::Merge { db: d, coll } => (
-            d.clone().unwrap_or_else(|| db.to_owned()),
+        WriteStage::Merge {
+            db: database, coll, ..
+        } => (
+            database.clone().unwrap_or_else(|| db.to_owned()),
             coll.clone(),
             false,
         ),
@@ -801,13 +803,42 @@ fn perform_write(
             d = Value::Object(m);
         }
         let key = id_key(&d["_id"]);
-        let merged = match (replace, ctx.coll(&name).and_then(|c| c.get(&key)).cloned()) {
-            (false, Some(Value::Object(mut existing))) => {
-                for (k, v) in d.as_object().into_iter().flatten() {
-                    existing.insert(k.clone(), v.clone());
+        let existing = ctx
+            .coll(&name)
+            .and_then(|collection| collection.get(&key))
+            .cloned();
+        let merged = match (stage, existing) {
+            (WriteStage::Merge { when_matched, .. }, Some(existing)) => match when_matched {
+                agg::MergeMatched::KeepExisting => continue,
+                agg::MergeMatched::Fail => {
+                    return Err("$merge found a matching document with whenMatched: fail".into());
                 }
-                Value::Object(existing)
-            }
+                agg::MergeMatched::Replace => d,
+                agg::MergeMatched::Merge => {
+                    let mut existing = existing
+                        .as_object()
+                        .ok_or("$merge requires document values")?
+                        .clone();
+                    for (field, value) in d.as_object().into_iter().flatten() {
+                        existing.insert(field.clone(), value.clone());
+                    }
+                    Value::Object(existing)
+                }
+            },
+            (
+                WriteStage::Merge {
+                    when_not_matched, ..
+                },
+                None,
+            ) => match when_not_matched {
+                agg::MergeNotMatched::Insert => d,
+                agg::MergeNotMatched::Discard => continue,
+                agg::MergeNotMatched::Fail => {
+                    return Err(
+                        "$merge found no matching document with whenNotMatched: fail".into(),
+                    );
+                }
+            },
             _ => d,
         };
         ctx.coll_mut(&name).insert(key, merged);

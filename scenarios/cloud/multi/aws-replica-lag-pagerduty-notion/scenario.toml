@@ -10,63 +10,155 @@ timeout_sec = 1200
 # Incident #4812 = Q3K8ORDBLAG2RX. Its alarm is orders-db-replica-2-replica-lag (ALARM since
 # 2026-10-30T13:11:00Z). Look-alikes: orders-db-replica-1-replica-lag (OK, last week's
 # #4761), inventory-db-replica-1-replica-lag and orders-db-staging-replica-lag (both ALARM).
-# The new Notion row's ID depends on the agent's creates, so it is matched with `any`.
-[[expect.state]]
-pointer = "/services/pagerduty/notes"
-key_prefix = "Q3K8ORDBLAG2RX/"
-any = { content = "orders-db-replica-2-replica-lag" }
+# The note and the new Notion row are matched by actual stored identities, not predicted IDs.
+# The alarm facts are authored dataset facts: a note naming a look-alike alarm or the wrong
+# instant is a known failure, while unfamiliar complete wording requires adjudication. The
+# information prerequisites admit either alarm state or transition history, with exact
+# timestamp conversion and source-bound facts before each committed write.
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/status"
-equals = "triggered"
+[[expect.records]]
+selector = { collection = "/services/pagerduty/incidents", matching = { id = "Q3K8ORDBLAG2RX", incident_number = 4812 } }
+equals = 1
+fields = { "/status" = "triggered" }
+array_lengths = { "/acknowledgements" = 0 }
 
-[[expect.state]]
-pointer = "/services/pagerduty/notes/Q1INVDBLAG7QWE~11"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/pagerduty/notes", created = true }
+min_count = 1
 
-[[expect.state]]
-pointer = "/services/pagerduty/notes/Q5DBSTG9LAGT3N~11"
-exists = false
+[expect.records.reviewed_text."/content"]
+requirement = "Add to the PagerDuty incident the name of the CloudWatch alarm that fired for orders-db-replica-2, orders-db-replica-2-replica-lag, and the instant it went into ALARM, 2026-10-30 at 13:11:00 UTC. A look-alike alarm, another instant, an OK state or a note without both facts is not acceptable. The incident association supplies context; the ReplicaLag measurement is optional but must be true when stated. Unlisted nonempty wording requires adjudication."
+accepted = [
+  "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:11:00Z (ReplicaLag max 412s vs 300s threshold).",
+  "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:11:00Z.",
+  "CloudWatch alarm orders-db-replica-2-replica-lag has been in ALARM since 2026-10-30T13:11:00Z.",
+  "Alarm orders-db-replica-2-replica-lag entered ALARM at 2026-10-30T13:11:00Z.",
+  "Alarm orders-db-replica-2-replica-lag entered ALARM at 2026-10-30 13:11:00 UTC.",
+  "orders-db-replica-2-replica-lag went into ALARM at 13:11 UTC on 2026-10-30.",
+]
+rejected = [
+  "CloudWatch alarm orders-db-replica-1-replica-lag went into ALARM at 2026-10-23T02:09:00Z.",
+  "CloudWatch alarm inventory-db-replica-1-replica-lag went into ALARM at 2026-10-30T13:19:00Z.",
+  "CloudWatch alarm orders-db-staging-replica-lag went into ALARM at 2026-10-30T08:01:00Z.",
+  "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:12:00Z.",
+]
 
-[[expect.state]]
-pointer = "/services/notion/pages"
-any = { parent = { data_source_id = "7d2e3f4a-5b6c-4d7e-9f80-a1b2c3d4e5f6" }, in_trash = false, properties = { Title = { title = [{ plain_text = "orders-db-replica-2 replication lag" }] }, Incident = { rich_text = [{ plain_text = "4812" }] }, Severity = { select = { name = "SEV2" } }, Status = { status = { name = "Draft" } }, Started = { date = { start = "2026-10-30" } }, Alarm = { rich_text = [{ plain_text = "orders-db-replica-2-replica-lag" }] } } }
+[[expect.relations]]
+source = { collection = "/services/pagerduty/notes", created = true }
+source_field = "/id"
+target = { collection = "/services/pagerduty/notes", key_prefix = "Q3K8ORDBLAG2RX/", created = true }
+target_field = "/id"
+kind = "bijection"
 
-# Last week's entry is untouched.
-[[expect.state]]
-pointer = "/services/notion/pages/8e3f4a5b-6c7d-4e8f-a091-b2c3d4e5f607/properties/Title/title/0/plain_text"
-equals = "orders-db-replica-1 replication lag"
+[[expect.relations]]
+source = { collection = "/services/pagerduty/notes", created = true }
+source_field = "/user/id"
+target = { collection = "/services/pagerduty/account", key_prefix = "account" }
+target_field = "/user_id"
+kind = "foreign_key"
 
-[[expect.state]]
-pointer = "/services/notion/pages/8e3f4a5b-6c7d-4e8f-a091-b2c3d4e5f607/in_trash"
-equals = false
+[[expect.records]]
+selector = { collection = "/services/notion/pages", created = true }
+equals = 1
 
-[[expect.required_calls]]
-service = "pagerduty"
-method = "POST"
-path = "/incidents/Q3K8ORDBLAG2RX/notes"
+[[expect.records]]
+selector = { collection = "/services/notion/pages", created = true, matching = { parent = { data_source_id = "7d2e3f4a-5b6c-4d7e-9f80-a1b2c3d4e5f6" } } }
+equals = 1
+fields = { "/parent/type" = "data_source_id", "/parent/database_id" = "6c1d2e3f-4a5b-4c6d-8e7f-90a1b2c3d4e5", "/properties/Severity/select/name" = "SEV2", "/properties/Status/status/name" = "Draft", "/properties/Started/date/start" = "2026-10-30", "/archived" = false, "/in_trash" = false }
+null_fields = ["/properties/Started/date/end", "/properties/Started/date/time_zone"]
 
-[[expect.required_calls]]
-service = "notion"
-method = "POST"
-path = "/v1/pages"
+[expect.records.reviewed_text."/properties/Title/title"]
+format = "notion_rich_text"
+requirement = "Title the postmortem orders-db-replica-2 replication lag, without contradictory additional text. Segment boundaries and passive formatting do not change the title; unlisted wording requires adjudication."
+accepted = ["orders-db-replica-2 replication lag"]
+rejected = ["orders-db-replica-1 replication lag", "inventory-db-replica-1 replication lag", "orders-db-staging replication lag"]
+
+[expect.records.reviewed_text."/properties/Incident/rich_text"]
+format = "notion_rich_text"
+requirement = "Record the requested incident reference PagerDuty #4812 and no other incident. Unlisted wording requires adjudication."
+accepted = ["PagerDuty #4812"]
+rejected = ["PagerDuty #4813", "PagerDuty #4761", "PagerDuty #4806"]
+
+[expect.records.reviewed_text."/properties/Alarm/rich_text"]
+format = "notion_rich_text"
+requirement = "Record the alarm name orders-db-replica-2-replica-lag, not a look-alike alarm. Unlisted wording requires adjudication."
+accepted = ["orders-db-replica-2-replica-lag"]
+rejected = ["orders-db-replica-1-replica-lag", "inventory-db-replica-1-replica-lag", "orders-db-staging-replica-lag"]
+
+[[expect.relations]]
+source = { collection = "/services/notion/pages", created = true }
+source_field = "/parent/data_source_id"
+target = { collection = "/services/notion/data_sources", matching = { id = "7d2e3f4a-5b6c-4d7e-9f80-a1b2c3d4e5f6" } }
+target_field = "/id"
+kind = "foreign_key"
 
 [[expect.forbidden_calls]]
-service = "pagerduty"
-method = "PUT"
-path_regex = "^/incidents"
+service = "aws"
+method = "POST"
+path = "/"
+headers = { x-amz-target = "GraniteServiceVersion20100801.SetAlarmState" }
 
 [[expect.forbidden_calls]]
 service = "notion"
 method = "DELETE"
 
-[[expect.forbidden_calls]]
-service = "aws"
-body_contains = "Action=SetAlarmState"
+[[expect.information]]
+prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarms" } }
+response_field = "/MetricAlarms"
+source = { collection = "/services/aws/alarms", matching = { AlarmName = "orders-db-replica-2-replica-lag", StateValue = "ALARM" } }
+projection = [
+  { response = ["/AlarmName"], source = "/AlarmName" },
+  { response = ["/StateValue"], source = "/StateValue" },
+  { response = ["/StateTransitionedTimestamp"], source = "/StateTransitionedTimestamp", format = "unix_seconds" },
+]
+alternatives = [
+  { prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarmHistory" } }, response_field = "/AlarmHistoryItems", source = { collection = "/services/aws/alarm_history", matching = { AlarmName = "orders-db-replica-2-replica-lag", HistoryItemType = "StateUpdate", HistoryData = { newState = { stateValue = "ALARM" } } } }, projection = [{ response = ["/AlarmName"], source = "/AlarmName" }, { response = ["/HistorySummary"], source = "/HistorySummary" }, { response = ["/Timestamp"], source = "/Timestamp", format = "unix_seconds" }] },
+]
+action = { service = "pagerduty", method = "POST", path = "/incidents/Q3K8ORDBLAG2RX/notes" }
+action_effect = { selector = { collection = "/services/pagerduty/notes", created = true }, field = "/content", nonempty_text = true }
 
-[[expect.forbidden_calls]]
-service = "aws"
-body_contains = "\"StateReason\""
+[[expect.information]]
+prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarms" } }
+response_field = "/MetricAlarms"
+source = { collection = "/services/aws/alarms", matching = { AlarmName = "orders-db-replica-2-replica-lag", StateValue = "ALARM" } }
+projection = [
+  { response = ["/AlarmName"], source = "/AlarmName" },
+  { response = ["/StateValue"], source = "/StateValue" },
+  { response = ["/StateTransitionedTimestamp"], source = "/StateTransitionedTimestamp", format = "unix_seconds" },
+]
+alternatives = [
+  { prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarmHistory" } }, response_field = "/AlarmHistoryItems", source = { collection = "/services/aws/alarm_history", matching = { AlarmName = "orders-db-replica-2-replica-lag", HistoryItemType = "StateUpdate", HistoryData = { newState = { stateValue = "ALARM" } } } }, projection = [{ response = ["/AlarmName"], source = "/AlarmName" }, { response = ["/HistorySummary"], source = "/HistorySummary" }, { response = ["/Timestamp"], source = "/Timestamp", format = "unix_seconds" }] },
+]
+action = { service = "notion", method = "POST", path = "/v1/pages" }
+action_effect = { selector = { collection = "/services/notion/pages", created = true }, field = "/archived", equals = false }
+
+[[expect.preservation.allow]]
+pointer = "/services/pagerduty/notes/*"
+kind = "create"
+matching = { user = { type = "user_reference" } }
+references = [{ source_field = "/user/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }]
+max_count = "all_matching"
+cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q3K8ORDBLAG2RX/notes$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/updated_at"
+cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q3K8ORDBLAG2RX/notes$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/pagerduty/log_entries/*"
+kind = "create"
+matching = { type = "annotate_log_entry", incident = { id = "Q3K8ORDBLAG2RX" }, service = { id = "PSVORDB" } }
+references = [{ source_field = "/agent/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }]
+max_count = "all_matching"
+cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q3K8ORDBLAG2RX/notes$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/*"
+kind = "create"
+matching = { parent = { data_source_id = "7d2e3f4a-5b6c-4d7e-9f80-a1b2c3d4e5f6" } }
 
 [[solution.call]]
 endpoint = "pagerduty"

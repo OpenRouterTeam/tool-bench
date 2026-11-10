@@ -1,84 +1,406 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/argocd/applications/argocd~1billing-api/spec/source/targetRevision",
-      "equals": "v2.8.0",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/argocd/applications",
+        "matching": {
+          "metadata": {
+            "name": "billing-api",
+            "namespace": "argocd"
+          },
+          "spec": {
+            "syncPolicy": {
+              "automated": {}
+            }
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/spec/source/targetRevision": "v2.8.0",
+        "/status/health/status": "Healthy",
+        "/status/sync/status": "Synced"
+      },
+      "optional_fields": {},
+      "optional_choices": {
+        "/spec/syncPolicy/automated/enabled": [
+          true
+        ]
+      },
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/argocd/applications/argocd~1billing-api/spec/syncPolicy/automated",
-      "equals": null,
-      "exists": true,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/argocd/applications/argocd~1billing-api/status/sync/status",
-      "equals": "Synced",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/argocd/applications/argocd~1billing-api/status/operationState/syncResult/revision",
-      "equals": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/argocd/applications/argocd~1billing-api-staging/spec/source/targetRevision",
-      "equals": "main",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/argocd/applications/argocd~1billing-api-staging/status/sync/revision",
-      "equals": "5ab7f03e2c9d18b46e0f7a3c1d2b95e8f46a0c13",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/argocd/applications/argocd~1billing-worker/spec/source/targetRevision",
-      "equals": "main",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/argocd/sync_history",
+        "matching": {
+          "app": "argocd/billing-api"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null,
+        "latest_by": "/sequence"
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/history/revision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2",
+        "/history/source/path": "overlays/production",
+        "/history/source/repoURL": "https://github.com/lumen-retail/billing-api-deploy.git",
+        "/history/source/targetRevision": "v2.8.0"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "datadog",
-      "method": "GET",
-      "path": "/api/v1/query",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/billing-api",
+          "cluster": "https://prod-use1.k8s.lumen.internal",
+          "managed": true
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/resource_identity",
+      "target": {
+        "collection": "/services/argocd/desired_resources",
+        "matching": {
+          "path": "overlays/production",
+          "repoURL": "https://github.com/lumen-retail/billing-api-deploy.git",
+          "revision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/resource_identity",
+      "kind": "bijection",
+      "fields": [
+        {
+          "source_field": "/content_digest",
+          "target_field": "/content_digest",
+          "kind": "equals"
+        }
+      ]
     },
     {
-      "service": "argocd",
-      "method": "PUT",
-      "path": "/api/v1/applications/billing-api",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/billing-api",
+          "kind": "Deployment",
+          "name": "billing-api",
+          "namespace": "billing"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/manifest/metadata/generation",
+      "target": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/billing-api",
+          "kind": "Deployment",
+          "name": "billing-api",
+          "namespace": "billing"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/manifest/status/observedGeneration",
+      "kind": "numeric_equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/billing-api",
+          "deleting": false,
+          "kind": "Pod",
+          "manifest": {
+            "status": {
+              "conditions": [
+                {
+                  "status": "True",
+                  "type": "Ready"
+                }
+              ],
+              "phase": "Running"
+            }
+          },
+          "namespace": "billing"
+        },
+        "references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "ReplicaSet",
+                "namespace": "billing"
+              },
+              "references": [
+                {
+                  "source_field": "/controller_uid",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/billing-api",
+                      "kind": "Deployment",
+                      "name": "billing-api",
+                      "namespace": "billing"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/uid"
+                },
+                {
+                  "source_field": "/template_digest",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/billing-api",
+                      "kind": "Deployment",
+                      "name": "billing-api",
+                      "namespace": "billing"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/template_digest"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/uid",
+      "target": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/billing-api",
+          "kind": "Deployment",
+          "name": "billing-api",
+          "namespace": "billing"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/manifest/spec/replicas",
+      "kind": "count_equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/billing-api",
+          "deleting": false,
+          "kind": "Pod",
+          "manifest": {
+            "status": {
+              "conditions": [
+                {
+                  "status": "True",
+                  "type": "Ready"
+                }
+              ],
+              "phase": "Running"
+            }
+          },
+          "namespace": "billing"
+        },
+        "references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "ReplicaSet",
+                "namespace": "billing"
+              },
+              "references": [
+                {
+                  "source_field": "/controller_uid",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/billing-api",
+                      "kind": "Deployment",
+                      "name": "billing-api",
+                      "namespace": "billing"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/uid"
+                },
+                {
+                  "source_field": "/template_digest",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/billing-api",
+                      "kind": "Deployment",
+                      "name": "billing-api",
+                      "namespace": "billing"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/template_digest"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/controller_uid",
+      "target": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet",
+          "namespace": "billing"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/uid",
+      "kind": "foreign_key",
+      "fields": [
+        {
+          "source_field": "/manifest/spec/containers",
+          "target_field": "/manifest/spec/template/spec/containers",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/manifest/spec/serviceAccountName",
+          "target_field": "/manifest/spec/template/spec/serviceAccountName",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/manifest/metadata/namespace",
+          "target_field": "/manifest/metadata/namespace",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/cluster",
+          "target_field": "/cluster",
+          "kind": "equals"
+        }
+      ]
     }
   ],
+  "audit_history": true,
+  "ordering": [],
+  "information": [
+    {
+      "prerequisite": {
+        "service": "datadog",
+        "method": "GET",
+        "path": "/api/v1/query",
+        "path_regex": null,
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      },
+      "response_field": "/series",
+      "source": {
+        "collection": "/services/datadog/metrics",
+        "matching": {
+          "metric": "billing.api.latency.p95",
+          "tags": [
+            "env:prod",
+            "service:billing-api"
+          ]
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "series": {
+        "fields": {
+          "/metric": "/metric"
+        },
+        "scope": "/scope",
+        "source_tags": "/tags",
+        "points": "/pointlist",
+        "interval": "/interval",
+        "source_points": "/points",
+        "timestamp_scale": 1000,
+        "start": "2026-10-29T09:00:00Z",
+        "end": "2026-10-29T09:10:00Z"
+      },
+      "action": {
+        "service": "argocd",
+        "method": "PUT",
+        "path": null,
+        "path_regex": "^/api/v1/applications/billing-api(/spec)?$",
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      }
+    }
+  ],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "argocd",
@@ -88,28 +410,914 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "argocd",
       "method": "PUT",
       "path": null,
-      "path_regex": "^/api/v1/applications/billing-(api-staging|worker)$",
+      "path_regex": "^/api/v1/applications/billing-(api-staging|worker)(/spec)?$",
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "argocd",
       "method": "POST",
       "path": null,
-      "path_regex": "^/api/v1/applications/billing-(api-staging|worker)/sync$",
+      "path_regex": "^/api/v1/applications/billing-(api-staging|worker)/(sync|rollback|resource/actions)$",
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/spec/source/targetRevision",
+        "kind": "update",
+        "matching": {
+          "spec": {
+            "source": {
+              "targetRevision": "v2.8.0"
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/spec/syncPolicy/automated/enabled",
+        "kind": "update",
+        "matching": {
+          "spec": {
+            "syncPolicy": {
+              "automated": {
+                "enabled": true
+              }
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/metadata/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/metadata/generation",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/status/reconciledAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/status/sync",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/status/health",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/status/history",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "argocd",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$"
+        }
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/operation",
+        "kind": "update",
+        "matching": {
+          "operation": {
+            "sync": {
+              "revision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/operation",
+        "kind": "remove_field",
+        "matching": {
+          "spec": {
+            "source": {
+              "targetRevision": "v2.8.0"
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/operation",
+        "kind": "remove_field",
+        "matching": {
+          "status": {
+            "operationState": {
+              "operation": {
+                "sync": {
+                  "dryRun": true,
+                  "revision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
+                }
+              }
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/status/operationState",
+        "kind": "update",
+        "matching": {
+          "status": {
+            "operationState": {
+              "syncResult": {
+                "revision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
+              }
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1billing-api/status/operationState",
+        "kind": "remove_field",
+        "matching": {
+          "operation": {
+            "sync": {
+              "revision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2"
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/sync_history/*",
+        "kind": "create",
+        "matching": {
+          "app": "argocd/billing-api",
+          "history": {
+            "revision": "f4befdc6efa7504dc43d29f4de52c0f1529f52d2",
+            "source": {
+              "path": "overlays/production",
+              "repoURL": "https://github.com/lumen-retail/billing-api-deploy.git",
+              "targetRevision": "v2.8.0"
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/spec",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "argocd",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$"
+        }
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/labels/app.kubernetes.io~1version",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/annotations/deployment.kubernetes.io~1revision",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "Deployment",
+          "name": "billing-api",
+          "namespace": "billing"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/generation",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/status",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/health",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/status",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/requiresPruning",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/template_digest",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "Deployment",
+          "name": "billing-api",
+          "namespace": "billing"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/content_digest",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "managed": true
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/spec/replicas",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "argocd",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$"
+        }
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/status",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/generation",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/health",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/active",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/content_digest",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*",
+        "kind": "delete",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/billing-api",
+          "kind": "Pod"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "ReplicaSet"
+              },
+              "references": [
+                {
+                  "source_field": "/controller_uid",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/billing-api",
+                      "kind": "Deployment",
+                      "name": "billing-api",
+                      "namespace": "billing"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/uid"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*",
+        "kind": "create",
+        "matching": {
+          "app": "argocd/billing-api",
+          "cluster": "https://prod-use1.k8s.lumen.internal",
+          "kind": "ReplicaSet",
+          "namespace": "billing"
+        },
+        "references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          },
+          {
+            "source_field": "/template_digest",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "Deployment",
+                "name": "billing-api",
+                "namespace": "billing"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/template_digest"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*",
+        "kind": "create",
+        "matching": {
+          "app": "argocd/billing-api",
+          "cluster": "https://prod-use1.k8s.lumen.internal",
+          "kind": "Pod",
+          "namespace": "billing"
+        },
+        "references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/billing-api",
+                "kind": "ReplicaSet"
+              },
+              "references": [
+                {
+                  "source_field": "/controller_uid",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/billing-api",
+                      "kind": "Deployment",
+                      "name": "billing-api",
+                      "namespace": "billing"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/uid"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": 100,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/events/*",
+        "kind": "create",
+        "matching": {
+          "involvedObject": {
+            "kind": "Application",
+            "name": "billing-api",
+            "namespace": "argocd"
+          },
+          "type": "Normal"
+        },
+        "field_patterns": {
+          "/reason": "^(ResourceUpdated|OperationStarted|OperationCompleted|OperationFailed|OperationProgressing)$",
+          "/source/component": "^argocd-(server|application-controller)$"
+        },
+        "references": [
+          {
+            "source_field": "/involvedObject/uid",
+            "target": {
+              "collection": "/services/argocd/applications",
+              "matching": {
+                "metadata": {
+                  "name": "billing-api",
+                  "namespace": "argocd"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/metadata/uid"
+          }
+        ],
+        "max_count": 16,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

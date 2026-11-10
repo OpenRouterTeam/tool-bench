@@ -378,7 +378,7 @@ async fn research_is_created_stored_and_completed() {
     .await;
     assert_eq!(status, StatusCode::CREATED);
     assert_eq!(created["status"], "pending");
-    assert_eq!(created["created_at"], "2026-10-30T12:00:07Z");
+    assert_eq!(created["created_at"], "2026-10-30T12:00:00Z");
     let id = created["request_id"].as_str().unwrap().to_owned();
 
     let (status, _, text) = send(

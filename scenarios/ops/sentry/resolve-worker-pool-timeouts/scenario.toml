@@ -7,34 +7,57 @@ services = ["sentry"]
 tags = ["write", "single-service", "sentry", "disambiguation"]
 timeout_sec = 900
 
-# Target: PAYMENTS-WORKER-1K (id 6184417730). Look-alikes that must stay untouched:
-# CHECKOUT-API-3F (6184420311, same title, other project) and PAYMENTS-WORKER-1H
-# (6184417704, another OperationalError in the same project).
-[[expect.state]]
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/sentry/issues", matching = { shortId = "PAYMENTS-WORKER-1K" } }
+equals = 1
+fields = { "/status" = "resolved" }
+null_fields = ["/substatus"]
+optional_choices = { "/statusDetails/inNextRelease" = [false] }
+
+[[expect.preservation.allow]]
 pointer = "/services/sentry/issues/PAYMENTS-WORKER-1K/status"
-equals = "resolved"
+matching = { status = "resolved" }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/CHECKOUT-API-3F/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/PAYMENTS-WORKER-1K/substatus"
+matching = { status = "resolved" }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/PAYMENTS-WORKER-1H/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/PAYMENTS-WORKER-1K/resolvedAt"
+matching = { status = "resolved" }
+field_patterns = { "/resolvedAt" = '\S' }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.required_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)^/api/0/organizations/lumen-labs/issues/(PAYMENTS-WORKER-1K|6184417730)/$"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "set_resolved" }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "PAYMENTS-WORKER-1K" } }, target_field = "/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)/issues/(CHECKOUT-API-3F|6184420311|PAYMENTS-WORKER-1H|6184417704)/$"
-
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "assigned", data = { assigneeType = "team" } }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "PAYMENTS-WORKER-1K" } }, target_field = "/id" },
+  { source_field = "/data/assignee", target = { collection = "/services/sentry/issues", matching = { shortId = "PAYMENTS-WORKER-1K", assignedTo = { type = "team" } } }, target_field = "/assignedTo/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
 [[solution.call]]
 endpoint = "sentry"

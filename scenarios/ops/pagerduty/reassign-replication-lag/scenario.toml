@@ -7,56 +7,44 @@ services = ["pagerduty"]
 tags = ["write", "single-service", "pagerduty"]
 timeout_sec = 900
 
-# Target: Q3K8ORDBLAG2RX (orders-db-replica-2). Database Reliability primary today is
-# Dana Nguyen (daily rotation); Sam Okafor is level 2 and also covers the staging policy.
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/assignments/0/assignee/id"
-equals = "PDNGYN2"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/assignments/1"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/pagerduty/incidents", matching = { id = "Q3K8ORDBLAG2RX", incident_number = 4812, service = { id = "PSVORDB" } } }
+equals = 1
+fields = { "/status" = "triggered", "/assignments/0/assignee/id" = "PDNGYN2", "/assigned_via" = "direct_assignment" }
+array_lengths = { "/assignments" = 1 }
 
-[[expect.state]]
-pointer = "/services/pagerduty/notes/Q3K8ORDBLAG2RX~11/content"
-contains = "replica-2"
+[[expect.records]]
+selector = { collection = "/services/pagerduty/notes", created = true }
+min_count = 1
+reviewed_text = { "/content" = { requirement = 'The incident note must communicate the complete requested handoff: "Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize." Do not negate the handoff, report that a resize has already happened, or substitute another replica.', accepted = ["Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize."], rejected = ["replica-2", "Handing off to DBRE: replica-2 disk is at 100%, volume resize completed.", "Do not hand replica-2 off to DBRE."] } }
 
-# The look-alike inventory-db incident stays with Alex.
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q1INVDBLAG7QWE/assignments/0/assignee/id"
-equals = "PA1EXKM"
+[[expect.relations]]
+source = { collection = "/services/pagerduty/notes", created = true }
+source_field = "/id"
+target = { collection = "/services/pagerduty/notes", key_prefix = "Q3K8ORDBLAG2RX/", created = true }
+target_field = "/id"
+kind = "bijection"
 
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q1INVDBLAG7QWE/status"
-equals = "triggered"
+[[expect.relations]]
+source = { collection = "/services/pagerduty/notes", created = true }
+source_field = "/user/id"
+target = { collection = "/services/pagerduty/account", key_prefix = "account" }
+target_field = "/user_id"
+kind = "foreign_key"
 
-[[expect.required_calls]]
-service = "pagerduty"
-method = "PUT"
-path = "/incidents"
-body = { incidents = [{ id = "Q3K8ORDBLAG2RX" }] }
-
-[[expect.required_calls]]
-service = "pagerduty"
-method = "POST"
-path = "/incidents/Q3K8ORDBLAG2RX/notes"
-
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "PUT"
-path = "/incidents"
-body = { incidents = [{ id = "Q3K8ORDBLAG2RX", status = "resolved" }] }
-
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "PUT"
-path = "/incidents"
-body = { incidents = [{ id = "Q1INVDBLAG7QWE" }] }
-
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "POST"
-path = "/incidents/Q1INVDBLAG7QWE/notes"
+[expect.preservation]
+allow = [
+  { pointer = "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/assignments", matching = { status = "triggered", assignments = [{ assignee = { id = "PDNGYN2" } }] }, array_lengths = { "/assignments" = 1 }, cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q3K8ORDBLAG2RX)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/assigned_via", matching = { assigned_via = "direct_assignment" }, cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q3K8ORDBLAG2RX)?$" } },
+  { pointer = "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/updated_at", cause = { service = "pagerduty", methods = ["PUT", "POST"], path_regex = "^/incidents(/Q3K8ORDBLAG2RX(/notes)?)?$" } },
+  { pointer = "/services/pagerduty/notes/*", kind = "create", matching = { user = { type = "user_reference" } }, references = [{ source_field = "/user/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], max_count = "all_matching", cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q3K8ORDBLAG2RX/notes$" } },
+  { pointer = "/services/pagerduty/log_entries/*", kind = "create", matching = { type = "assign_log_entry", incident = { id = "Q3K8ORDBLAG2RX" }, service = { id = "PSVORDB" }, assignees = [{ id = "PDNGYN2" }] }, references = [{ source_field = "/agent/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], max_count = "all_matching", cause = { service = "pagerduty", methods = ["PUT"], path_regex = "^/incidents(/Q3K8ORDBLAG2RX)?$" } },
+  { pointer = "/services/pagerduty/log_entries/*", kind = "create", matching = { type = "annotate_log_entry", incident = { id = "Q3K8ORDBLAG2RX" }, service = { id = "PSVORDB" } }, references = [{ source_field = "/agent/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], max_count = "all_matching", cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q3K8ORDBLAG2RX/notes$" } },
+]
 
 [[solution.call]]
 endpoint = "pagerduty"

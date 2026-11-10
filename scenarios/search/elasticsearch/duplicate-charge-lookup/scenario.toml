@@ -9,6 +9,10 @@ timeout_sec = 900
 
 # Duplicates: ORD-109002 and ORD-109003 (86.40 USD, 28 s apart). Distractors: Jordan Leigh's
 # own pair, j.lee@example.com's 86.40 order, and Jordan Lee's other orders.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["ORD-109002", "ORD-109003"]
 regex = '86[.,]4'

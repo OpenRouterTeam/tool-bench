@@ -702,6 +702,7 @@ fn insert_comment(
     let position = ticket_comments(store, ticket_id).len() + 1;
     let doc = json!({
         "id": event_id,
+        "ticket_id": ticket_id,
         "type": "Comment",
         "author_id": comment.author_id.or(author_id),
         "body": comment.body,

@@ -13,53 +13,87 @@ timeout_sec = 1200
 # preview-only error STOREFRONT-5T (release 4be1d07, a preview deployment), the older
 # ChunkLoadError STOREFRONT-4W, and the storefront-admin project.
 
-[[expect.state]]
-pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/meta/githubCommitSha"
-equals = "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9"
 
-[[expect.state]]
-pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/readyState"
-equals = "READY"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/alias"
-contains = "acme-shop.com"
+[[expect.records]]
+selector = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX" } }
+min_count = 1
+fields = { "/target" = "production", "/readyState" = "READY", "/source" = "redeploy", "/gitSource/sha" = "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9", "/meta/originalDeploymentId" = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", "/meta/githubCommitSha" = "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-5R/assignedTo/type"
-equals = "team"
+[[expect.relations]]
+kind = "foreign_key"
+source = { collection = "/services/vercel/aliases", matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX" }, field_patterns = { "/alias" = "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$" } }
+source_field = "/deploymentId"
+target = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", readyState = "READY", target = "production" }, references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true } } }] }
+target_field = "/id"
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-5R/assignedTo/name"
-equals = "payments-web"
+[[expect.records]]
+selector = { collection = "/services/vercel/aliases", matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX" }, field_patterns = { "/alias" = "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$" } }
+equals = 2
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-5R/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/vercel/deployments/*"
+kind = "create"
+matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", source = "redeploy", target = "production" }
+references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true } } }]
+count_scope = "per_commit"
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-5T/assignedTo/type"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/vercel/deployment_sources/*"
+kind = "create"
+matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true }
+count_scope = "per_commit"
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-4W/assignedTo/type"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/vercel/aliases/*/deploymentId"
+initial_matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX" }
+field_patterns = { "/alias" = "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$" }
+references = [{ source_field = "/deploymentId", target_field = "/id", target = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", readyState = "READY", target = "production" }, references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true } } }] } }]
+max_count = 2
 
-[[expect.required_calls]]
-service = "vercel"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "vercel-create-deployment" }
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production"
+references = [{ source_field = "/targets/production/id", target_field = "/id", target = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", readyState = "READY", target = "production" }, references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true } } }] } }]
 
-[[expect.required_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)^/api/0/organizations/acme-shop/issues/(STOREFRONT-5R|7201330418)/$"
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/latestDeployments"
 
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)/issues/(STOREFRONT-5T|7201331102|STOREFRONT-4W|7201298877|STOREFRONT-ADMIN-1C|7201312240)/$"
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/updatedAt"
+
+[[expect.records]]
+selector = { collection = "/services/sentry/issues", matching = { shortId = "STOREFRONT-5R", id = "7201330418", project = "storefront" } }
+equals = 1
+fields = { "/status" = "unresolved", "/assignedTo/type" = "team" }
+
+[[expect.relations]]
+kind = "equals"
+source = { collection = "/services/sentry/issues", matching = { shortId = "STOREFRONT-5R", id = "7201330418" } }
+source_field = "/assignedTo/id"
+target = { collection = "/services/sentry/teams", matching = { slug = "payments-web" } }
+target_field = "/id"
+
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/STOREFRONT-5R/assignedTo"
+matching = { assignedTo = { type = "team" } }
+references = [{ source_field = "/assignedTo/id", target = { collection = "/services/sentry/teams", matching = { slug = "payments-web" } }, target_field = "/id" }]
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(acme-shop|1180911)/issues/(STOREFRONT-5R|7201330418)/$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "assigned", data = { assigneeType = "team" } }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "STOREFRONT-5R", id = "7201330418" } }, target_field = "/id" },
+  { source_field = "/data/assignee", target = { collection = "/services/sentry/teams", matching = { slug = "payments-web" } }, target_field = "/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "riley@acme-shop.com" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(acme-shop|1180911)/issues/(STOREFRONT-5R|7201330418)/$" }
 
 [[expect.forbidden_calls]]
 service = "sentry"

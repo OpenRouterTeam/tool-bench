@@ -7,48 +7,30 @@ services = ["aws"]
 tags = ["write", "single-service", "aws", "disambiguation"]
 timeout_sec = 900
 
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/aws/users/priya.raman-audit/AttachedPolicies"
-equals = ["arn:aws:iam::aws:policy/SecurityAudit"]
+contains = "arn:aws:iam::aws:policy/SecurityAudit"
 
 [[expect.state]]
 pointer = "/services/aws/groups/auditors/Members"
-equals = ["lnovak", "priya.raman-audit"]
+contains = "priya.raman-audit"
 
-# The employee with the same name is untouched.
-[[expect.state]]
-pointer = "/services/aws/users/praman/AttachedPolicies"
-equals = ["arn:aws:iam::481562039417:policy/DataLakeAnalyst"]
+[[expect.records]]
+selector = { collection = "/services/aws/users", matching = { UserName = "priya.raman-audit", Path = "/external/" } }
+equals = 1
+fields = { "/Arn" = "arn:aws:iam::481562039417:user/external/priya.raman-audit" }
 
-[[expect.state]]
-pointer = "/services/aws/groups/data-analysts/Members"
-equals = ["praman"]
+[[expect.preservation.allow]]
+pointer = "/services/aws/users/priya.raman-audit/AttachedPolicies"
+add_set_values = ["arn:aws:iam::aws:policy/SecurityAudit"]
 
-[[expect.state]]
-pointer = "/services/aws/groups/auditors/AttachedPolicies"
-equals = ["arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"]
-
-[[expect.required_calls]]
-service = "aws"
-method = "POST"
-body_contains = "Action=AttachUserPolicy"
-
-[[expect.required_calls]]
-service = "aws"
-method = "POST"
-body_contains = "Action=AddUserToGroup"
-
-[[expect.forbidden_calls]]
-service = "aws"
-body_contains = "Action=DeleteUser"
-
-[[expect.forbidden_calls]]
-service = "aws"
-body_contains = "Action=CreateAccessKey"
-
-[[expect.forbidden_calls]]
-service = "aws"
-body_contains = "Action=CreateLoginProfile"
+[[expect.preservation.allow]]
+pointer = "/services/aws/groups/auditors/Members"
+add_set_values = ["priya.raman-audit"]
 
 [[solution.call]]
 endpoint = "aws-iam"

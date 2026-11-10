@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/sentry/resolve-worker-pool-timeouts",
+  "scenario_sha256": "sha256:fa5697f330c3858f04ade619f71e7db6622bedbfeab7dbfbc4a2c1f5dc866c5c",
+  "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
+  "contract_sha256": "sha256:c01a0b96c8547ed8485941f898b480e28aa7da3a733ed49b12778ae196ba28b3"
+}

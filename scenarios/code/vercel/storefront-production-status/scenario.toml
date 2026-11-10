@@ -10,6 +10,10 @@ timeout_sec = 900
 # The newest production deployment (7d41c9e, Next.js 15.4 upgrade) failed, so production
 # still serves c3a9f12. The newest storefront preview (feat/gift-cards) failed on function
 # size; storefront-admin has a newer, unrelated preview failure.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["c3a9f12"]
 regex = "(?i)(250\\s*MB|function size|maximum size|size limit)"

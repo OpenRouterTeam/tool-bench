@@ -12,78 +12,151 @@ timeout_sec = 900
 # error on that endpoint is CHECKOUT-API-3F (OperationalError: could not obtain connection from
 # pool within 5.0s, culprit checkout.views.orders in create_order). Look-alikes:
 # PAYMENTS-WORKER-1K (same title, other project, more events; GitHub payments-worker#88 tracks
-# it) and CHECKOUT-API-3C (tracked in checkout#207). The new issue is lumen-labs/checkout#214.
-[[expect.state]]
-pointer = "/services/github/issues"
-key_prefix = "lumen-labs/checkout#"
-any = { title = "CHECKOUT-API-3F", body = "4810" }
+# it) and CHECKOUT-API-3C (tracked in checkout#207). The new GitHub issue and PagerDuty note are
+# new records whose identities the services emit; the note must cite the actual issue number
+# the GitHub service emitted, never a predicted one. Local ticket and note records are not
+# evidence that any hosted notification was delivered.
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/github/issues"
-key_prefix = "lumen-labs/checkout#"
-any = { title = "CHECKOUT-API-3F", body = "create_order" }
+[[expect.records]]
+selector = { collection = "/services/github/issues", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/github/issues"
-key_prefix = "lumen-labs/checkout#"
-any = { title = "CHECKOUT-API-3F", body = "could not obtain connection from pool" }
+[[expect.records]]
+selector = { collection = "/services/github/issues", key_prefix = "lumen-labs/checkout#", created = true, field_patterns = { "/title" = "^CHECKOUT-API-3F: \\S" } }
+equals = 1
+fields = { "/state" = "open", "/user" = "hana", "/assignees" = [] }
+optional_fields = { "/locked" = false, "/milestone" = "", "/type" = "", "/parent" = "" }
+null_fields = ["/closed_at"]
 
-[[expect.state]]
-pointer = "/services/github/issues/lumen-labs~1checkout#214/state"
-equals = "open"
+[expect.records.reviewed_text."/title"]
+requirement = "The complete title must begin with the Sentry short ID CHECKOUT-API-3F followed by a colon and truthfully describe the production checkout database connection-pool failure behind the PagerDuty page. It must not name another Sentry issue, project, environment or error. Unlisted nonempty wording requires adjudication."
 
-[[expect.state]]
-pointer = "/services/github/issues/lumen-labs~1checkout#215"
-exists = false
+[expect.records.reviewed_text."/title".bound]
+examples = [
+  "${short_id}: OperationalError: could not obtain connection from pool within 5.0s",
+  "${short_id}: OperationalError: could not obtain connection from pool",
+  "${short_id}: could not obtain connection from pool within 5.0s",
+  "${short_id}: could not obtain connection from pool",
+  "${short_id}: Checkout API OperationalError: could not obtain connection from pool within 5.0s",
+  "${short_id}: OperationalError in create_order: could not obtain connection from pool within 5.0s",
+  "${short_id}: could not obtain connection from pool in create_order",
+  "${short_id}: Checkout order creation fails with a database connection pool timeout",
+]
 
-[[expect.state]]
-pointer = "/services/pagerduty/notes"
-key_prefix = "Q7CHKAP15PCT1D/"
-any = { content = "214" }
+[expect.records.reviewed_text."/title".bound.identities.short_id]
+selector = { collection = "/services/sentry/issues", matching = { project = "checkout-api", culprit = "checkout.views.orders in create_order" } }
+field = "/shortId"
 
-[[expect.state]]
-pointer = "/services/pagerduty/notes/Q8CHKSTG5PCT2F~11"
-exists = false
+[expect.records.reviewed_text."/body"]
+requirement = "The complete description must truthfully link the production PagerDuty incident number, the Sentry culprit checkout.views.orders in create_order and the error message could not obtain connection from pool within 5.0s to the Sentry issue. It must not cite the staging incident, another Sentry issue or project, claim the failure is resolved or fixed, or invent a root cause, owner or deployment. Event counts and the endpoint are optional only when they match the Sentry issue. Unlisted nonempty wording requires adjudication."
 
-[[expect.state]]
-pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/status"
-equals = "triggered"
+[expect.records.reviewed_text."/body".bound]
+examples = [
+  "PagerDuty incident #${incident_number} (Checkout error rate above 5%, production).\n\nSentry: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s\nEndpoint: POST /api/orders/ (1,842 events, 611 users)",
+  "PagerDuty incident #${incident_number} (Checkout error rate above 5%, production).\n\nSentry: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s",
+  "PagerDuty incident #${incident_number}\nSentry: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s",
+  "PagerDuty incident #${incident_number}\nSentry issue: ${short_id}\nCulprit: checkout.views.orders in create_order\nError message: OperationalError: could not obtain connection from pool within 5.0s",
+  "PagerDuty incident ${incident_number}\nSentry: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s",
+  "PagerDuty incident ${incident_number}\nSentry issue: ${short_id}\nCulprit: checkout.views.orders in create_order\nError message: OperationalError: could not obtain connection from pool within 5.0s",
+  "Incident: PagerDuty #${incident_number}\nSentry issue: ${short_id}\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s",
+]
 
-[[expect.state]]
-pointer = "/services/sentry/issues/CHECKOUT-API-3F/status"
-equals = "unresolved"
+[expect.records.reviewed_text."/body".bound.identities.short_id]
+selector = { collection = "/services/sentry/issues", matching = { project = "checkout-api", culprit = "checkout.views.orders in create_order" } }
+field = "/shortId"
 
-[[expect.required_calls]]
-service = "github"
-method = "POST"
-path = "/api/v3/repos/lumen-labs/checkout/issues"
+[expect.records.reviewed_text."/body".bound.identities.incident_number]
+selector = { collection = "/services/pagerduty/incidents", matching = { id = "Q7CHKAP15PCT1D", service = { id = "PSVCHKA" } } }
+field = "/incident_number"
 
-[[expect.required_calls]]
-service = "pagerduty"
-method = "POST"
-path = "/incidents/Q7CHKAP15PCT1D/notes"
+[[expect.records]]
+selector = { collection = "/services/github/issues", key_prefix = "lumen-labs/checkout#", created = true, field_patterns = { "/body" = "(^|[^0-9A-Za-z_-])4810($|[^0-9A-Za-z_-])" } }
+equals = 1
 
-[[expect.forbidden_calls]]
-service = "github"
-method = "POST"
-path_regex = "^/api/v3/repos/lumen-labs/(payments-worker|storefront)/issues"
+[[expect.records]]
+selector = { collection = "/services/github/issues", key_prefix = "lumen-labs/checkout#", created = true, field_patterns = { "/body" = "checkout\\.views\\.orders in create_order" } }
+equals = 1
 
-[[expect.forbidden_calls]]
-service = "github"
-method = "PATCH"
+[[expect.records]]
+selector = { collection = "/services/github/issues", key_prefix = "lumen-labs/checkout#", created = true, field_patterns = { "/body" = "could not obtain connection from pool within 5\\.0s" } }
+equals = 1
 
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "PUT"
+[[expect.records]]
+selector = { collection = "/services/pagerduty/notes", created = true }
+equals = 1
 
-[[expect.forbidden_calls]]
-service = "pagerduty"
-method = "POST"
-path = "/incidents/Q8CHKSTG5PCT2F/notes"
+[[expect.records]]
+selector = { collection = "/services/pagerduty/notes", key_prefix = "Q7CHKAP15PCT1D/", created = true, field_patterns = { "/content" = "[0-9]" } }
+equals = 1
+fields = { "/user" = { id = "PLWEBR5", type = "user_reference" } }
 
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "PUT"
+[expect.records.reviewed_text."/content"]
+requirement = "The complete note must truthfully tell responders that the GitHub issue the agent actually opened in lumen-labs/checkout, identified by the number the GitHub service emitted, tracks this production checkout incident. It must not cite any other issue number, repository or Sentry issue, claim a fix, deployment or resolution, or claim a notification was delivered elsewhere. Unlisted nonempty wording requires adjudication."
+
+[expect.records.reviewed_text."/content".bound]
+examples = [
+  "Tracking the fix in GitHub issue lumen-labs/checkout#${issue_number} (Sentry CHECKOUT-API-3F).",
+  "Tracking the fix in GitHub issue lumen-labs/checkout#${issue_number}.",
+  "Tracking the fix in GitHub issue lumen-labs/checkout#${issue_number}",
+  "GitHub issue lumen-labs/checkout#${issue_number} tracks the fix (Sentry CHECKOUT-API-3F).",
+  "GitHub issue lumen-labs/checkout#${issue_number} tracks the fix.",
+  "GitHub issue lumen-labs/checkout#${issue_number} opened for Sentry CHECKOUT-API-3F.",
+  "Opened GitHub issue lumen-labs/checkout#${issue_number} for this incident.",
+  "Opened GitHub issue #${issue_number} in lumen-labs/checkout for this incident.",
+  "Created GitHub issue #${issue_number} in lumen-labs/checkout for Sentry CHECKOUT-API-3F.",
+  "GitHub issue lumen-labs/checkout#${issue_number}",
+  "GitHub issue #${issue_number} in lumen-labs/checkout",
+  "Tracking in lumen-labs/checkout#${issue_number}",
+]
+
+[expect.records.reviewed_text."/content".bound.identities.issue_number]
+selector = { collection = "/services/github/issues", key_prefix = "lumen-labs/checkout#", created = true }
+field = "/number"
+
+[[expect.records]]
+selector = { collection = "/services/pagerduty/incidents", matching = { id = "Q7CHKAP15PCT1D", incident_number = 4810, service = { id = "PSVCHKA" } } }
+equals = 1
+fields = { "/status" = "triggered" }
+
+[[expect.records]]
+selector = { collection = "/services/pagerduty/incidents", matching = { id = "Q8CHKSTG5PCT2F", incident_number = 4811, service = { id = "PSVCHKS" } } }
+equals = 1
+fields = { "/status" = "triggered" }
+
+[[expect.records]]
+selector = { collection = "/services/sentry/issues", matching = { shortId = "CHECKOUT-API-3F", project = "checkout-api" } }
+equals = 1
+fields = { "/status" = "unresolved" }
+
+[[expect.relations]]
+source = { collection = "/services/pagerduty/notes", created = true }
+source_field = "/id"
+target = { collection = "/services/pagerduty/notes", key_prefix = "Q7CHKAP15PCT1D/", created = true }
+target_field = "/id"
+kind = "bijection"
+
+[[expect.relations]]
+source = { collection = "/services/pagerduty/notes", created = true }
+source_field = "/user/id"
+target = { collection = "/services/pagerduty/account", key_prefix = "account" }
+target_field = "/user_id"
+kind = "foreign_key"
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/github/issues", key_prefix = "lumen-labs/checkout#", created = true }, field = "/state", equals = "open" }
+action = { selector = { collection = "/services/pagerduty/notes", key_prefix = "Q7CHKAP15PCT1D/", created = true }, field = "/content", nonempty_text = true }
+
+[expect.preservation]
+allow = [
+  { pointer = "/services/github/issues/*", kind = "create", matching = { user = "hana", state = "open", assignees = [] }, field_patterns = { "/title" = "^CHECKOUT-API-3F: \\S" }, cause = { service = "github", methods = ["POST", "PATCH"], path_regex = "^(/api/v3/repos/lumen-labs/checkout/issues(/[0-9]+)?|/api/graphql)$" } },
+  { pointer = "/services/pagerduty/notes/*", kind = "create", matching = { user = { id = "PLWEBR5", type = "user_reference" } }, field_patterns = { "/content" = "[0-9]" }, references = [{ source_field = "/user/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q7CHKAP15PCT1D/notes$" } },
+  { pointer = "/services/pagerduty/log_entries/*", kind = "create", matching = { type = "annotate_log_entry", incident = { id = "Q7CHKAP15PCT1D" }, service = { id = "PSVCHKA" } }, references = [{ source_field = "/agent/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q7CHKAP15PCT1D/notes$" } },
+  { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/updated_at", cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q7CHKAP15PCT1D/notes$" } },
+]
+
 
 [[solution.call]]
 endpoint = "pagerduty"
@@ -106,6 +179,18 @@ tool = "issue_write"
 arguments = { method = "create", owner = "lumen-labs", repo = "checkout", title = "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s", body = "PagerDuty incident #4810 (Checkout error rate above 5%, production).\n\nSentry: CHECKOUT-API-3F\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s\nEndpoint: POST /api/orders/ (1,842 events, 611 users)" }
 
 [[solution.call]]
+endpoint = "github"
+tool = "list_issues"
+arguments = { owner = "lumen-labs", repo = "checkout", state = "OPEN", orderBy = "CREATED_AT", direction = "DESC", perPage = 10 }
+
+[[solution.call.capture]]
+name = "issue_number"
+pointer = "/content/0/text"
+json_pointer = "/issues"
+select = { matching = { title = "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s" }, pointer = "/number" }
+
+[[solution.call]]
 endpoint = "pagerduty"
 tool = "add_note_to_incident"
-arguments = { incident_id = "Q7CHKAP15PCT1D", note = "Tracking the fix in GitHub issue lumen-labs/checkout#214 (Sentry CHECKOUT-API-3F)." }
+template = true
+arguments = { incident_id = "Q7CHKAP15PCT1D", note = "Tracking the fix in GitHub issue lumen-labs/checkout#${issue_number} (Sentry CHECKOUT-API-3F)." }

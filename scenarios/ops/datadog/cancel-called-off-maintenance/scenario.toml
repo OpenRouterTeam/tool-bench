@@ -7,32 +7,15 @@ services = ["datadog"]
 tags = ["write", "single-service", "datadog", "disambiguation"]
 timeout_sec = 900
 
-# Target: 2207731 (prod CHG-4410, Saturday night). Look-alikes: 2207690 (the original CHG-4410
-# date, already canceled), 2207752 (tonight's CHG-4410 staging rehearsal), 2207745 (CHG-4401
-# payments-db drill, same night), plus an unrelated recurring and an active downtime.
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2207731/disabled"
-equals = true
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2207752/disabled"
-equals = false
-
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2207745/disabled"
-equals = false
-
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2207702/disabled"
-equals = false
-
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2207760/disabled"
-equals = false
-
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2207761"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/datadog/downtimes", matching = { id = 2207731 } }
+equals = 1
+fields = { "/disabled" = true, "/active" = false }
+numeric_fields = { "/canceled" = 1793354400, "/updater_id" = 1445416 }
 
 [[expect.required_calls]]
 service = "datadog"
@@ -43,6 +26,14 @@ path = "/api/v1/downtime/2207731"
 service = "datadog"
 method = "DELETE"
 path_regex = "^/api/v1/downtime/(2207690|2207702|2207745|2207752|2207760)$"
+
+[expect.preservation]
+allow = [
+  { pointer = "/services/datadog/downtimes/2207731/canceled", matching = { id = 2207731, disabled = true, active = false }, numeric_fields = { "/canceled" = 1793354400, "/updater_id" = 1445416 }, cause = { service = "datadog", methods = ["DELETE"], path_regex = "^/api/v1/downtime/2207731$" } },
+  { pointer = "/services/datadog/downtimes/2207731/disabled", matching = { id = 2207731, disabled = true, active = false }, cause = { service = "datadog", methods = ["DELETE"], path_regex = "^/api/v1/downtime/2207731$" } },
+  { pointer = "/services/datadog/downtimes/2207731/active", matching = { id = 2207731, disabled = true, active = false }, cause = { service = "datadog", methods = ["DELETE"], path_regex = "^/api/v1/downtime/2207731$" } },
+  { pointer = "/services/datadog/downtimes/2207731/updater_id", matching = { id = 2207731, disabled = true, active = false }, numeric_fields = { "/updater_id" = 1445416 }, cause = { service = "datadog", methods = ["DELETE"], path_regex = "^/api/v1/downtime/2207731$" } },
+]
 
 [[solution.call]]
 endpoint = "datadog"

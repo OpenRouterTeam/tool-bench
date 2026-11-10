@@ -1,186 +1,1144 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/replicas",
-      "equals": 9,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/template/spec/containers/0/image",
-      "equals": "ghcr.io/tidewater/checkout:4.18.2",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout-worker/spec/replicas",
-      "equals": 2,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/kubernetes/deployments.apps/shop-staging~1checkout/spec/replicas",
-      "equals": 1,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/status",
-      "equals": "resolved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/notes",
-      "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "content": "9"
+      "selector": {
+        "collection": "/services/kubernetes/deployments.apps",
+        "matching": {
+          "metadata": {
+            "name": "checkout",
+            "namespace": "shop-prod",
+            "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
       },
-      "key_prefix": "Q7CHKAP15PCT1D/"
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/spec/replicas": 9,
+        "/status/availableReplicas": 9,
+        "/status/readyReplicas": 9,
+        "/status/replicas": 9,
+        "/status/updatedReplicas": 9
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/pagerduty/incidents/Q8CHKSTG5PCT2F/status",
-      "equals": "triggered",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/kubernetes/pods",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "checkout-tscdrh8t48",
+                "uid": "77a7ad33-adb2-4b6e-a56f-6c5b2e50cb7f"
+              }
+            ]
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 9,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status/phase": "Running"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/pagerduty/incidents/Q9CHKWEB5XX3VK/status",
-      "equals": "acknowledged",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/kubernetes/pods",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "checkout-tscdrh8t48",
+                "uid": "77a7ad33-adb2-4b6e-a56f-6c5b2e50cb7f"
+              }
+            ]
+          },
+          "status": {
+            "conditions": [
+              {
+                "status": "True",
+                "type": "Ready"
+              }
+            ],
+            "containerStatuses": [
+              {
+                "name": "checkout",
+                "ready": true
+              }
+            ]
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 9,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/pagerduty/notes/Q8CHKSTG5PCT2F~11",
+      "selector": {
+        "collection": "/services/pagerduty/incidents",
+        "matching": {
+          "id": "Q7CHKAP15PCT1D",
+          "incident_number": 4810,
+          "service": {
+            "id": "PSVCHKA"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/assignments": [],
+        "/pending_actions": [],
+        "/status": "resolved"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/pagerduty/alerts",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 2,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "resolved"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
       "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
-    {
-      "service": "kubernetes",
-      "method": null,
-      "path": null,
-      "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$",
-      "query_contains": null,
-      "body": {
-        "spec": {
-          "replicas": 9
+      "min_count": 1,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/content": {
+          "requirement": "The complete note must truthfully state that production shop-prod/checkout was scaled to 9 replicas per its runbook. A bare number, staging claim, denial or changed-image claim is not a remediation note. Unlisted wording requires adjudication.",
+          "accepted": [
+            "Per RB-CHK-07: scaled the checkout Deployment in shop-prod from 3 to 9 replicas.",
+            "Scaled production shop-prod/checkout from 3 to 9 replicas per RB-CHK-07; all 9 pods are Ready.",
+            "Production checkout is now at 9 replicas in shop-prod, as required by the incident runbook."
+          ],
+          "rejected": [
+            "9",
+            "Staging was scaled to 9; production was left unchanged.",
+            "Production checkout was not scaled to 9 replicas.",
+            "Scaled production checkout to 9 and changed its image."
+          ],
+          "format": "plain",
+          "bound": null
         }
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "POST",
-      "path": "/incidents/Q7CHKAP15PCT1D/notes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
-          {
-            "id": "Q7CHKAP15PCT1D",
-            "status": "resolved"
-          }
-        ]
-      },
-      "body_contains": null,
-      "min_count": 1
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "forbidden_calls": [
+  "relations": [
     {
-      "service": "kubernetes",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "kubernetes",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "/namespaces/shop-staging/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "kubernetes",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": "/namespaces/shop-staging/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
-          {
-            "id": "Q8CHKSTG5PCT2F"
-          }
-        ]
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": "Q7CHKAP15PCT1D/",
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": []
     },
     {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
-          {
-            "id": "Q9CHKWEB5XX3VK"
-          }
-        ]
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "source_field": "/user/id",
+      "target": {
+        "collection": "/services/pagerduty/account",
+        "matching": {},
+        "key_prefix": "account",
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/user_id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/kubernetes/deployments.apps",
+          "matching": {
+            "metadata": {
+              "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+            }
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/spec/replicas",
+        "equals": 9
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/pagerduty/incidents",
+          "matching": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/status",
+        "equals": "resolved"
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    },
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/kubernetes/deployments.apps",
+          "matching": {
+            "metadata": {
+              "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+            }
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/status/readyReplicas",
+        "equals": 9
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/pagerduty/incidents",
+          "matching": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/status",
+        "equals": "resolved"
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    },
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/kubernetes/deployments.apps",
+          "matching": {
+            "metadata": {
+              "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+            }
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/spec/replicas",
+        "equals": 9
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/pagerduty/notes",
+          "matching": {},
+          "key_prefix": "Q7CHKAP15PCT1D/",
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/content",
+        "nonempty_text": true
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    },
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/kubernetes/deployments.apps",
+          "matching": {
+            "metadata": {
+              "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+            }
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/status/readyReplicas",
+        "equals": 9
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/pagerduty/notes",
+          "matching": {},
+          "key_prefix": "Q7CHKAP15PCT1D/",
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/content",
+        "nonempty_text": true
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    }
+  ],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/apiVersion",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/kind",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/replicas",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/generation",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/managedFields",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/apiVersion",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/kind",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/spec/replicas",
+        "kind": "update",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/metadata/resourceVersion",
+        "kind": "update",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/metadata/generation",
+        "kind": "update",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/status",
+        "kind": "update",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/pods/*",
+        "kind": "create",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "checkout-tscdrh8t48",
+                "uid": "77a7ad33-adb2-4b6e-a56f-6c5b2e50cb7f"
+              }
+            ]
+          }
+        },
+        "max_count": 6,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/resolved_at",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/assignments",
+        "kind": "update",
+        "matching": {
+          "assignments": [],
+          "status": "resolved"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/pending_actions",
+        "kind": "update",
+        "matching": {
+          "pending_actions": [],
+          "status": "resolved"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/last_status_change_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/last_status_change_by",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/last_status_change_by/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/acknowledgements",
+        "kind": "append",
+        "matching": {
+          "acknowledger": {
+            "id": "PLWEBR5",
+            "type": "user_reference"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": "/acknowledger/id",
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q7CHKAP15PCT1D/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT",
+            "POST"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D(/notes)?)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/alerts/*/status",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "initial_matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          }
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/alerts/*/resolved_at",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "initial_matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          }
+        },
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/notes/*",
+        "kind": "create",
+        "matching": {
+          "user": {
+            "type": "user_reference"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/user/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q7CHKAP15PCT1D/notes$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "service": {
+            "id": "PSVCHKA"
+          },
+          "type": "resolve_log_entry"
+        },
+        "references": [
+          {
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "service": {
+            "id": "PSVCHKA"
+          },
+          "type": "acknowledge_log_entry"
+        },
+        "references": [
+          {
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q7CHKAP15PCT1D)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q7CHKAP15PCT1D"
+          },
+          "service": {
+            "id": "PSVCHKA"
+          },
+          "type": "annotate_log_entry"
+        },
+        "references": [
+          {
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q7CHKAP15PCT1D/notes$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

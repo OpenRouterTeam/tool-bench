@@ -8,32 +8,36 @@ tags = ["write", "multi-service", "aws", "jira", "disambiguation"]
 timeout_sec = 1200
 
 # OPS-34 (In Progress, assigned to the caller jordan.lee) asks to stop, not terminate, the prod
-# reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tag it DecommissionTicket=OPS-34. The
-# staging twin i-0e4a6c8b2d1f35790 keeps running. OPS-33 (Done) is the earlier scheduler
-# decommission; its instance keeps its OPS-33 tag.
-[[expect.state]]
-pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/name"
-equals = "stopped"
+# reporting-worker-legacy (i-07b9d1f3a5c8e2046), keep its disk and tag it DecommissionTicket=OPS-34.
+# The staging twin i-0e4a6c8b2d1f35790 keeps running. OPS-33 (Done) is the earlier scheduler
+# decommission; its stopped instance keeps its OPS-33 tag. The user then wants a truthful comment on
+# OPS-34 and the ticket closed as Done, so both are causally after the stop and the tag.
 
-[[expect.state]]
-pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/tagSet"
-contains = { key = "DecommissionTicket", value = "OPS-34" }
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/aws/instances/i-0e4a6c8b2d1f35790/instanceState/name"
-equals = "running"
+[[expect.records]]
+selector = { collection = "/services/aws/instances", matching = { instanceId = "i-07b9d1f3a5c8e2046" } }
+equals = 1
+fields = { "/instanceState/name" = "stopped", "/instanceState/code" = 80, "/rootDeviceType" = "ebs" }
 
-[[expect.state]]
-pointer = "/services/aws/instances/i-0e4a6c8b2d1f35790/tagSet"
-equals = [{ key = "Name", value = "reporting-worker-legacy" }, { key = "Environment", value = "staging" }, { key = "Team", value = "data-eng" }]
+[[expect.records]]
+selector = { collection = "/services/aws/instances/i-07b9d1f3a5c8e2046/tagSet", identity_field = "/key", matching = { key = "DecommissionTicket" } }
+equals = 1
+fields = { "/value" = "OPS-34" }
 
-[[expect.state]]
-pointer = "/services/aws/instances/i-0a3f5c7e9b1d24680/instanceState/name"
-equals = "running"
+[[expect.records]]
+selector = { collection = "/services/aws/volumes", matching = { attachmentSet = [{ instanceId = "i-07b9d1f3a5c8e2046" }] } }
+min_count = 1
+fields = { "/status" = "in-use" }
 
-[[expect.state]]
-pointer = "/services/aws/instances/i-0c8e2a4f6b1d39057/tagSet"
-contains = { key = "DecommissionTicket", value = "OPS-33" }
+[[expect.relations]]
+source = { collection = "/services/aws/instances/i-07b9d1f3a5c8e2046/blockDeviceMapping", identity_field = "/deviceName", key_prefix = "/dev/" }
+source_field = "/ebs/volumeId"
+target = { collection = "/services/aws/volumes", matching = { attachmentSet = [{ instanceId = "i-07b9d1f3a5c8e2046" }] } }
+target_field = "/volumeId"
+kind = "foreign_key"
 
 [[expect.state]]
 pointer = "/services/jira/issues/OPS-34/fields/status"
@@ -44,40 +48,101 @@ pointer = "/services/jira/issues/OPS-34/fields/resolution"
 equals = "Done"
 
 [[expect.state]]
-pointer = "/services/jira/comments"
-any = { issue = "OPS-34", author = "jordan.lee" }
+pointer = "/services/jira/issues/OPS-34/fields/resolutiondate"
+exists = true
+is_null = false
 
-[[expect.state]]
-pointer = "/services/jira/issues/OPS-33/fields/status"
-equals = "Done"
+[[expect.records]]
+selector = { collection = "/services/jira/comments", created = true }
+equals = 1
+fields = { "/issue" = "OPS-34", "/author" = "jordan.lee" }
 
-[[expect.required_calls]]
-service = "aws"
-method = "POST"
-body_contains = "Action=StopInstances"
+[expect.records.reviewed_text."/body"]
+requirement = "Tell the OPS-34 ticket what was done: the production reporting-worker-legacy instance was stopped, not terminated, and tagged DecommissionTicket=OPS-34. The ticket association supplies context. The instance ID, retained disk and untouched staging copy are optional but must be true when stated. Termination, a staging stop or an omitted stop or tag claim is not acceptable. Unlisted nonempty wording requires adjudication."
+accepted = [
+  "Stopped (not terminated) the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34. Its EBS volume is kept. The staging copy (i-0e4a6c8b2d1f35790) is still running.",
+  "Stopped (not terminated) the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34. Its EBS volume is kept.",
+  "Stopped (not terminated) the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34. The staging copy (i-0e4a6c8b2d1f35790) is still running.",
+  "Stopped (not terminated) the production instance reporting-worker-legacy and tagged it DecommissionTicket=OPS-34.",
+  "Stopped production reporting-worker-legacy (i-07b9d1f3a5c8e2046) without terminating it and tagged it DecommissionTicket=OPS-34.",
+  "Stopped the prod reporting-worker-legacy instance (kept, not terminated) and tagged it DecommissionTicket=OPS-34. Staging was left running.",
+]
+rejected = [
+  "Terminated the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34.",
+  "Stopped the staging instance reporting-worker-legacy (i-0e4a6c8b2d1f35790) and tagged it DecommissionTicket=OPS-34.",
+]
 
-[[expect.required_calls]]
-service = "aws"
-method = "POST"
-body_contains = "Action=CreateTags"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/aws/instances", matching = { instanceId = "i-07b9d1f3a5c8e2046" } }, field = "/instanceState/name", equals = "stopped" }
+action = { selector = { collection = "/services/jira/comments", created = true }, field = "/body", nonempty_text = true }
 
-[[expect.required_calls]]
-service = "jira"
-method = "POST"
-path = "/rest/api/2/issue/OPS-34/transitions"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/aws/instances", matching = { instanceId = "i-07b9d1f3a5c8e2046" } }, field = "/tagSet", has_value = { key = "DecommissionTicket", value = "OPS-34" } }
+action = { selector = { collection = "/services/jira/comments", created = true }, field = "/body", nonempty_text = true }
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/aws/instances", matching = { instanceId = "i-07b9d1f3a5c8e2046" } }, field = "/instanceState/name", equals = "stopped" }
+action = { selector = { collection = "/services/jira/issues", matching = { key = "OPS-34" } }, field = "/fields/status", equals = "Done" }
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/aws/instances", matching = { instanceId = "i-07b9d1f3a5c8e2046" } }, field = "/tagSet", has_value = { key = "DecommissionTicket", value = "OPS-34" } }
+action = { selector = { collection = "/services/jira/issues", matching = { key = "OPS-34" } }, field = "/fields/status", equals = "Done" }
 
 [[expect.forbidden_calls]]
 service = "aws"
 body_contains = "Action=TerminateInstances"
 
 [[expect.forbidden_calls]]
-service = "aws"
-body_contains = "i-0e4a6c8b2d1f35790"
-method = "POST"
-
-[[expect.forbidden_calls]]
 service = "jira"
 method = "DELETE"
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/name"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/code"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/reason"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/publicIpAddress"
+kind = "remove_field"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/ipAddress"
+kind = "remove_field"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/tagSet"
+kind = "append"
+identity_field = "/key"
+matching = { key = "DecommissionTicket", value = "OPS-34" }
+
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/OPS-34/fields/status"
+
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/OPS-34/fields/resolution"
+
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/OPS-34/fields/resolutiondate"
+
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/OPS-34/fields/updated"
+
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/OPS-34/changelog"
+
+[[expect.preservation.allow]]
+pointer = "/services/jira/comments/*"
+kind = "create"
+matching = { issue = "OPS-34" }
 
 [[solution.call]]
 endpoint = "atlassian"

@@ -19,8 +19,125 @@ pub trait Source {
 /// Write stage found at the end of a pipeline.
 #[derive(Debug, Clone, PartialEq)]
 pub enum WriteStage {
-    Out { db: Option<String>, coll: String },
-    Merge { db: Option<String>, coll: String },
+    Out {
+        db: Option<String>,
+        coll: String,
+    },
+    Merge {
+        db: Option<String>,
+        coll: String,
+        when_matched: MergeMatched,
+        when_not_matched: MergeNotMatched,
+    },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MergeMatched {
+    Merge,
+    Replace,
+    KeepExisting,
+    Fail,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MergeNotMatched {
+    Insert,
+    Discard,
+    Fail,
+}
+
+fn write_stage(name: &str, spec: &Value) -> QResult<WriteStage> {
+    let target = if name == "$merge" && spec.is_object() {
+        spec.get("into").ok_or("$merge requires into")?
+    } else {
+        spec
+    };
+    let (database, collection) = match target {
+        Value::String(collection) => (None, collection.clone()),
+        Value::Object(target) => {
+            if target.keys().any(|field| field != "db" && field != "coll") {
+                return Err(format!("{name} target options are unsupported"));
+            }
+            let database = target
+                .get("db")
+                .map(|database| {
+                    database
+                        .as_str()
+                        .filter(|database| !database.is_empty())
+                        .map(str::to_owned)
+                        .ok_or("write target db must be a nonempty string")
+                })
+                .transpose()?;
+            let collection = target
+                .get("coll")
+                .and_then(Value::as_str)
+                .ok_or("write target coll must be a string")?
+                .to_owned();
+            (database, collection)
+        }
+        _ => return Err(format!("{name} requires a collection name")),
+    };
+    if collection.is_empty() {
+        return Err(format!("{name} collection must not be empty"));
+    }
+    if name == "$out" {
+        return Ok(WriteStage::Out {
+            db: database,
+            coll: collection,
+        });
+    }
+    if let Some(options) = spec.as_object()
+        && options.keys().any(|field| {
+            !matches!(
+                field.as_str(),
+                "into" | "on" | "whenMatched" | "whenNotMatched"
+            )
+        })
+    {
+        return Err("$merge options are unsupported by this replica".into());
+    }
+    if let Some(on) = spec.get("on")
+        && on != "_id"
+        && on != &json!(["_id"])
+    {
+        return Err("$merge on fields other than _id are unsupported by this replica".into());
+    }
+    let when_matched = match spec.get("whenMatched") {
+        None => MergeMatched::Merge,
+        Some(Value::String(action)) => match action.as_str() {
+            "merge" => MergeMatched::Merge,
+            "replace" => MergeMatched::Replace,
+            "keepExisting" => MergeMatched::KeepExisting,
+            "fail" => MergeMatched::Fail,
+            _ => return Err("invalid $merge whenMatched action".into()),
+        },
+        _ => return Err("$merge whenMatched pipelines are unsupported by this replica".into()),
+    };
+    let when_not_matched = match spec.get("whenNotMatched") {
+        None => MergeNotMatched::Insert,
+        Some(Value::String(action)) => match action.as_str() {
+            "insert" => MergeNotMatched::Insert,
+            "discard" => MergeNotMatched::Discard,
+            "fail" => MergeNotMatched::Fail,
+            _ => return Err("invalid $merge whenNotMatched action".into()),
+        },
+        _ => return Err("$merge whenNotMatched must be an action string".into()),
+    };
+    if matches!(
+        when_matched,
+        MergeMatched::KeepExisting | MergeMatched::Fail
+    ) && when_not_matched != MergeNotMatched::Insert
+    {
+        return Err(
+            "unsupported combination of $merge whenMatched and whenNotMatched actions".into(),
+        );
+    }
+    Ok(WriteStage::Merge {
+        db: database,
+        coll: collection,
+        when_matched,
+        when_not_matched,
+    })
 }
 
 pub type Vars = BTreeMap<String, Value>;
@@ -1501,33 +1618,7 @@ pub fn run(
                         "{name} can only be the final stage in the pipeline"
                     ));
                 }
-                let (db, coll) = match spec {
-                    Value::String(c) => (None, c.clone()),
-                    Value::Object(m) => {
-                        let target = if name == "$merge" {
-                            m.get("into").unwrap_or(spec)
-                        } else {
-                            spec
-                        };
-                        match target {
-                            Value::String(c) => (None, c.clone()),
-                            t => (
-                                t.get("db").and_then(Value::as_str).map(str::to_owned),
-                                t.get("coll")
-                                    .and_then(Value::as_str)
-                                    .unwrap_or("")
-                                    .to_owned(),
-                            ),
-                        }
-                    }
-                    _ => return Err(format!("{name} requires a collection name")),
-                };
-                let stage = if name == "$out" {
-                    WriteStage::Out { db, coll }
-                } else {
-                    WriteStage::Merge { db, coll }
-                };
-                return Ok((docs, Some(stage)));
+                return Ok((docs, Some(write_stage(name, spec)?)));
             }
             "$search" | "$searchMeta" | "$vectorSearch" => {
                 return Err("Atlas Search is not supported in this cluster.".to_owned());

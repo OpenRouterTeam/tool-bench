@@ -1,85 +1,420 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/replicas",
-      "equals": 8,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/template/spec/containers/0/image",
-      "equals": "ghcr.io/octo-corp/checkout:4.18.2",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/kubernetes/deployments.apps/shop-staging~1checkout/spec/replicas",
+      "selector": {
+        "collection": "/services/kubernetes/deployments.apps",
+        "matching": {
+          "metadata": {
+            "name": "checkout",
+            "namespace": "shop-prod",
+            "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
       "equals": 1,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout-worker/spec/replicas",
-      "equals": 2,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/spec/replicas": 8
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "kubernetes",
-      "method": null,
-      "path": null,
-      "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$",
-      "query_contains": null,
-      "body": {
-        "spec": {
-          "replicas": 8
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/apiVersion",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
         }
       },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "kubernetes",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "kubernetes",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "/namespaces/shop-staging/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "kubernetes",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": "/namespaces/shop-staging/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/kind",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "Deployment"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/apiVersion",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/kind",
+        "kind": "update",
+        "matching": {
+          "apiVersion": "apps/v1",
+          "kind": "ReplicaSet",
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/spec/replicas",
+        "kind": "update",
+        "matching": {
+          "spec": {
+            "replicas": 8
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/generation",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/metadata/managedFields",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/deployments.apps/shop-prod~1checkout/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/spec/replicas",
+        "kind": "update",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/metadata/resourceVersion",
+        "kind": "update",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/metadata/generation",
+        "kind": "update",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/replicasets.apps/*/status",
+        "kind": "update",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "Deployment",
+                "name": "checkout",
+                "uid": "67feaa03-727f-434e-ad4f-1a87c645e3ba"
+              }
+            ]
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      },
+      {
+        "pointer": "/services/kubernetes/pods/*",
+        "kind": "create",
+        "matching": {
+          "metadata": {
+            "namespace": "shop-prod",
+            "ownerReferences": [
+              {
+                "apiVersion": "apps/v1",
+                "controller": true,
+                "kind": "ReplicaSet",
+                "name": "checkout-tscdrh8t48",
+                "uid": "77a7ad33-adb2-4b6e-a56f-6c5b2e50cb7f"
+              }
+            ]
+          }
+        },
+        "max_count": 8,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "kubernetes",
+          "methods": [
+            "PATCH",
+            "PUT"
+          ],
+          "path_regex": "^/apis/apps/v1/namespaces/shop-prod/deployments/checkout(/scale)?$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

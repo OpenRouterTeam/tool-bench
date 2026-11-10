@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "runner_protocol": "tool-bench-runner-v3",
+  "verification_protocol": "offline-world-evidence-v5",
+  "harbor_version": "0.23.0",
+  "adapter_sha256": "8bd9deea923c65a80821cda290e2f81e0f52adc2ef43f6790b96f874bd2a65e6"
+}

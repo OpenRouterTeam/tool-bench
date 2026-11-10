@@ -9,6 +9,10 @@ timeout_sec = 900
 
 # Right profile: priya-raman-tessellate. Distractors: a former Tessellate Bio director (now
 # CTO elsewhere), a data scientist at Tessellate Analytics, and a Boston cardiologist.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["linkedin.com/in/priya-raman-tessellate"]
 

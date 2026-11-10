@@ -7,77 +7,117 @@ services = ["shopify"]
 tags = ["single-service", "write", "shopify"]
 timeout_sec = 900
 
-# Harbor Canvas Tote (8201): Navy to 42.00, Sand and Olive untouched, product live.
-[[expect.state]]
-pointer = "/services/shopify/products/8201/variants/0/price"
-equals = "42.00"
-
-[[expect.state]]
-pointer = "/services/shopify/products/8201/variants/0/title"
-equals = "Navy"
-
-[[expect.state]]
-pointer = "/services/shopify/products/8201/variants/1/price"
-equals = "48.00"
-
-[[expect.state]]
-pointer = "/services/shopify/products/8201/variants/2/price"
-equals = "48.00"
+[expect]
+version = 2
+audit_history = true
 
 [[expect.state]]
 pointer = "/services/shopify/products/8201/status"
 equals = "ACTIVE"
 
-# Look-alikes stay as they were.
 [[expect.state]]
-pointer = "/services/shopify/products/8202/variants/0/price"
-equals = "32.00"
+pointer = "/services/shopify/products/8201/onlineStoreVisible"
+equals = true
 
-[[expect.state]]
-pointer = "/services/shopify/products/8203/status"
-equals = "DRAFT"
+[[expect.records]]
+selector = { collection = "/services/shopify/products/8201/variants", identity_field = "/id", matching = { selectedOptions = [{ name = "Color", value = "Navy" }] } }
+equals = 1
+fields = { "/title" = "Navy", "/price" = "42.00" }
 
-[[expect.state]]
-pointer = "/services/shopify/products/8203/variants/0/price"
-equals = "89.00"
+[[expect.records]]
+selector = { collection = "/services/shopify/publications", matching = { isOnlineStore = true } }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/shopify/products/8204/status"
-equals = "ARCHIVED"
+[[expect.relations]]
+source = { collection = "/services/shopify/publications", matching = { isOnlineStore = true } }
+source_field = "/id"
+target = { collection = "/services/shopify/resource_publications", matching = { productId = 8201, isPublished = true } }
+target_field = "/publicationId"
+kind = "foreign_key"
 
-[[expect.required_calls]]
-service = "shopify"
-method = "POST"
-body_contains = "productVariantsBulkUpdate"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/shopify/products/8201/variants", identity_field = "/id", matching = { selectedOptions = [{ name = "Color", value = "Navy" }] } }, field = "/price", equals = "42.00" }
+action = { selector = { collection = "/services/shopify/products", matching = { id = 8201 } }, field = "/onlineStoreVisible", equals = true }
 
-[[expect.required_calls]]
-service = "shopify"
-method = "POST"
-body_contains = "productUpdate("
+[[expect.preservation.allow]]
+pointer = "/services/shopify/products/8201/variants/*/price"
+matching = { onlineStoreVisible = false }
+element_matching = { selectedOptions = [{ name = "Color", value = "Navy" }] }
 
-[[expect.forbidden_calls]]
-service = "shopify"
-body_contains = "productDelete"
+[[expect.preservation.allow]]
+pointer = "/services/shopify/products/8201/variants/*/price"
+matching = { onlineStoreVisible = true, variants = [{ selectedOptions = [{ name = "Color", value = "Navy" }], price = "42.00" }] }
+element_matching = { selectedOptions = [{ name = "Color", value = "Navy" }] }
 
-[[expect.forbidden_calls]]
-service = "shopify"
-body_contains = "productVariantsBulkDelete"
+[[expect.preservation.allow]]
+pointer = "/services/shopify/products/8201/variants/*/updatedAt"
+element_matching = { selectedOptions = [{ name = "Color", value = "Navy" }] }
 
-[[expect.forbidden_calls]]
-service = "shopify"
-body_contains = "productOptionsDelete"
+[[expect.preservation.allow]]
+pointer = "/services/shopify/products/8201/status"
+
+[[expect.preservation.allow]]
+pointer = "/services/shopify/products/8201/publishedAt"
+
+[[expect.preservation.allow]]
+pointer = "/services/shopify/products/8201/onlineStoreVisible"
+
+[[expect.preservation.allow]]
+pointer = "/services/shopify/products/8201/updatedAt"
+
+[[expect.preservation.allow]]
+pointer = "/services/shopify/resource_publications/*"
+kind = "create"
+matching = { productId = 8201, isPublished = true }
 
 [[solution.call]]
 endpoint = "shopify"
 tool = "get-products"
 arguments = { searchTitle = "Harbor Canvas Tote" }
 
+[[solution.call.capture]]
+name = "tote_id"
+pointer = "/content/0/text"
+json_pointer = "/products"
+select = { matching = { title = "Harbor Canvas Tote" }, pointer = "/id" }
+
+[[solution.call]]
+endpoint = "shopify"
+tool = "get-product-by-id"
+template = true
+arguments = { productId = "${tote_id}" }
+
+[[solution.call.capture]]
+name = "navy_id"
+pointer = "/content/0/text"
+json_pointer = "/product/variants"
+select = { matching = { title = "Navy" }, pointer = "/id" }
+
+[[solution.call]]
+endpoint = "shopify"
+tool = "get-publications"
+arguments = { first = 100 }
+
+[[solution.call.capture]]
+name = "online_publication"
+pointer = "/content/0/text"
+json_pointer = "/publications/nodes"
+select = { matching = { name = "Online Store" }, pointer = "/id" }
+
 [[solution.call]]
 endpoint = "shopify"
 tool = "manage-product-variants"
-arguments = { productId = "gid://shopify/Product/8201", variants = [{ id = "gid://shopify/ProductVariant/4201", price = "42.00" }] }
+template = true
+arguments = { productId = "${tote_id}", variants = [{ id = "${navy_id}", price = "42.00" }] }
 
 [[solution.call]]
 endpoint = "shopify"
 tool = "update-product"
-arguments = { id = "gid://shopify/Product/8201", status = "ACTIVE" }
+template = true
+arguments = { id = "${tote_id}", status = "ACTIVE" }
+
+[[solution.call]]
+endpoint = "shopify"
+tool = "publish-product"
+template = true
+arguments = { id = "${tote_id}", publicationIds = ["${online_publication}"] }

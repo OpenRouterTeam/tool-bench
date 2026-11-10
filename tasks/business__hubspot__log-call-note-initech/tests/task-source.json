@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/hubspot/log-call-note-initech",
+  "scenario_sha256": "sha256:114b2c4f22c70d7de2d9de9f0c94f615f1e6b022a8a77826b02773cf9820a738",
+  "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
+  "contract_sha256": "sha256:b91843e5f3181238fbdaf3e396b449d8c8dab8f364472619a1be25f304cd9e82"
+}

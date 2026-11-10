@@ -7,34 +7,27 @@ services = ["notion"]
 tags = ["write", "single-service", "notion"]
 timeout_sec = 900
 
-[[expect.state]]
-pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Status/status/name"
-equals = "Delayed"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Launch date/date/start"
-equals = "2026-11-10"
+[[expect.records]]
+selector = { collection = "/services/notion/pages", matching = { id = "afa8e804-d2ac-4ee2-80e2-e18ed4c05865" } }
+equals = 1
+fields = { "/properties/Status/status" = { id = "d280", name = "Delayed", color = "red" }, "/properties/Launch date/date/start" = "2026-11-10", "/archived" = false, "/in_trash" = false }
+null_fields = ["/properties/Launch date/date/end", "/properties/Launch date/date/time_zone"]
 
-[[expect.state]]
-pointer = "/services/notion/pages/e63c9184-7acf-45e0-881d-666e2972532e/properties/Status/status/name"
-equals = "Done"
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Status/status"
 
-[[expect.state]]
-pointer = "/services/notion/pages/e63c9184-7acf-45e0-881d-666e2972532e/properties/Launch date/date/start"
-equals = "2026-10-06"
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Launch date/date"
 
-[[expect.state]]
-pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/in_trash"
-equals = false
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/last_edited_time"
 
-[[expect.required_calls]]
-service = "notion"
-method = "PATCH"
-path_regex = "^/v1/pages/afa8e804-?d2ac-?4ee2-?80e2-?e18ed4c05865$"
-
-[[expect.forbidden_calls]]
-service = "notion"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/last_edited_by"
 
 [[solution.call]]
 endpoint = "notion"

@@ -1,76 +1,170 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/datadog/hosts/checkout-api-prod-1b/is_muted",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/datadog/hosts",
+        "matching": {
+          "name": "checkout-api-prod-1b"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/is_muted": true
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/mute_timeout": 1793383200
+      }
     },
     {
-      "pointer": "/services/datadog/hosts/checkout-api-prod-1b/mute_timeout",
-      "equals": 1793383200,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/datadog/host_mutes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/hostname": "checkout-api-prod-1b"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/end": 1793383200
+      },
+      "timestamp_fields": {
+        "/muted_at": "2026-10-30T14:30:00Z"
+      }
     },
     {
-      "pointer": "/services/datadog/host_mutes/checkout-api-prod-1b/message",
-      "equals": null,
-      "exists": null,
-      "contains": "INC-2291",
-      "any": null,
-      "key_prefix": null
-    },
+      "selector": {
+        "collection": "/services/datadog/host_mutes",
+        "matching": {},
+        "field_patterns": {
+          "/message": "(^|[^[:alnum:]_])(?i-u:INC-2291)([^[:alnum:]_]|$)"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    }
+  ],
+  "relations": [
     {
-      "pointer": "/services/datadog/hosts/checkout-api-prod-1a/is_muted",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
+      "source": {
+        "collection": "/services/datadog/host_mutes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/hostname",
+      "target": {
+        "collection": "/services/datadog/hosts",
+        "matching": {
+          "name": "checkout-api-prod-1b"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/name",
+      "kind": "foreign_key",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "information": [
     {
-      "pointer": "/services/datadog/hosts/checkout-api-prod-1c/is_muted",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/hosts/checkout-api-staging-1b/is_muted",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/hosts/checkout-worker-prod-1b/is_muted",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/hosts/payments-api-prod-1a/is_muted",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/datadog/hosts/payments-api-prod-1a/mute_timeout",
-      "equals": 1793379600,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "prerequisite": {
+        "service": "datadog",
+        "method": "POST",
+        "path": "/api/v2/logs/events/search",
+        "path_regex": null,
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      },
+      "response_field": "/data",
+      "source": {
+        "collection": "/services/datadog/logs",
+        "matching": {
+          "attributes": {
+            "attributes": {
+              "env": "prod"
+            },
+            "host": "checkout-api-prod-1b",
+            "service": "checkout-api",
+            "status": "error"
+          },
+          "type": "log"
+        },
+        "field_patterns": {
+          "/attributes/message": "connection reset by peer"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "window": {
+        "field": "/attributes/timestamp",
+        "start": "2026-10-30T13:00:00Z",
+        "end": "2026-10-30T14:30:00Z"
+      },
+      "action": {
+        "service": "datadog",
+        "method": "POST",
+        "path": "/api/v1/host/checkout-api-prod-1b/mute",
+        "path_regex": null,
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      }
     }
   ],
   "required_calls": [
@@ -82,7 +176,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -94,7 +190,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "datadog",
@@ -104,8 +202,91 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/datadog/hosts/checkout-api-prod-1b/is_muted",
+        "kind": "update",
+        "matching": {
+          "is_muted": true,
+          "name": "checkout-api-prod-1b"
+        },
+        "numeric_fields": {
+          "/mute_timeout": 1793383200
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "datadog",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v1/host/checkout-api-prod-1b/mute$"
+        }
+      },
+      {
+        "pointer": "/services/datadog/hosts/checkout-api-prod-1b/mute_timeout",
+        "kind": "update",
+        "matching": {
+          "is_muted": true,
+          "name": "checkout-api-prod-1b"
+        },
+        "numeric_fields": {
+          "/mute_timeout": 1793383200
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "datadog",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v1/host/checkout-api-prod-1b/mute$"
+        }
+      },
+      {
+        "pointer": "/services/datadog/host_mutes/checkout-api-prod-1b",
+        "kind": "create",
+        "matching": {
+          "hostname": "checkout-api-prod-1b"
+        },
+        "field_patterns": {
+          "/message": "(^|[^[:alnum:]_])(?i-u:INC-2291)([^[:alnum:]_]|$)"
+        },
+        "numeric_fields": {
+          "/end": 1793383200
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "datadog",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v1/host/checkout-api-prod-1b/mute$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

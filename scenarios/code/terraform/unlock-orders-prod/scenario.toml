@@ -7,52 +7,63 @@ services = ["terraform"]
 tags = ["single-service", "write", "terraform", "disambiguation"]
 timeout_sec = 900
 
-# Target: acme-platform/orders-api-prod (Commerce project), locked by a crashed run.
-# Look-alikes: orders-api-prod-legacy (Legacy project, locked on purpose by a user) and
-# acme-sandbox/orders-api-prod (another org, unlocked).
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-gOHPQz7D1ZRgqBJq/locked"
-equals = false
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-gOHPQz7D1ZRgqBJq/latest-run-summary/plan-only"
-equals = true
+[[expect.records]]
+selector = { collection = "/services/terraform/workspaces", matching = { id = "ws-gOHPQz7D1ZRgqBJq", organization = "acme-platform", project = "prj-RGb4nwJ3c5kaUkvv" } }
+equals = 1
+fields = { "/locked" = false }
+null_fields = ["/locked-by"]
 
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-QMfGO0wb8mhyWgrq/locked"
-equals = true
+[[expect.records]]
+selector = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }
+equals = 1
+fields = { "/plan-only" = true, "/is-destroy" = false, "/refresh-only" = false, "/auto-apply" = false, "/status" = "planned_and_finished", "/target-addrs" = [], "/replace-addrs" = [] }
 
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-QMfGO0wb8mhyWgrq/locked-by/type"
-equals = "users"
+[[expect.records]]
+selector = { collection = "/services/terraform/plans", created = true, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } } }] }
+equals = 1
+fields = { "/status" = "finished" }
 
-[[expect.required_calls]]
-service = "terraform"
-method = "POST"
-path = "/api/v2/runs"
-body_contains = "ws-gOHPQz7D1ZRgqBJq"
+[[expect.relations]]
+source = { collection = "/services/terraform/workspaces", matching = { id = "ws-gOHPQz7D1ZRgqBJq" } }
+source_field = "/latest-run"
+target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }
+target_field = "/id"
 
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path_regex = "^/api/v2/workspaces/ws-QMfGO0wb8mhyWgrq/"
+[[expect.relations]]
+source = { collection = "/services/terraform/workspaces", matching = { id = "ws-gOHPQz7D1ZRgqBJq" } }
+source_field = "/latest-run-summary/id"
+target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }
+target_field = "/id"
 
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path = "/api/v2/runs"
-body_contains = "ws-QMfGO0wb8mhyWgrq"
+[[expect.relations]]
+source = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }
+source_field = "/plan"
+target = { collection = "/services/terraform/plans", created = true, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } } }] }
+target_field = "/id"
 
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path = "/api/v2/runs"
-body_contains = "ws-i0F81Hk5tvGLpmR9"
+[[expect.relations]]
+kind = "bijection"
+source = { collection = "/services/terraform/run_inputs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }
+source_field = "/variable"
+target = { collection = "/services/terraform/vars", matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }
+target_field = "/id"
+fields = [{ source_field = "/key", target_field = "/key", kind = "equals" }, { source_field = "/category", target_field = "/category", kind = "equals" }, { source_field = "/hcl", target_field = "/hcl", kind = "equals" }, { source_field = "/sensitive", target_field = "/sensitive", kind = "equals" }]
 
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path_regex = "/actions/safe-delete$"
+[[expect.relations]]
+kind = "foreign_key"
+source = { collection = "/services/terraform/run_inputs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }
+source_field = "/run"
+target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }
+target_field = "/id"
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/terraform/workspaces", matching = { id = "ws-gOHPQz7D1ZRgqBJq" } }, field = "/locked", equals = false }
+action = { selector = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } }, field = "/plan-only", equals = true }
+require_transition = true
 
 [[expect.forbidden_calls]]
 service = "terraform"
@@ -62,6 +73,25 @@ method = "DELETE"
 service = "terraform"
 method = "POST"
 path_regex = "^/api/v2/runs/[^/]+/actions/apply$"
+
+[expect.preservation]
+allow = [
+  { pointer = "/services/terraform/workspaces/ws-gOHPQz7D1ZRgqBJq/locked", matching = { locked = false }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/(workspaces/ws-gOHPQz7D1ZRgqBJq/actions/force-unlock|runs/run-jCcDubzVP5ob0NM7/actions/(cancel|force-cancel))$" } },
+  { pointer = "/services/terraform/workspaces/ws-gOHPQz7D1ZRgqBJq/locked-by", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/(workspaces/ws-gOHPQz7D1ZRgqBJq/actions/force-unlock|runs/run-jCcDubzVP5ob0NM7/actions/(cancel|force-cancel))$" } },
+  { pointer = "/services/terraform/workspaces/ws-gOHPQz7D1ZRgqBJq/locked-reason", matching = { locked-reason = "" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/workspaces/ws-gOHPQz7D1ZRgqBJq/actions/force-unlock$" } },
+  { pointer = "/services/terraform/workspaces/ws-gOHPQz7D1ZRgqBJq/updated-at", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/(workspaces/ws-gOHPQz7D1ZRgqBJq/actions/force-unlock|runs)$" } },
+  { pointer = "/services/terraform/workspaces/ws-gOHPQz7D1ZRgqBJq/latest-run", references = [{ source_field = "/latest-run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/workspaces/ws-gOHPQz7D1ZRgqBJq/latest-run-summary", references = [{ source_field = "/latest-run-summary/id", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/runs/*", kind = "create", matching = { workspace = "ws-gOHPQz7D1ZRgqBJq", plan-only = true, is-destroy = false, refresh-only = false, auto-apply = false, status = "planned_and_finished", target-addrs = [], replace-addrs = [] }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/plans/*", kind = "create", matching = { status = "finished" }, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq", plan-only = true } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/applies/*", kind = "create", matching = { status = "unreachable" }, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq", plan-only = true } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/run_inputs/*", kind = "create", matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" }, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } } }, { source_field = "/variable", target_field = "/id", target = { collection = "/services/terraform/vars", matching = { workspace = "ws-gOHPQz7D1ZRgqBJq" } } }], max_count = 2, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/runs/run-jCcDubzVP5ob0NM7/status", field_patterns = { "/status" = "^(canceled|force_canceled)$" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-jCcDubzVP5ob0NM7/actions/(cancel|force-cancel)$" } },
+  { pointer = "/services/terraform/runs/run-jCcDubzVP5ob0NM7/cancel-comment", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-jCcDubzVP5ob0NM7/actions/(cancel|force-cancel)$" } },
+  { pointer = "/services/terraform/runs/run-jCcDubzVP5ob0NM7/canceled-at", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-jCcDubzVP5ob0NM7/actions/(cancel|force-cancel)$" } },
+  { pointer = "/services/terraform/runs/run-jCcDubzVP5ob0NM7/status-timestamps/canceled-at", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-jCcDubzVP5ob0NM7/actions/(cancel|force-cancel)$" } },
+  { pointer = "/services/terraform/applies/apply-UpEcrL68If1kHpYw/status", matching = { status = "unreachable" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-jCcDubzVP5ob0NM7/actions/(cancel|force-cancel)$" } },
+]
 
 [[solution.call]]
 endpoint = "terraform"
@@ -82,3 +112,10 @@ arguments = { workspace_id = "ws-gOHPQz7D1ZRgqBJq" }
 endpoint = "terraform"
 tool = "create_run"
 arguments = { terraform_org_name = "acme-platform", workspace_name = "orders-api-prod", run_type = "plan_only", message = "Verify orders-api-prod after clearing stuck lock" }
+capture = [{ name = "verification_run", pointer = "/content/0/text", json_pointer = "/data/id" }]
+
+[[solution.call]]
+endpoint = "terraform"
+tool = "get_run_details"
+template = true
+arguments = { run_id = "${verification_run}" }

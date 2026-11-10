@@ -13,6 +13,7 @@ pub struct ArgoError {
     pub status: StatusCode,
     pub code: u8,
     pub message: String,
+    pub capability_gap: Option<String>,
 }
 
 impl ArgoError {
@@ -21,6 +22,7 @@ impl ArgoError {
             status,
             code,
             message: message.into(),
+            capability_gap: None,
         }
     }
 
@@ -52,6 +54,16 @@ impl ArgoError {
     /// gRPC `Unimplemented` (12), which the gateway also uses for a wrong HTTP method.
     pub fn method_not_allowed() -> Self {
         Self::new(StatusCode::METHOD_NOT_ALLOWED, 12, "Method Not Allowed")
+    }
+
+    pub fn unsupported(message: impl Into<String>) -> Self {
+        let mut error = Self::new(
+            StatusCode::NOT_IMPLEMENTED,
+            12,
+            "This operation is unavailable for this Argo CD connection.",
+        );
+        error.capability_gap = Some(message.into());
+        error
     }
 
     /// gRPC `Unauthenticated` (16).

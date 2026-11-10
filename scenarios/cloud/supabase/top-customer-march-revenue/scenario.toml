@@ -11,6 +11,10 @@ timeout_sec = 900
 # Traps: Felix Wagner reaches 1,700 with his refunded order and 1,600 with the order placed
 # just after midnight on April 1; Ana Ruiz tops all-time revenue; Ben Okafor's large order is
 # still pending; staging holds a 9,999.99 load-test order.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Grace Kim", "grace.kim@example.kr"]
 regex = '1,?234\.50?'

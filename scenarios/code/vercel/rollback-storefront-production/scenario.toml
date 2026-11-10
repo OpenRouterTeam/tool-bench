@@ -7,39 +7,71 @@ services = ["vercel"]
 tags = ["write", "single-service", "vercel"]
 timeout_sec = 900
 
-# Production must serve c3a9f12 again (the build live before e07a3c9). Redeploying the failed
-# eslint build (2f6c8a1) fails again and leaves e07a3c9 serving.
-[[expect.state]]
-pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/meta/githubCommitSha"
-equals = "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/readyState"
-equals = "READY"
+[[expect.records]]
+selector = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX" } }
+min_count = 1
+fields = { "/target" = "production", "/readyState" = "READY", "/source" = "redeploy", "/gitSource/sha" = "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9", "/meta/originalDeploymentId" = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", "/meta/githubCommitSha" = "c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9" }
 
-[[expect.state]]
-pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production/alias"
-contains = "acme-shop.com"
+[[expect.relations]]
+kind = "foreign_key"
+source = { collection = "/services/vercel/aliases", matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX" }, field_patterns = { "/alias" = "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$" } }
+source_field = "/deploymentId"
+target = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", readyState = "READY", target = "production" }, references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true } } }] }
+target_field = "/id"
 
-[[expect.required_calls]]
-service = "vercel"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "vercel-create-deployment" }
+[[expect.records]]
+selector = { collection = "/services/vercel/aliases", matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX" }, field_patterns = { "/alias" = "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$" } }
+equals = 2
 
-[[expect.forbidden_calls]]
-service = "vercel"
-body = { name = "vercel-delete-project" }
+[[expect.preservation.allow]]
+pointer = "/services/vercel/deployments/*"
+kind = "create"
+matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", source = "redeploy", target = "production" }
+references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true } } }]
+count_scope = "per_commit"
 
-[[expect.forbidden_calls]]
-service = "vercel"
-body = { name = "vercel-remove-environment-variable" }
+[[expect.preservation.allow]]
+pointer = "/services/vercel/deployment_sources/*"
+kind = "create"
+matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true }
+count_scope = "per_commit"
 
-[[expect.forbidden_calls]]
-service = "vercel"
-body = { name = "vercel-create-environment-variables" }
+[[expect.preservation.allow]]
+pointer = "/services/vercel/aliases/*/deploymentId"
+initial_matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX" }
+field_patterns = { "/alias" = "^(acme-shop\\.com|storefront-acme-shop\\.vercel\\.app)$" }
+references = [{ source_field = "/deploymentId", target_field = "/id", target = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", readyState = "READY", target = "production" }, references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true } } }] } }]
+max_count = 2
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/targets/production"
+references = [{ source_field = "/targets/production/id", target_field = "/id", target = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_3dw2VoUa166qmaLV3P6dm828isAX", readyState = "READY", target = "production" }, references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", sourcePreserved = true } } }] } }]
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/latestDeployments"
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/updatedAt"
+
+[[solution.call]]
+endpoint = "vercel"
+tool = "vercel-find-project"
+arguments = { idOrName = "storefront" }
+capture = [{ name = "predecessor_id", pointer = "/content/1/text", json_pointer = "/lastAliasRequest/fromDeploymentId" }]
 
 [[solution.call]]
 endpoint = "vercel"
 tool = "vercel-create-deployment"
-arguments = { name = "storefront", deploymentId = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF", target = "production" }
+template = true
+arguments = { name = "storefront", deploymentId = "${predecessor_id}", target = "production" }
+capture = [{ name = "redeployment_id", pointer = "/content/1/text", json_pointer = "/id" }]
+
+[[solution.call]]
+endpoint = "vercel"
+tool = "vercel-get-deployment"
+template = true
+arguments = { idOrUrl = "${redeployment_id}" }

@@ -10,6 +10,10 @@ timeout_sec = 900
 # The final decision is a reply in the #infra evaluation thread. Distractors: an early
 # "leaning Datadog" note in #eng-leads, a Honeycomb rumour in #general, and quotes that
 # predate the decision.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Grafana Cloud"]
 regex = "(?i)(2026-11-15|nov(ember)?\\.?\\s+15(th)?)"

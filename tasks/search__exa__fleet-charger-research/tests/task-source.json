@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/exa/fleet-charger-research",
+  "scenario_sha256": "sha256:8f4f564d105174633aff245b429d8929c089bfbc6076b6fdc0e49f1a97ed307d",
+  "dataset_sha256": "sha256:d59c6daf19f9841510be2954222f0c7e89bf63cfc77ff13466faeac934c62248",
+  "contract_sha256": "sha256:c82bb78b849d612f8cd47f679843093580bef59342cc8b27c249fd2d4c0d65f0"
+}

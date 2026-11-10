@@ -945,6 +945,29 @@ pub fn event_state(event: &str) -> Option<&'static str> {
     }
 }
 
+pub(crate) fn validate_review(
+    svc: &ServiceState,
+    key: &str,
+    viewer: &str,
+    body: &str,
+    state: &str,
+) -> Result<(), String> {
+    let pull = get(svc, "pulls", key).cloned().unwrap_or_default();
+    let author = login_of(pull.get("user").unwrap_or(&Value::Null));
+    if author.eq_ignore_ascii_case(viewer) && (state == "APPROVED" || state == "CHANGES_REQUESTED")
+    {
+        return Err(if state == "APPROVED" {
+            "Can not approve your own pull request".into()
+        } else {
+            "Can not request changes on your own pull request".into()
+        });
+    }
+    if (state == "CHANGES_REQUESTED" || state == "COMMENTED") && body.trim().is_empty() {
+        return Err("Body can't be blank".into());
+    }
+    Ok(())
+}
+
 /// Creates a review; returns the review document. Shared with GraphQL.
 pub fn insert_review(
     svc: &mut ServiceState,
@@ -955,26 +978,14 @@ pub fn insert_review(
     commit_id: &str,
     now: &str,
 ) -> Result<Value, String> {
+    validate_review(svc, key, viewer, body, state)?;
     let (repo, number) = split_key(key);
-    let p = get(svc, "pulls", key).cloned().unwrap_or_default();
-    let author = login_of(p.get("user").unwrap_or(&Value::Null));
-    if author.eq_ignore_ascii_case(viewer) && (state == "APPROVED" || state == "CHANGES_REQUESTED")
-    {
-        return Err(if state == "APPROVED" {
-            "Can not approve your own pull request".into()
-        } else {
-            "Can not request changes on your own pull request".into()
-        });
-    }
     if state == "PENDING"
         && reviews_of(svc, key).iter().any(|r| {
             s(r, "state") == "PENDING" && login_of(r.get("user").unwrap_or(&Value::Null)) == viewer
         })
     {
         return Err("User can only have one pending review per pull request".into());
-    }
-    if (state == "CHANGES_REQUESTED" || state == "COMMENTED") && body.trim().is_empty() {
-        return Err("Body can't be blank".into());
     }
     let id = next_id(svc, "reviews", "id", 1);
     let doc = json!({
@@ -1113,13 +1124,16 @@ fn submit_review(ctx: &mut Ctx, key: &str, id: &str) -> Response {
     if let Some(t) = opt_s(&body, "body") {
         r["body"] = json!(t);
     }
+    let viewer = ctx.viewer();
+    if let Err(reason) = validate_review(ctx.svc, key, &viewer, s(&r, "body"), state) {
+        return unprocessable(&reason);
+    }
     r["state"] = json!(state);
     r["submitted_at"] = json!(ctx.now);
     ctx.svc
         .store
         .collection_mut("reviews")
         .insert(id, r.clone());
-    let viewer = ctx.viewer();
     let now = ctx.now.clone();
     after_submit(ctx.svc, key, &viewer, &now);
     ok(review_json(ctx, &r))

@@ -10,6 +10,10 @@ timeout_sec = 900
 # INV-20931 (PO-48213, $12,480.00, due 2026-11-20) is the October invoice. Distractors:
 # the paid September invoice INV-20544 (PO-47790, $9,150.00), Northwood Logistics'
 # INV-7781 (PO-48899, $3,200.00), and the superseded $11,900.00 draft figure.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["PO-48213"]
 regex = "12,?480"

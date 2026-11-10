@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/salesforce/open-pipeline-by-rep",
+  "scenario_sha256": "sha256:59df1dfcbc9a9d84453862e5b6df1b50595453e8f9c83542952dd302473d1062",
+  "dataset_sha256": "sha256:4b7968cdfbfbeec39680ad7658c41f766b35bffb983b342e05e69e0dcf1ab06b",
+  "contract_sha256": "sha256:23e2090bfae69f357268fdb502ce96676b0c303b657e9ef32572796f04f0f43a"
+}

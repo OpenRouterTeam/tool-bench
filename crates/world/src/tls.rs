@@ -10,7 +10,9 @@ use axum::{
     http::{HeaderValue, StatusCode, header::HOST},
     response::{IntoResponse, Response},
 };
-use mock_core::{http::json, serve::service_app, service::MockService, world::SharedWorld};
+use mock_core::{
+    http::json, serve::service_app_with_caller, service::MockService, world::SharedWorld,
+};
 use rcgen::{
     BasicConstraints, CertificateParams, DnType, ExtendedKeyUsagePurpose, IsCa, Issuer, KeyPair,
     KeyUsagePurpose,
@@ -72,9 +74,17 @@ pub fn all_hosts(services: &[Box<dyn MockService>]) -> Vec<&'static str> {
 /// Routes each request to the service that owns its `Host`, marking it as HTTPS.
 /// Unknown hosts get 421 Misdirected Request.
 pub fn host_router(world: SharedWorld, services: &[Box<dyn MockService>]) -> Router {
+    host_router_with_caller(world, services, None)
+}
+
+pub fn host_router_with_caller(
+    world: SharedWorld,
+    services: &[Box<dyn MockService>],
+    caller_host: Option<String>,
+) -> Router {
     let mut routes = BTreeMap::new();
     for service in services {
-        let app = service_app(world.clone(), service.as_ref());
+        let app = service_app_with_caller(world.clone(), service.as_ref(), caller_host.clone());
         for host in service.hosts() {
             routes.insert(host.to_ascii_lowercase(), app.clone());
         }
@@ -91,9 +101,20 @@ async fn dispatch(routes: &BTreeMap<String, Router>, mut request: Request) -> Re
     let Some(app) = routes.get(&host).cloned() else {
         return json(
             StatusCode::MISDIRECTED_REQUEST,
-            json_value!({ "message": "no mock service for this host", "host": host }),
+            json_value!({ "message": "421 Misdirected Request" }),
         );
     };
+    if !request.headers().contains_key(HOST)
+        && let Some(authority) = request.uri().authority()
+    {
+        let Ok(value) = HeaderValue::from_str(authority.as_str()) else {
+            return json(
+                StatusCode::BAD_REQUEST,
+                json_value!({"message":"400 Bad Request"}),
+            );
+        };
+        request.headers_mut().insert(HOST, value);
+    }
     request
         .headers_mut()
         .insert("x-forwarded-proto", HeaderValue::from_static("https"));

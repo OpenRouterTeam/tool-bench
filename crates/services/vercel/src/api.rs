@@ -7,6 +7,13 @@ use serde_json::{Map, Value, json};
 
 use crate::model::*;
 
+fn unsupported(world: &mut WorldState, reason: &str) -> ApiError {
+    let operation =
+        mock_core::events::current().expect("Vercel capability failures require operation context");
+    world.fail_operation(&operation, "unsupported_vercel_operation", reason);
+    api_error(StatusCode::NOT_IMPLEMENTED, "unsupported_operation", reason)
+}
+
 fn limit(query: &Query, default: usize, max: usize) -> Result<usize, ApiError> {
     match q(query, "limit") {
         None => Ok(default),
@@ -205,11 +212,32 @@ fn git_meta(
 /// `POST /v13/deployments` — new deployments and redeploys (`deploymentId`).
 pub fn create_deployment(world: &mut WorldState, query: &Query, body: &Value) -> ApiResult {
     let now = now_ms(world);
-    let s = svc(world);
-    let scope = scope(s, query)?;
     let Some(body) = body.as_object() else {
         return Err(bad_request("Invalid request: should be object."));
     };
+    if body.get("withLatestCommit") == Some(&json!(true))
+        || [
+            "files",
+            "functions",
+            "routes",
+            "projectSettings",
+            "ignoreCommand",
+            "monorepoManager",
+            "cleanUrls",
+            "trailingSlash",
+            "public",
+        ]
+        .iter()
+        .any(|field| body.contains_key(*field))
+        || body.contains_key("deploymentId") && body.contains_key("gitSource")
+    {
+        return Err(unsupported(
+            world,
+            "These deployment source or build overrides are not supported by this connector.",
+        ));
+    }
+    let s = svc(world);
+    let scope = scope(s, query)?;
     let target_in = body.get("target").and_then(Value::as_str);
     let target = match target_in {
         None | Some("production") => Some("production"),
@@ -243,6 +271,13 @@ pub fn create_deployment(world: &mut WorldState, query: &Query, body: &Value) ->
     }
     .ok_or_else(project_not_found)?;
     let project = doc(s, PROJECTS, &project_key).ok_or_else(project_not_found)?;
+    if let Some(reference) = project_ref
+        && find_project(s, reference, &scope).as_deref() != Some(project_key.as_str())
+    {
+        return Err(bad_request(
+            "The source deployment does not belong to the requested project.",
+        ));
+    }
     if let Some(team) = &scope
         && str_of(&project, "accountId") != Some(team.as_str())
     {
@@ -343,37 +378,18 @@ pub fn create_deployment(world: &mut WorldState, query: &Query, body: &Value) ->
 
     let mut alias: Vec<Value> = Vec::new();
     if failed.is_none() {
-        if target == Some("production") {
-            let prod_domains: Vec<String> = docs(s, DOMAINS)
-                .into_iter()
-                .map(|(_, d)| d)
-                .filter(|d| {
-                    str_of(d, "projectId") == Some(project_key.as_str())
-                        && d["redirect"].is_null()
-                        && d["gitBranch"].is_null()
-                        && d["customEnvironmentId"].is_null()
-                })
-                .filter_map(|d| str_of(&d, "name").map(str::to_owned))
-                .collect();
-            // Production domains move from the previous production deployment to this one.
-            let holders: Vec<String> = docs(s, DEPLOYMENTS)
-                .into_iter()
-                .filter(|(_, d)| str_of(d, "projectId") == Some(project_key.as_str()))
-                .map(|(k, _)| k)
-                .collect();
-            let deployments = s.store.collection_mut(DEPLOYMENTS);
-            for k in holders {
-                if let Some(d) = deployments.get_mut(&k)
-                    && let Some(a) = d["alias"].as_array_mut()
-                {
-                    a.retain(|x| {
-                        !x.as_str()
-                            .is_some_and(|n| prod_domains.iter().any(|p| p == n))
-                    });
-                }
-            }
-            alias.extend(prod_domains.into_iter().map(Value::String));
-        } else if let Some(b) = &branch {
+        if target == Some("production")
+            && body.get("autoAssignCustomDomains") != Some(&json!(false))
+        {
+            alias.extend(
+                production_domains(s, &project_key)
+                    .into_iter()
+                    .map(Value::String),
+            );
+        } else if target.is_none()
+            && custom_env.is_none()
+            && let Some(b) = &branch
+        {
             alias.push(json!(format!(
                 "{project_name}-git-{}-{team}.vercel.app",
                 branch_slug(b)
@@ -426,24 +442,37 @@ pub fn create_deployment(world: &mut WorldState, query: &Query, body: &Value) ->
         d.insert("errorStep".into(), step);
     }
     let stored = Value::Object(d);
+    let mut provenance = json!({
+        "deploymentId":id,"projectId":project_key,"gitSource":stored["gitSource"],
+        "overrides":{},
+        "sourcePreserved":source_deployment.as_ref().is_some_and(|source| {
+            body.get("regions").is_none_or(|regions| Some(regions) == source.get("regions"))
+        })
+    });
+    if let Some(source) = &source_deployment {
+        provenance["originalDeploymentId"] = source["id"].clone();
+    }
+    if let Some(regions) = body.get("regions") {
+        provenance["overrides"]["regions"] = regions.clone();
+    }
+    s.store.collection_mut(SOURCES).insert(&id, provenance);
     s.store
         .collection_mut(DEPLOYMENTS)
         .insert(id.clone(), stored.clone());
-    // Persist the project's deployment pointers so the final state shows what production
-    // serves (reads recompute them the same way).
-    let latest: Vec<Value> = project_deployments(s, &project_key)
-        .iter()
-        .take(3)
-        .map(deployment_summary)
-        .collect();
-    let production = current_production(s, &project_key).map(|d| deployment_summary(&d));
+    for alias in stored["alias"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(Value::as_str)
+    {
+        s.store.collection_mut(ALIASES).insert(
+            alias,
+            json!({"alias":alias,"projectId":project_key,"deploymentId":id}),
+        );
+    }
+    refresh_deployment_views(s, &project_key);
     if let Some(p) = s.store.collection_mut(PROJECTS).get_mut(&project_key) {
         p["updatedAt"] = json!(now);
-        p["latestDeployments"] = Value::Array(latest);
-        p["targets"] = match production {
-            Some(prod) => json!({ "production": prod }),
-            None => json!({}),
-        };
     }
 
     // The create response reports the build as just queued; the stored deployment is
@@ -658,7 +687,13 @@ pub fn delete_project(world: &mut WorldState, id_or_name: &str, query: &Query) -
     let s = svc(world);
     let key = project_key(s, id_or_name, query)?;
     s.store.collection_mut(PROJECTS).remove(&key);
-    for (coll, field) in [(DEPLOYMENTS, "projectId"), (DOMAINS, "projectId")] {
+    for (coll, field) in [
+        (DEPLOYMENTS, "projectId"),
+        (DOMAINS, "projectId"),
+        (ALIASES, "projectId"),
+        (SOURCES, "projectId"),
+        (ENV_VARS, "projectId"),
+    ] {
         let doomed: Vec<String> = docs(s, coll)
             .into_iter()
             .filter(|(_, d)| str_of(d, field) == Some(key.as_str()))
@@ -767,11 +802,16 @@ fn validate_env_input(e: &Value) -> Result<(), ApiError> {
             "The `gitBranch` property can only be used with the `preview` target.",
         ));
     }
-    if obj.get("type").and_then(Value::as_str) == Some("sensitive")
-        && targets.iter().any(|t| t == "development")
+    if obj
+        .get("gitBranch")
+        .is_some_and(|branch| !branch.is_string() && !branch.is_null())
+        || obj.contains_key("customEnvironmentIds")
+        || obj.contains_key("visibility")
     {
-        return Err(bad_request(
-            "Sensitive Environment Variables cannot be created in the Development environment.",
+        return Err(api_error(
+            StatusCode::NOT_IMPLEMENTED,
+            "unsupported_operation",
+            "This environment-variable shape is not supported by this connector.",
         ));
     }
     Ok(())
@@ -796,28 +836,34 @@ pub fn create_env(
     body: &Value,
 ) -> ApiResult {
     let now = now_ms(world);
-    let s = svc(world);
-    let key = project_key(s, id_or_name, query)?;
+    let key = project_key(svc(world), id_or_name, query)?;
     let (items, single) = match body {
         Value::Array(items) => (items.clone(), false),
         other => (vec![other.clone()], true),
     };
     for item in &items {
-        validate_env_input(item)?;
+        if let Err(error) = validate_env_input(item) {
+            if error.body["error"]["code"] == "unsupported_operation" {
+                return Err(unsupported(
+                    world,
+                    "This environment-variable shape is not supported by this connector.",
+                ));
+            }
+            return Err(error);
+        }
     }
+    let s = svc(world);
     let upsert = q(query, "upsert") == Some("true");
     let user = viewer(s)["uid"].clone();
     let mut created = Vec::new();
     let mut failed = Vec::new();
     for item in items {
-        let mut env = doc(s, PROJECTS, &key).ok_or_else(project_not_found)?["env"]
-            .as_array()
-            .cloned()
-            .unwrap_or_default();
+        let env = project_environment(s, &key);
         let conflict = env.iter().position(|e| {
-            str_of(e, "key") == str_of(&item, "key")
-                && str_of(e, "gitBranch") == str_of(&item, "gitBranch")
-                && overlapping_target(e, &item).is_some()
+            str_of(&e.1, "key") == str_of(&item, "key")
+                && str_of(&e.1, "gitBranch").filter(|branch| !branch.is_empty())
+                    == str_of(&item, "gitBranch").filter(|branch| !branch.is_empty())
+                && overlapping_target(&e.1, &item).is_some()
         });
         let mut record = Map::new();
         record.insert("type".into(), item["type"].clone());
@@ -830,7 +876,22 @@ pub fn create_env(
         );
         match conflict {
             Some(i) if upsert => {
-                let existing = env[i].as_object_mut().expect("env object");
+                if environment_scope(&env[i].1) != environment_scope(&item)
+                    || env.iter().enumerate().any(|(index, (_, variable))| {
+                        index != i
+                            && str_of(variable, "key") == str_of(&item, "key")
+                            && str_of(variable, "gitBranch") == str_of(&item, "gitBranch")
+                            && overlapping_target(variable, &item).is_some()
+                    })
+                {
+                    rebuild_env_index(s);
+                    return Err(unsupported(
+                        world,
+                        "Upserts changing scope or overlapping multiple environment records are not supported by this connector.",
+                    ));
+                }
+                let mut variable = env[i].1.clone();
+                let existing = variable.as_object_mut().expect("env object");
                 for (k, v) in record {
                     existing.insert(k, v);
                 }
@@ -839,17 +900,19 @@ pub fn create_env(
                 }
                 existing.insert("updatedAt".into(), json!(now));
                 existing.insert("updatedBy".into(), user.clone());
-                created.push(env_view(&env[i], false));
+                variable["scope"] = json!(environment_scope(&variable));
+                created.push(env_view(&variable, false));
+                s.store.collection_mut(ENV_VARS).insert(&env[i].0, variable);
             }
             Some(i) => {
-                let target = overlapping_target(&env[i], &item).unwrap_or_default();
+                let target = overlapping_target(&env[i].1, &item).unwrap_or_default();
                 let k = str_of(&item, "key").unwrap_or_default();
                 let branch = str_of(&item, "gitBranch").unwrap_or("undefined");
                 failed.push(json!({ "error": {
                     "code": "ENV_CONFLICT",
                     "message": format!("A variable with the name `{k}` already exists for the target {target} on branch {branch}"),
                     "key": k,
-                    "envVarId": env[i]["id"],
+                    "envVarId": env[i].1["id"],
                     "envVarKey": k,
                     "target": item["target"],
                     "gitBranch": item.get("gitBranch").cloned().unwrap_or(Value::Null),
@@ -859,6 +922,7 @@ pub fn create_env(
             None => {
                 let id = s.ids.next_prefixed("env", "", 16);
                 record.insert("id".into(), json!(id));
+                record.insert("projectId".into(), json!(key));
                 record.insert("key".into(), item["key"].clone());
                 if let Some(b) = item.get("gitBranch").filter(|b| b.is_string()) {
                     record.insert("gitBranch".into(), b.clone());
@@ -867,9 +931,12 @@ pub fn create_env(
                 record.insert("updatedAt".into(), json!(now));
                 record.insert("createdBy".into(), user.clone());
                 record.insert("updatedBy".into(), Value::Null);
-                let record = Value::Object(record);
+                let mut record = Value::Object(record);
+                record["scope"] = json!(environment_scope(&record));
                 created.push(env_view(&record, false));
-                env.push(record);
+                s.store
+                    .collection_mut(ENV_VARS)
+                    .insert(format!("{key}/{id}"), record);
             }
         }
         let p = s
@@ -877,7 +944,6 @@ pub fn create_env(
             .collection_mut(PROJECTS)
             .get_mut(&key)
             .expect("project");
-        p["env"] = Value::Array(env);
         p["updatedAt"] = json!(now);
     }
     rebuild_env_index(s);
@@ -907,19 +973,16 @@ pub fn delete_env(
     let now = now_ms(world);
     let s = svc(world);
     let key = project_key(s, id_or_name, query)?;
-    let p = s
+    let identity = format!("{key}/{env_id}");
+    let removed = s
         .store
+        .collection_mut(ENV_VARS)
+        .remove(&identity)
+        .ok_or_else(env_not_found)?;
+    s.store
         .collection_mut(PROJECTS)
         .get_mut(&key)
-        .expect("project");
-    let Some(env) = p["env"].as_array_mut() else {
-        return Err(env_not_found());
-    };
-    let Some(i) = env.iter().position(|e| str_of(e, "id") == Some(env_id)) else {
-        return Err(env_not_found());
-    };
-    let removed = env.remove(i);
-    p["updatedAt"] = json!(now);
+        .expect("project")["updatedAt"] = json!(now);
     rebuild_env_index(s);
     Ok((StatusCode::OK, env_view(&removed, false)))
 }

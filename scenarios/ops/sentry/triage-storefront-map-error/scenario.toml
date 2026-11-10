@@ -7,47 +7,74 @@ services = ["sentry"]
 tags = ["write", "single-service", "sentry", "disambiguation"]
 timeout_sec = 900
 
-# Three unresolved issues share the title "TypeError: Cannot read properties of undefined
-# (reading 'map')": STOREFRONT-WEB-8D (6184421045, first seen in storefront@5.3.0, the
-# target), STOREFRONT-WEB-7Q (6184420122, same project, first seen in storefront@5.2.0) and
-# ADMIN-DASHBOARD-2M (6184421050, other project, first seen in admin@2.8.0 the same day).
-[[expect.state]]
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/sentry/issues", matching = { shortId = "STOREFRONT-WEB-8D" } }
+equals = 1
+fields = { "/status" = "resolved", "/statusDetails/inNextRelease" = true, "/assignedTo/type" = "team" }
+null_fields = ["/substatus"]
+
+[[expect.relations]]
+source = { collection = "/services/sentry/issues", matching = { shortId = "STOREFRONT-WEB-8D" } }
+source_field = "/assignedTo/id"
+target = { collection = "/services/sentry/teams", matching = { slug = "frontend-web" } }
+target_field = "/id"
+kind = "equals"
+
+[[expect.preservation.allow]]
 pointer = "/services/sentry/issues/STOREFRONT-WEB-8D/status"
-equals = "resolved"
+matching = { status = "resolved", statusDetails = { inNextRelease = true } }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-WEB-8D/statusDetails/inNextRelease"
-equals = true
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/STOREFRONT-WEB-8D/substatus"
+matching = { status = "resolved", statusDetails = { inNextRelease = true } }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-WEB-8D/assignedTo/type"
-equals = "team"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/STOREFRONT-WEB-8D/statusDetails"
+matching = { status = "resolved", statusDetails = { inNextRelease = true } }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-WEB-8D/assignedTo/name"
-equals = "frontend-web"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/STOREFRONT-WEB-8D/resolvedAt"
+matching = { status = "resolved", statusDetails = { inNextRelease = true } }
+field_patterns = { "/resolvedAt" = '\S' }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/STOREFRONT-WEB-7Q/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/STOREFRONT-WEB-8D/assignedTo"
+matching = { assignedTo = { type = "team" } }
+references = [{ source_field = "/assignedTo/id", target = { collection = "/services/sentry/teams", matching = { slug = "frontend-web" } }, target_field = "/id" }]
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/ADMIN-DASHBOARD-2M/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "set_resolved_in_release", data = { inNextRelease = true } }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "STOREFRONT-WEB-8D" } }, target_field = "/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.required_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)^/api/0/organizations/lumen-labs/issues/(STOREFRONT-WEB-8D|6184421045)/$"
-
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)/issues/(STOREFRONT-WEB-7Q|6184420122|ADMIN-DASHBOARD-2M|6184421050)/$"
-
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "assigned", data = { assigneeType = "team" } }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "STOREFRONT-WEB-8D" } }, target_field = "/id" },
+  { source_field = "/data/assignee", target = { collection = "/services/sentry/teams", matching = { slug = "frontend-web" } }, target_field = "/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
 [[solution.call]]
 endpoint = "sentry"
@@ -57,4 +84,4 @@ arguments = { organizationSlug = "lumen-labs", projectSlugOrId = "storefront-web
 [[solution.call]]
 endpoint = "sentry"
 tool = "update_issue"
-arguments = { organizationSlug = "lumen-labs", issueId = "STOREFRONT-WEB-8D", status = "resolvedInNextRelease", assignedTo = "team:frontend-web" }
+arguments = { organizationSlug = "lumen-labs", issueId = "STOREFRONT-WEB-8D", status = "resolvedInNextRelease", assignedTo = "team:4507214" }

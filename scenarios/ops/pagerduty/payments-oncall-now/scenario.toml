@@ -10,6 +10,10 @@ timeout_sec = 900
 # Riya Patel is scheduled on Payments Primary this week, but Priya Raman has an override
 # covering today; level 2 is Marcus Chen. "Payments Gateway (Legacy)" (Jordan Alvarez)
 # and "Payouts" (Riya Patel) are look-alike policies.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Priya Raman", "Marcus Chen"]
 

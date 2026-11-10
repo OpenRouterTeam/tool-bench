@@ -7,45 +7,38 @@ services = ["google"]
 tags = ["write", "single-service", "google", "gmail", "calendar"]
 timeout_sec = 900
 
-# Priya's email: "Q1 planning sync", Tuesday 2026-11-03 at 2:00 pm Eastern (EST, -05:00
-# after the DST change), 45 minutes, invite Priya and Marcus, with Google Meet. The
-# August "Q4 planning sync" event is a look-alike that must not change.
-[[expect.state]]
-pointer = "/services/google/calendar_events/445b671f493e8a06958e4ff0dd/summary"
-contains = "Q1 planning sync"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/google/calendar_events/445b671f493e8a06958e4ff0dd/calendarId"
-equals = "ops@octo-corp.example"
+[[expect.records]]
+selector = { collection = "/services/google/calendar_events", created = true }
+equals = 1
+fields = { "/creator/email" = "ops@octo-corp.example", "/organizer/email" = "ops@octo-corp.example" }
+calendar_meeting = { calendar_id = "ops@octo-corp.example", summary = "Q1 planning sync", start = "2026-11-03T19:00:00Z", end = "2026-11-03T19:45:00Z", attendees = ["priya.natarajan@octo-corp.example", "marcus.webb@octo-corp.example"] }
+reviewed_text = { "/description" = { optional = true, requirement = "Optional planning context must not contradict the requested Q1 planning sync, date/time, attendees, or meeting availability. Unreviewed wording requires adjudication.", accepted = ["Q1 planning sync with Priya and Marcus."], rejected = ["Meeting cancelled."] } }
 
-[[expect.state]]
-pointer = "/services/google/calendar_events/445b671f493e8a06958e4ff0dd/start/dateTime"
-equals = "2026-11-03T14:00:00-05:00"
+[[expect.preservation.allow]]
+pointer = "/services/google/calendar_events/*"
+kind = "create"
+matching = { calendarId = "ops@octo-corp.example", summary = "Q1 planning sync", status = "confirmed", creator = { email = "ops@octo-corp.example" }, organizer = { email = "ops@octo-corp.example" } }
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
 
-[[expect.state]]
-pointer = "/services/google/calendar_events/445b671f493e8a06958e4ff0dd/end/dateTime"
-equals = "2026-11-03T14:45:00-05:00"
+[[expect.preservation.allow]]
+pointer = "/services/google/calendar_conferences/*"
+kind = "create"
+matching = { solution = "hangoutsMeet", status = "success", actor = "ops@octo-corp.example" }
+references = [{ source_field = "/created_for", target_field = "/id", target = { collection = "/services/google/calendar_events", created = true } }]
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
 
-[[expect.state]]
-pointer = "/services/google/calendar_events/445b671f493e8a06958e4ff0dd/attendees"
-contains = { email = "priya.natarajan@octo-corp.example" }
-
-[[expect.state]]
-pointer = "/services/google/calendar_events/445b671f493e8a06958e4ff0dd/attendees"
-contains = { email = "marcus.webb@octo-corp.example" }
-
-[[expect.state]]
-pointer = "/services/google/calendar_events/445b671f493e8a06958e4ff0dd/conferenceData/conferenceSolution/key/type"
-equals = "hangoutsMeet"
-
-[[expect.state]]
-pointer = "/services/google/calendar_events/ae2a3372cbeee330eecbe86872/start/dateTime"
-equals = "2026-08-04T14:00:00-04:00"
-
-[[expect.required_calls]]
-service = "google"
-path = "/_mcp/tools/call"
-body = { name = "manage_event", arguments = { action = "create" } }
+[[expect.preservation.allow]]
+pointer = "/services/google/calendar_notification_requests/*"
+kind = "create"
+max_count = "all_matching"
+matching = { delivery = "unobserved", actor = "ops@octo-corp.example" }
+field_patterns = { "/mode" = "^(all|externalOnly|none)$" }
+references = [{ source_field = "/eventId", target_field = "/id", target = { collection = "/services/google/calendar_events", created = true } }]
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
 
 [[expect.forbidden_calls]]
 service = "google"

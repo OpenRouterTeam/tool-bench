@@ -9,6 +9,10 @@ timeout_sec = 900
 
 # m.okafor at 2026-10-29T16:42:57Z. Distractors: j.doe's denied attempt, r.chen deleting
 # ci-deploy-bot-staging, and a.santos deleting a same-named key in the legacy index in August.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["m.okafor"]
 regex = '16:42'

@@ -15,10 +15,16 @@ use serde_json::{Value, json};
 use tower::ServiceExt;
 
 fn world(scenario: &str) -> SharedWorld {
+    world_with(scenario, |_| {})
+}
+
+fn world_with(scenario: &str, prepare: impl FnOnce(&mut Dataset)) -> SharedWorld {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../scenarios")
         .join(scenario);
-    shared(WorldState::from_dataset(Dataset::load(&dir).unwrap()).unwrap())
+    let mut dataset = Dataset::load(&dir).unwrap();
+    prepare(&mut dataset);
+    shared(WorldState::from_dataset(dataset).unwrap())
 }
 
 fn app(w: &SharedWorld) -> Router {
@@ -177,7 +183,7 @@ async fn unsigned_sdk_calls_are_rejected_and_dates_follow_the_logical_clock() {
     assert_eq!(resp.status, StatusCode::FORBIDDEN);
     let resp = rest(&app, "s3", "GET", "/", "").await;
     // The rejected POST ticked the clock once.
-    assert_eq!(resp.headers["date"], "Sat, 14 Mar 2026 09:00:07 GMT");
+    assert_eq!(resp.headers["date"], "Sat, 14 Mar 2026 09:00:00 GMT");
 }
 
 // ───────────────────────────── STS / IAM ─────────────────────────────
@@ -513,14 +519,14 @@ async fn ec2_security_group_rules_round_trip() {
 // ───────────────────────────── S3 ─────────────────────────────
 
 #[tokio::test]
-async fn s3_lists_buckets_and_reports_missing_encryption() {
+async fn s3_lists_buckets_and_distinguishes_sse_s3_from_the_required_kms_defaults() {
     let w = world("cloud/aws/find-unencrypted-bucket");
     let app = app(&w);
     let list = rest(&app, "s3", "GET", "/", "").await;
     let x = list.xml();
     assert_eq!(x.child("Buckets").unwrap().all("Bucket").len(), 7);
 
-    let none = rest(
+    let legacy = rest(
         &app,
         "s3",
         "GET",
@@ -528,17 +534,127 @@ async fn s3_lists_buckets_and_reports_missing_encryption() {
         "",
     )
     .await;
-    assert_eq!(none.status, StatusCode::NOT_FOUND);
-    assert!(
-        none.text
-            .contains("<Code>ServerSideEncryptionConfigurationNotFoundError</Code>")
-    );
+    assert_eq!(legacy.status, StatusCode::OK);
+    assert!(legacy.text.contains("<SSEAlgorithm>AES256</SSEAlgorithm>"));
     let kms = rest(&app, "s3", "GET", "/northwind-data-lake-raw?encryption", "").await;
     assert!(kms.text.contains("<SSEAlgorithm>aws:kms</SSEAlgorithm>"));
-    let default = rest(&app, "s3", "GET", "/northwind-app-assets?encryption", "").await;
-    assert!(default.text.contains("<SSEAlgorithm>AES256</SSEAlgorithm>"));
+    for bucket in [
+        "northwind-app-assets",
+        "northwind-terraform-state",
+        "northwind-legacy-exports-2019",
+    ] {
+        let compliant = rest(&app, "s3", "GET", &format!("/{bucket}?encryption"), "").await;
+        assert!(
+            compliant
+                .text
+                .contains("<SSEAlgorithm>aws:kms</SSEAlgorithm>")
+        );
+    }
     let missing = rest(&app, "s3", "GET", "/nope-bucket?encryption", "").await;
     assert!(missing.text.contains("<Code>NoSuchBucket</Code>"));
+}
+
+#[tokio::test]
+async fn s3_missing_explicit_settings_default_to_sse_s3_without_claiming_object_encryption() {
+    let world = world_with("cloud/aws/find-unencrypted-bucket", |dataset| {
+        dataset
+            .services
+            .get_mut("aws")
+            .unwrap()
+            .collection_mut("buckets")
+            .get_mut("northwind-app-assets")
+            .unwrap()
+            .as_object_mut()
+            .unwrap()
+            .remove("Encryption");
+    });
+    let response = rest(
+        &app(&world),
+        "s3",
+        "GET",
+        "/northwind-app-assets?encryption",
+        "",
+    )
+    .await;
+    assert_eq!(response.status, StatusCode::OK);
+    assert!(
+        response
+            .text
+            .contains("<SSEAlgorithm>AES256</SSEAlgorithm>")
+    );
+}
+
+#[tokio::test]
+async fn s3_historical_missing_encryption_fixture_uses_its_documented_error_not_no_such_bucket() {
+    let world = world_with("cloud/aws/find-unencrypted-bucket", |dataset| {
+        dataset
+            .services
+            .get_mut("aws")
+            .unwrap()
+            .collection_mut("buckets")
+            .get_mut("northwind-legacy-exports")
+            .unwrap()["Encryption"] = Value::Null;
+    });
+    let response = rest(
+        &app(&world),
+        "s3",
+        "GET",
+        "/northwind-legacy-exports?encryption",
+        "",
+    )
+    .await;
+    assert_eq!(response.status, StatusCode::BAD_REQUEST);
+    assert_eq!(
+        response.xml().text_of("Code").unwrap(),
+        "ServerSideEncryptionConfigurationNotFoundError"
+    );
+}
+
+#[tokio::test]
+async fn s3_missing_policy_is_genuine_negative_evidence_distinct_from_a_missing_bucket() {
+    let world = world("example/aws/missing-bucket-policy");
+    let router = app(&world);
+    let policy = rest(&router, "s3", "GET", "/policy-audit-bucket?policy", "").await;
+    assert_eq!(policy.status, StatusCode::NOT_FOUND);
+    assert_eq!(policy.xml().text_of("Code").unwrap(), "NoSuchBucketPolicy");
+    let bucket = rest(&router, "s3", "GET", "/no-such-bucket?policy", "").await;
+    assert_eq!(bucket.status, StatusCode::NOT_FOUND);
+    assert_eq!(bucket.xml().text_of("Code").unwrap(), "NoSuchBucket");
+}
+
+#[tokio::test]
+async fn s3_evaluator_owned_identifiers_are_opaque_but_authored_names_are_not_sanitized() {
+    let world =
+        world_with("example/aws/missing-bucket-policy", |dataset| {
+            dataset.services.get_mut("aws").unwrap().collection_mut("buckets").insert(
+            "toolbench-authored-archive",
+            json!({"Name":"toolbench-authored-archive","CreationDate":"2024-01-01T00:00:00Z"}),
+        );
+        });
+    let router = app(&world);
+    let listed = rest(&router, "s3", "GET", "/", "").await;
+    assert!(listed.text.contains("toolbench-authored-archive"));
+    let owner = listed.xml().child("Owner").unwrap().clone();
+    assert_eq!(owner.text_of("ID").unwrap().len(), 64);
+    assert!(owner.child("DisplayName").is_none());
+    let acl = rest(&router, "s3", "GET", "/policy-audit-bucket?acl", "").await;
+    assert!(!acl.text.contains("toolbench"));
+    let error = rest(
+        &router,
+        "s3",
+        "GET",
+        "/toolbench-authored-missing?policy",
+        "",
+    )
+    .await;
+    let parsed = error.xml();
+    assert_eq!(
+        parsed.text_of("BucketName").unwrap(),
+        "toolbench-authored-missing"
+    );
+    let host = parsed.text_of("HostId").unwrap();
+    assert_eq!(host.len(), 64);
+    assert!(!host.contains("toolbench"));
 }
 
 #[tokio::test]
@@ -628,7 +744,7 @@ async fn s3_objects_list_with_delimiter_and_round_trip() {
     )
     .await;
     assert_eq!(got.text, "hello");
-    assert_eq!(got.headers["x-amz-server-side-encryption"], "AES256");
+    assert_eq!(got.headers["x-amz-server-side-encryption"], "aws:kms");
     let missing = rest(
         &app,
         "s3",
@@ -954,11 +1070,12 @@ async fn logs_insights_queries_complete_immediately() {
 
 #[tokio::test]
 async fn lambda_functions_and_errors() {
-    let w = world("cloud/aws/orders-api-cpu-alarm");
-    w.lock().unwrap().service_mut("aws").store.collection_mut("functions").insert(
+    let w = world_with("cloud/aws/orders-api-cpu-alarm", |dataset| {
+        dataset.services.get_mut("aws").unwrap().collection_mut("functions").insert(
         "orders-export",
         json!({"FunctionName": "orders-export", "Runtime": "python3.12", "MemorySize": 256, "Timeout": 60, "LastModified": "2026-02-01T00:00:00Z", "Tags": {"team": "commerce"}}),
-    );
+        );
+    });
     let app = app(&w);
     let list = rest(&app, "lambda", "GET", "/2015-03-31/functions/", "")
         .await
@@ -1001,6 +1118,24 @@ async fn lambda_functions_and_errors() {
     .json();
     assert_eq!(updated["MemorySize"], 1024);
     assert_eq!(state(&w)["functions"]["orders-export"]["MemorySize"], 1024);
+}
+
+#[tokio::test]
+async fn cloudwatch_unknown_operations_and_wrong_target_names_do_not_report_success() {
+    let world = world("cloud/aws/orders-api-cpu-alarm");
+    let app = app(&world);
+    for operation in [
+        "GraniteServiceVersion20100801.NotARealOperation",
+        "OtherService.SetAlarmState",
+    ] {
+        let response = target(&app, "monitoring", operation, json!({})).await;
+        assert_eq!(response.status, StatusCode::BAD_REQUEST);
+        assert_eq!(
+            response.json()["__type"],
+            "com.amazonaws.cloudwatch#UnknownOperationException"
+        );
+    }
+    assert!(state(&world)["alarms"].get("orders-api-high-cpu").is_none());
 }
 
 #[tokio::test]

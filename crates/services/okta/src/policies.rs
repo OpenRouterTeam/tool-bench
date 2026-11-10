@@ -342,6 +342,72 @@ fn rule_type_for(policy_type: &str) -> &'static str {
     }
 }
 
+pub fn normalize_password_conditions(rule: &mut Value) {
+    if rule.pointer("/conditions/people/users/exclude") == Some(&json!([])) {
+        rule["conditions"]["people"]["users"]
+            .as_object_mut()
+            .expect("an exclusion list belongs to an object")
+            .shift_remove("exclude");
+    }
+    if rule.pointer("/conditions/people/users") == Some(&json!({})) {
+        rule["conditions"]["people"]
+            .as_object_mut()
+            .expect("user conditions belong to an object")
+            .shift_remove("users");
+    }
+    if rule.pointer("/conditions/people") == Some(&json!({})) {
+        rule["conditions"]
+            .as_object_mut()
+            .expect("people conditions belong to an object")
+            .shift_remove("people");
+    }
+}
+
+fn validate_rule(policy: &Value, rule: &mut Value) -> Result<(), Reply> {
+    let expected = rule_type_for(policy["type"].as_str().unwrap_or_default());
+    if rule
+        .get("type")
+        .is_some_and(|kind| kind.as_str() != Some(expected))
+    {
+        return Err(validation(&[
+            "type: The rule type does not match the policy type",
+        ]));
+    }
+    if expected == "PASSWORD" {
+        for field in ["actions", "conditions"] {
+            if rule.get(field).is_some_and(|value| !value.is_object()) {
+                return Err(validation(&[
+                    "rule: Password actions and conditions must be objects",
+                ]));
+            }
+        }
+        for name in [
+            "passwordChange",
+            "selfServicePasswordReset",
+            "selfServiceUnlock",
+        ] {
+            if rule["actions"]
+                .get(name)
+                .is_some_and(|value| !value.is_object())
+            {
+                return Err(validation(&[
+                    "actions: Password policy actions must be objects",
+                ]));
+            }
+            if let Some(access) = rule.pointer(&format!("/actions/{name}/access"))
+                && !matches!(access.as_str(), Some("ALLOW" | "DENY"))
+            {
+                return Err(validation(&["actions: Invalid password policy access"]));
+            }
+        }
+        normalize_password_conditions(rule);
+    }
+    rule.as_object_mut()
+        .expect("rule input is an object")
+        .shift_remove("_links");
+    Ok(())
+}
+
 fn create_rule(w: &mut WorldState, req: &Req, pid: &str) -> Res {
     let p = find(w, pid)?;
     let mut body = Value::Object(req.object()?);
@@ -358,6 +424,7 @@ fn create_rule(w: &mut WorldState, req: &Req, pid: &str) -> Res {
         }
         _ => {}
     }
+    validate_rule(&p, &mut body)?;
     let existing: Vec<(String, Value)> = list(w, "policy_rules")
         .into_iter()
         .filter(|(k, _)| k.starts_with(&format!("{pid}/")))
@@ -392,6 +459,7 @@ fn replace_rule(w: &mut WorldState, req: &Req, pid: &str, rid: &str) -> Res {
     if body["name"].as_str().is_none_or(str::is_empty) {
         return Err(validation(&["name: The field cannot be left blank"]));
     }
+    validate_rule(&p, &mut body)?;
     for k in ["id", "type", "system", "created", "status"] {
         body[k] = old[k].clone();
     }

@@ -5,7 +5,7 @@
 //! - `GET|POST /api/<method>` serves Slack Web API methods over the same store.
 //! - `POST /upload/v1/<token>` receives file bytes for `slack_get_file_upload_url`.
 //!
-//! The caller is always `U0TOOLBNCH1`. See [`model`] for the store layout.
+//! The caller is always `U02CMORG8RK`. See [`model`] for the store layout.
 
 pub mod canvas;
 pub mod lists;

@@ -69,7 +69,7 @@ impl From<ApiError> for Failure {
 type R = Result<Value, Failure>;
 
 pub fn call(ctx: &mut Ctx, name: &str, args: &Value) -> Value {
-    refresh_clusters(ctx);
+    refresh_clusters(ctx, name, args);
     let result = match name {
         "atlas-list-orgs" => list_orgs(ctx, args),
         "atlas-list-projects" => list_projects(ctx, args),
@@ -138,13 +138,27 @@ fn is_flex(c: &Value) -> bool {
 }
 
 /// Clusters being created or updated become IDLE once logical time has moved on.
-fn refresh_clusters(ctx: &mut Ctx) {
+fn refresh_clusters(ctx: &mut Ctx, operation: &str, args: &Value) {
     let now = ctx.now;
+    let mode = ctx.clock_mode;
+    let status_read = matches!(operation, "atlas-list-clusters" | "atlas-inspect-cluster");
+    let project = args.get("projectId").and_then(Value::as_str);
+    let name = args.get("clusterName").and_then(Value::as_str);
     let keys: Vec<String> = ctx
         .coll("clusters")
         .map(|c| {
             c.iter()
-                .filter(|(_, v)| v["_readyAt"].as_i64().is_some_and(|t| t <= now))
+                .filter(|(_, cluster)| match mode {
+                    mock_core::clock::ClockMode::LegacyTransport => cluster["_readyAt"]
+                        .as_i64()
+                        .is_some_and(|ready| ready <= now),
+                    mock_core::clock::ClockMode::Fixed => {
+                        status_read
+                            && cluster["_pendingStatus"] == true
+                            && project.is_none_or(|project| cluster["groupId"] == project)
+                            && name.is_none_or(|name| cluster["name"] == name)
+                    }
+                })
                 .map(|(k, _)| k.to_owned())
                 .collect()
         })
@@ -154,8 +168,16 @@ fn refresh_clusters(ctx: &mut Ctx) {
             c["stateName"] = json!("IDLE");
             if let Some(m) = c.as_object_mut() {
                 m.shift_remove("_readyAt");
+                m.shift_remove("_pendingStatus");
             }
         }
+    }
+}
+
+fn pending_marker(mode: mock_core::clock::ClockMode, now: i64) -> (&'static str, Value) {
+    match mode {
+        mock_core::clock::ClockMode::Fixed => ("_pendingStatus", json!(true)),
+        mock_core::clock::ClockMode::LegacyTransport => ("_readyAt", json!(now + 1)),
     }
 }
 
@@ -627,8 +649,9 @@ fn new_cluster(
             "standard": format!("mongodb://{slug}-shard-00-00.{hash}.mongodb.net:27017,{slug}-shard-00-01.{hash}.mongodb.net:27017,{slug}-shard-00-02.{hash}.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-{hash}-shard-0"),
             "standardSrv": format!("mongodb+srv://{slug}.{hash}.mongodb.net"),
         },
-        "_readyAt": ctx.now + 1,
     });
+    let (pending_key, pending_value) = pending_marker(ctx.clock_mode, ctx.now);
+    c[pending_key] = pending_value;
     if let (Some(m), Value::Object(e)) = (c.as_object_mut(), extra) {
         for (k, v) in e {
             m.insert(k, v);
@@ -933,7 +956,7 @@ fn upgrade_cluster(ctx: &mut Ctx, args: &Value) -> R {
                     .or_else(|| Some(max_autoscaling(&new_size, &provider)))
             }
         });
-        let ready_at = ctx.now + 1;
+        let (pending_key, pending_value) = pending_marker(ctx.clock_mode, ctx.now);
         if let Some(doc) = ctx.coll_mut("clusters").get_mut(&key) {
             if let Some(rcs) = doc["replicationSpecs"][0]["regionConfigs"].as_array_mut() {
                 for rc in rcs {
@@ -947,7 +970,7 @@ fn upgrade_cluster(ctx: &mut Ctx, args: &Value) -> R {
                 }
             }
             doc["stateName"] = json!("UPDATING");
-            doc["_readyAt"] = json!(ready_at);
+            doc[pending_key] = pending_value;
         }
         let summary = if enabled {
             format!(
@@ -1009,7 +1032,7 @@ fn upgrade_cluster(ctx: &mut Ctx, args: &Value) -> R {
     } else {
         (None, None)
     };
-    let ready_at = ctx.now + 1;
+    let (pending_key, pending_value) = pending_marker(ctx.clock_mode, ctx.now);
     if let Some(doc) = ctx.coll_mut("clusters").get_mut(&key) {
         if to == "FLEX" {
             if let Some(m) = doc.as_object_mut() {
@@ -1027,7 +1050,7 @@ fn upgrade_cluster(ctx: &mut Ctx, args: &Value) -> R {
             }]}]);
         }
         doc["stateName"] = json!("UPDATING");
-        doc["_readyAt"] = json!(ready_at);
+        doc[pending_key] = pending_value;
     }
     let t = if autoscaling_args {
         format!(

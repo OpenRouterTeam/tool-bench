@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/aws/stop-legacy-reporting-worker",
+  "scenario_sha256": "sha256:25d732f1e591b08f7f257a6a1e97c3a1e7333c3594c1adacc02598052447a4d3",
+  "dataset_sha256": "sha256:c5864ba2af8fd57bb6f20101d289b0402ca5dc32bc81b99a994dde814af3cbdb",
+  "contract_sha256": "sha256:b8cc57bb6071179fd9abed55986fe2bb4e75be34b081666649e7e8b5c34d4477"
+}

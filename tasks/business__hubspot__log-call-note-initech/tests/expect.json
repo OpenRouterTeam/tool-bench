@@ -1,79 +1,180 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/hubspot/notes/61000005/properties/hs_note_body",
-      "equals": null,
-      "exists": null,
-      "contains": "security review passed",
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/hubspot/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/archived": false
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {
+        "/properties/hs_note_body": "Call with Bill Lumbergh: security review passed; procurement needs a revised SOW by Nov 14."
+      },
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/hubspot/notes/61000005/properties/hs_note_body",
+      "selector": {
+        "collection": "/services/hubspot/associations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
       "equals": null,
-      "exists": null,
-      "contains": "revised SOW by Nov 14",
-      "any": null,
-      "key_prefix": null
+      "min_count": 1,
+      "max_count": 3,
+      "fields": {
+        "/toObjectType": "notes"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/hubspot/associations/deals~19100104~1notes~161000005",
-      "equals": null,
-      "exists": true,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/hubspot/associations/deals~19100105~1notes~161000005",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/hubspot/notes/61000006",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/hubspot/associations",
+        "matching": {
+          "fromObjectId": "9100104",
+          "fromObjectType": "deals",
+          "toObjectType": "notes",
+          "types": [
+            {
+              "associationCategory": "HUBSPOT_DEFINED",
+              "associationTypeId": 213
+            }
+          ]
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "hubspot",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/(engagements/v1/engagements|crm/v3/objects/(notes|note|0-46)/batch/create)$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/hubspot/associations",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/toObjectId",
+      "target": {
+        "collection": "/services/hubspot/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "hubspot",
-      "method": "POST",
-      "path": null,
-      "path_regex": "/batch/update$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "hubspot",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": "^/engagements/v1/engagements/6100000[1-4]$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/hubspot/notes/*",
+        "kind": "create",
+        "matching": {
+          "archived": false
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/hubspot/associations/*",
+        "kind": "create",
+        "matching": {
+          "fromObjectId": "9100104",
+          "fromObjectType": "deals",
+          "toObjectType": "notes"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/hubspot/associations/*",
+        "kind": "create",
+        "matching": {
+          "fromObjectId": "512005",
+          "fromObjectType": "contacts",
+          "toObjectType": "notes"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/hubspot/associations/*",
+        "kind": "create",
+        "matching": {
+          "fromObjectId": "18234002",
+          "fromObjectType": "companies",
+          "toObjectType": "notes"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

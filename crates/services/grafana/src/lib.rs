@@ -37,7 +37,7 @@ use serde_json::{Map, Value, json as json_value};
 pub const NAME: &str = "grafana";
 pub const PORT: u16 = 8114;
 pub const VERSION: &str = "11.6.4";
-pub const TOKEN: &str = "glsa_toolbench";
+pub const TOKEN: &str = "glsa_b69Tzv8Y3Hk2pR7mXc5Qn4Fs6Ld9Ua1W";
 pub const PUBLIC_URL: &str = "https://grafana.octo-corp.com";
 
 pub struct Grafana;
@@ -52,7 +52,7 @@ impl MockService for Grafana {
     }
 
     fn hosts(&self) -> &'static [&'static str] {
-        &[]
+        &["grafana.octo-corp.com"]
     }
 
     fn router(&self) -> Router<SharedWorld> {
@@ -110,8 +110,22 @@ impl Req {
         self.headers
             .get(header::HOST)
             .and_then(|v| v.to_str().ok())
-            .unwrap_or("world:8114")
+            .unwrap_or("grafana.octo-corp.com")
             .to_owned()
+    }
+
+    pub fn origin(&self) -> String {
+        let scheme = if self
+            .headers
+            .get("x-forwarded-proto")
+            .and_then(|value| value.to_str().ok())
+            == Some("https")
+        {
+            "https"
+        } else {
+            "http"
+        };
+        format!("{scheme}://{}", self.host())
     }
 }
 
@@ -184,41 +198,9 @@ pub(crate) fn url_encode(s: &str) -> String {
     out
 }
 
-fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
-    let y = if m <= 2 { y - 1 } else { y };
-    let era = if y >= 0 { y } else { y - 399 } / 400;
-    let yoe = y - era * 400;
-    let mp = (m + 9) % 12;
-    let doy = (153 * mp + 2) / 5 + d - 1;
-    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    era * 146_097 + doe - 719_468
-}
-
 /// RFC 3339 to unix seconds (fractional).
 pub(crate) fn parse_rfc3339(s: &str) -> Option<f64> {
-    if s.len() < 19 {
-        return None;
-    }
-    let num = |a: usize, b: usize| s.get(a..b)?.parse::<i64>().ok();
-    let (y, mo, d) = (num(0, 4)?, num(5, 7)?, num(8, 10)?);
-    let (h, mi, se) = (num(11, 13)?, num(14, 16)?, num(17, 19)?);
-    let mut rest = &s[19..];
-    let mut frac = 0.0;
-    if let Some(r) = rest.strip_prefix('.') {
-        let end = r.find(|c: char| !c.is_ascii_digit()).unwrap_or(r.len());
-        frac = format!("0.{}", &r[..end]).parse().unwrap_or(0.0);
-        rest = &r[end..];
-    }
-    let offset = match rest {
-        "" | "Z" | "z" => 0,
-        r if r.len() == 6 => {
-            let sign = if r.starts_with('-') { -1 } else { 1 };
-            sign * (r.get(1..3)?.parse::<i64>().ok()? * 3600
-                + r.get(4..6)?.parse::<i64>().ok()? * 60)
-        }
-        _ => return None,
-    };
-    Some((days_from_civil(y, mo, d) * 86_400 + h * 3600 + mi * 60 + se - offset) as f64 + frac)
+    mock_core::clock::parse_rfc3339_nanos(s).map(|nanos| nanos as f64 / 1_000_000_000.0)
 }
 
 /// Unix seconds to RFC 3339 with millisecond precision when fractional.
@@ -252,9 +234,18 @@ pub(crate) fn parse_time(s: &str) -> Option<f64> {
 pub(crate) struct Ctx<'a> {
     pub state: &'a mut mock_core::world::ServiceState,
     pub now: f64,
+    pub capability_failure: Option<String>,
 }
 
 impl Ctx<'_> {
+    pub fn unavailable(&mut self, reason: impl Into<String>) -> Response {
+        self.capability_failure = Some(reason.into());
+        error(
+            StatusCode::NOT_IMPLEMENTED,
+            "This label expression is unavailable for this connection.",
+        )
+    }
+
     pub fn coll(&self, name: &str) -> Vec<(String, Value)> {
         self.state
             .store
@@ -305,8 +296,8 @@ impl Ctx<'_> {
     pub fn user(&self) -> Value {
         self.get("user", "current").unwrap_or_else(|| {
             json_value!({
-                "id": 2, "uid": "ee5t0lbench0sa", "email": "sa-1-mcp-toolbench", "name": "mcp-toolbench",
-                "login": "sa-1-mcp-toolbench", "orgId": 1, "isGrafanaAdmin": false, "isDisabled": false,
+                "id": 2, "uid": "ee5m8p2k7v9r1a", "email": "sa-1-mcp-assistant", "name": "mcp-assistant",
+                "login": "sa-1-mcp-assistant", "orgId": 1, "isGrafanaAdmin": false, "isDisabled": false,
                 "isExternal": false, "isExternallySynced": false, "isGrafanaAdminExternallySynced": false,
                 "authLabels": [], "updatedAt": "2026-01-12T09:00:00Z", "createdAt": "2026-01-12T09:00:00Z",
                 "avatarUrl": "/avatar/46d229b033af06a191ff2267bca9ae56", "theme": "", "isServiceAccount": true
@@ -357,8 +348,16 @@ async fn handle(
     let mut ctx = Ctx {
         state: world.service_mut(NAME),
         now,
+        capability_failure: None,
     };
-    route(&mut ctx, &req)
+    let response = route(&mut ctx, &req);
+    let failure = ctx.capability_failure.take();
+    if let Some(reason) = failure {
+        let operation =
+            mock_core::events::current().expect("capability faults have request context");
+        world.fail_operation(&operation, "unsupported_grafana_matcher", &reason);
+    }
+    response
 }
 
 fn route(ctx: &mut Ctx, req: &Req) -> Response {

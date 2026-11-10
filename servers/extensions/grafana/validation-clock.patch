@@ -1,0 +1,18 @@
+--- a/tools/alerting_silences.go
++++ b/tools/alerting_silences.go
+@@ -151,7 +151,14 @@
+ 	}
+ 	// A window that has already closed silences nothing. Expiring a silence
+ 	// early is what 'delete' is for, so it is not a reason to allow it here.
+-	if !endsAt.After(time.Now()) {
++	//
++	// tool-bench adaptation (servers/extensions/grafana): only this business
++	// payload check reads the declared validation instant.
++	now, err := silenceValidationNow()
++	if err != nil {
++		return err
++	}
++	if !endsAt.After(now) {
+ 		if p.Operation == "update" {
+ 			return fmt.Errorf("ends_at (%s) is in the past; use the 'delete' operation to expire a silence early", *p.EndsAt)
+ 		}

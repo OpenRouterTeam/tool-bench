@@ -67,6 +67,72 @@ fn state(w: &SharedWorld) -> Value {
     w.lock().unwrap().snapshot()["services"]["firecrawl"].clone()
 }
 
+fn session_state(world: &SharedWorld) -> Value {
+    world.lock().unwrap().snapshot()["sessions"]["firecrawl"].clone()
+}
+
+#[tokio::test]
+async fn web_queries_use_session_state_but_monitors_remain_business_data() {
+    use mock_core::grading::{Expect, GradeInput, grade};
+
+    let world = world();
+    let app = app(&world);
+    let initial = world.lock().unwrap().initial_snapshot();
+    for (path, body) in [
+        ("/v2/search", json!({"query": "acme pricing"})),
+        ("/v2/scrape", json!({"url": "https://acme.dev/pricing"})),
+    ] {
+        let (status, result) = call(&app, "POST", path, body).await;
+        assert_eq!(status, StatusCode::OK, "{result}");
+    }
+    let contract: Expect = serde_json::from_value(json!({
+        "version": 2,
+        "audit_history": true,
+        "answer": {"contains": ["done"]}
+    }))
+    .unwrap();
+    let evaluate = || {
+        let state = world.lock().unwrap();
+        grade(&GradeInput {
+            expect: &contract,
+            state: state.snapshot(),
+            journal: state.journal.entries(),
+            answer: Some("done"),
+            tools_ips: vec!["unknown".into()],
+            context_overflow: false,
+            startup: &[],
+            initial_state: Some(&initial),
+            events: Some(state.events().entries()),
+        })
+    };
+    assert_eq!(
+        world.lock().unwrap().snapshot()["services"],
+        initial["services"]
+    );
+    assert_eq!(
+        session_state(&world)["searches"].as_object().unwrap().len(),
+        1
+    );
+    assert_eq!(
+        session_state(&world)["scrapes"].as_object().unwrap().len(),
+        1
+    );
+    let assessment = evaluate();
+    assert_eq!(assessment.reward, 1.0, "{assessment:?}");
+    let (status, result) = call(
+        &app,
+        "PATCH",
+        "/v2/monitor/m-1",
+        json!({"name": "Unrequested monitor change"}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{result}");
+    let assessment = evaluate();
+    assert!(assessment.environment_ok);
+    assert!(!assessment.preservation_ok);
+    assert_eq!(assessment.reward, 0.0);
+}
+
 fn urls(v: &Value) -> Vec<String> {
     v.as_array()
         .unwrap()
@@ -126,7 +192,7 @@ async fn scrapes_known_pages_in_requested_formats() {
     assert_eq!(doc["metadata"]["creditsUsed"], 9);
     let scrape_id = doc["metadata"]["scrapeId"].as_str().unwrap();
     assert_eq!(
-        state(&w)["scrapes"][scrape_id]["url"],
+        session_state(&w)["scrapes"][scrape_id]["url"],
         "https://acme.dev/pricing"
     );
 
@@ -299,7 +365,7 @@ async fn searches_the_index_by_relevance_and_source() {
         "https://acme.dev/pricing.png"
     );
     let id = body["id"].as_str().unwrap();
-    assert_eq!(state(&w)["searches"][id]["query"], "acme pricing");
+    assert_eq!(session_state(&w)["searches"][id]["query"], "acme pricing");
 
     let (_, filtered) = call(
         &app,
@@ -453,13 +519,34 @@ async fn search_and_job_feedback_are_recorded() {
 
 #[tokio::test]
 async fn crawls_are_scoped_paginated_and_stored() {
-    let w = world();
+    let directory = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixture");
+    let mut dataset = Dataset::load(&directory).unwrap();
+    let pages = dataset
+        .services
+        .get_mut("firecrawl")
+        .unwrap()
+        .collection_mut("pages");
+    let links: Vec<_> = pages
+        .iter()
+        .filter(|(key, _)| key.contains("/docs/page-"))
+        .map(|(key, _)| format!("[Document]({key})"))
+        .collect();
+    let first = "https://acme.dev/docs/page-01";
+    let mut page = pages.get(first).unwrap().clone();
+    page["markdown"] = json!(format!(
+        "{}\n{}",
+        page["markdown"].as_str().unwrap(),
+        links.join("\n")
+    ));
+    pages.insert(first, page);
+    let w = shared(WorldState::from_dataset(dataset).unwrap());
     let app = app(&w);
     let (status, started) = call(
         &app,
         "POST",
         "/v2/crawl",
-        json!({"url": "https://acme.dev/docs", "excludePaths": ["page-12$"], "scrapeOptions": {"formats": ["markdown"]}}),
+        json!({"url":first,"crawlEntireDomain":true,"includePaths":["^/docs/"],
+            "excludePaths": ["page-12$"], "scrapeOptions": {"formats": ["markdown"]}}),
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -467,8 +554,13 @@ async fn crawls_are_scoped_paginated_and_stored() {
     assert_eq!(started["url"], format!("http://world:8102/v2/crawl/{id}"));
     let job = &state(&w)["crawls"][&id];
     assert_eq!(job["total"], 11);
-    assert_eq!(job["status"], "completed");
+    assert_eq!(job["status"], "queued");
+    assert_eq!(job["completed"], 0);
+    assert_eq!(job["pages"], json!([]));
 
+    let (_, pending) = call(&app, "GET", &format!("/v2/crawl/{id}"), Value::Null).await;
+    assert_eq!(pending["status"], "scraping");
+    assert_eq!(pending["completed"], 0);
     let (_, page1) = call(&app, "GET", &format!("/v2/crawl/{id}"), Value::Null).await;
     assert_eq!(page1["status"], "completed");
     assert_eq!(page1["total"], 11);
@@ -489,12 +581,12 @@ async fn crawls_are_scoped_paginated_and_stored() {
         &app,
         "POST",
         "/v2/crawl",
-        json!({"url": "https://acme.dev", "includePaths": ["^/blog/"], "limit": 5}),
+        json!({"url": "https://acme.dev/blog/launch", "includePaths": ["^/blog/"], "limit": 5}),
     )
     .await;
     let other = included["id"].as_str().unwrap();
     assert_eq!(
-        state(&w)["crawls"][other]["pages"],
+        state(&w)["crawls"][other]["plannedPages"],
         json!(["https://acme.dev/blog/launch"])
     );
 
@@ -514,7 +606,8 @@ async fn crawls_are_scoped_paginated_and_stored() {
     let (_, errors) = call(&app, "GET", &format!("/v2/crawl/{id}/errors"), Value::Null).await;
     assert_eq!(errors, json!({"errors": [], "robotsBlocked": []}));
     let (_, active) = call(&app, "GET", "/v2/crawl/active", Value::Null).await;
-    assert_eq!(active, json!({"success": true, "crawls": []}));
+    assert_eq!(active["crawls"].as_array().unwrap().len(), 1);
+    assert_eq!(active["crawls"][0]["id"], other);
 }
 
 // ───────────── agent ─────────────
@@ -725,10 +818,9 @@ async fn monitor_crud_and_validation() {
     let m = &created["data"];
     let id = m["id"].as_str().unwrap().to_owned();
     assert_eq!(m["status"], "active");
-    assert_eq!(m["schedule"]["intervalMinutes"], 1440);
-    // Two rejected POSTs ticked the clock before this one.
-    assert_eq!(m["createdAt"], "2026-10-01T12:00:21Z");
-    assert_eq!(m["nextRunAt"], "2026-10-02T12:00:21Z");
+    assert_eq!(m["schedule"], json!({"cron":"0 9 * * *","timezone":"UTC"}));
+    assert_eq!(m["createdAt"], "2026-10-01T12:00:00Z");
+    assert_eq!(m["nextRunAt"], "2026-10-02T09:00:00.000Z");
     assert_eq!(state(&w)["monitors"][&id]["name"], "Acme docs");
 
     let (_, list) = call(&app, "GET", "/v2/monitor?limit=2&offset=1", Value::Null).await;
@@ -741,11 +833,11 @@ async fn monitor_crud_and_validation() {
         &app,
         "PATCH",
         &format!("/v2/monitor/{id}"),
-        json!({"active": false, "name": "Acme docs (paused)"}),
+        json!({"status": "paused", "name": "Acme docs (paused)"}),
     )
     .await;
     assert_eq!(paused["data"]["status"], "paused");
-    assert_eq!(paused["data"]["nextRunAt"], Value::Null);
+    assert_eq!(paused["data"]["nextRunAt"], m["nextRunAt"]);
     assert_eq!(state(&w)["monitors"][&id]["name"], "Acme docs (paused)");
     let (status, _) = call(
         &app,
@@ -777,10 +869,28 @@ async fn monitor_runs_and_checks() {
     let app = app(&w);
     let (_, run) = call(&app, "POST", "/v2/monitor/m-1/run", Value::Null).await;
     assert_eq!(run["data"]["status"], "queued");
+    assert_eq!(run["id"], run["data"]["id"]);
     let check_id = run["data"]["id"].as_str().unwrap().to_owned();
     let s = state(&w);
-    assert_eq!(s["monitor_checks"][&check_id]["status"], "completed");
+    assert_eq!(s["monitor_checks"][&check_id]["status"], "queued");
+    assert_eq!(s["monitor_checks"][&check_id]["pages"], json!([]));
     assert_eq!(s["monitors"]["m-1"]["lastCheckId"], check_id);
+    let (_, running) = call(
+        &app,
+        "GET",
+        &format!("/v2/monitor/m-1/checks/{check_id}"),
+        Value::Null,
+    )
+    .await;
+    assert_eq!(running["data"]["status"], "running");
+    let (_, completed) = call(
+        &app,
+        "GET",
+        &format!("/v2/monitor/m-1/checks/{check_id}"),
+        Value::Null,
+    )
+    .await;
+    assert_eq!(completed["data"]["status"], "completed");
 
     let (_, checks) = call(&app, "GET", "/v2/monitor/m-1/checks", Value::Null).await;
     let ids: Vec<&str> = checks["data"]
@@ -824,6 +934,181 @@ async fn monitor_runs_and_checks() {
     let (status, body) = call(&app, "GET", "/v2/monitor/m-2/checks/c-2", Value::Null).await;
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert_eq!(body["error"], "Check not found");
+}
+
+#[tokio::test]
+async fn monitor_schedule_uses_calendar_time_instead_of_a_duration_from_creation() {
+    let world = world();
+    let app = app(&world);
+    let (status, response) = call(&app, "POST", "/v2/monitor", json!({
+        "name":"Calendar timing","targets":[{"type":"scrape","urls":["https://acme.dev/pricing"]}],
+        "schedule":{"text":"daily at 9am","timezone":"America/New_York"}
+    })).await;
+    assert_eq!(status, StatusCode::OK, "{response}");
+    assert_eq!(
+        response["data"]["schedule"],
+        json!({"cron":"0 9 * * *","timezone":"America/New_York"})
+    );
+    assert_eq!(response["data"]["nextRunAt"], "2026-10-01T13:00:00.000Z");
+    assert!(
+        response["data"]["schedule"]
+            .get("intervalMinutes")
+            .is_none()
+    );
+}
+
+#[tokio::test]
+async fn invalid_schedule_requests_do_not_create_business_records() {
+    for schedule in [
+        json!({"text":"daily except weekends"}),
+        json!({"text":"daily","cron":"0 9 * * *"}),
+        json!({"text":"daily","intervalMinutes":1440}),
+        json!({"text":"every 7 hours"}),
+        json!({"cron":"0 9 * * *","timezone":"Mars/Olympus_Mons"}),
+    ] {
+        let world = world();
+        let app = app(&world);
+        let before = state(&world);
+        let (status, response) = call(&app, "POST", "/v2/monitor", json!({
+            "name":"Invalid timing","targets":[{"type":"scrape","urls":["https://acme.dev/pricing"]}],
+            "schedule":schedule
+        })).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{response}");
+        assert_eq!(state(&world), before);
+    }
+}
+
+#[tokio::test]
+async fn unqualified_schedule_semantics_are_authenticated_environment_faults() {
+    let world = world();
+    let app = app(&world);
+    let before = state(&world);
+    let (status, response) = call(&app, "POST", "/v2/monitor", json!({
+        "name":"Unqualified timing","targets":[{"type":"scrape","urls":["https://acme.dev/pricing"]}],
+        "schedule":{"cron":"0/1000 9 * * *","timezone":"UTC"}
+    })).await;
+    assert_eq!(status, StatusCode::NOT_IMPLEMENTED, "{response}");
+    assert_eq!(state(&world), before);
+    assert!(
+        world
+            .lock()
+            .unwrap()
+            .events()
+            .entries()
+            .iter()
+            .any(|event| matches!(
+                &event.event, mock_core::events::EventKind::EnvironmentFailed { code, .. }
+                    if code == "firecrawl_schedule_unsupported"
+            ))
+    );
+}
+
+#[tokio::test]
+async fn paused_and_overlapping_checks_reject_without_new_effects() {
+    let world = world();
+    let app = app(&world);
+    let before = state(&world);
+    let (status, _) = call(&app, "POST", "/v2/monitor/m-2/run", Value::Null).await;
+    assert_eq!(status, StatusCode::CONFLICT);
+    assert_eq!(state(&world), before);
+    let (_, first) = call(&app, "POST", "/v2/monitor/m-1/run", Value::Null).await;
+    let after_first = state(&world);
+    let (status, response) = call(&app, "POST", "/v2/monitor/m-1/run", Value::Null).await;
+    assert_eq!(status, StatusCode::CONFLICT, "{response}");
+    assert_eq!(response["checkId"], first["data"]["id"]);
+    assert_eq!(state(&world), after_first);
+}
+
+#[tokio::test]
+async fn check_readback_verifies_parent_before_advancing_the_worker() {
+    let world = world();
+    let app = app(&world);
+    let (_, first) = call(&app, "POST", "/v2/monitor/m-1/run", Value::Null).await;
+    let identity = first["data"]["id"].as_str().unwrap();
+    let before = state(&world);
+    let (status, _) = call(
+        &app,
+        "GET",
+        &format!("/v2/monitor/m-2/checks/{identity}"),
+        Value::Null,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(state(&world), before);
+}
+
+#[tokio::test]
+async fn crawl_discovery_does_not_scan_unlinked_fixture_pages() {
+    let world = world();
+    let app = app(&world);
+    let (_, response) = call(
+        &app,
+        "POST",
+        "/v2/crawl",
+        json!({
+            "url":"https://acme.dev/docs/page-01","crawlEntireDomain":true,"sitemap":"skip"
+        }),
+    )
+    .await;
+    let identity = response["id"].as_str().unwrap();
+    assert_eq!(
+        state(&world)["crawls"][identity]["plannedPages"],
+        json!(["https://acme.dev/docs/page-01"])
+    );
+}
+
+#[tokio::test]
+async fn an_excluded_start_page_does_not_magically_discover_fixture_siblings() {
+    let world = world();
+    let app = app(&world);
+    let (_, response) = call(
+        &app,
+        "POST",
+        "/v2/crawl",
+        json!({
+            "url":"https://acme.dev","includePaths":["^/docs/"],"sitemap":"skip"
+        }),
+    )
+    .await;
+    assert_eq!(
+        state(&world)["crawls"][response["id"].as_str().unwrap()]["plannedPages"],
+        json!([])
+    );
+}
+
+#[tokio::test]
+async fn crawl_limits_are_validated_and_depth_counts_link_hops() {
+    for changes in [
+        json!({"limit":0}),
+        json!({"limit":1.5}),
+        json!({"maxDiscoveryDepth":-1}),
+    ] {
+        let world = world();
+        let app = app(&world);
+        let before = state(&world);
+        let mut body = json!({"url":"https://acme.dev"});
+        for (key, value) in changes.as_object().unwrap() {
+            body[key] = value.clone();
+        }
+        let (status, response) = call(&app, "POST", "/v2/crawl", body).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{response}");
+        assert_eq!(state(&world), before);
+    }
+    let world = world();
+    let app = app(&world);
+    let (_, response) = call(
+        &app,
+        "POST",
+        "/v2/crawl",
+        json!({
+            "url":"https://acme.dev","maxDiscoveryDepth":0.0
+        }),
+    )
+    .await;
+    assert_eq!(
+        state(&world)["crawls"][response["id"].as_str().unwrap()]["plannedPages"],
+        json!(["https://acme.dev"])
+    );
 }
 
 // ───────────── parse ─────────────

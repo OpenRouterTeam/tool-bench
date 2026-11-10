@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/multi/oom-limit-and-sentry-resolve",
+  "scenario_sha256": "sha256:d6af25cc3104bc40035fcc5f01cbc80a2a29f9633e495476d2498423bf299aeb",
+  "dataset_sha256": "sha256:16746bbc901e3d2a9822271c53fa8a95917bc09fe293072c9a37580c5135fbbb",
+  "contract_sha256": "sha256:e02b9fb616d249dbf0137100e235712041dede985ba7bb7ba4ca4017ad7c8d3a"
+}

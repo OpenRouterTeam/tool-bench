@@ -16,6 +16,7 @@ use crate::NAME;
 
 /// Classic pagination: `offset + limit` may not exceed this.
 const ITERATION_LIMIT: usize = 10_000;
+pub const NANOS_PER_SECOND: i128 = 1_000_000_000;
 
 // ---------------------------------------------------------------------------------------
 // Request
@@ -111,9 +112,33 @@ impl Query {
     pub fn time(&self, key: &str) -> Result<Option<i64>, ApiErr> {
         match self.get(key) {
             None => Ok(None),
-            Some(v) => parse_time(v)
-                .map(Some)
-                .ok_or_else(|| ApiErr::invalid(format!("{key} is not a valid date/time"))),
+            Some(value) => match parse_exact_time(value) {
+                Some(instant) if instant.rem_euclid(1_000_000_000) == 0 => {
+                    Ok(Some((instant / 1_000_000_000) as i64))
+                }
+                Some(_) => Err(ApiErr::Unavailable(
+                    "Subsecond time parameters are not supported by this service".into(),
+                )),
+                None if parse_time(value).is_some() => Err(ApiErr::Unavailable(
+                    "The requested timestamp precision is not supported by this service".into(),
+                )),
+                None => Err(ApiErr::invalid(format!("{key} is not a valid date/time"))),
+            },
+        }
+    }
+
+    pub fn exact_time(&self, key: &str) -> Result<Option<i128>, ApiErr> {
+        match self.get(key) {
+            None => Ok(None),
+            Some(value) => parse_exact_time(value).map(Some).ok_or_else(|| {
+                if parse_time(value).is_some() {
+                    ApiErr::Unavailable(
+                        "The requested timestamp precision is not supported by this service".into(),
+                    )
+                } else {
+                    ApiErr::invalid(format!("{key} is not a valid date/time"))
+                }
+            }),
         }
     }
 }
@@ -150,6 +175,7 @@ fn decode(s: &str) -> String {
 pub enum ApiErr {
     NotFound,
     Invalid(Vec<String>),
+    Unavailable(String),
     Status(StatusCode, Value),
 }
 
@@ -176,6 +202,10 @@ impl IntoResponse for ApiErr {
                 json!({ "error": { "message": "Invalid Input Provided", "code": 2001, "errors": errors } }),
             ),
             Self::Status(status, body) => json(status, body),
+            Self::Unavailable(reason) => json(
+                StatusCode::NOT_IMPLEMENTED,
+                json!({"error":{"message":reason}}),
+            ),
         }
     }
 }
@@ -349,6 +379,12 @@ pub fn run(world: &SharedWorld, req: &Req, f: impl FnOnce(&mut Ctx) -> Res) -> R
     };
     match f(&mut ctx) {
         Ok(response) => response,
+        Err(ApiErr::Unavailable(reason)) => {
+            let operation =
+                mock_core::events::current().expect("capability faults have request context");
+            world.fail_operation(&operation, "unsupported_pagerduty_precision", &reason);
+            ApiErr::Unavailable(reason).into_response()
+        }
         Err(err) => err.into_response(),
     }
 }
@@ -358,7 +394,16 @@ fn base_url(headers: &HeaderMap) -> String {
         .get(header::HOST)
         .and_then(|v| v.to_str().ok())
         .unwrap_or("localhost");
-    format!("http://{host}")
+    let scheme = if host
+        .split(':')
+        .next()
+        .is_some_and(|name| name.eq_ignore_ascii_case("api.pagerduty.com"))
+    {
+        "https"
+    } else {
+        "http"
+    };
+    format!("{scheme}://{host}")
 }
 
 impl Ctx<'_> {
@@ -642,6 +687,20 @@ pub fn matches_query(q: Option<&str>, fields: &[&Value]) -> bool {
 // ---------------------------------------------------------------------------------------
 
 /// Parses RFC 3339 times, also accepting a missing offset (UTC) and bare dates.
+pub fn parse_exact_time(source: &str) -> Option<i128> {
+    let source = source.trim();
+    mock_core::clock::parse_rfc3339_nanos(source)
+        .or_else(|| mock_core::clock::parse_rfc3339_nanos(&format!("{source}Z")))
+        .or_else(|| {
+            mock_core::clock::parse_rfc3339_nanos(&format!("{}Z", source.replacen(' ', "T", 1)))
+        })
+        .or_else(|| {
+            (source.len() == 10)
+                .then(|| mock_core::clock::parse_rfc3339_nanos(&format!("{source}T00:00:00Z")))
+                .flatten()
+        })
+}
+
 pub fn parse_time(s: &str) -> Option<i64> {
     let s = s.trim();
     let parse = |t: &str| {
@@ -661,6 +720,22 @@ pub fn parse_time(s: &str) -> Option<i64> {
 
 pub fn time_of(doc: &Value, field: &str) -> Option<i64> {
     doc.get(field).and_then(Value::as_str).and_then(parse_time)
+}
+
+pub fn exact_time_of(doc: &Value, field: &str) -> Option<i128> {
+    doc.get(field)
+        .and_then(Value::as_str)
+        .and_then(parse_exact_time)
+}
+
+pub fn nanos(seconds: i64) -> i128 {
+    i128::from(seconds) * NANOS_PER_SECOND
+}
+
+pub fn format_exact_time(instant: i128) -> Result<String, ApiErr> {
+    mock_core::clock::format_rfc3339_nanos(instant).ok_or_else(|| {
+        ApiErr::Unavailable("The requested timestamp range cannot be rendered".into())
+    })
 }
 
 /// The value as a normalized UTC timestamp string, if it parses.

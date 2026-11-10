@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_annotations","arguments":{"dashboardUid":"checkout-prod","from":1794492300000,"tags":["deploy","checkout"],"to":1794492300000}}}

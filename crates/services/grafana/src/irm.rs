@@ -30,14 +30,14 @@ pub(crate) fn settings(ctx: &Ctx, req: &Req) -> Response {
         "dependencies": {"grafanaDependency": ">=11.3.0", "grafanaVersion": "*", "plugins": []},
         "latestVersion": "1.18.3", "hasUpdate": false, "defaultNavUrl": "/a/grafana-irm-app/alert-groups", "category": "", "state": "", "signature": "valid", "signatureType": "grafana", "signatureOrg": "Grafana Labs",
         "module": "public/plugins/grafana-irm-app/module.js", "baseUrl": "public/plugins/grafana-irm-app", "includes": [],
-        "jsonData": {"onCallApiUrl": format!("http://{}/oncall", req.host()), "stackId": 5, "orgId": 1, "license": "OpenSource"},
+        "jsonData": {"onCallApiUrl": format!("{}/oncall", req.origin()), "stackId": 5, "orgId": 1},
         "secureJsonFields": {"onCallApiToken": true},
     }))
 }
 
 // ───────────────────────────── OnCall public API ─────────────────────────────
 
-fn page(req: &Req, host: &str, path: &str, items: Vec<Value>) -> Value {
+fn page(req: &Req, origin: &str, path: &str, items: Vec<Value>) -> Value {
     let per_page = 50;
     let page = req
         .q("page")
@@ -51,7 +51,21 @@ fn page(req: &Req, host: &str, path: &str, items: Vec<Value>) -> Value {
         .skip((page - 1) * per_page)
         .take(per_page)
         .collect();
-    let link = |p: usize| json!(format!("http://{host}/oncall/api/v1/{path}/?page={p}"));
+    let link = |page: usize| {
+        let mut parameters: Vec<_> = req
+            .query
+            .iter()
+            .filter(|(name, _)| name != "page")
+            .map(|(name, value)| {
+                format!("{}={}", crate::url_encode(name), crate::url_encode(value))
+            })
+            .collect();
+        parameters.push(format!("page={page}"));
+        json!(format!(
+            "{origin}/oncall/api/v1/{path}/?{}",
+            parameters.join("&")
+        ))
+    };
     json!({
         "count": total,
         "next": if page < pages { link(page + 1) } else { Value::Null },
@@ -68,7 +82,7 @@ fn oncall_404() -> Response {
 }
 
 pub(crate) fn oncall(ctx: &mut Ctx, req: &Req, rest: &[&str]) -> Response {
-    let host = req.host();
+    let host = req.origin();
     let filtered = |coll: &str, field: &str, param: &str| -> Vec<Value> {
         ctx.coll(coll)
             .into_iter()
@@ -212,12 +226,28 @@ fn alert_group_action(ctx: &mut Ctx, id: &str, action: &str) -> Response {
         return oncall_404();
     };
     let now = ctx.now_str();
-    let user = ctx
-        .coll("oncall_users")
-        .into_iter()
-        .find(|(_, u)| u["role"] == "admin")
-        .map(|(id, _)| id)
-        .unwrap_or_default();
+    let current = ctx.user();
+    let user = if current["isServiceAccount"] == false {
+        let candidates: Vec<_> = ctx
+            .coll("oncall_users")
+            .into_iter()
+            .filter(|(_, person)| {
+                [("email", "email"), ("username", "login")].iter().any(
+                    |(person_field, current_field)| {
+                        current[current_field]
+                            .as_str()
+                            .is_some_and(|value| !value.is_empty() && person[person_field] == value)
+                    },
+                )
+            })
+            .collect();
+        match candidates.as_slice() {
+            [(_, person)] => person["id"].clone(),
+            _ => Value::Null,
+        }
+    } else {
+        Value::Null
+    };
     let state = g["state"].as_str().unwrap_or("new").to_owned();
     let err = |msg: &str| json(StatusCode::BAD_REQUEST, json!({"detail": msg}));
     match action {
@@ -230,7 +260,7 @@ fn alert_group_action(ctx: &mut Ctx, id: &str, action: &str) -> Response {
             }
             g["state"] = json!("acknowledged");
             g["acknowledged_at"] = json!(now);
-            g["acknowledged_by"] = json!(user);
+            g["acknowledged_by"] = user;
         }
         "unacknowledge" => {
             if state != "acknowledged" {
@@ -246,7 +276,7 @@ fn alert_group_action(ctx: &mut Ctx, id: &str, action: &str) -> Response {
             }
             g["state"] = json!("resolved");
             g["resolved_at"] = json!(now);
-            g["resolved_by"] = json!(user);
+            g["resolved_by"] = user;
         }
         "unresolve" => {
             if state != "resolved" {

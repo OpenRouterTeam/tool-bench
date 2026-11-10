@@ -18,6 +18,8 @@ use crate::{
         Ctx, Db, attributes, body_json, conflict, data, data_with_included, list_response, new_id,
         not_found, opt_str, redirect, relationship_id, str_field,
     },
+    execution::{self, ExecutionError},
+    representation,
     resources::{self, CANCELABLE, CONFIRMABLE},
     tarball,
 };
@@ -272,7 +274,7 @@ async fn create_run(State(world): State<SharedWorld>, body: Bytes) -> Response {
     };
     let mut guard = world.lock().expect("world lock");
     let world = &mut *guard;
-    let (ws, sv, vars, user) = {
+    let (ws, sv, vars, variable_records, user) = {
         let db = Db::new(world);
         let Some(ws) = db.get("workspaces", &ws_id).cloned() else {
             return not_found();
@@ -280,8 +282,12 @@ async fn create_run(State(world): State<SharedWorld>, body: Bytes) -> Response {
         let sv = opt_str(&ws, "current-state-version")
             .and_then(|s| db.get("state_versions", s))
             .cloned();
-        let vars: serde_json::Map<String, Value> = db
+        let variable_records: Vec<_> = db
             .filter("vars", |v| str_field(v, "workspace") == ws_id)
+            .into_iter()
+            .cloned()
+            .collect();
+        let vars: serde_json::Map<String, Value> = variable_records
             .iter()
             .map(|v| {
                 let value = if v.get("sensitive").and_then(Value::as_bool) == Some(true) {
@@ -293,7 +299,7 @@ async fn create_run(State(world): State<SharedWorld>, body: Bytes) -> Response {
             })
             .collect();
         let user = db.current_user().map(|u| str_field(u, "id").to_owned());
-        (ws, sv, vars, user)
+        (ws, sv, vars, variable_records, user)
     };
     let flag = |name: &str| attrs.get(name).and_then(Value::as_bool);
     let is_destroy = flag("is-destroy").unwrap_or(false);
@@ -352,10 +358,24 @@ async fn create_run(State(world): State<SharedWorld>, body: Bytes) -> Response {
             })
             .unwrap_or_default()
     } else {
-        ws.pointer("/simulated-plan/resource-changes")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default()
+        match execution::plan(
+            world.service(NAME).expect("Terraform initialized"),
+            &ws,
+            &variable_records,
+        ) {
+            Ok(changes) => changes,
+            Err(ExecutionError::Conflict(reason)) => return conflict("planning input", &reason),
+            Err(ExecutionError::Unsupported(reason)) => {
+                let operation = mock_core::events::current()
+                    .expect("planning capability failures have operation context");
+                world.fail_operation(&operation, "unsupported_terraform_planning", &reason);
+                return crate::common::error(
+                    StatusCode::NOT_IMPLEMENTED,
+                    "Operation unavailable",
+                    Some("Planning is unavailable for this Terraform connection."),
+                );
+            }
+        }
     };
     let (add, change, destroy) = count_actions(&changes);
     let has_changes = add + change + destroy > 0;
@@ -413,6 +433,12 @@ async fn create_run(State(world): State<SharedWorld>, body: Bytes) -> Response {
         "created-by": user,
         "confirmed-by": if status == "applied" { json!(user) } else { Value::Null },
         "input-variables": vars,
+        "input-bindings": variable_records.iter().map(|variable| json!({
+            "id":variable["id"],"key":variable["key"],"category":variable["category"],
+            "hcl":variable["hcl"],"sensitive":variable["sensitive"],
+            "value":if variable["sensitive"] == true {Value::Null} else {variable["value"].clone()},
+            "value-sha256":mock_core::provenance::canonical_sha256(&variable["value"])
+        })).collect::<Vec<_>>(),
     });
     let plan = json!({
         "id": plan_id,
@@ -425,6 +451,9 @@ async fn create_run(State(world): State<SharedWorld>, body: Bytes) -> Response {
         "resource-imports": 0,
         "status-timestamps": { "queued-at": now, "pending-at": now, "started-at": now, "finished-at": now },
         "resource-changes-detail": changes,
+        "base-state-version":sv.as_ref().map(|state| state["id"].clone()),
+        "base-serial":sv.as_ref().map(|state| state["serial"].clone()),
+        "base-lineage":sv.as_ref().map(|state| state["lineage"].clone()),
     });
     let apply_status = match status {
         "applied" => "finished",
@@ -447,13 +476,21 @@ async fn create_run(State(world): State<SharedWorld>, body: Bytes) -> Response {
     });
     {
         let store = &mut world.service_mut(NAME).store;
-        store.collection_mut("plans").insert(plan_id, plan);
+        store.collection_mut("plans").insert(plan_id.clone(), plan);
         store
             .collection_mut("runs")
             .insert(run_id.clone(), run.clone());
     }
     if status == "applied" {
-        let sv_id = finish_apply(world, &ws_id, &run_id, add, destroy, &now);
+        let sv_id = match finish_apply(world, &ws_id, &run_id, &now) {
+            Ok(identity) => identity,
+            Err(error) => {
+                let store = &mut world.service_mut(NAME).store;
+                store.collection_mut("plans").remove(&plan_id);
+                store.collection_mut("runs").remove(&run_id);
+                return execution_failure(world, error);
+            }
+        };
         apply["state-version"] = json!(sv_id);
     }
     world
@@ -461,6 +498,27 @@ async fn create_run(State(world): State<SharedWorld>, body: Bytes) -> Response {
         .store
         .collection_mut("applies")
         .insert(apply_id, apply);
+    let plan = Db::new(world)
+        .get("plans", &plan_id)
+        .expect("created plan")
+        .clone();
+    execution::record_plan_changes(world.service_mut(NAME), &plan);
+    for binding in run["input-bindings"]
+        .as_array()
+        .expect("captured run inputs")
+    {
+        let identity = format!("{run_id}/{}", str_field(binding, "id"));
+        let mut input = binding.clone();
+        input["variable"] = input["id"].clone();
+        input["id"] = json!(identity);
+        input["workspace"] = json!(ws_id);
+        input["run"] = json!(run_id);
+        world
+            .service_mut(NAME)
+            .store
+            .collection_mut("run_inputs")
+            .insert(identity, input);
+    }
     update_workspace_run_pointers(world, &ws_id, &run_id, plan_only, &now);
     let db = Db::new(world);
     let run = db.get("runs", &run_id).expect("run just created");
@@ -510,10 +568,8 @@ fn finish_apply(
     world: &mut WorldState,
     ws_id: &str,
     run_id: &str,
-    add: u64,
-    destroy: u64,
     now: &str,
-) -> String {
+) -> Result<String, ExecutionError> {
     let (prev, serial) = {
         let db = Db::new(world);
         let prev = db
@@ -530,13 +586,22 @@ fn finish_apply(
             + 1;
         (prev, serial)
     };
+    let previous = prev.unwrap_or_else(|| json!({ "outputs": [], "resources": [] }));
+    let plan = Db::new(world)
+        .get("runs", run_id)
+        .and_then(|run| opt_str(run, "plan"))
+        .and_then(|identity| Db::new(world).get("plans", identity))
+        .cloned()
+        .unwrap_or(Value::Null);
+    let mut sv = execution::apply(
+        world.service(NAME).expect("Terraform initialized"),
+        &previous,
+        &plan,
+    )?;
     let sv_id = new_id(world, "state_versions", "state_version", "sv-");
     let user = Db::new(world)
         .current_user()
         .map(|u| str_field(u, "id").to_owned());
-    let mut sv = prev
-        .clone()
-        .unwrap_or_else(|| json!({ "outputs": [], "resources": [] }));
     sv["id"] = json!(sv_id);
     sv["workspace"] = json!(ws_id);
     sv["run"] = json!(run_id);
@@ -554,23 +619,17 @@ fn finish_apply(
         .and_then(Value::as_bool)
         == Some(true);
     if is_destroy {
-        sv["resources"] = json!([]);
         sv["outputs"] = json!([]);
     }
-    let store = &mut world.service_mut(NAME).store;
+    let resource_count = sv["resource-instances"].as_array().map_or(0, Vec::len);
+    let service = world.service_mut(NAME);
+    execution::record_current_resources(service, ws_id, &sv);
+    let store = &mut service.store;
     store
         .collection_mut("state_versions")
         .insert(sv_id.clone(), sv);
     if let Some(ws) = store.collection_mut("workspaces").get_mut(ws_id) {
-        let count = ws
-            .get("resource-count")
-            .and_then(Value::as_u64)
-            .unwrap_or(0);
-        ws["resource-count"] = json!(if is_destroy {
-            0
-        } else {
-            (count + add).saturating_sub(destroy)
-        });
+        ws["resource-count"] = json!(resource_count);
         ws["current-state-version"] = json!(sv_id);
         ws["current-run"] = json!(run_id);
         if ws.pointer("/locked-by/id").and_then(Value::as_str) == Some(run_id) {
@@ -578,7 +637,23 @@ fn finish_apply(
             ws["locked-by"] = Value::Null;
         }
     }
-    sv_id
+    Ok(sv_id)
+}
+
+fn execution_failure(world: &mut WorldState, error: ExecutionError) -> Response {
+    match error {
+        ExecutionError::Conflict(reason) => conflict("state conflict", &reason),
+        ExecutionError::Unsupported(reason) => {
+            let operation = mock_core::events::current()
+                .expect("execution capability failures have operation context");
+            world.fail_operation(&operation, "unsupported_terraform_execution", &reason);
+            crate::common::error(
+                StatusCode::NOT_IMPLEMENTED,
+                "Operation unavailable",
+                Some("This execution is unavailable for this Terraform connection."),
+            )
+        }
+    }
 }
 
 fn comment_text(body: &Bytes) -> Option<String> {
@@ -606,7 +681,9 @@ async fn run_action(
         .map(|u| str_field(u, "id").to_owned());
     match action.as_str() {
         "apply" => {
-            if !CONFIRMABLE.contains(&status.as_str()) {
+            if run.get("plan-only").and_then(Value::as_bool) == Some(true)
+                || !CONFIRMABLE.contains(&status.as_str())
+            {
                 return conflict(
                     "transition not allowed",
                     "The run cannot be confirmed at this time.",
@@ -622,7 +699,10 @@ async fn run_action(
                 num("resource-changes"),
                 num("resource-destructions"),
             );
-            let sv_id = finish_apply(world, &ws_id, &id, add, destroy, &now);
+            let sv_id = match finish_apply(world, &ws_id, &id, &now) {
+                Ok(identity) => identity,
+                Err(error) => return execution_failure(world, error),
+            };
             let store = &mut world.service_mut(NAME).store;
             if let Some(r) = store.collection_mut("runs").get_mut(&id) {
                 r["status"] = json!("applied");
@@ -1019,63 +1099,6 @@ pub fn apply_log(db: &Db, apply: &Value) -> String {
     out
 }
 
-fn provider_of(address: &str) -> String {
-    let kind = address
-        .split('.')
-        .find(|seg| seg.contains('_'))
-        .unwrap_or(address);
-    let provider = kind.split('_').next().unwrap_or("null");
-    format!("registry.terraform.io/hashicorp/{provider}")
-}
-
-pub fn plan_json(db: &Db, plan: &Value) -> Value {
-    if let Some(json) = plan.get("json-output") {
-        return json.clone();
-    }
-    let run = opt_str(plan, "run").and_then(|r| db.get("runs", r));
-    let tf = run
-        .map(|r| str_field(r, "terraform-version").to_owned())
-        .filter(|v| !v.is_empty())
-        .unwrap_or_else(|| "1.9.5".to_owned());
-    let changes: Vec<Value> = changes_of(plan)
-        .iter()
-        .map(|c| {
-            let address = str_field(c, "address");
-            let (kind, name) = address
-                .rsplit_once('.')
-                .map(|(k, n)| (k.rsplit('.').next().unwrap_or(k).to_owned(), n.to_owned()))
-                .unwrap_or((address.to_owned(), String::new()));
-            json!({
-                "address": address,
-                "mode": "managed",
-                "type": kind,
-                "name": name,
-                "provider_name": provider_of(address),
-                "change": {
-                    "actions": c.get("actions").cloned().unwrap_or(json!(["no-op"])),
-                    "before": c.get("before").cloned().unwrap_or(Value::Null),
-                    "after": c.get("after").cloned().unwrap_or(Value::Null),
-                    "after_unknown": {},
-                    "before_sensitive": {},
-                    "after_sensitive": {}
-                }
-            })
-        })
-        .collect();
-    let errored = str_field(plan, "status") == "errored";
-    json!({
-        "format_version": "1.2",
-        "terraform_version": tf,
-        "planned_values": { "root_module": {} },
-        "resource_changes": changes,
-        "configuration": { "root_module": {} },
-        "timestamp": plan.pointer("/status-timestamps/finished-at").cloned().unwrap_or(Value::Null),
-        "applyable": plan.get("has-changes").cloned().unwrap_or(json!(false)),
-        "complete": !errored,
-        "errored": errored
-    })
-}
-
 // ---------------------------------------------------------------- policy checks
 
 async fn list_policy_checks(
@@ -1227,45 +1250,28 @@ fn sliced_log(text: &str, ctx: &Ctx) -> Response {
         .into_response()
 }
 
-fn state_file(db: &Db, sv: &Value) -> Value {
-    let ws = opt_str(sv, "workspace").and_then(|w| db.get("workspaces", w));
-    let outputs: serde_json::Map<String, Value> = sv
-        .get("outputs")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .map(|o| {
-            (
-                str_field(o, "name").to_owned(),
-                json!({ "value": o.get("value").cloned().unwrap_or(Value::Null), "type": o.get("type").cloned().unwrap_or(json!("string")), "sensitive": o.get("sensitive").cloned().unwrap_or(json!(false)) }),
-            )
-        })
-        .collect();
-    let resources: Vec<Value> = sv
-        .get("resources")
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .map(|r| {
-            let count = r.get("count").and_then(Value::as_u64).unwrap_or(1);
-            json!({
-                "mode": "managed",
-                "type": str_field(r, "type"),
-                "name": str_field(r, "name"),
-                "provider": format!("provider[\"{}\"]", str_field(r, "provider")),
-                "instances": (0..count).map(|i| json!({ "index_key": if count > 1 { json!(i) } else { Value::Null }, "schema_version": 0, "attributes": {} })).collect::<Vec<_>>()
-            })
-        })
-        .collect();
-    json!({
+fn state_file(sv: &Value) -> Result<Value, String> {
+    let resources = execution::state_resources(sv)?;
+    Ok(json!({
         "version": 4,
         "terraform_version": str_field(sv, "terraform-version"),
         "serial": sv.get("serial").cloned().unwrap_or(json!(1)),
-        "lineage": crate::common::hex_digest(ws.map(|w| str_field(w, "id")).unwrap_or("")),
-        "outputs": outputs,
+        "lineage": sv["lineage"],
+        "outputs": representation::outputs(sv),
         "resources": resources,
         "check_results": null
-    })
+    }))
+}
+
+fn unavailable_representation(world: &mut WorldState, reason: &str) -> Response {
+    let operation = mock_core::events::current()
+        .expect("representation capability failures have operation context");
+    world.fail_operation(&operation, "unsupported_terraform_representation", reason);
+    crate::common::error(
+        StatusCode::NOT_IMPLEMENTED,
+        "Operation unavailable",
+        Some("This representation is unavailable for this Terraform connection."),
+    )
 }
 
 async fn archivist_object(
@@ -1273,7 +1279,7 @@ async fn archivist_object(
     Path(key): Path<String>,
     ctx: Ctx,
 ) -> Response {
-    let world = world.lock().expect("world lock");
+    let mut world = world.lock().expect("world lock");
     let db = Db::new(&world);
     let json_body = |v: Value| {
         (
@@ -1297,16 +1303,28 @@ async fn archivist_object(
     }
     if let Some(id) = key.strip_prefix("plan-json-") {
         return match db.get("plans", id) {
-            Some(p) => json_body(plan_json(&db, p)),
+            Some(plan) => match representation::plan_json(&db, plan) {
+                Ok(value) => json_body(value),
+                Err(reason) => unavailable_representation(&mut world, &reason),
+            },
             None => not_found(),
         };
     }
-    if let Some(id) = key
-        .strip_prefix("state-json-")
-        .or_else(|| key.strip_prefix("state-"))
-    {
+    if let Some(id) = key.strip_prefix("state-json-") {
         return match db.get("state_versions", id) {
-            Some(sv) => json_body(state_file(&db, sv)),
+            Some(state) => match representation::state_json(state) {
+                Ok(value) => json_body(value),
+                Err(reason) => unavailable_representation(&mut world, &reason),
+            },
+            None => not_found(),
+        };
+    }
+    if let Some(id) = key.strip_prefix("state-") {
+        return match db.get("state_versions", id) {
+            Some(sv) => match state_file(sv) {
+                Ok(value) => json_body(value),
+                Err(reason) => unavailable_representation(&mut world, &reason),
+            },
             None => not_found(),
         };
     }
@@ -1317,7 +1335,11 @@ async fn archivist_object(
         let Some(plan) = db.get("plans", str_field(export, "plan")) else {
             return not_found();
         };
-        let bundle = tarball::sentinel_mock_bundle(&plan_json(&db, plan), world.clock.now_unix());
+        let plan = match representation::plan_json(&db, plan) {
+            Ok(plan) => plan,
+            Err(reason) => return unavailable_representation(&mut world, &reason),
+        };
+        let bundle = tarball::sentinel_mock_bundle(&plan, world.clock.now_unix());
         return (
             StatusCode::OK,
             [(header::CONTENT_TYPE, "application/x-gzip")],

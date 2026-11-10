@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/terraform/approve-nat-gateway-change",
+  "scenario_sha256": "sha256:b76d9df57e2d1f23f3c8fc77e25452f9190be51c7c71fd486839c1761ac412bb",
+  "dataset_sha256": "sha256:bcfd6a353b7e5d509ad0308a2220e906007a61b2b4df043f99b6d99602e3e57c",
+  "contract_sha256": "sha256:de3e47cc4eefefc281d24ffe81f8c75e91f9347716ddaf34ab9fb72102cef9f5"
+}

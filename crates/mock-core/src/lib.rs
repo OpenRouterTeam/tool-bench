@@ -1,17 +1,38 @@
 //! Shared building blocks for tool-bench mock APIs: a logical clock, deterministic IDs,
 //! an in-memory document store, scenario datasets, request journaling, and HTTP helpers.
 
+pub mod access;
 pub mod admin;
 pub mod clock;
 pub mod dataset;
+mod decimal;
+pub use decimal::exact_integer;
 pub mod error;
+pub mod events;
+pub mod evidence;
+mod field_patterns;
 pub mod grading;
 pub mod http;
 pub mod ids;
 pub mod journal;
+pub mod json_pointer;
+mod json_value;
+pub mod label_matchers;
+pub mod lifecycle;
 pub mod mcp;
+pub mod monitor_schedule;
+pub mod preservation;
+pub mod provenance;
+pub mod quantity;
+pub mod relations;
+pub mod request;
+pub mod review;
+mod rich_text;
+pub mod runner;
 pub mod serve;
 pub mod service;
+pub mod sheet_date;
 pub mod startup;
 pub mod store;
+mod url_host;
 pub mod world;

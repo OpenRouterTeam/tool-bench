@@ -66,6 +66,51 @@ fn state(world: &SharedWorld) -> Value {
     world.lock().unwrap().snapshot()["services"]["shopify"].clone()
 }
 
+#[tokio::test]
+async fn activation_without_publication_does_not_manufacture_store_visibility() {
+    let (world, app) = setup();
+    let result = gql(
+        &app,
+        "productUpdate",
+        json!({"input": {
+            "id": "gid://shopify/Product/8102", "status": "ACTIVE"
+        }}),
+    )
+    .await;
+    assert_eq!(result["data"]["productUpdate"]["userErrors"], json!([]));
+    assert!(state(&world)["products"]["8102"]["publishedAt"].is_null());
+    let result = gql_raw(
+        &app,
+        "query { product(id: \"gid://shopify/Product/8102\") { status onlineStoreUrl publishedAt } }",
+        json!({}),
+    ).await;
+    assert_eq!(result["data"]["product"]["status"], "ACTIVE");
+    assert!(result["data"]["product"]["onlineStoreUrl"].is_null());
+    assert!(result["data"]["product"]["publishedAt"].is_null());
+}
+
+#[tokio::test]
+async fn creating_an_active_product_is_not_a_publication_operation() {
+    let (world, app) = setup();
+    let result = gql(
+        &app,
+        "productCreate",
+        json!({"product": {
+            "title": "Unpublished active product", "status": "ACTIVE"
+        }}),
+    )
+    .await;
+    assert_eq!(result["data"]["productCreate"]["userErrors"], json!([]));
+    let snapshot = state(&world);
+    let product = snapshot["products"]
+        .as_object()
+        .unwrap()
+        .values()
+        .find(|product| product["title"] == "Unpublished active product")
+        .unwrap();
+    assert!(product["publishedAt"].is_null());
+}
+
 fn setup() -> (SharedWorld, Router) {
     let w = world();
     let app = service_app(w.clone(), &Shopify);
@@ -433,7 +478,7 @@ async fn order_update_writes_state() {
     assert_eq!(order["note"], "Leave with concierge");
     assert_eq!(order["tags"], json!(["VIP", "priority"]));
     assert_eq!(order["shippingAddress"]["provinceCode"], "TX");
-    assert_eq!(order["updatedAt"], "2026-05-04T15:00:07Z");
+    assert_eq!(order["updatedAt"], "2026-05-04T15:00:00Z");
 
     let missing = gql(
         &app,
@@ -526,6 +571,13 @@ async fn customer_update_writes_state_and_validates() {
 #[tokio::test]
 async fn product_create_update_and_delete() {
     let (w, app) = setup();
+    let original_options: Vec<_> = state(&w)["products"]
+        .as_object()
+        .unwrap()
+        .values()
+        .flat_map(|product| product["options"].as_array().unwrap().iter())
+        .map(|option| option["id"].clone())
+        .collect();
     let r = gql(&app, "productCreate", json!({"product": {
         "title": "Harbor Canvas Tote",
         "status": "DRAFT",
@@ -539,11 +591,13 @@ async fn product_create_update_and_delete() {
     assert_eq!(p["id"], "gid://shopify/Product/8104");
     assert_eq!(p["handle"], "harbor-canvas-tote-1");
     assert_eq!(p["vendor"], "Octo Corp");
+    let created = &state(&w)["products"]["8104"];
+    let option = &created["options"][0]["id"];
+    assert!(!original_options.contains(option));
     assert_eq!(
         p["options"],
-        json!([{"id": "gid://shopify/ProductOption/53", "name": "Size", "values": ["Mini", "Large"]}])
+        json!([{"id": format!("gid://shopify/ProductOption/{}", option.as_u64().unwrap()), "name": "Size", "values": ["Mini", "Large"]}])
     );
-    let created = &state(&w)["products"]["8104"];
     assert_eq!(created["variants"][0]["title"], "Mini");
     assert_eq!(created["variants"][0]["price"], "0.00");
     assert_eq!(created["collections"], json!([301]));
@@ -578,10 +632,7 @@ async fn product_create_update_and_delete() {
     );
     let s = state(&w);
     assert_eq!(s["products"]["8102"]["status"], "ACTIVE");
-    assert_eq!(
-        s["products"]["8102"]["publishedAt"],
-        s["products"]["8102"]["updatedAt"]
-    );
+    assert!(s["products"]["8102"]["publishedAt"].is_null());
     assert_eq!(s["products"]["8102"]["collections"], json!([302]));
     let clash = gql(
         &app,
@@ -901,6 +952,6 @@ async fn queries_do_not_change_state_and_mutations_are_deterministic() {
     let a = run().await;
     let b = run().await;
     assert_eq!(a, b);
-    assert_eq!(a["products"]["8104"]["createdAt"], "2026-05-04T15:00:14Z");
+    assert_eq!(a["products"]["8104"]["createdAt"], "2026-05-04T15:00:00Z");
     assert_eq!(a["products"]["8104"]["handle"], "tide-pool-mug");
 }

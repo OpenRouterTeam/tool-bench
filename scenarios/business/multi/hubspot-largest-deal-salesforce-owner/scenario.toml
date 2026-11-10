@@ -14,6 +14,10 @@ timeout_sec = 1200
 # Elena Sokolova). Its open cases are 00002107 (Working) and 00002113 (Escalated); 00002101 is
 # closed. Look-alike accounts Northwind Traders (00002109) and Northwind Freight Brokers
 # (00002111) have open cases of their own.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["Northwind Logistics", "Daniel Okafor", "00002107", "00002113"]
 

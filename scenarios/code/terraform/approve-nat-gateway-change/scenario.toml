@@ -7,52 +7,97 @@ services = ["terraform"]
 tags = ["single-service", "write", "terraform"]
 timeout_sec = 900
 
-# The production run awaiting confirmation is applied with the change reference as comment.
-[[expect.state]]
-pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status"
-equals = "applied"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/confirm-comment"
-contains = "CHG-2291"
+[[expect.records]]
+selector = { collection = "/services/terraform/runs", matching = { id = "run-1q2oy8I2MqSd5oM4" } }
+equals = 1
+fields = { "/status" = "applied", "/confirm-comment" = "Approved per CHG-2291" }
 
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/locked"
-equals = false
+[[expect.records]]
+selector = { collection = "/services/terraform/workspaces", matching = { id = "ws-X6Cm5W6LhJnKhlo2" } }
+equals = 1
+fields = { "/locked" = false }
+null_fields = ["/locked-by"]
 
-# The staging run with the identical message stays pending review.
-[[expect.state]]
-pointer = "/services/terraform/runs/run-blTtGlrNXHe62r7y/status"
-equals = "planned"
+[[expect.records]]
+selector = { collection = "/services/terraform/managed_resources", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_eip.nat_b" }, field_patterns = { "/attributes/id" = "^.+$" } }
+equals = 1
+fields = { "/attributes/domain" = "vpc", "/attributes/tags/Name" = "core-prod-nat-b" }
 
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-aM6dcH7sRwt97v2D/locked"
-equals = true
+[[expect.records]]
+selector = { collection = "/services/terraform/managed_resources", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_nat_gateway.b" }, field_patterns = { "/attributes/id" = "^.+$" } }
+equals = 1
+fields = { "/attributes/connectivity_type" = "public", "/attributes/subnet_id" = "subnet-0e1f2a3b4c5d6e7f8" }
 
-[[expect.required_calls]]
-service = "terraform"
-method = "POST"
-path = "/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply"
+[[expect.records]]
+selector = { collection = "/services/terraform/state_versions", created = true, matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", run = "run-1q2oy8I2MqSd5oM4", status = "finalized" } }
+equals = 1
+integer_bounds = { "/serial" = { min = 97, max = 9223372036854775807 } }
 
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path_regex = "^/api/v2/runs/run-blTtGlrNXHe62r7y/actions/"
+[[expect.relations]]
+source = { collection = "/services/terraform/managed_resources", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_nat_gateway.b" } }
+source_field = "/attributes/allocation_id"
+target = { collection = "/services/terraform/managed_resources", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_eip.nat_b" } }
+target_field = "/attributes/id"
 
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/(discard|cancel|force-cancel)$"
+[[expect.relations]]
+source = { collection = "/services/terraform/managed_resources", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_route_table.private[1]" } }
+source_field = "/attributes/nat_gateway_id"
+target = { collection = "/services/terraform/managed_resources", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_nat_gateway.b" } }
+target_field = "/attributes/id"
 
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path_regex = "^/api/v2/workspaces/[^/]+/actions/"
+[[expect.relations]]
+source = { collection = "/services/terraform/workspaces", matching = { id = "ws-X6Cm5W6LhJnKhlo2" } }
+source_field = "/current-state-version"
+target = { collection = "/services/terraform/state_versions", created = true, matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", run = "run-1q2oy8I2MqSd5oM4" } }
+target_field = "/id"
 
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path = "/api/v2/runs"
+[[expect.relations]]
+source = { collection = "/services/terraform/applies", matching = { id = "apply-rGXcdrhL17Kg8DnD", run = "run-1q2oy8I2MqSd5oM4", status = "finished" } }
+source_field = "/state-version"
+target = { collection = "/services/terraform/state_versions", created = true, matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", run = "run-1q2oy8I2MqSd5oM4" } }
+target_field = "/id"
+
+[[expect.relations]]
+source = { collection = "/services/terraform/state_versions", created = true, matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", run = "run-1q2oy8I2MqSd5oM4" } }
+source_field = "/lineage"
+target = { collection = "/services/terraform/state_versions", matching = { id = "sv-2HkRH31vgu6V7Nh1" } }
+target_field = "/lineage"
+
+[[expect.relations]]
+kind = "count_equals"
+source = { collection = "/services/terraform/managed_resources", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2" } }
+source_field = "/address"
+target = { collection = "/services/terraform/workspaces", matching = { id = "ws-X6Cm5W6LhJnKhlo2" } }
+target_field = "/resource-count"
+
+[expect.preservation]
+allow = [
+  { pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status", matching = { status = "applied" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/confirm-comment", matching = { confirm-comment = "Approved per CHG-2291" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/confirmed-by", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status-timestamps/confirmed-at", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status-timestamps/apply-queued-at", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status-timestamps/applying-at", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status-timestamps/applied-at", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/status", matching = { status = "finished" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/resource-additions", numeric_fields = { "/resource-additions" = 2 }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/resource-changes", numeric_fields = { "/resource-changes" = 1 }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/resource-destructions", numeric_fields = { "/resource-destructions" = 0 }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/status-timestamps", matching = { status = "finished" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/state-version", references = [{ source_field = "/state-version", target_field = "/id", target = { collection = "/services/terraform/state_versions", created = true, matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", run = "run-1q2oy8I2MqSd5oM4" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/locked", matching = { locked = false }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/locked-by", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/resource-count", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/current-state-version", references = [{ source_field = "/current-state-version", target_field = "/id", target = { collection = "/services/terraform/state_versions", created = true, matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", run = "run-1q2oy8I2MqSd5oM4" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/state_versions/*", kind = "create", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", run = "run-1q2oy8I2MqSd5oM4", status = "finalized" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/managed_resources/ws-X6Cm5W6LhJnKhlo2~1aws_eip.nat_b", kind = "create", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_eip.nat_b", type = "aws_eip", name = "nat_b" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/managed_resources/ws-X6Cm5W6LhJnKhlo2~1aws_nat_gateway.b", kind = "create", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_nat_gateway.b", type = "aws_nat_gateway", name = "b" }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+  { pointer = "/services/terraform/managed_resources/ws-X6Cm5W6LhJnKhlo2~1aws_route_table.private[1]/attributes/nat_gateway_id", references = [{ source_field = "/attributes/nat_gateway_id", target_field = "/attributes/id", target = { collection = "/services/terraform/managed_resources", matching = { workspace = "ws-X6Cm5W6LhJnKhlo2", address = "aws_nat_gateway.b" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$" } },
+]
 
 [[solution.call]]
 endpoint = "terraform"
@@ -63,3 +108,8 @@ arguments = { terraform_org_name = "acme-platform", workspace_name = "network-co
 endpoint = "terraform"
 tool = "action_run"
 arguments = { run_action = "apply", run_id = "run-1q2oy8I2MqSd5oM4", comment = "Approved per CHG-2291" }
+
+[[solution.call]]
+endpoint = "terraform"
+tool = "get_run_details"
+arguments = { run_id = "run-1q2oy8I2MqSd5oM4" }

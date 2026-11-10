@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/github/triage-duplicate-charge",
+  "scenario_sha256": "sha256:182ca8081b0320ee687be3981711df715cba1f28c803b64ccc89ad6f310f00bc",
+  "dataset_sha256": "sha256:1aa869d8785a56926269b80785d0fa031fb2a05f257d1b504f5df9ad07a085a8",
+  "contract_sha256": "sha256:56e0cd4c4139126c9b7f088fd23c8cbbfe0ffada736240cc158360499aca0b87"
+}

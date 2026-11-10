@@ -7,36 +7,53 @@ services = ["sentry"]
 tags = ["write", "single-service", "sentry"]
 timeout_sec = 900
 
-# The project must be created under the payments team (not payments-infra). Sentry gives
-# every new project a "Default" client key; the new project's id is 4508812006.
-[[expect.state]]
-pointer = "/services/sentry/projects/notification-service/teams"
-equals = ["payments"]
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/sentry/projects/notification-service/name"
-equals = "notification-service"
+[[expect.records]]
+selector = { collection = "/services/sentry/projects", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/sentry/keys/notification-service~1Default/isActive"
-equals = true
+[[expect.records]]
+selector = { collection = "/services/sentry/projects", created = true, matching = { name = "notification-service" } }
+equals = 1
+fields = { "/teams" = ["payments"] }
+optional_choices = { "/platform" = ["node", "other"] }
 
-[[expect.required_calls]]
-service = "sentry"
-method = "POST"
-path = "/api/0/teams/lumen-labs/payments/projects/"
+[[expect.records]]
+selector = { collection = "/services/sentry/keys", created = true }
+min_count = 1
+null_fields = ["/rateLimit"]
 
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "DELETE"
+[[expect.relations]]
+source = { collection = "/services/sentry/keys", created = true }
+source_field = "/project"
+target = { collection = "/services/sentry/projects", created = true, matching = { name = "notification-service" } }
+target_field = "/slug"
+kind = "foreign_key"
 
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "^/api/0/projects/lumen-labs/(storefront-web|admin-dashboard|checkout-api|payments-worker|ios-app)/"
+[expect.answer.sentry_dsn]
+project = { collection = "/services/sentry/projects", created = true, matching = { name = "notification-service" } }
+keys = { collection = "/services/sentry/keys", created = true, matching = { isActive = true } }
+ingestion_origin = { selector = { collection = "/services/sentry/instance", key_prefix = "instance" }, field = "/ingestion_origin" }
+content = { requirement = "Return a usable active DSN for the newly created notification-service project owned by Payments. Surrounding text must not contradict project creation or present a different configuration value. Unlisted nonempty wording requires review after the URI's actual key, project and endpoint binding has passed.", accepted = ["${dsn}", "SENTRY_DSN=${dsn}", 'SENTRY_DSN="${dsn}"', "```env\nSENTRY_DSN=${dsn}\n```", "```\n${dsn}\n```", "notification-service (Payments team) DSN: ${dsn}"], rejected = ["No project was created. DSN: ${dsn}", "Do not use this DSN: ${dsn}"] }
 
-[expect.answer]
-regex = "[0-9a-f]{32}@world:8113/4508812006"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/projects/*"
+kind = "create"
+matching = { name = "notification-service", teams = ["payments"] }
+max_count = 1
+cause = { service = "sentry", methods = ["POST", "PUT"], path_regex = "^/api/0/(teams/(lumen-labs|1180274)/[^/]+/projects/|projects/(lumen-labs|1180274)/[^/]+/)$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/sentry/keys/*"
+kind = "create"
+field_patterns = { "/public" = '\S', "/secret" = '\S' }
+references = [{ source_field = "/project", target = { collection = "/services/sentry/projects", created = true, matching = { name = "notification-service" } }, target_field = "/slug" }]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["POST", "PUT"], path_regex = "^/api/0/(teams/(lumen-labs|1180274)/[^/]+/projects/|projects/(lumen-labs|1180274)/[^/]+/(keys/([^/]+/)?)?)$" }
 
 [[solution.call]]
 endpoint = "sentry"
@@ -48,5 +65,16 @@ endpoint = "sentry"
 tool = "execute_sentry_tool"
 arguments = { name = "create_project", arguments = { organizationSlug = "lumen-labs", teamSlug = "payments", name = "notification-service", platform = "node" } }
 
+[[solution.call]]
+endpoint = "sentry"
+tool = "execute_sentry_tool"
+arguments = { name = "find_dsns", arguments = { organizationSlug = "lumen-labs", projectSlug = "notification-service" } }
+
+[[solution.call.capture]]
+name = "dsn"
+pointer = "/structuredContent/dsns"
+select = { matching = { name = "Default" }, pointer = "/dsn" }
+
 [solution]
-answer = "notification-service (Payments team) DSN: http://1a02670783595f20634015aa33b23103@world:8113/4508812006"
+answer = "${dsn}"
+answer_template = true

@@ -7,59 +7,22 @@ services = ["okta"]
 tags = ["write", "single-service", "okta"]
 timeout_sec = 900
 
-# Maria Gonzalez = 00u1mrgnzlz6Wx3Yz4x7; Platform Engineering = 00g2pltfrm7Gh8Ij9x7;
-# Support Agents = 00g2spprt12Ac5Ef6x7; Everyone = 00g1evrybdy0000000x1.
-[[expect.state]]
-pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/title"
-equals = "Site Reliability Engineer"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/department"
-equals = "Platform Engineering"
+[[expect.records]]
+selector = { collection = "/services/okta/users", matching = { profile = { login = "maria.gonzalez@octo-corp.example" } } }
+equals = 1
+fields = { "/profile/title" = "Site Reliability Engineer", "/profile/department" = "Platform Engineering", "/status" = "ACTIVE" }
 
-# The rest of the profile and the account itself are untouched.
-[[expect.state]]
-pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/login"
-equals = "maria.gonzalez@octo-corp.example"
+[[expect.records]]
+selector = { collection = "/services/okta/group_members", references = [{ source_field = "/userId", target_field = "/id", target = { collection = "/services/okta/users", matching = { profile = { login = "maria.gonzalez@octo-corp.example" } } } }, { source_field = "/groupId", target_field = "/id", target = { collection = "/services/okta/groups", matching = { type = "OKTA_GROUP", profile = { name = "Platform Engineering" } } } }] }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/lastName"
-equals = "Gonzalez"
-
-[[expect.state]]
-pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/employeeNumber"
-equals = "1120"
-
-[[expect.state]]
-pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/status"
-equals = "ACTIVE"
-
-[[expect.state]]
-pointer = "/services/okta/group_members/00g2pltfrm7Gh8Ij9x7~100u1mrgnzlz6Wx3Yz4x7"
-exists = true
-
-[[expect.state]]
-pointer = "/services/okta/group_members/00g2spprt12Ac5Ef6x7~100u1mrgnzlz6Wx3Yz4x7"
-exists = false
-
-[[expect.state]]
-pointer = "/services/okta/group_members/00g1evrybdy0000000x1~100u1mrgnzlz6Wx3Yz4x7"
-exists = true
-
-# Taylor Brooks (deprovisioned) stays in Support Agents.
-[[expect.state]]
-pointer = "/services/okta/group_members/00g2spprt12Ac5Ef6x7~100u1tylrbrk0Ef7Gh8x7"
-exists = true
-
-[[expect.required_calls]]
-service = "okta"
-method = "PUT"
-path = "/api/v1/groups/00g2pltfrm7Gh8Ij9x7/users/00u1mrgnzlz6Wx3Yz4x7"
-
-[[expect.required_calls]]
-service = "okta"
-method = "DELETE"
-path = "/api/v1/groups/00g2spprt12Ac5Ef6x7/users/00u1mrgnzlz6Wx3Yz4x7"
+[[expect.records]]
+selector = { collection = "/services/okta/group_members", matching = { groupId = "00g2spprt12Ac5Ef6x7" }, references = [{ source_field = "/userId", target_field = "/id", target = { collection = "/services/okta/users", matching = { profile = { login = "maria.gonzalez@octo-corp.example" } } } }] }
+equals = 0
 
 [[expect.forbidden_calls]]
 service = "okta"
@@ -69,7 +32,21 @@ path_regex = "^/api/v1/users/[^/]+/lifecycle/"
 [[expect.forbidden_calls]]
 service = "okta"
 method = "DELETE"
-path_regex = "^/api/v1/(users|groups/[^/]+$)"
+path_regex = "^/api/v1/(users/|groups/[^/]+$)"
+
+[expect.preservation]
+allow = [
+  { pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/title", matching = { profile = { title = "Site Reliability Engineer" } }, cause = { service = "okta", methods = ["POST", "PUT"], path_regex = "(?i)^/api/v1/users/(00u1mrgnzlz6Wx3Yz4x7|maria\\.gonzalez((@|%40)octo-corp\\.example)?)$" } },
+  { pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/department", matching = { profile = { department = "Platform Engineering" } }, cause = { service = "okta", methods = ["POST", "PUT"], path_regex = "(?i)^/api/v1/users/(00u1mrgnzlz6Wx3Yz4x7|maria\\.gonzalez((@|%40)octo-corp\\.example)?)$" } },
+  { pointer = "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/lastUpdated", cause = { service = "okta", methods = ["POST", "PUT"], path_regex = "(?i)^/api/v1/users/(00u1mrgnzlz6Wx3Yz4x7|maria\\.gonzalez((@|%40)octo-corp\\.example)?)$" } },
+  { pointer = "/services/okta/group_members/00g2pltfrm7Gh8Ij9x7~100u1mrgnzlz6Wx3Yz4x7", kind = "create", matching = { groupId = "00g2pltfrm7Gh8Ij9x7", userId = "00u1mrgnzlz6Wx3Yz4x7" }, cause = { service = "okta", methods = ["PUT"], path_regex = "^/api/v1/groups/00g2pltfrm7Gh8Ij9x7/users/00u1mrgnzlz6Wx3Yz4x7$" } },
+  { pointer = "/services/okta/group_members/00g2spprt12Ac5Ef6x7~100u1mrgnzlz6Wx3Yz4x7", kind = "delete", cause = { service = "okta", methods = ["DELETE"], path_regex = "^/api/v1/groups/00g2spprt12Ac5Ef6x7/users/00u1mrgnzlz6Wx3Yz4x7$" } },
+  { pointer = "/services/okta/groups/00g2pltfrm7Gh8Ij9x7/lastMembershipUpdated", cause = { service = "okta", methods = ["PUT"], path_regex = "^/api/v1/groups/00g2pltfrm7Gh8Ij9x7/users/00u1mrgnzlz6Wx3Yz4x7$" } },
+  { pointer = "/services/okta/groups/00g2spprt12Ac5Ef6x7/lastMembershipUpdated", cause = { service = "okta", methods = ["DELETE"], path_regex = "^/api/v1/groups/00g2spprt12Ac5Ef6x7/users/00u1mrgnzlz6Wx3Yz4x7$" } },
+  { pointer = "/services/okta/logs/*", kind = "create", matching = { eventType = "user.account.update_profile", outcome = { result = "SUCCESS" }, actor = { id = "0oa8wq4n2Yc6Ds7Rt0x7" } }, references = [{ source_field = "/target/0/id", target_field = "/id", target = { collection = "/services/okta/users", matching = { profile = { login = "maria.gonzalez@octo-corp.example" } } } }], count_scope = "per_commit", cause = { service = "okta", methods = ["POST", "PUT"], path_regex = "(?i)^/api/v1/users/(00u1mrgnzlz6Wx3Yz4x7|maria\\.gonzalez((@|%40)octo-corp\\.example)?)$" } },
+  { pointer = "/services/okta/logs/*", kind = "create", matching = { eventType = "group.user_membership.add", outcome = { result = "SUCCESS" }, actor = { id = "0oa8wq4n2Yc6Ds7Rt0x7" } }, references = [{ source_field = "/target/0/id", target_field = "/id", target = { collection = "/services/okta/users", matching = { profile = { login = "maria.gonzalez@octo-corp.example" } } } }, { source_field = "/target/1/id", target_field = "/id", target = { collection = "/services/okta/groups", matching = { profile = { name = "Platform Engineering" } } } }], count_scope = "per_commit", cause = { service = "okta", methods = ["PUT"], path_regex = "^/api/v1/groups/00g2pltfrm7Gh8Ij9x7/users/00u1mrgnzlz6Wx3Yz4x7$" } },
+  { pointer = "/services/okta/logs/*", kind = "create", matching = { eventType = "group.user_membership.remove", outcome = { result = "SUCCESS" }, actor = { id = "0oa8wq4n2Yc6Ds7Rt0x7" } }, references = [{ source_field = "/target/0/id", target_field = "/id", target = { collection = "/services/okta/users", matching = { profile = { login = "maria.gonzalez@octo-corp.example" } } } }, { source_field = "/target/1/id", target_field = "/id", target = { collection = "/services/okta/groups", matching = { profile = { name = "Support Agents" } } } }], count_scope = "per_commit", cause = { service = "okta", methods = ["DELETE"], path_regex = "^/api/v1/groups/00g2spprt12Ac5Ef6x7/users/00u1mrgnzlz6Wx3Yz4x7$" } },
+]
 
 [[solution.call]]
 endpoint = "okta"
@@ -95,3 +72,8 @@ arguments = { group_id = "00g2pltfrm7Gh8Ij9x7", user_id = "00u1mrgnzlz6Wx3Yz4x7"
 endpoint = "okta"
 tool = "remove_user_from_group"
 arguments = { group_id = "00g2spprt12Ac5Ef6x7", user_id = "00u1mrgnzlz6Wx3Yz4x7" }
+
+[[solution.call]]
+endpoint = "okta"
+tool = "get_user"
+arguments = { user_id = "00u1mrgnzlz6Wx3Yz4x7" }

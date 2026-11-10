@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/salesforce/close-won-kestrel-renewal",
+  "scenario_sha256": "sha256:fd517354205c15c5e4e578d9bc36026514dc9b3c9acfae9c4714be9a06f4aba3",
+  "dataset_sha256": "sha256:4ec5ea35937ade1534f6441cd8f82b7e368faec5e0aceaa4e84211fc03b59c6c",
+  "contract_sha256": "sha256:48c5ed236ff192fa1ac5e9fd9d8a1d51ad3c3081d8a075e200257ebd9df5ac91"
+}

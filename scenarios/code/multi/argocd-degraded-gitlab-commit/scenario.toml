@@ -13,6 +13,10 @@ timeout_sec = 1200
 # while the always-run promote job still pushed the deploy commit. Distractors: the Degraded
 # staging twin (missing env var), the green rc2 pipeline 7698, and pipeline 7716 on main that
 # failed in lint.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["checkout-web", "2.14.0-rc3", "7712", "image-publish"]
 regex = "(?is)(denied|permission_denied|expired|scopes)"

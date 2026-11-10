@@ -7,6 +7,8 @@
 #   MODEL=anthropic/claude-haiku-5.5 (default)      results in $OUT (default /tmp/tool-bench-smoke)
 set -u
 M="$(cd "$(dirname "$0")/.." && pwd)"
+. "$M/deploy/host-agent-guard.sh"
+guard_host_agent || exit "$?"
 MODEL=${MODEL:-anthropic/claude-haiku-5.5}
 OUT=${OUT:-/tmp/tool-bench-smoke}; mkdir -p "$OUT"
 NET=tb-smoke
@@ -17,7 +19,7 @@ for id in "$@"; do
   docker rm -f tbs-world tbs-tools >/dev/null 2>&1; docker network rm $NET >/dev/null 2>&1
   docker network create $NET >/dev/null
   aliases=""; for h in $(cd $M && cargo run -q -p catalog --bin catalog -- aliases); do aliases="$aliases --network-alias $h"; done
-  docker run -d --name tbs-world --network $NET --network-alias world $aliases -e SCENARIO_ID="$id" -p 127.0.0.1:19000:9000 ${WORLD_IMAGE:-tool-bench-world:dev} >/dev/null
+  docker run -d --name tbs-world --network $NET --network-alias world $aliases -e SCENARIO_ID="$id" -e BENCH_ALLOW_INSECURE_LOCAL=1 -p 127.0.0.1:19000:9000 ${WORLD_IMAGE:-tool-bench-world:dev} >/dev/null
   ports=""; for p in $(seq 7101 7132); do ports="$ports -p 127.0.0.1:1$p:$p"; done
   docker run -d --name tbs-tools --network $NET --network-alias tools $ports tool-bench-tools:dev >/dev/null
   for i in $(seq 1 120); do curl -s -o /dev/null http://127.0.0.1:17130/mcp && break; sleep 1; done

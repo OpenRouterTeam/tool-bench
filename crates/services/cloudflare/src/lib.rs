@@ -142,8 +142,17 @@ async fn tools_call(State(world): State<SharedWorld>, request: Request) -> Respo
     let Ok(call) = serde_json::from_slice::<ToolCall>(&bytes) else {
         return (StatusCode::BAD_REQUEST, "invalid tool call").into_response();
     };
-    let result = tokio::task::spawn_blocking(move || tools::call(&world, &call, &source))
-        .await
-        .unwrap_or_else(|e| mock_core::mcp::error(format!("Error: {e}")));
+    let execution =
+        mock_core::events::current().and_then(|context| world.retain_execution(&context).ok());
+    let Some(execution) = execution else {
+        return mock_core::http::json(
+            StatusCode::SERVICE_UNAVAILABLE,
+            mock_core::mcp::error("Error: service unavailable"),
+        );
+    };
+    let result =
+        tokio::task::spawn_blocking(move || execution.run(|| tools::call(&world, &call, &source)))
+            .await
+            .unwrap_or_else(|e| mock_core::mcp::error(format!("Error: {e}")));
     mock_core::http::json(StatusCode::OK, result)
 }

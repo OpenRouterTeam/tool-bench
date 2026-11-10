@@ -36,7 +36,7 @@ impl MockService for Gitlab {
     }
 
     fn hosts(&self) -> &'static [&'static str] {
-        &[]
+        &["gitlab.northwind.internal", "gitlab.lumen.internal"]
     }
 
     fn router(&self) -> Router<SharedWorld> {

@@ -7,38 +7,43 @@ services = ["google"]
 tags = ["write", "multi-step", "single-service", "google", "gmail", "drive", "disambiguation"]
 timeout_sec = 900
 
-# Dana Whitfield (dana.whitfield@contoso.example, not Dana Whitman in Finance) asks for
-# the most recent SOC 2 Type II report, view-only, not public. The final 2026 report is
-# the one; the 2025 report, the 2026 auditor DRAFT and the bridge letter stay private.
-[[expect.state]]
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions", identity_field = "/id", field_patterns = { "/emailAddress" = "(?i-u)^dana[.]whitfield@contoso[.]example$" } }
+min_count = 1
+fields = { "/type" = "user", "/role" = "reader" }
+
+[[expect.preservation.allow]]
 pointer = "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions"
-contains = { type = "user", role = "reader", emailAddress = "dana.whitfield@contoso.example" }
+kind = "append"
+identity_field = "/id"
+matching = { type = "user", role = "reader" }
+field_patterns = { "/emailAddress" = "(?i-u)^dana[.]whitfield@contoso[.]example$" }
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
 
-[[expect.state]]
-pointer = "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions/2"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions/*/role"
+element_matching = { type = "user" }
+element_field_patterns = { "/emailAddress" = "(?i-u)^dana[.]whitfield@contoso[.]example$" }
+value_equals = "reader"
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
 
-[[expect.state]]
-pointer = "/services/google/drive_files/12klLxpfyaiox7A1n8sigN7b3qTt3DYXh/permissions/1"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/shared"
+matching = { shared = true }
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
 
-[[expect.state]]
-pointer = "/services/google/drive_files/1HqJ_ArU5VCMWHwGz4FSEQR-Ykydr82k5/permissions/1"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/modifiedTime"
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
 
-[[expect.state]]
-pointer = "/services/google/drive_files/1mLKl11xTzeA9uvedTdrOCPmtCHy8DAH-/permissions/1"
-exists = false
-
-[[expect.forbidden_calls]]
-service = "google"
-path = "/_mcp/tools/call"
-body = { name = "set_drive_file_permissions" }
-
-[[expect.forbidden_calls]]
-service = "google"
-path = "/_mcp/tools/call"
-body = { name = "manage_drive_access", arguments = { share_type = "anyone" } }
+[[expect.preservation.allow]]
+pointer = "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/lastModifyingUser"
+matching = { lastModifyingUser = { displayName = "Ops Team", emailAddress = "ops@octo-corp.example" } }
+cause = { service = "google", methods = ["POST"], path_regex = "^/_mcp/tools/call$" }
 
 [[solution.call]]
 endpoint = "google-workspace"

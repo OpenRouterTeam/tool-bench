@@ -1,109 +1,134 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5003/status",
-      "equals": "cancelled",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+        "matching": {
+          "email": "priya.shah@fastmail.com"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5011/status",
-      "equals": "cancelled",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5003/total",
-      "equals": 89.9,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5007/status",
-      "equals": "paid",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5020/status",
-      "equals": "pending",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5021/status",
-      "equals": "pending",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/5009/status",
-      "equals": "pending",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.hzrkcwpxnqdlmvbtejsa.public.orders/3/status",
-      "equals": "pending",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.hzrkcwpxnqdlmvbtejsa.public.orders/4/status",
-      "equals": "pending",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers/1042/email",
-      "equals": "priya.shah@fastmail.com",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders",
+        "matching": {
+          "status": "pending"
+        },
+        "references": [
+          {
+            "source_field": "/customer_id",
+            "target": {
+              "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+              "matching": {
+                "email": "priya.shah@fastmail.com"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 0,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "supabase",
-      "method": "POST",
-      "path": "/v1/projects/qmvbxtzkplrnwdhyfaco/database/query",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "supabase",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders/*/status",
+        "kind": "update",
+        "matching": {
+          "status": "cancelled"
+        },
+        "initial_matching": {
+          "status": "pending"
+        },
+        "initial_references": [
+          {
+            "source_field": "/customer_id",
+            "target": {
+              "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+              "matching": {
+                "email": "priya.shah@fastmail.com"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/supabase/migrations/*",
+        "kind": "create",
+        "matching": null,
+        "field_patterns": {
+          "/version": "\\S"
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "supabase",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

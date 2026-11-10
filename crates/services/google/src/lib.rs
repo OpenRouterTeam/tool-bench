@@ -10,10 +10,13 @@
 //! Results follow FastMCP: the text in `content` plus `structuredContent: {"result": text}`;
 //! failures are `Error calling tool '<name>': <message>` with `isError: true`.
 
+mod access;
 mod calendar;
 mod drive;
+mod event_time;
 mod gmail;
 mod other;
+mod sheet_values;
 mod tz;
 mod util;
 
@@ -46,6 +49,10 @@ impl MockService for Google {
         &[]
     }
 
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(calendar::initialize)
+    }
+
     fn router(&self) -> Router<SharedWorld> {
         Router::new()
             .route(TOOLS_CALL_PATH, post(tools_call))
@@ -62,6 +69,48 @@ async fn not_found() -> Response {
 
 async fn tools_call(State(world): State<SharedWorld>, Json(call): Json<ToolCall>) -> Json<Value> {
     let mut guard = world.lock().expect("world lock");
+    if let Some(reason) = access::unavailable(&call, guard.service(NAME)) {
+        if let Some(operation) = mock_core::events::current() {
+            guard.fail_operation(&operation, "google_drive_access_option_unsupported", reason);
+        }
+        return Json(fail(format!(
+            "Error calling tool '{}': Selected sharing options are unavailable for this connection.",
+            call.name
+        )));
+    }
+    if call.name == "modify_sheet_values"
+        && let Some(reason) = sheet_values::unavailable(&call.arguments, guard.service(NAME))
+    {
+        if let Some(operation) = mock_core::events::current() {
+            guard.fail_operation(&operation, "google_sheet_expression_unsupported", reason);
+        }
+        return Json(fail(format!(
+            "Error calling tool '{}': Selected spreadsheet expressions are unavailable for this connection.",
+            call.name
+        )));
+    }
+    if call.name == "manage_event"
+        && let Some(reason) = calendar::unavailable(&call.arguments)
+    {
+        if let Some(operation) = mock_core::events::current() {
+            guard.fail_operation(&operation, "google_calendar_conference_unsupported", reason);
+        }
+        return Json(fail(format!(
+            "Error calling tool '{}': Selected conference provisioning options are unavailable for this connection.",
+            call.name
+        )));
+    }
+    if call.name == "manage_event"
+        && let Some(reason) = event_time::unavailable(&call.arguments, guard.service(NAME))
+    {
+        if let Some(operation) = mock_core::events::current() {
+            guard.fail_operation(&operation, "google_calendar_time_unsupported", reason);
+        }
+        return Json(fail(format!(
+            "Error calling tool '{}': Selected time resolution is unavailable for this connection.",
+            call.name
+        )));
+    }
     let now = guard.clock.now_unix();
     let st = guard.service_mut(NAME);
     let mut ctx = Ctx { st, now };

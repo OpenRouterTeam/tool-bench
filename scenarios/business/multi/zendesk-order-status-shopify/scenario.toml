@@ -12,6 +12,10 @@ timeout_sec = 1200
 # paid) is still UNFULFILLED. Look-alikes: the same customer's March order #1051 (a sweater,
 # fulfilled), the other Sam Ortiz <sortiz@gmail.com> (7302, ticket 6610) whose #1060 is also
 # unfulfilled, and Samantha Ortiz-Reyes' #1064.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["#1063", "176"]
 regex = '(?i)(unfulfilled|not (yet )?(been )?(shipped|fulfilled)|has(n.t| not) (yet )?(shipped|been shipped|been fulfilled))'

@@ -1,9 +1,17 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [],
   "answer": {
     "contains": [],
     "regex": "(?is)(\\$\\s?79\\b.*\\b12\\b|\\b12\\b.*\\$\\s?79\\b)"
-  }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/linear/pull-issue-into-cycle",
+  "scenario_sha256": "sha256:f64741f234854792c6996ed7f0211a5677c7c2393289c0cf1c1395cea90693ce",
+  "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
+  "contract_sha256": "sha256:da23bad93994abd82ec91d6a9008cd5e51004ecefb079f9df8a9617cb4de33ea"
+}

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "accounts": {
+    "argocd": {
+      "origin": "https://argocd.lumen-retail.dev",
+      "environment": {
+        "ARGOCD_BASE_URL": "https://argocd.lumen-retail.dev/"
+      }
+    },
+    "gitlab": {
+      "origin": "https://gitlab.northwind.internal",
+      "environment": {
+        "GITLAB_API_URL": "https://gitlab.northwind.internal/api/v4",
+        "GITLAB_GRAPHQL_URL": "https://gitlab.northwind.internal/api/graphql"
+      }
+    },
+    "grafana": {
+      "origin": "https://grafana.octo-corp.com",
+      "environment": {
+        "GRAFANA_URL": "https://grafana.octo-corp.com"
+      }
+    },
+    "pagerduty": {
+      "origin": "https://api.pagerduty.com",
+      "environment": {
+        "PAGERDUTY_API_HOST": "https://api.pagerduty.com"
+      }
+    },
+    "sentry": {
+      "origin": "https://sentry.lumenlabs.dev",
+      "environment": {
+        "SENTRY_URL": "https://sentry.lumenlabs.dev/"
+      }
+    },
+    "terraform": {
+      "origin": "https://app.terraform.io",
+      "environment": {
+        "TFE_ADDRESS": "https://app.terraform.io/"
+      }
+    }
+  }
+}

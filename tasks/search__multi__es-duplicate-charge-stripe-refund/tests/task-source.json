@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/multi/es-duplicate-charge-stripe-refund",
+  "scenario_sha256": "sha256:7be95c3bd44b25d0aa5b2752f90c8cb7fb5f092d935b338c21d7de4943300d9f",
+  "dataset_sha256": "sha256:7d44e157b81301329006762550d08013790e411466e26eb037469e8575142d07",
+  "contract_sha256": "sha256:7d5cc7538e3b4817f57821682659a226b4549b642d7828f96596d013d154ed7f"
+}

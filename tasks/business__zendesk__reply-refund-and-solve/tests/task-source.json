@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/zendesk/reply-refund-and-solve",
+  "scenario_sha256": "sha256:23bd9ba73c292753867f1248a552f3173c969b7bacf365fbbda61e83f6ad3eb1",
+  "dataset_sha256": "sha256:6c7e63fbdbbcc3fecd9a7e63c02c765b74ef1bd9ab65ba7eccffc612ebe878e4",
+  "contract_sha256": "sha256:d3fc5740de93583106c6c2516009e368f5e8802843a1988858ae2e5ab03d680f"
+}

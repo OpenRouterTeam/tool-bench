@@ -66,7 +66,7 @@ async fn send(
     }
 }
 
-const AUTH: Option<&str> = Some("Bearer glsa_toolbench");
+const AUTH: Option<&str> = Some("Bearer glsa_b69Tzv8Y3Hk2pR7mXc5Qn4Fs6Ld9Ua1W");
 
 async fn get(app: &Router, uri: &str) -> Resp {
     send(app, "GET", uri, "application/json", "", AUTH).await
@@ -595,11 +595,11 @@ async fn alerting_rules_silences_and_alerts() {
     let snap = w.lock().unwrap().snapshot();
     let s = &snap["services"]["grafana"]["silences"][id.as_str()];
     assert_eq!(
-        s["startsAt"], "2026-11-12T15:30:21Z",
+        s["startsAt"], "2026-11-12T15:30:00Z",
         "a start in the past becomes now"
     );
     assert_eq!(
-        s["endsAt"], "2026-11-12T15:30:28Z",
+        s["endsAt"], "2026-11-12T15:30:00Z",
         "expiring ends the silence now"
     );
     let policies = get(&app, "/api/v1/provisioning/policies").await.body;
@@ -619,7 +619,17 @@ async fn oncall_public_api() {
     );
     let oc = |m: &'static str, p: String| {
         let app = app.clone();
-        async move { send(&app, m, &p, "application/json", "", Some("glsa_toolbench")).await }
+        async move {
+            send(
+                &app,
+                m,
+                &p,
+                "application/json",
+                "",
+                Some(mock_grafana::TOKEN),
+            )
+            .await
+        }
     };
     let schedules = oc("GET", "/oncall/api/v1/schedules/?team_id=TCK4M2P8".into())
         .await
@@ -709,7 +719,7 @@ async fn incident_rpc() {
     let snap = w.lock().unwrap().snapshot();
     assert_eq!(
         snap["services"]["grafana"]["incidents"]["215"]["closedTime"],
-        "2026-11-12T15:30:28Z"
+        "2026-11-12T15:30:00Z"
     );
 }
 

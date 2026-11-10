@@ -2,7 +2,7 @@
 //!
 //! - `buckets` keyed by name: `Name`, `CreationDate`, `_region`, and per-bucket
 //!   configuration: `Encryption` (absent = the SSE-S3 default every bucket has since 2023,
-//!   `null` = no default encryption), `Versioning`, `PublicAccessBlock`, `Policy` (object),
+//!   `null` = a historical missing-configuration fixture), `Versioning`, `PublicAccessBlock`, `Policy` (object),
 //!   `Tags`, `Logging`, `OwnershipControls`, raw-XML `LifecycleXml`/`WebsiteXml`/`CorsXml`.
 //! - `objects` keyed by `"<bucket>/<key>"`: `Bucket`, `Key`, `Size`, `LastModified`,
 //!   `ETag`, `StorageClass`, `ContentType`, `Body` (text), `Tags`.
@@ -26,10 +26,11 @@ const NS: &str = "http://s3.amazonaws.com/doc/2006-03-01/";
 fn error(ctx: &mut Ctx, status: StatusCode, code: &str, msg: &str, extra: &str) -> Response {
     let rid = ctx.request_id();
     let rid = rid.replace('-', "")[..16].to_ascii_uppercase();
+    let host_id = sha256_hex(format!("s3:{}:{rid}", ctx.account).as_bytes());
     xml_response(
         status,
         format!(
-            "<Error><Code>{code}</Code><Message>{}</Message>{extra}<RequestId>{rid}</RequestId><HostId>toolbench/{rid}</HostId></Error>",
+            "<Error><Code>{code}</Code><Message>{}</Message>{extra}<RequestId>{rid}</RequestId><HostId>{host_id}</HostId></Error>",
             esc(msg)
         ),
     )
@@ -80,11 +81,7 @@ pub fn handle(ctx: &mut Ctx, req: &Req) -> Response {
 
 fn owner_xml(ctx: &Ctx) -> String {
     let id = sha256_hex(ctx.account.as_bytes());
-    format!(
-        "<Owner>{}{}</Owner>",
-        tel("ID", &id),
-        tel("DisplayName", "toolbench-owner")
-    )
+    format!("<Owner>{}</Owner>", tel("ID", &id))
 }
 
 fn bucket_region(b: &Value) -> String {
@@ -238,11 +235,12 @@ fn bucket_get(ctx: &mut Ctx, req: &Req, bucket: &str, b: &Value) -> Response {
     }
     if sub("encryption") {
         return match b.get("Encryption") {
-            Some(Value::Null) => not_configured(
+            Some(Value::Null) => error(
                 ctx,
+                StatusCode::BAD_REQUEST,
                 "ServerSideEncryptionConfigurationNotFoundError",
                 "The server side encryption configuration was not found",
-                bucket,
+                &tel("BucketName", bucket),
             ),
             other => {
                 let default = json!({"SSEAlgorithm": "AES256", "BucketKeyEnabled": false});
@@ -446,10 +444,9 @@ fn bucket_get(ctx: &mut Ctx, req: &Req, bucket: &str, b: &Value) -> Response {
 fn acl_xml(ctx: &Ctx) -> String {
     let id = sha256_hex(ctx.account.as_bytes());
     format!(
-        "<AccessControlPolicy xmlns=\"{NS}\">{}<AccessControlList><Grant><Grantee xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"CanonicalUser\">{}{}</Grantee><Permission>FULL_CONTROL</Permission></Grant></AccessControlList></AccessControlPolicy>",
+        "<AccessControlPolicy xmlns=\"{NS}\">{}<AccessControlList><Grant><Grantee xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:type=\"CanonicalUser\">{}</Grantee><Permission>FULL_CONTROL</Permission></Grant></AccessControlList></AccessControlPolicy>",
         owner_xml(ctx),
         tel("ID", &id),
-        tel("DisplayName", "toolbench-owner")
     )
 }
 

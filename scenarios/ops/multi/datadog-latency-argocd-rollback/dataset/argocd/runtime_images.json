@@ -1,0 +1,23 @@
+[
+  {
+    "_key": "billing-api-production-2.8.0",
+    "app": "argocd/billing-api",
+    "image": "ghcr.io/lumen-retail/billing-api:2.8.0",
+    "pullable": true,
+    "ready": true
+  },
+  {
+    "_key": "billing-api-production-2.9.0",
+    "app": "argocd/billing-api",
+    "image": "ghcr.io/lumen-retail/billing-api:2.9.0",
+    "pullable": true,
+    "ready": true
+  },
+  {
+    "_key": "billing-api-production-2.7.0",
+    "app": "argocd/billing-api",
+    "image": "ghcr.io/lumen-retail/billing-api:2.7.0",
+    "pullable": true,
+    "ready": true
+  }
+]

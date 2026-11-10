@@ -150,6 +150,7 @@ fn input_fields(type_name: &str) -> Option<&'static [(&'static str, &'static str
             ("linkedMetafieldValue", "String"),
         ],
         "ProductDeleteInput" => &[("id", "ID")],
+        "PublicationInput" => &[("publicationId", "ID!")],
         "CreateMediaInput" => &[
             ("originalSource", "String"),
             ("alt", "String"),

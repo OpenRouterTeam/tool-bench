@@ -24,10 +24,16 @@ const LEGACY_PROD_UID: &str = "41db962d-0f81-5de8-8dc3-ced47c1d11fc";
 const LEGACY_STAGING_UID: &str = "675645aa-e28d-5292-a17c-94c47c5d9f17";
 
 fn world(slug: &str) -> SharedWorld {
+    world_with(slug, |_| {})
+}
+
+fn world_with(slug: &str, prepare: impl FnOnce(&mut Dataset)) -> SharedWorld {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../../scenarios/code/argocd")
         .join(slug);
-    shared(WorldState::from_dataset(Dataset::load(&dir).unwrap()).unwrap())
+    let mut dataset = Dataset::load(&dir).unwrap();
+    prepare(&mut dataset);
+    shared(WorldState::from_dataset(dataset).unwrap())
 }
 
 fn app(w: &SharedWorld) -> Router {
@@ -66,6 +72,288 @@ async fn call(app: &Router, method: &str, uri: &str, body: &str) -> (StatusCode,
 
 fn state(w: &SharedWorld) -> Value {
     w.lock().unwrap().snapshot()["services"]["argocd"].clone()
+}
+
+async fn observe_completed(app: &Router, name: &str, namespace: &str) -> Value {
+    for _attempt in 0..6 {
+        let (status, application) = call(
+            app,
+            "GET",
+            &format!("/api/v1/applications/{name}?appNamespace={namespace}"),
+            "",
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{application}");
+        if !application["operation"].is_object() {
+            return application;
+        }
+    }
+    panic!("controller did not finish the bounded fixture operation");
+}
+
+#[tokio::test]
+async fn accepted_sync_is_not_completion_and_other_application_reads_cannot_advance_it() {
+    let world = world(PAYMENTS);
+    let router = app(&world);
+    let (_, accepted) = call(
+        &router,
+        "POST",
+        "/api/v1/applications/payments-api/sync",
+        r#"{"appNamespace":"payments","prune":true}"#,
+    )
+    .await;
+    assert!(accepted["operation"].is_object());
+    assert!(accepted["status"].get("operationState").is_none());
+    assert!(state(&world)["resources"].get(LEGACY_PROD_UID).is_some());
+    call(
+        &router,
+        "GET",
+        "/api/v1/applications/payments-api?appNamespace=payments-staging",
+        "",
+    )
+    .await;
+    assert!(
+        state(&world)["applications"]["payments/payments-api"]["status"]
+            .get("operationState")
+            .is_none()
+    );
+    let (_, running) = call(
+        &router,
+        "GET",
+        "/api/v1/applications/payments-api?appNamespace=payments",
+        "",
+    )
+    .await;
+    assert_eq!(running["status"]["operationState"]["phase"], "Running");
+    assert!(
+        running["status"]["operationState"]
+            .get("finishedAt")
+            .is_none()
+    );
+    assert!(state(&world)["resources"].get(LEGACY_PROD_UID).is_some());
+    let completed = observe_completed(&router, "payments-api", "payments").await;
+    assert_eq!(completed["status"]["operationState"]["phase"], "Succeeded");
+    assert!(state(&world)["resources"].get(LEGACY_PROD_UID).is_none());
+}
+
+#[tokio::test]
+async fn rollback_updates_live_workloads_and_real_child_ownership_not_commit_health_labels() {
+    let world = world(ROLLBACK);
+    let router = app(&world);
+    let initial = state(&world);
+    call(
+        &router,
+        "PUT",
+        "/api/v1/applications/billing-worker",
+        &billing_worker_body("v1.42.0", true),
+    )
+    .await;
+    assert_eq!(
+        state(&world)["resources"]["4277b63d-291e-513f-9f6c-5d185a2f7bb5"],
+        initial["resources"]["4277b63d-291e-513f-9f6c-5d185a2f7bb5"]
+    );
+    observe_completed(&router, "billing-worker", "argocd").await;
+    let final_state = state(&world);
+    let deployment = &final_state["resources"]["4277b63d-291e-513f-9f6c-5d185a2f7bb5"];
+    assert_eq!(
+        deployment["manifest"]["metadata"]["uid"],
+        "4277b63d-291e-513f-9f6c-5d185a2f7bb5"
+    );
+    assert_eq!(
+        deployment["manifest"]["spec"]["template"]["spec"]["containers"][0]["image"],
+        "ghcr.io/lumen-retail/billing-worker:1.42.0"
+    );
+    assert_eq!(
+        deployment["manifest"]["metadata"]["generation"],
+        deployment["manifest"]["status"]["observedGeneration"]
+    );
+    let pods: Vec<_> = final_state["resources"]
+        .as_object()
+        .unwrap()
+        .values()
+        .filter(|resource| resource["app"] == "argocd/billing-worker" && resource["kind"] == "Pod")
+        .collect();
+    assert_eq!(pods.len(), 2);
+    for pod in pods {
+        assert!(
+            initial["resources"]
+                .get(pod["uid"].as_str().unwrap())
+                .is_none()
+        );
+        assert_eq!(
+            pod["manifest"]["status"]["containerStatuses"][0]["ready"],
+            true
+        );
+        assert_eq!(
+            pod["manifest"]["spec"]["containers"][0]["image"],
+            "ghcr.io/lumen-retail/billing-worker:1.42.0"
+        );
+        let parent = pod["parentRefs"][0]["uid"].as_str().unwrap();
+        let replica_set = &final_state["resources"][parent];
+        assert_eq!(replica_set["kind"], "ReplicaSet");
+        assert_eq!(replica_set["parentRefs"][0]["uid"], deployment["uid"]);
+        assert_eq!(
+            pod["manifest"]["metadata"]["ownerReferences"][0]["uid"],
+            replica_set["uid"]
+        );
+        assert_eq!(pod["cluster"], deployment["cluster"]);
+    }
+    for (uid, resource) in initial["resources"].as_object().unwrap() {
+        if resource["app"] != "argocd/billing-worker" {
+            assert_eq!(resource, &final_state["resources"][uid], "{uid}");
+        }
+    }
+}
+
+#[tokio::test]
+async fn changing_git_health_metadata_cannot_make_an_existing_crashing_workload_healthy() {
+    let world = world_with(ROLLBACK, |dataset| {
+        dataset
+            .services
+            .get_mut("argocd")
+            .unwrap()
+            .collection_mut("revisions")
+            .get_mut("cf30c03f33e63617efbbbb2da615dff59a7cb010")
+            .unwrap()["health"] = json!({"status":"Healthy"});
+    });
+    let router = app(&world);
+    let before = state(&world);
+    call(
+        &router,
+        "POST",
+        "/api/v1/applications/billing-worker/sync",
+        "",
+    )
+    .await;
+    let completed = observe_completed(&router, "billing-worker", "argocd").await;
+    assert_eq!(completed["status"]["health"]["status"], "Degraded");
+    assert_eq!(completed["status"]["operationState"]["phase"], "Failed");
+    assert_eq!(before["sync_history"], state(&world)["sync_history"]);
+}
+
+#[tokio::test]
+async fn disabled_automation_persists_the_pin_without_deploying_and_duplicate_operations_reject() {
+    let world = world(ROLLBACK);
+    let router = app(&world);
+    let mut request: Value = serde_json::from_str(&billing_worker_body("v1.42.0", true)).unwrap();
+    request["spec"]["syncPolicy"]["automated"]["enabled"] = json!(false);
+    call(
+        &router,
+        "PUT",
+        "/api/v1/applications/billing-worker",
+        &request.to_string(),
+    )
+    .await;
+    let (_, observed) = call(&router, "GET", "/api/v1/applications/billing-worker", "").await;
+    assert!(!observed["operation"].is_object());
+    assert_eq!(observed["status"]["health"]["status"], "Degraded");
+    call(
+        &router,
+        "POST",
+        "/api/v1/applications/billing-worker/sync",
+        "",
+    )
+    .await;
+    let (status, error) = call(
+        &router,
+        "POST",
+        "/api/v1/applications/billing-worker/sync",
+        "",
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(error["code"], 9);
+    let completed = observe_completed(&router, "billing-worker", "argocd").await;
+    assert_eq!(completed["status"]["health"]["status"], "Healthy");
+    assert_eq!(
+        completed["spec"]["syncPolicy"]["automated"]["enabled"],
+        false
+    );
+}
+
+#[tokio::test]
+async fn pending_prune_finalizers_are_not_deleted_or_recorded_as_successful_deployment() {
+    let world = world_with(PAYMENTS, |dataset| {
+        dataset
+            .services
+            .get_mut("argocd")
+            .unwrap()
+            .collection_mut("resources")
+            .get_mut(LEGACY_PROD_UID)
+            .unwrap()["manifest"]["metadata"]["finalizers"] = json!(["ops.example.test/retain"]);
+    });
+    let router = app(&world);
+    let initial_history = state(&world)["sync_history"].clone();
+    call(
+        &router,
+        "POST",
+        "/api/v1/applications/payments-api/sync",
+        r#"{"appNamespace":"payments","prune":true}"#,
+    )
+    .await;
+    call(
+        &router,
+        "GET",
+        "/api/v1/applications/payments-api?appNamespace=payments",
+        "",
+    )
+    .await;
+    let (_, application) = call(
+        &router,
+        "GET",
+        "/api/v1/applications/payments-api?appNamespace=payments",
+        "",
+    )
+    .await;
+    assert_eq!(application["status"]["operationState"]["phase"], "Running");
+    assert!(
+        application["status"]["operationState"]
+            .get("finishedAt")
+            .is_none()
+    );
+    assert!(
+        state(&world)["resources"][LEGACY_PROD_UID]["manifest"]["metadata"]["deletionTimestamp"]
+            .is_string()
+    );
+    assert_eq!(initial_history, state(&world)["sync_history"]);
+}
+
+#[tokio::test]
+async fn history_retention_zero_does_not_erase_authoritative_completion_or_dry_run_distinction() {
+    let world = world_with(PAYMENTS, |dataset| {
+        dataset
+            .services
+            .get_mut("argocd")
+            .unwrap()
+            .collection_mut("applications")
+            .get_mut("payments/payments-api")
+            .unwrap()["spec"]["revisionHistoryLimit"] = json!(0);
+    });
+    let router = app(&world);
+    let initial = state(&world);
+    call(
+        &router,
+        "POST",
+        "/api/v1/applications/payments-api/sync",
+        r#"{"appNamespace":"payments","prune":true,"dryRun":true}"#,
+    )
+    .await;
+    observe_completed(&router, "payments-api", "payments").await;
+    assert_eq!(initial["resources"], state(&world)["resources"]);
+    assert_eq!(initial["sync_history"], state(&world)["sync_history"]);
+    call(
+        &router,
+        "POST",
+        "/api/v1/applications/payments-api/sync",
+        r#"{"appNamespace":"payments","prune":true}"#,
+    )
+    .await;
+    let completed = observe_completed(&router, "payments-api", "payments").await;
+    assert_eq!(completed["status"]["history"], json!([]));
+    assert_eq!(
+        state(&world)["sync_history"].as_object().unwrap().len(),
+        initial["sync_history"].as_object().unwrap().len() + 1
+    );
 }
 
 fn names(list: &Value) -> Vec<String> {
@@ -421,7 +709,7 @@ async fn lists_and_runs_resource_actions() {
         &s["resources"][WORKER_UID]["manifest"]["spec"]["template"]["metadata"]["annotations"];
     assert_eq!(
         annotations["kubectl.kubernetes.io/restartedAt"],
-        "2026-10-29T14:05:21Z"
+        "2026-10-29T14:05:00Z"
     );
     let events: Vec<&Value> = s["events"].as_object().unwrap().values().collect();
     assert_eq!(events.len(), 1);
@@ -452,6 +740,9 @@ async fn sync_with_prune_deletes_orphans_and_records_history() {
     )
     .await;
     assert_eq!(status, StatusCode::OK);
+    assert!(synced["operation"].is_object());
+    assert_eq!(synced["status"]["sync"]["status"], "OutOfSync");
+    let synced = observe_completed(&a, "payments-api", "payments").await;
     let sha = "fe01f33d2a5392fa17c1c35f25d294d24075c28b";
     assert_eq!(synced["status"]["sync"]["status"], "Synced");
     assert_eq!(synced["status"]["sync"]["revision"], sha);
@@ -476,7 +767,7 @@ async fn sync_with_prune_deletes_orphans_and_records_history() {
     assert_eq!(history.len(), 3);
     assert_eq!(history[2]["id"], 2);
     assert_eq!(history[2]["revision"], sha);
-    assert_eq!(history[2]["deployedAt"], "2026-10-29T14:15:07Z");
+    assert_eq!(history[2]["deployedAt"], "2026-10-29T14:15:00Z");
 
     let s = state(&w);
     assert!(s["resources"].get(LEGACY_PROD_UID).is_none());
@@ -502,13 +793,14 @@ async fn sync_with_prune_deletes_orphans_and_records_history() {
 async fn sync_without_prune_stays_out_of_sync() {
     let w = world(PAYMENTS);
     let a = app(&w);
-    let (_, synced) = call(
+    let (_, _) = call(
         &a,
         "POST",
         "/api/v1/applications/payments-api/sync",
         r#"{"appNamespace":"payments"}"#,
     )
     .await;
+    let synced = observe_completed(&a, "payments-api", "payments").await;
     assert_eq!(synced["status"]["sync"]["status"], "OutOfSync");
     let skipped = synced["status"]["operationState"]["syncResult"]["resources"]
         .as_array()
@@ -524,13 +816,14 @@ async fn sync_without_prune_stays_out_of_sync() {
     // Dry run changes nothing but the operation state.
     let w = world(PAYMENTS);
     let a = app(&w);
-    let (_, dry) = call(
+    let (_, _) = call(
         &a,
         "POST",
         "/api/v1/applications/payments-api/sync",
         r#"{"appNamespace":"payments","prune":true,"dryRun":true}"#,
     )
     .await;
+    let dry = observe_completed(&a, "payments-api", "payments").await;
     assert_eq!(dry["status"]["history"].as_array().unwrap().len(), 2);
     assert_eq!(dry["status"]["sync"]["status"], "OutOfSync");
     assert!(state(&w)["resources"].get(LEGACY_PROD_UID).is_some());
@@ -602,6 +895,9 @@ async fn update_with_auto_sync_rolls_back() {
     )
     .await;
     assert_eq!(status, StatusCode::OK);
+    assert_eq!(updated["status"]["sync"]["status"], "OutOfSync");
+    assert!(updated["operation"].is_object());
+    let updated = observe_completed(&a, "billing-worker", "argocd").await;
     let b = "b0826e986c9c73e0088c6ecb2a14458d247d2205";
     assert_eq!(updated["spec"]["source"]["targetRevision"], "v1.42.0");
     assert_eq!(updated["status"]["sync"]["status"], "Synced");
@@ -637,8 +933,9 @@ async fn update_without_auto_sync_goes_out_of_sync_then_syncs() {
     .await;
     assert_eq!(updated["status"]["sync"]["status"], "OutOfSync");
     assert_eq!(updated["status"]["history"].as_array().unwrap().len(), 3);
-    let (status, synced) = call(&a, "POST", "/api/v1/applications/billing-worker/sync", "").await;
+    let (status, _) = call(&a, "POST", "/api/v1/applications/billing-worker/sync", "").await;
     assert_eq!(status, StatusCode::OK);
+    let synced = observe_completed(&a, "billing-worker", "argocd").await;
     assert_eq!(synced["status"]["sync"]["status"], "Synced");
     assert_eq!(synced["status"]["history"][3]["id"], 3);
 
@@ -684,7 +981,7 @@ async fn creates_validates_and_deletes_applications() {
     assert_eq!(created["metadata"]["generation"], 1);
     assert_eq!(
         created["metadata"]["creationTimestamp"],
-        "2026-10-29T14:05:07Z"
+        "2026-10-29T14:05:00Z"
     );
     assert_eq!(created["status"]["sync"]["status"], "OutOfSync");
     assert_eq!(created["status"]["health"]["status"], "Missing");

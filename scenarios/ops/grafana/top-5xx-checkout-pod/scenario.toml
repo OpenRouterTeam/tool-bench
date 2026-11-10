@@ -7,6 +7,10 @@ services = ["grafana"]
 tags = ["lookup", "single-service", "grafana", "disambiguation"]
 timeout_sec = 900
 
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["checkout-7b9d6c5f4-xk2lp"]
 

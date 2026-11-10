@@ -2,6 +2,13 @@
   {
     "id": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
     "name": "storefront",
+    "lastAliasRequest": {
+      "fromDeploymentId": "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF",
+      "toDeploymentId": "dpl_7wC1vKiBnuwDgHLXzdLRklqAYci5",
+      "jobStatus": "succeeded",
+      "requestedAt": 1793175300000,
+      "type": "promote"
+    },
     "accountId": "team_9vXcR2kLmQ4tZ8wN3pHf6sJd",
     "framework": "nextjs",
     "nodeVersion": "22.x",

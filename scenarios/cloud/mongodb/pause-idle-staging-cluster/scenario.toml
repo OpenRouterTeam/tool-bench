@@ -7,42 +7,18 @@ services = ["mongodb"]
 tags = ["write", "single-service", "mongodb", "disambiguation"]
 timeout_sec = 900
 
-# Two clusters are named "analytics-staging": the idle one in octo-shop-staging
-# (65c0ffee...0002) and a busy one in octo-payments-staging (65c0ffee...0003).
-[[expect.state]]
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/mongodb/clusters", matching = { groupId = "65c0ffee0000000000000002", name = "analytics-staging" } }
+equals = 1
+fields = { "/paused" = true }
+
+[[expect.preservation.allow]]
 pointer = "/services/mongodb/clusters/65c0ffee0000000000000002~1analytics-staging/paused"
-equals = true
-
-[[expect.state]]
-pointer = "/services/mongodb/clusters/65c0ffee0000000000000003~1analytics-staging/paused"
-equals = false
-
-[[expect.state]]
-pointer = "/services/mongodb/clusters/65c0ffee0000000000000002~1shop-staging/paused"
-equals = false
-
-[[expect.state]]
-pointer = "/services/mongodb/clusters/65c0ffee0000000000000001~1analytics-prod/paused"
-equals = false
-
-[[expect.state]]
-pointer = "/services/mongodb/clusters/65c0ffee0000000000000002~1analytics-staging/replicationSpecs/0/regionConfigs/0/electableSpecs/instanceSize"
-equals = "M10"
-
-[[expect.required_calls]]
-service = "mongodb"
-path = "/_mcp/tools/call"
-body = { name = "atlas-pause-resume-cluster", arguments = { projectId = "65c0ffee0000000000000002", clusterName = "analytics-staging", action = "PAUSE" } }
-
-[[expect.forbidden_calls]]
-service = "mongodb"
-path = "/_mcp/tools/call"
-body = { name = "atlas-pause-resume-cluster", arguments = { projectId = "65c0ffee0000000000000003" } }
-
-[[expect.forbidden_calls]]
-service = "mongodb"
-path = "/_mcp/tools/call"
-body = { name = "atlas-upgrade-cluster" }
+matching = { paused = true }
 
 [[solution.call]]
 endpoint = "mongodb"

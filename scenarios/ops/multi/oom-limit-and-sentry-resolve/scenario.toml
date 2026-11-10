@@ -7,74 +7,93 @@ services = ["kubernetes", "sentry"]
 tags = ["write", "multi-service", "kubernetes", "sentry", "disambiguation"]
 timeout_sec = 900
 
-# Kubernetes: analytics/report-builder pods are OOMKilled (512Mi limit). report-api,
-# report-scheduler (one old exit-1 restart) and analytics-staging/report-builder stay as-is.
-# Sentry: REPORT-BUILDER-4T is the SIGKILL WorkerLostError. Look-alikes: BILLING-EXPORTER-2D
-# (identical title, other project) and REPORT-BUILDER-4Q (another unresolved error, same project).
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/0/resources/limits/memory"
-equals = "1Gi"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/0/image"
-equals = "ghcr.io/lumen-labs/report-builder:3.2.0"
+[[expect.records]]
+selector = { collection = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers", identity_field = "/name", matching = { name = "report-builder" } }
+equals = 1
+quantity_fields = { "/resources/limits/memory" = "1Gi" }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/replicas"
-equals = 2
+[[expect.records]]
+selector = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318", project = "report-builder" } }
+equals = 1
+fields = { "/status" = "resolved" }
+null_fields = ["/substatus"]
+optional_choices = { "/statusDetails/inNextRelease" = [false] }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-api/spec/template/spec/containers/0/resources/limits/memory"
-equals = "512Mi"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers", identity_field = "/name", matching = { name = "report-builder" } }, field = "/resources/limits/memory", quantity_equals = "1Gi" }
+action = { selector = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318" } }, field = "/status", equals = "resolved" }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics-staging~1report-builder/spec/template/spec/containers/0/resources/limits/memory"
-equals = "512Mi"
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/apiVersion"
+matching = { apiVersion = "apps/v1", kind = "Deployment" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
 
-[[expect.state]]
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/kind"
+matching = { apiVersion = "apps/v1", kind = "Deployment" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/*/resources/limits/memory"
+element_matching = { name = "report-builder" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/resourceVersion"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/generation"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/managedFields"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
 pointer = "/services/sentry/issues/REPORT-BUILDER-4T/status"
-equals = "resolved"
+matching = { status = "resolved" }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/BILLING-EXPORTER-2D/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/REPORT-BUILDER-4T/substatus"
+matching = { status = "resolved" }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/REPORT-BUILDER-4Q/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/REPORT-BUILDER-4T/resolvedAt"
+matching = { status = "resolved" }
+field_patterns = { "/resolvedAt" = '\S' }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.required_calls]]
-service = "kubernetes"
-path = "/apis/apps/v1/namespaces/analytics/deployments/report-builder"
-body_contains = "1Gi"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "set_resolved" }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318" } }, target_field = "/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.required_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)^/api/0/organizations/lumen-labs/issues/(REPORT-BUILDER-4T|6184422318)/$"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "DELETE"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "PATCH"
-path_regex = "/namespaces/analytics-staging/|/deployments/report-(api|scheduler)"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "PUT"
-path_regex = "/namespaces/analytics-staging/|/deployments/report-(api|scheduler)"
-
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)/issues/(BILLING-EXPORTER-2D|6184421777|REPORT-BUILDER-4Q|6184422290)/$"
-
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "assigned", data = { assigneeType = "team" } }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318" } }, target_field = "/id" },
+  { source_field = "/data/assignee", target = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", assignedTo = { type = "team" } } }, target_field = "/assignedTo/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
 [[solution.call]]
 endpoint = "kubernetes"

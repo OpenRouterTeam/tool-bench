@@ -7,71 +7,103 @@ services = ["terraform"]
 tags = ["single-service", "write", "terraform"]
 timeout_sec = 900
 
-# The existing staging variable is updated in place (prod keeps 6).
-[[expect.state]]
-pointer = "/services/terraform/vars/var-4eRpJG8P0JYsXLTJ/value"
-equals = "4"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/terraform/vars/var-FwwYKSi27hH9ISlj/value"
-equals = "6"
+[[expect.records]]
+selector = { collection = "/services/terraform/vars", matching = { workspace = "ws-FxCPzmnaeIMOUbSd", key = "desired_count", category = "terraform" } }
+equals = 1
+fields = { "/id" = "var-4eRpJG8P0JYsXLTJ", "/hcl" = false, "/sensitive" = false }
+numeric_fields = { "/value" = 4 }
 
-# The new run was queued after the change (it planned with desired_count = 4), as a normal
-# plan-and-apply run that is waiting for confirmation rather than auto-applied or plan-only.
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run-summary/input-variables/desired_count"
-equals = "4"
+[[expect.records]]
+selector = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }
+equals = 1
+fields = { "/status" = "planned", "/message" = "Scale checkout staging to 4 tasks for load test", "/is-destroy" = false, "/plan-only" = false, "/refresh-only" = false, "/auto-apply" = false, "/target-addrs" = [], "/replace-addrs" = [] }
+numeric_fields = { "/input-variables/desired_count" = 4 }
 
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run-summary/status"
-equals = "planned"
+[[expect.records]]
+selector = { collection = "/services/terraform/plans", created = true, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }] }
+equals = 1
+fields = { "/status" = "finished", "/has-changes" = true }
+numeric_fields = { "/resource-additions" = 0, "/resource-changes" = 2, "/resource-destructions" = 0 }
 
-[[expect.state]]
-pointer = "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run-summary/message"
-contains = "Scale checkout staging to 4 tasks"
+[[expect.records]]
+selector = { collection = "/services/terraform/plan_changes", created = true, matching = { address = "aws_ecs_service.checkout" }, references = [{ source_field = "/plan", target_field = "/id", target = { collection = "/services/terraform/plans", created = true, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }] } }] }
+equals = 1
+fields = { "/actions" = ["update"], "/after-unknown" = {} }
+numeric_fields = { "/before/desired_count" = 2, "/after/desired_count" = 4 }
 
-[[expect.required_calls]]
-service = "terraform"
-method = "PATCH"
-path = "/api/v2/workspaces/ws-FxCPzmnaeIMOUbSd/vars/var-4eRpJG8P0JYsXLTJ"
+[[expect.records]]
+selector = { collection = "/services/terraform/plan_changes", created = true, matching = { address = "aws_appautoscaling_target.checkout" }, references = [{ source_field = "/plan", target_field = "/id", target = { collection = "/services/terraform/plans", created = true, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }] } }] }
+equals = 1
+fields = { "/actions" = ["update"], "/after-unknown" = {} }
+numeric_fields = { "/before/min_capacity" = 2, "/after/min_capacity" = 4, "/after/max_capacity" = 6 }
 
-[[expect.required_calls]]
-service = "terraform"
-method = "POST"
-path = "/api/v2/runs"
-body_contains = "ws-FxCPzmnaeIMOUbSd"
+[[expect.records]]
+selector = { collection = "/services/terraform/run_inputs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd", variable = "var-4eRpJG8P0JYsXLTJ", category = "terraform", key = "desired_count" } }
+equals = 1
+fields = { "/hcl" = false, "/sensitive" = false }
+numeric_fields = { "/value" = 4 }
 
-# Nothing may touch production checkout.
+[[expect.relations]]
+kind = "bijection"
+source = { collection = "/services/terraform/run_inputs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }
+source_field = "/variable"
+target = { collection = "/services/terraform/vars", matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }
+target_field = "/id"
+fields = [{ source_field = "/key", target_field = "/key", kind = "equals" }, { source_field = "/category", target_field = "/category", kind = "equals" }, { source_field = "/hcl", target_field = "/hcl", kind = "equals" }, { source_field = "/sensitive", target_field = "/sensitive", kind = "equals" }]
+
+[[expect.relations]]
+kind = "foreign_key"
+source = { collection = "/services/terraform/run_inputs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }
+source_field = "/run"
+target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }
+target_field = "/id"
+
+[[expect.relations]]
+source = { collection = "/services/terraform/workspaces", matching = { id = "ws-FxCPzmnaeIMOUbSd" } }
+source_field = "/current-run"
+target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }
+target_field = "/id"
+
+[[expect.relations]]
+source = { collection = "/services/terraform/workspaces", matching = { id = "ws-FxCPzmnaeIMOUbSd" } }
+source_field = "/latest-run-summary/id"
+target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }
+target_field = "/id"
+
+[[expect.relations]]
+source = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }
+source_field = "/plan"
+target = { collection = "/services/terraform/plans", created = true, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }] }
+target_field = "/id"
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/terraform/vars", matching = { id = "var-4eRpJG8P0JYsXLTJ", category = "terraform" } }, field = "/value", numeric_equals = 4 }
+action = { selector = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } }, field = "/status", equals = "planned" }
+require_transition = true
+
+[expect.preservation]
+allow = [
+  { pointer = "/services/terraform/vars/var-4eRpJG8P0JYsXLTJ/value", numeric_fields = { "/value" = 4 }, cause = { service = "terraform", methods = ["PATCH"], path_regex = "^/api/v2/workspaces/ws-FxCPzmnaeIMOUbSd/vars/var-4eRpJG8P0JYsXLTJ$" } },
+  { pointer = "/services/terraform/runs/*", kind = "create", matching = { workspace = "ws-FxCPzmnaeIMOUbSd", status = "planned", message = "Scale checkout staging to 4 tasks for load test", is-destroy = false, plan-only = false, refresh-only = false, auto-apply = false, target-addrs = [], replace-addrs = [] }, numeric_fields = { "/input-variables/desired_count" = 4 }, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/plans/*", kind = "create", matching = { status = "finished" }, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/applies/*", kind = "create", matching = { status = "pending" }, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/plan_changes/*", kind = "create", matching = { address = "aws_ecs_service.checkout", actions = ["update"] }, numeric_fields = { "/after/desired_count" = 4 }, references = [{ source_field = "/plan", target_field = "/id", target = { collection = "/services/terraform/plans", created = true, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }] } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/plan_changes/*", kind = "create", matching = { address = "aws_appautoscaling_target.checkout", actions = ["update"] }, numeric_fields = { "/after/min_capacity" = 4, "/after/max_capacity" = 6 }, references = [{ source_field = "/plan", target_field = "/id", target = { collection = "/services/terraform/plans", created = true, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }] } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/run_inputs/*", kind = "create", matching = { workspace = "ws-FxCPzmnaeIMOUbSd" }, references = [{ source_field = "/run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }, { source_field = "/variable", target_field = "/id", target = { collection = "/services/terraform/vars", matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }], max_count = 6, cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/current-run", references = [{ source_field = "/current-run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run", references = [{ source_field = "/latest-run", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run-summary", references = [{ source_field = "/latest-run-summary/id", target_field = "/id", target = { collection = "/services/terraform/runs", created = true, matching = { workspace = "ws-FxCPzmnaeIMOUbSd" } } }], cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+  { pointer = "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/updated-at", cause = { service = "terraform", methods = ["POST"], path_regex = "^/api/v2/runs$" } },
+]
+
 [[expect.forbidden_calls]]
 service = "terraform"
 method = "POST"
-path = "/api/v2/runs"
-body_contains = "ws-ZQ7RjwWMr2evfIuC"
-
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "PATCH"
-path_regex = "^/api/v2/workspaces/ws-ZQ7RjwWMr2evfIuC"
-
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path_regex = "^/api/v2/workspaces/ws-ZQ7RjwWMr2evfIuC"
-
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "PATCH"
-path = "/api/v2/organizations/acme-platform/workspaces/checkout-service-prod"
-
-# The user wants to review the plan, so no run may be confirmed, discarded or canceled.
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "POST"
-path_regex = "^/api/v2/runs/[^/]+/actions/"
-
-[[expect.forbidden_calls]]
-service = "terraform"
-method = "DELETE"
+path_regex = "^/api/v2/runs/[^/]+/actions/apply$"
 
 [[solution.call]]
 endpoint = "terraform"
@@ -87,3 +119,10 @@ arguments = { terraform_org_name = "acme-platform", workspace_name = "checkout-s
 endpoint = "terraform"
 tool = "create_run"
 arguments = { terraform_org_name = "acme-platform", workspace_name = "checkout-service-staging", run_type = "plan_and_apply", message = "Scale checkout staging to 4 tasks for load test" }
+capture = [{ name = "review_run", pointer = "/content/0/text", json_pointer = "/data/id" }]
+
+[[solution.call]]
+endpoint = "terraform"
+tool = "get_run_details"
+template = true
+arguments = { run_id = "${review_run}" }

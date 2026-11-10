@@ -7,37 +7,30 @@ services = ["notion"]
 tags = ["write", "single-service", "notion", "disambiguation"]
 timeout_sec = 900
 
-# Three pages look alike: the live "On-call runbook" (Engineering wiki), a trashed copy with
-# the same title and text, and "On-call runbook (2024)" under Archive. Only the live
-# runbook's contact block changes; the block keeps its ID whether the agent edits the block
-# or the page Markdown.
-[[expect.state]]
-pointer = "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/paragraph/rich_text/0/plain_text"
-contains = "Sam Ortiz, +1 555-0142"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/in_trash"
-equals = false
+[[expect.records]]
+selector = { collection = "/services/notion/blocks", matching = { id = "d18edb31-c7d9-4fa2-9759-783c0b2d0b89", parent = { page_id = "7c41530e-e886-4046-9cb4-2f49e6957f99" } } }
+equals = 1
+fields = { "/type" = "paragraph", "/archived" = false, "/in_trash" = false }
+reviewed_text = { "/paragraph/rich_text" = { format = "notion_rich_text", requirement = "Replace Marcus Webb, +1 555-0100 with Sam Ortiz, +1 555-0142 in the current runbook's escalation contact, preserving the surrounding prefix and role text. Passive formatting and segment boundaries do not change the claim. A name or phone token alone, a rejected alternative or a contradiction is not a complete replacement; unlisted wording requires adjudication.", accepted = ["Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure)"], rejected = ["Escalation contact: Marcus Webb, +1 555-0100 (Head of Infrastructure)"] } }
 
-[[expect.state]]
-pointer = "/services/notion/blocks/797571e3-b5c2-4333-9bcc-6ca755e33da8/paragraph/rich_text/0/plain_text"
-equals = "Escalation contact: Marcus Webb, +1 555-0100 (Head of Infrastructure)"
+[[expect.preservation.allow]]
+pointer = "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/paragraph/rich_text"
 
-[[expect.state]]
-pointer = "/services/notion/blocks/a9a99f03-de31-4aed-afe2-a35b8992a846/paragraph/rich_text/0/plain_text"
-equals = "Escalation contact: Dana Whitfield, +1 555-0100"
+[[expect.preservation.allow]]
+pointer = "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/last_edited_time"
 
-[[expect.state]]
-pointer = "/services/notion/pages/d96308fa-d662-45d9-9cb1-2f6e47a717b7/in_trash"
-equals = true
+[[expect.preservation.allow]]
+pointer = "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/last_edited_by"
 
-[[expect.required_calls]]
-service = "notion"
-method = "PATCH"
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/7c41530e-e886-4046-9cb4-2f49e6957f99/last_edited_time"
 
-[[expect.forbidden_calls]]
-service = "notion"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/7c41530e-e886-4046-9cb4-2f49e6957f99/last_edited_by"
 
 [[solution.call]]
 endpoint = "notion"

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/github/ci-failure-root-cause",
+  "scenario_sha256": "sha256:849edd538c8d0b75d546ebaafc17e5393ffbfc392414273442d056eba47dd08b",
+  "dataset_sha256": "sha256:b0cf8aae708c405fa1b4bb9bf4f8740a3e5de235db7b809012efaac547a7ae50",
+  "contract_sha256": "sha256:c7e1c5603f0fe07633bb9da2ed221a9ef4e138f752f10257ebb94ba6ecffba65"
+}

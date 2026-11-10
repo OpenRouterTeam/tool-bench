@@ -14,8 +14,8 @@ use serde_json::{Value, json};
 use crate::directory::{render_user, sort_by_name, target_kind};
 use crate::schedules_v3::{v3_segments, v3_user_ids};
 use crate::util::{
-    ApiErr, Ctx, Kind, Req, classic, created, default, derived_id, fmt, no_content, ok, parse_time,
-    ref_id, run, stored_ref, time_of,
+    ApiErr, Ctx, Kind, NANOS_PER_SECOND, Req, classic, created, default, derived_id, exact_time_of,
+    format_exact_time, nanos, no_content, ok, parse_exact_time, ref_id, run, stored_ref,
 };
 
 const DAY: i64 = 86_400;
@@ -26,11 +26,13 @@ const MAX_TURNS: usize = 20_000;
 
 /// One user on call from `start` to `end`.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Seg {
+pub struct Seg<Instant = i64> {
     pub user: String,
-    pub start: i64,
-    pub end: i64,
+    pub start: Instant,
+    pub end: Instant,
 }
+
+pub type PreciseSeg = Seg<i128>;
 
 fn layer_users(layer: &Value) -> Vec<String> {
     layer["users"]
@@ -41,18 +43,20 @@ fn layer_users(layer: &Value) -> Vec<String> {
         .collect()
 }
 
-fn layer_segments(layer: &Value, from: i64, to: i64) -> Vec<Seg> {
+fn layer_segments(layer: &Value, from: i128, to: i128) -> Vec<PreciseSeg> {
     let users = layer_users(layer);
     if users.is_empty() {
         return Vec::new();
     }
-    let start = time_of(layer, "start").unwrap_or(from);
-    let end = time_of(layer, "end");
-    let rvs = time_of(layer, "rotation_virtual_start").unwrap_or(start);
-    let turn = layer["rotation_turn_length_seconds"]
-        .as_i64()
-        .filter(|t| *t > 0)
-        .unwrap_or(7 * DAY);
+    let start = exact_time_of(layer, "start").unwrap_or(from);
+    let end = exact_time_of(layer, "end");
+    let rvs = exact_time_of(layer, "rotation_virtual_start").unwrap_or(start);
+    let turn = nanos(
+        layer["rotation_turn_length_seconds"]
+            .as_i64()
+            .filter(|t| *t > 0)
+            .unwrap_or(7 * DAY),
+    );
     let lo = from.max(start);
     let hi = end.map_or(to, |e| to.min(e));
     let mut out = Vec::new();
@@ -65,7 +69,7 @@ fn layer_segments(layer: &Value, from: i64, to: i64) -> Vec<Seg> {
         if s >= hi {
             break;
         }
-        let user = users[k.rem_euclid(users.len() as i64) as usize].clone();
+        let user = users[k.rem_euclid(users.len() as i128) as usize].clone();
         out.push(Seg {
             user,
             start: s.max(lo),
@@ -76,23 +80,23 @@ fn layer_segments(layer: &Value, from: i64, to: i64) -> Vec<Seg> {
     out
 }
 
-fn override_segments(ctx: &Ctx, schedule: &str) -> Vec<Seg> {
+fn override_segments(ctx: &Ctx, schedule: &str) -> Vec<PreciseSeg> {
     ctx.children("overrides", schedule)
         .into_iter()
         .filter_map(|(_, o)| {
             Some(Seg {
                 user: ref_id(&o["user"])?.to_owned(),
-                start: time_of(&o, "start")?,
-                end: time_of(&o, "end")?,
+                start: exact_time_of(&o, "start")?,
+                end: exact_time_of(&o, "end")?,
             })
         })
         .collect()
 }
 
 /// The final (layers + overrides) schedule of a v2 schedule within `[from, to)`.
-pub fn v2_segments(ctx: &Ctx, schedule: &Value, from: i64, to: i64) -> Vec<Seg> {
+pub fn v2_segments(ctx: &Ctx, schedule: &Value, from: i128, to: i128) -> Vec<PreciseSeg> {
     let id = schedule["id"].as_str().unwrap_or_default();
-    let mut candidates: Vec<(usize, Seg)> = Vec::new();
+    let mut candidates: Vec<(usize, PreciseSeg)> = Vec::new();
     for (i, layer) in schedule["schedule_layers"]
         .as_array()
         .into_iter()
@@ -114,7 +118,7 @@ pub fn v2_segments(ctx: &Ctx, schedule: &Value, from: i64, to: i64) -> Vec<Seg> 
     }
     bounds.sort_unstable();
     bounds.dedup();
-    let mut out: Vec<Seg> = Vec::new();
+    let mut out: Vec<PreciseSeg> = Vec::new();
     for w in bounds.windows(2) {
         let (a, b) = (w[0], w[1]);
         let Some((_, winner)) = candidates
@@ -137,9 +141,9 @@ pub fn v2_segments(ctx: &Ctx, schedule: &Value, from: i64, to: i64) -> Vec<Seg> 
 }
 
 /// Merges each user's overlapping or touching segments.
-pub fn merge_per_user(mut segs: Vec<Seg>) -> Vec<Seg> {
+pub fn merge_per_user<Instant: Ord + Copy>(mut segs: Vec<Seg<Instant>>) -> Vec<Seg<Instant>> {
     segs.sort_by(|a, b| (a.start, &a.user, a.end).cmp(&(b.start, &b.user, b.end)));
-    let mut out: Vec<Seg> = Vec::new();
+    let mut out: Vec<Seg<Instant>> = Vec::new();
     for s in segs {
         if let Some(prev) = out
             .iter_mut()
@@ -156,18 +160,31 @@ pub fn merge_per_user(mut segs: Vec<Seg>) -> Vec<Seg> {
 }
 
 /// Rendered on-call segments of any schedule (v2 or v3) within `[from, to)`.
-pub fn schedule_segments(ctx: &Ctx, id: &str, from: i64, to: i64) -> Option<Vec<Seg>> {
+pub fn schedule_segments(ctx: &Ctx, id: &str, from: i128, to: i128) -> Option<Vec<PreciseSeg>> {
     if let Some(s) = ctx.get("schedules", id) {
         return Some(v2_segments(ctx, &s, from, to));
     }
-    ctx.get("schedules_v3", id)
-        .map(|s| merge_per_user(v3_segments(ctx, &s, from, to)))
+    ctx.get("schedules_v3", id).map(|schedule| {
+        let lower = from.div_euclid(NANOS_PER_SECOND) as i64;
+        let upper = ((to + NANOS_PER_SECOND - 1).div_euclid(NANOS_PER_SECOND)) as i64;
+        merge_per_user(
+            v3_segments(ctx, &schedule, lower, upper)
+                .into_iter()
+                .map(|segment| PreciseSeg {
+                    user: segment.user,
+                    start: nanos(segment.start).max(from),
+                    end: nanos(segment.end).min(to),
+                })
+                .filter(|segment| segment.start < segment.end)
+                .collect(),
+        )
+    })
 }
 
 /// Segments overlapping `[since, until]` (a point when equal), with their full extent
 /// computed from a wider window around it.
-pub fn oncall_segments(ctx: &Ctx, id: &str, since: i64, until: i64) -> Vec<Seg> {
-    schedule_segments(ctx, id, since - CONTEXT, until + CONTEXT)
+pub fn oncall_segments(ctx: &Ctx, id: &str, since: i128, until: i128) -> Vec<PreciseSeg> {
+    schedule_segments(ctx, id, since - nanos(CONTEXT), until + nanos(CONTEXT))
         .unwrap_or_default()
         .into_iter()
         .filter(|s| {
@@ -216,7 +233,7 @@ pub fn oncall_users_at_level(ctx: &Ctx, ep: &Value, level: usize, at: i64) -> Ve
         let Some(tid) = ref_id(t) else { continue };
         let users = match target_kind(t) {
             Kind::User => vec![tid.to_owned()],
-            _ => oncall_segments(ctx, tid, at, at)
+            _ => oncall_segments(ctx, tid, nanos(at), nanos(at))
                 .into_iter()
                 .map(|s| s.user)
                 .collect(),
@@ -285,27 +302,38 @@ fn summary_fields(ctx: &Ctx, mut doc: Value) -> Value {
     doc
 }
 
-fn entries(ctx: &Ctx, segs: &[Seg]) -> Vec<Value> {
+fn entries(ctx: &Ctx, segs: &[PreciseSeg]) -> Result<Vec<Value>, ApiErr> {
     segs.iter()
         .map(|s| {
-            json!({
-                "start": fmt(s.start),
-                "end": fmt(s.end),
+            Ok(json!({
+                "start": format_exact_time(s.start)?,
+                "end": format_exact_time(s.end)?,
                 "user": ctx.reference(Kind::User, &s.user),
-            })
+            }))
         })
         .collect()
 }
 
-fn coverage(segs: &[Seg], from: i64, to: i64) -> f64 {
+fn coverage(segs: &[PreciseSeg], from: i128, to: i128) -> f64 {
     if to <= from {
         return 0.0;
     }
-    let covered: i64 = segs.iter().map(|s| s.end.min(to) - s.start.max(from)).sum();
+    let mut intervals: Vec<_> = segs
+        .iter()
+        .map(|segment| (segment.start.max(from), segment.end.min(to)))
+        .filter(|(start, end)| start < end)
+        .collect();
+    intervals.sort_unstable();
+    let mut covered = 0_i128;
+    let mut covered_until = from;
+    for (start, end) in intervals {
+        covered += (end - start.max(covered_until)).max(0);
+        covered_until = covered_until.max(end);
+    }
     (covered as f64 * 10_000.0 / (to - from) as f64).round() / 100.0
 }
 
-fn render_schedule(ctx: &Ctx, doc: Value, from: i64, to: i64) -> Value {
+fn render_schedule(ctx: &Ctx, doc: Value, from: i128, to: i128) -> Result<Value, ApiErr> {
     let id = doc["id"].as_str().unwrap_or_default().to_owned();
     let final_segs = v2_segments(ctx, &doc, from, to);
     let mut doc = summary_fields(ctx, doc);
@@ -325,30 +353,32 @@ fn render_schedule(ctx: &Ctx, doc: Value, from: i64, to: i64) -> Value {
                 .map(|u| json!({ "user": ctx.reference(Kind::User, u) }))
                 .collect();
             layer["users"] = json!(users);
-            layer["rendered_schedule_entries"] = json!(entries(ctx, &rendered));
+            layer["rendered_schedule_entries"] = json!(entries(ctx, &rendered)?);
             layer["rendered_coverage_percentage"] = json!(coverage(&rendered, from, to));
         }
     }
-    let overrides: Vec<Seg> = override_segments(ctx, &id)
+    let overrides: Vec<PreciseSeg> = override_segments(ctx, &id)
         .into_iter()
         .filter(|s| s.start < to && s.end > from)
         .collect();
     doc["overrides_subschedule"] = json!({
         "name": "Overrides",
-        "rendered_schedule_entries": entries(ctx, &overrides),
+        "rendered_schedule_entries": entries(ctx, &overrides)?,
         "rendered_coverage_percentage": coverage(&overrides, from, to),
     });
     doc["final_schedule"] = json!({
         "name": "Final Schedule",
-        "rendered_schedule_entries": entries(ctx, &final_segs),
+        "rendered_schedule_entries": entries(ctx, &final_segs)?,
         "rendered_coverage_percentage": coverage(&final_segs, from, to),
     });
-    doc
+    Ok(doc)
 }
 
-fn window(ctx: &Ctx, q: &crate::util::Query, default_days: i64) -> Result<(i64, i64), ApiErr> {
-    let since = q.time("since")?.unwrap_or(ctx.now);
-    let until = q.time("until")?.unwrap_or(since + default_days * DAY);
+fn window(ctx: &Ctx, q: &crate::util::Query, default_days: i64) -> Result<(i128, i128), ApiErr> {
+    let since = q.exact_time("since")?.unwrap_or(nanos(ctx.now));
+    let until = q
+        .exact_time("until")?
+        .unwrap_or(since + nanos(default_days * DAY));
     if until < since {
         return Err(ApiErr::invalid("Since must be before until"));
     }
@@ -382,7 +412,7 @@ pub async fn list_schedules(State(world): State<SharedWorld>, req: Req) -> Respo
             .collect();
         sort_by_name(&mut schedules);
         let with_layers = q.list("include").iter().any(|i| i == "schedule_layers");
-        let (from, to) = (ctx.now, ctx.now + 14 * DAY);
+        let (from, to) = (nanos(ctx.now), nanos(ctx.now + 14 * DAY));
         let schedules = schedules
             .into_iter()
             .map(|s| {
@@ -393,10 +423,10 @@ pub async fn list_schedules(State(world): State<SharedWorld>, req: Req) -> Respo
                     if let Some(o) = s.as_object_mut() {
                         o.shift_remove("schedule_layers");
                     }
-                    s
+                    Ok(s)
                 }
             })
-            .collect();
+            .collect::<Result<Vec<_>, ApiErr>>()?;
         classic(q, "schedules", schedules)
     })
 }
@@ -409,7 +439,7 @@ pub async fn get_schedule(
     run(&world, &req, |ctx| {
         let schedule = v2_schedule(ctx, &id)?;
         let (from, to) = window(ctx, &req.query, 14)?;
-        ok(json!({ "schedule": render_schedule(ctx, schedule, from, to) }))
+        ok(json!({ "schedule": render_schedule(ctx, schedule, from, to)? }))
     })
 }
 
@@ -450,8 +480,8 @@ fn render_override(ctx: &Ctx, mut o: Value) -> Value {
 
 fn create_one_override(ctx: &mut Ctx, schedule: &str, input: &Value) -> Result<Value, Vec<String>> {
     let mut errors = Vec::new();
-    let start = input["start"].as_str().and_then(parse_time);
-    let end = input["end"].as_str().and_then(parse_time);
+    let start = input["start"].as_str().and_then(parse_exact_time);
+    let end = input["end"].as_str().and_then(parse_exact_time);
     if start.is_none() {
         errors.push("Start is not a valid date/time".to_owned());
     }
@@ -475,8 +505,8 @@ fn create_one_override(ctx: &mut Ctx, schedule: &str, input: &Value) -> Result<V
     let id = ctx.new_id("overrides");
     let doc = json!({
         "id": id,
-        "start": fmt(start.unwrap_or_default()),
-        "end": fmt(end.unwrap_or_default()),
+        "start": format_exact_time(start.unwrap_or_default()).map_err(|_|vec!["Start is outside the supported date/time range".to_owned()])?,
+        "end": format_exact_time(end.unwrap_or_default()).map_err(|_|vec!["End is outside the supported date/time range".to_owned()])?,
         "user": stored_ref(Kind::User, user.unwrap_or_default()),
         "time_zone": input.get("time_zone").cloned().unwrap_or(Value::Null),
     });
@@ -493,6 +523,28 @@ pub async fn create_overrides(
     run(&world, &req, |ctx| {
         v2_schedule(ctx, &id)?;
         let body = req.json()?;
+        let inputs: Vec<&Value> = body["overrides"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .chain(body.get("override").filter(|value| value.is_object()))
+            .collect();
+        for input in inputs {
+            for field in ["start", "end"] {
+                let Some(value) = input[field].as_str() else {
+                    continue;
+                };
+                let unsupported = match parse_exact_time(value) {
+                    Some(_) => false,
+                    None => crate::util::parse_time(value).is_some(),
+                };
+                if unsupported {
+                    return Err(ApiErr::Unavailable(
+                        "The requested timestamp precision is not supported by this service".into(),
+                    ));
+                }
+            }
+        }
         if let Some(single) = body.get("override").filter(|v| v.is_object()) {
             return match create_one_override(ctx, &id, single) {
                 Ok(o) => created(json!({ "override": o })),
@@ -521,7 +573,7 @@ pub async fn list_overrides(
     run(&world, &req, |ctx| {
         v2_schedule(ctx, &id)?;
         let q = &req.query;
-        let (Some(since), Some(until)) = (q.time("since")?, q.time("until")?) else {
+        let (Some(since), Some(until)) = (q.exact_time("since")?, q.exact_time("until")?) else {
             return Err(ApiErr::invalid("Since and until are required"));
         };
         let overrides: Vec<Value> = ctx
@@ -529,8 +581,8 @@ pub async fn list_overrides(
             .into_iter()
             .map(|(_, o)| o)
             .filter(|o| {
-                time_of(o, "start").is_some_and(|s| s < until)
-                    && time_of(o, "end").is_some_and(|e| e > since)
+                exact_time_of(o, "start").is_some_and(|s| s < until)
+                    && exact_time_of(o, "end").is_some_and(|e| e > since)
             })
             .map(|o| render_override(ctx, o))
             .collect();
@@ -562,20 +614,20 @@ fn oncall_entry(
     ep: &str,
     level: usize,
     schedule: Option<(Kind, &str)>,
-    seg: Option<&Seg>,
+    seg: Option<&PreciseSeg>,
     user: &str,
-) -> Value {
-    json!({
+) -> Result<Value, ApiErr> {
+    Ok(json!({
         "escalation_policy": ctx.reference(Kind::EscalationPolicy, ep),
         "escalation_level": level,
         "schedule": schedule.map(|(k, id)| ctx.reference(k, id)),
         "user": ctx.reference(Kind::User, user),
-        "start": seg.map(|s| fmt(s.start)),
-        "end": seg.map(|s| fmt(s.end)),
-    })
+        "start": seg.map(|s| format_exact_time(s.start)).transpose()?,
+        "end": seg.map(|s| format_exact_time(s.end)).transpose()?,
+    }))
 }
 
-pub fn oncalls(ctx: &Ctx, since: i64, until: i64) -> Vec<Value> {
+pub fn oncalls(ctx: &Ctx, since: i128, until: i128) -> Result<Vec<Value>, ApiErr> {
     let mut out = Vec::new();
     for ep in ctx.docs("escalation_policies") {
         let ep_id = ep["id"].as_str().unwrap_or_default();
@@ -588,7 +640,7 @@ pub fn oncalls(ctx: &Ctx, since: i64, until: i64) -> Vec<Value> {
             for t in rule["targets"].as_array().into_iter().flatten() {
                 let Some(tid) = ref_id(t) else { continue };
                 match target_kind(t) {
-                    Kind::User => out.push(oncall_entry(ctx, ep_id, i + 1, None, None, tid)),
+                    Kind::User => out.push(oncall_entry(ctx, ep_id, i + 1, None, None, tid)?),
                     kind => {
                         let kind = if ctx.exists("schedules_v3", tid) {
                             Kind::ScheduleV3
@@ -603,25 +655,25 @@ pub fn oncalls(ctx: &Ctx, since: i64, until: i64) -> Vec<Value> {
                                 Some((kind, tid)),
                                 Some(&seg),
                                 &seg.user,
-                            ));
+                            )?);
                         }
                     }
                 }
             }
         }
     }
-    out
+    Ok(out)
 }
 
 pub async fn list_oncalls(State(world): State<SharedWorld>, req: Req) -> Response {
     run(&world, &req, |ctx| {
         let q = &req.query;
-        let since = q.time("since")?.unwrap_or(ctx.now);
-        let until = q.time("until")?.unwrap_or(since.max(ctx.now));
+        let since = q.exact_time("since")?.unwrap_or(nanos(ctx.now));
+        let until = q.exact_time("until")?.unwrap_or(since.max(nanos(ctx.now)));
         if until < since {
             return Err(ApiErr::invalid("Since must be before until"));
         }
-        if until - since > 90 * DAY {
+        if until - since > nanos(90 * DAY) {
             return Err(ApiErr::invalid(
                 "The maximum range for since and until is 90 days",
             ));
@@ -629,7 +681,7 @@ pub async fn list_oncalls(State(world): State<SharedWorld>, req: Req) -> Respons
         let users = q.list("user_ids");
         let eps = q.list("escalation_policy_ids");
         let schedules = q.list("schedule_ids");
-        let mut entries: Vec<Value> = oncalls(ctx, since, until)
+        let mut entries: Vec<Value> = oncalls(ctx, since, until)?
             .into_iter()
             .filter(|e| users.is_empty() || users.iter().any(|u| e["user"]["id"] == u.as_str()))
             .filter(|e| {
@@ -674,11 +726,11 @@ mod tests {
             "rotation_turn_length_seconds": 604800,
             "users": [{"user": {"id": "A"}}, {"user": {"id": "B"}}]
         });
-        let t0 = parse_time("2026-01-05T09:00:00Z").unwrap();
-        let segs = layer_segments(&layer, t0, t0 + 3 * 604_800);
+        let t0 = parse_exact_time("2026-01-05T09:00:00Z").unwrap();
+        let segs = layer_segments(&layer, t0, t0 + nanos(3 * 604_800));
         let users: Vec<&str> = segs.iter().map(|s| s.user.as_str()).collect();
         assert_eq!(users, ["A", "B", "A"]);
-        assert_eq!(segs[1].start, t0 + 604_800);
+        assert_eq!(segs[1].start, t0 + nanos(604_800));
         // Before the layer starts there is nobody.
         assert!(layer_segments(&layer, t0 - 100, t0).is_empty());
     }

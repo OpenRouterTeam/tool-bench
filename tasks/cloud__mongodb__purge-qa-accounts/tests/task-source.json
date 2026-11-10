@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/mongodb/purge-qa-accounts",
+  "scenario_sha256": "sha256:c5fb4d673a13cf725589d1b2a220cb81a43e1dc0276150b327b58f507f8e48d1",
+  "dataset_sha256": "sha256:a8f03f4fd8b5bc9d3f5df3e1f36df2211ba608cef501439590d1532771626036",
+  "contract_sha256": "sha256:526cf36f336a32552dcd537bcb6d0fc22de5f5e415b60f35259a1d5a5198b77d"
+}

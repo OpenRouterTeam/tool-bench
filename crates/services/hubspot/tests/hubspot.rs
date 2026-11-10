@@ -401,7 +401,7 @@ async fn batch_update_validates_and_writes_state() {
     let r = &body["results"][0];
     assert_eq!(r["properties"]["dealstage"], "contractsent");
     assert_eq!(r["properties"]["closedate"], "2026-11-20T00:00:00.000Z");
-    assert_eq!(r["updatedAt"], "2026-10-29T14:00:07.000Z");
+    assert_eq!(r["updatedAt"], "2026-10-29T14:00:00.000Z");
 
     let s = state(&w);
     assert_eq!(
@@ -410,7 +410,7 @@ async fn batch_update_validates_and_writes_state() {
     );
     assert_eq!(
         s["deals"]["9100101"]["properties"]["hs_lastmodifieddate"],
-        "2026-10-29T14:00:07.000Z"
+        "2026-10-29T14:00:00.000Z"
     );
 
     let (status, bad) = post(
@@ -464,7 +464,7 @@ async fn batch_create_assigns_ids_and_associations() {
     let created = &body["results"][0];
     assert_eq!(created["id"], "512011");
     assert_eq!(created["properties"]["firstname"], "Jared");
-    assert_eq!(created["createdAt"], "2026-10-29T14:00:07.000Z");
+    assert_eq!(created["createdAt"], "2026-10-29T14:00:00.000Z");
     let s = state(&w);
     assert_eq!(
         s["contacts"]["512011"]["properties"]["email"],
@@ -554,7 +554,7 @@ async fn property_definitions_crud() {
                      "options": [{"label": "Low", "value": "low"}, {"label": "High", "value": "high"}]});
     let (status, created) = post(&app, "/crm/v3/properties/deals", def.clone()).await;
     assert_eq!(status, StatusCode::CREATED, "{created}");
-    assert_eq!(created["createdAt"], "2026-10-29T14:00:07.000Z");
+    assert_eq!(created["createdAt"], "2026-10-29T14:00:00.000Z");
     assert_eq!(created["options"][1]["displayOrder"], 1);
     assert_eq!(
         state(&w)["properties"]["deals/renewal_risk"]["label"],
@@ -696,7 +696,7 @@ async fn engagements_v1_create_get_update() {
     assert_eq!(created["engagement"]["type"], "NOTE");
     assert_eq!(created["engagement"]["ownerId"], 81234501);
     assert_eq!(created["engagement"]["timestamp"], 1793282400000_i64);
-    assert_eq!(created["engagement"]["createdAt"], 1793282407000_i64);
+    assert_eq!(created["engagement"]["createdAt"], 1793282400000_i64);
     assert_eq!(created["associations"]["dealIds"], json!([9100104]));
     assert_eq!(created["associations"]["contactIds"], json!([512005]));
     assert_eq!(

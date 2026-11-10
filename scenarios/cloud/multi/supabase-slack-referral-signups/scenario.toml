@@ -11,6 +11,10 @@ timeout_sec = 1200
 # 1201, 1202, 1205, 1207 = 4. Their non-cancelled orders: 120.00 + 80.50 + 210.00 = 410.50
 # (5103 is cancelled). Traps: QA accounts 1203/1208 (999.00 and 450.00 orders), the FALL25
 # code (1198, 1204), and six FALL26 load-test sign-ups in storefront-staging.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["410.5"]
 regex = '(?i)(\b4\s+(new\s+)?(customers|signups|sign-ups|users|people|referr)|(customers|signups|sign-ups|sign ups|users|people)[^0-9\n]{0,40}\b4\b)'

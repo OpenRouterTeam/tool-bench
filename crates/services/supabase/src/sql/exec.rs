@@ -9,8 +9,9 @@ use serde_json::{Map, Value, json};
 use super::{
     ColumnInfo, ForeignKey, IndexDef, PolicyDef, SqlError, TableDef,
     parse::{
-        AlterAction, ColumnDef, Expr, FromItem, JoinKind, ObjName, OnConflict, OrderItem, Query,
-        Select, SelectItem, SetBody, Stmt, TableSource, parse_expr, parse_script,
+        AlterAction, ColumnDef, CommonTableExpression, Expr, FromItem, JoinKind, ObjName,
+        OnConflict, OrderItem, Query, Select, SelectItem, SetBody, Stmt, TableSource, parse_expr,
+        parse_script,
     },
     value::{
         self, Interval, add_interval, as_f64, cast, compare, data_type_name, date_part, date_trunc,
@@ -30,6 +31,7 @@ pub struct Table {
 #[derive(Debug, Clone)]
 pub struct Db {
     pub tables: Vec<Table>,
+    pub read_only_tables: Vec<Table>,
     /// `{name, schema, default_version, installed_version, comment}` (pg_available_extensions).
     pub extensions: Vec<Value>,
     /// Logical now, timestamptz text.
@@ -44,6 +46,27 @@ impl Db {
         self.tables
             .iter()
             .position(|t| t.def.schema == schema && t.def.name == name)
+    }
+
+    fn schema_oid(&self, schema: &str) -> i64 {
+        match schema {
+            "pg_catalog" => 11,
+            "public" => 2200,
+            _ => {
+                let schemas: std::collections::BTreeSet<_> = self
+                    .tables
+                    .iter()
+                    .chain(&self.read_only_tables)
+                    .map(|table| table.def.schema.as_str())
+                    .filter(|name| !matches!(*name, "public" | "pg_catalog"))
+                    .collect();
+                16384
+                    + schemas
+                        .iter()
+                        .position(|name| *name == schema)
+                        .unwrap_or(schemas.len()) as i64
+            }
+        }
     }
 }
 
@@ -247,6 +270,17 @@ type SelectOutput = (Vec<String>, Vec<Vec<Value>>, Vec<Vec<Value>>);
 
 impl Exec<'_> {
     fn statement(&mut self, stmt: &Stmt) -> Result<Vec<Value>, SqlError> {
+        if self.writes_read_only_table(stmt) {
+            return Err(SqlError::unsupported());
+        }
+        if let Stmt::With { ctes, statement } = stmt {
+            let saved = self.ctes.len();
+            let result = self
+                .install_ctes(ctes, None)
+                .and_then(|_| self.statement(statement));
+            self.ctes.truncate(saved);
+            return result;
+        }
         let (names, rows) = match stmt {
             Stmt::Query(q) => self.query(q, None)?,
             Stmt::Insert {
@@ -314,12 +348,33 @@ impl Exec<'_> {
         result
     }
 
-    fn query_inner(&mut self, q: &Query, parent: Option<&Env>) -> Result<Output, SqlError> {
-        for (name, cq) in &q.ctes {
-            let (names, rows) = self.query(cq, parent)?;
-            let header = names.into_iter().map(|n| (name.clone(), n)).collect();
+    fn install_ctes(
+        &mut self,
+        expressions: &[CommonTableExpression],
+        parent: Option<&Env>,
+    ) -> Result<(), SqlError> {
+        for expression in expressions {
+            let (mut names, rows) = self.query(&expression.query, parent)?;
+            if expression.columns.len() > names.len() {
+                return Err(SqlError::new(
+                    "42P10",
+                    format!(
+                        "WITH query \"{}\" has {} columns available but {} columns specified",
+                        expression.name,
+                        names.len(),
+                        expression.columns.len()
+                    ),
+                ));
+            }
+            for (position, alias) in expression.columns.iter().enumerate() {
+                names[position] = alias.clone();
+            }
+            let header = names
+                .into_iter()
+                .map(|name| (expression.name.clone(), name))
+                .collect();
             self.ctes.push((
-                name.clone(),
+                expression.name.clone(),
                 Rel {
                     header,
                     rows,
@@ -327,6 +382,11 @@ impl Exec<'_> {
                 },
             ));
         }
+        Ok(())
+    }
+
+    fn query_inner(&mut self, q: &Query, parent: Option<&Env>) -> Result<Output, SqlError> {
+        self.install_ctes(&q.ctes, parent)?;
         let (names, mut rows, keys) = match &q.body {
             SetBody::Select(s) => self.select(s, parent, &q.order_by)?,
             body => {
@@ -920,6 +980,40 @@ impl Exec<'_> {
         }
     }
 
+    fn writes_read_only_table(&self, statement: &Stmt) -> bool {
+        let matches = |name: &ObjName| {
+            self.db.read_only_tables.iter().any(|table| {
+                table.def.schema == name.schema.as_deref().unwrap_or("public")
+                    && table.def.name == name.name
+            })
+        };
+        match statement {
+            Stmt::With { statement, .. } => self.writes_read_only_table(statement),
+            Stmt::Insert { table, .. }
+            | Stmt::Update { table, .. }
+            | Stmt::Delete { table, .. }
+            | Stmt::CreateIndex { table, .. }
+            | Stmt::CreatePolicy { table, .. }
+            | Stmt::DropPolicy { table, .. }
+            | Stmt::Comment { table, .. } => matches(table),
+            Stmt::CreateTable { name, .. } | Stmt::AlterTable { name, .. } => matches(name),
+            Stmt::DropTable { names, .. } | Stmt::Truncate(names) => names.iter().any(matches),
+            Stmt::DropIndex { names, .. } => names.iter().any(|name| {
+                self.db.read_only_tables.iter().any(|table| {
+                    table.def.schema == name.schema.as_deref().unwrap_or("public")
+                        && (table
+                            .def
+                            .indexes
+                            .iter()
+                            .any(|index| index.name == name.name)
+                            || !table.def.primary_keys.is_empty()
+                                && name.name == format!("{}_pkey", table.def.name))
+                })
+            }),
+            _ => false,
+        }
+    }
+
     fn table_idx(&self, name: &ObjName) -> Result<usize, SqlError> {
         let schema = name.schema.as_deref().unwrap_or("public");
         self.db.find(schema, &name.name).ok_or_else(|| {
@@ -930,10 +1024,65 @@ impl Exec<'_> {
         })
     }
 
-    fn virtual_table(&self, name: &ObjName) -> Option<(Vec<&'static str>, Vec<Vec<Value>>)> {
+    fn virtual_table(&self, name: &ObjName) -> Option<(Vec<&str>, Vec<Vec<Value>>)> {
         let schema = name.schema.as_deref();
-        let tables = &self.db.tables;
+        if let Some(table) = self.db.read_only_tables.iter().find(|table| {
+            table.def.schema == schema.unwrap_or("public") && table.def.name == name.name
+        }) {
+            return Some((
+                table
+                    .def
+                    .columns
+                    .iter()
+                    .map(|column| column.name.as_str())
+                    .collect(),
+                table.rows.clone(),
+            ));
+        }
+        let tables: Vec<_> = self
+            .db
+            .tables
+            .iter()
+            .chain(&self.db.read_only_tables)
+            .collect();
         match (schema, name.name.as_str()) {
+            (None | Some("pg_catalog"), "pg_namespace") => {
+                let schemas: std::collections::BTreeSet<_> = tables
+                    .iter()
+                    .map(|table| table.def.schema.as_str())
+                    .chain(["public", "pg_catalog"])
+                    .collect();
+                Some((
+                    vec!["oid", "nspname"],
+                    schemas
+                        .into_iter()
+                        .map(|schema| vec![json!(self.db.schema_oid(schema)), json!(schema)])
+                        .collect(),
+                ))
+            }
+            (None | Some("pg_catalog"), "pg_class") => Some((
+                vec![
+                    "oid",
+                    "relname",
+                    "relnamespace",
+                    "relkind",
+                    "relrowsecurity",
+                    "relforcerowsecurity",
+                ],
+                tables
+                    .iter()
+                    .map(|table| {
+                        vec![
+                            json!(table.def.id),
+                            json!(table.def.name),
+                            json!(self.db.schema_oid(&table.def.schema)),
+                            json!("r"),
+                            json!(table.def.rls_enabled),
+                            json!(table.def.rls_forced),
+                        ]
+                    })
+                    .collect(),
+            )),
             (Some("information_schema"), "tables") => Some((
                 vec!["table_catalog", "table_schema", "table_name", "table_type"],
                 tables
@@ -2899,6 +3048,7 @@ impl Exec<'_> {
                     self.db.tables[ti].rows.clear();
                 }
             }
+            Stmt::Unsupported(_) => return Err(SqlError::unsupported()),
             _ => return Ok(()),
         }
         self.db.dirty = true;

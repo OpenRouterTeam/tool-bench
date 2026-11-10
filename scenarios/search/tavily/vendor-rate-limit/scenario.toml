@@ -8,6 +8,10 @@ tags = ["lookup", "single-service", "tavily"]
 timeout_sec = 900
 
 # v3 docs say 1,200/min; the deprecated v2 page and a review say 600, a forum post 900.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 regex = "1[,. ]?200"
 

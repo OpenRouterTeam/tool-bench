@@ -3,6 +3,11 @@
     "_key": "northwind-app-assets",
     "Name": "northwind-app-assets",
     "CreationDate": "2023-05-02T17:21:09Z",
+    "Encryption": {
+      "SSEAlgorithm": "aws:kms",
+      "KMSMasterKeyID": "arn:aws:kms:us-east-1:481562039417:alias/web-assets",
+      "BucketKeyEnabled": true
+    },
     "Versioning": "Enabled",
     "PublicAccessBlock": {
       "BlockPublicAcls": true,
@@ -64,7 +69,10 @@
     "_key": "northwind-legacy-exports",
     "Name": "northwind-legacy-exports",
     "CreationDate": "2017-06-21T08:03:51Z",
-    "Encryption": null,
+    "Encryption": {
+      "SSEAlgorithm": "AES256",
+      "BucketKeyEnabled": false
+    },
     "Tags": [
       {
         "Key": "team",
@@ -97,8 +105,9 @@
     "Name": "northwind-terraform-state",
     "CreationDate": "2020-09-30T22:05:17Z",
     "Encryption": {
-      "SSEAlgorithm": "AES256",
-      "BucketKeyEnabled": false
+      "SSEAlgorithm": "aws:kms",
+      "KMSMasterKeyID": "arn:aws:kms:us-east-1:481562039417:alias/terraform-state",
+      "BucketKeyEnabled": true
     },
     "Versioning": "Enabled",
     "PublicAccessBlock": {

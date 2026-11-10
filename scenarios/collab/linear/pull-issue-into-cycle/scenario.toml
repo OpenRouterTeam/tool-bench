@@ -7,8 +7,10 @@ services = ["linear"]
 tags = ["write", "single-service", "linear"]
 timeout_sec = 900
 
-# PAY-121 moves into cycle 42 (the active Payments cycle, not completed 41 or upcoming 43)
-# and to In Progress. The look-alike PAY-120 ("rotate API keys", Done) stays untouched.
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/linear/issues/PAY-121/cycleId"
 equals = "627fb4e1-47ac-567a-99cd-3e236709e3b0"
@@ -17,27 +19,24 @@ equals = "627fb4e1-47ac-567a-99cd-3e236709e3b0"
 pointer = "/services/linear/issues/PAY-121/stateId"
 equals = "41688e9c-05a3-5fce-be65-9c7049e13037"
 
-[[expect.state]]
-pointer = "/services/linear/issues/PAY-120/cycleId"
-equals = "954f7df0-17ca-5a9a-835d-528b021a4997"
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/PAY-121/cycleId"
 
-[[expect.state]]
-pointer = "/services/linear/issues/PAY-120/stateId"
-equals = "464b7d47-51c4-50ce-aa96-03bed89ef6af"
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/PAY-121/stateId"
 
-[[expect.required_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/PAY-121/startedAt"
 
-[[expect.forbidden_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
-body = { name = "linear_archiveIssue" }
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/PAY-121/updatedAt"
 
-[[expect.forbidden_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
-body = { name = "linear_completeCycle" }
+[[expect.preservation.allow]]
+pointer = "/services/linear/issue_history/*"
+kind = "create"
+matching = { issueId = "7e4438e4-5908-5977-84fd-cbf44bb6c977" }
+count_scope = "per_commit"
+max_count = 6
 
 [[solution.call]]
 endpoint = "linear"

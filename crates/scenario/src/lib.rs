@@ -1,7 +1,14 @@
 //! Scenario sources (`scenarios/<group>/<service|multi>/<slug>/`) and their conversion into
 //! Harbor task directories.
 
+pub mod connections;
+pub mod coverage;
+pub mod framing;
 pub mod images;
+pub mod oracle_results;
+pub mod oracle_tools;
+pub mod profile;
+pub mod solution;
 pub mod taskgen;
 
 use std::{
@@ -20,6 +27,8 @@ pub struct Meta {
     pub title: String,
     pub now: String,
     pub seed: String,
+    #[serde(default)]
+    pub clock_mode: mock_core::clock::ClockMode,
     /// Services whose datasets this scenario provides (all 32 endpoints are always exposed).
     pub services: Vec<String>,
     #[serde(default)]
@@ -34,20 +43,32 @@ fn default_timeout() -> u32 {
 
 /// One oracle tool call, replayed by `solution/solve.sh` through the real MCP endpoint.
 #[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SolutionCall {
     pub endpoint: String,
     pub tool: String,
     #[serde(default)]
     pub arguments: Value,
+    #[serde(default)]
+    pub template: bool,
+    #[serde(default)]
+    pub capture: Vec<solution::Capture>,
+    #[serde(default)]
+    pub replacements: Vec<solution::ArgumentReplacement>,
+    #[serde(default)]
+    pub allow_api_errors: Vec<oracle_results::AllowedApiError>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Solution {
     #[serde(default, rename = "call")]
     pub calls: Vec<SolutionCall>,
     /// Written to `/app/answer.md` by the oracle.
     #[serde(default)]
     pub answer: Option<String>,
+    #[serde(default)]
+    pub answer_template: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -94,7 +115,15 @@ impl Scenario {
     }
 
     /// Consistency checks against the directory layout, the dataset, and the catalog.
-    pub fn validate(&self, root: &Path, catalog: &catalog::Catalog) -> anyhow::Result<()> {
+    pub fn validate(
+        &self,
+        root: &Path,
+        catalog: &catalog::Catalog,
+        tools: &oracle_tools::OracleTools,
+    ) -> anyhow::Result<Vec<oracle_tools::CallValidation>> {
+        if let Err(error) = self.expect.validate() {
+            bail!("{}: invalid expectations: {error}", self.meta.id);
+        }
         let expected_dir = root.join(&self.meta.id);
         if fs::canonicalize(&expected_dir).ok() != fs::canonicalize(&self.dir).ok() {
             bail!(
@@ -123,6 +152,9 @@ impl Scenario {
                 );
             }
         }
+        if let Err(error) = self.solution.validate_bindings() {
+            bail!("{}: invalid oracle bindings: {error}", self.meta.id);
+        }
         if self.expect.answer.is_some() && !self.instruction.contains(ANSWER_PATH) {
             bail!(
                 "{}: expects an answer, so the instruction must ask for {ANSWER_PATH}",
@@ -130,12 +162,23 @@ impl Scenario {
             );
         }
         if self.expect.state.is_empty()
+            && self.expect.records.is_empty()
+            && self.expect.relations.is_empty()
             && self.expect.required_calls.is_empty()
             && self.expect.answer.is_none()
         {
             bail!("{}: no expectations", self.meta.id);
         }
-        Ok(())
+        self.solution
+            .calls
+            .iter()
+            .enumerate()
+            .map(|(index, call)| {
+                tools
+                    .validate(call)
+                    .with_context(|| format!("{}: solution.call[{index}]", self.meta.id))
+            })
+            .collect()
     }
 }
 

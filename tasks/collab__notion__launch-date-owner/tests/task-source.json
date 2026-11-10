@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/notion/launch-date-owner",
+  "scenario_sha256": "sha256:58319c7e2753841fc0547d68458bee2573ea3cc950b00f954971004a286508fb",
+  "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
+  "contract_sha256": "sha256:09b11181885525786909604c7af78434fbf8eb7b3426eb10ed62c0f393ff9eaa"
+}

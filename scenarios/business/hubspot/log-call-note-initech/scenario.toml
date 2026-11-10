@@ -7,43 +7,52 @@ services = ["hubspot"]
 tags = ["single-service", "write", "hubspot"]
 timeout_sec = 900
 
-# The new note is the next activity id (61000005, after notes 61000001-3 and task 61000004),
-# whether created through engagements v1 or CRM v3 notes. It must hang off the open
-# migration deal 9100104, not the closed "Phase 0 Assessment" deal 9100105.
-[[expect.state]]
-pointer = "/services/hubspot/notes/61000005/properties/hs_note_body"
-contains = "security review passed"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/hubspot/notes/61000005/properties/hs_note_body"
-contains = "revised SOW by Nov 14"
+[[expect.records]]
+selector = { collection = "/services/hubspot/notes", created = true }
+equals = 1
+fields = { "/archived" = false }
+html_text = { "/properties/hs_note_body" = "Call with Bill Lumbergh: security review passed; procurement needs a revised SOW by Nov 14." }
 
-[[expect.state]]
-pointer = "/services/hubspot/associations/deals~19100104~1notes~161000005"
-exists = true
+[[expect.records]]
+selector = { collection = "/services/hubspot/associations", created = true }
+min_count = 1
+max_count = 3
+fields = { "/toObjectType" = "notes" }
 
-[[expect.state]]
-pointer = "/services/hubspot/associations/deals~19100105~1notes~161000005"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/hubspot/associations", created = true, matching = { fromObjectType = "deals", fromObjectId = "9100104", toObjectType = "notes", types = [{ associationCategory = "HUBSPOT_DEFINED", associationTypeId = 213 }] } }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/hubspot/notes/61000006"
-exists = false
+[[expect.relations]]
+source = { collection = "/services/hubspot/associations", created = true }
+source_field = "/toObjectId"
+target = { collection = "/services/hubspot/notes", created = true }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.required_calls]]
-service = "hubspot"
-method = "POST"
-path_regex = "^/(engagements/v1/engagements|crm/v3/objects/(notes|note|0-46)/batch/create)$"
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/notes/*"
+kind = "create"
+matching = { archived = false }
 
-[[expect.forbidden_calls]]
-service = "hubspot"
-method = "POST"
-path_regex = "/batch/update$"
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/associations/*"
+kind = "create"
+matching = { fromObjectType = "deals", fromObjectId = "9100104", toObjectType = "notes" }
 
-[[expect.forbidden_calls]]
-service = "hubspot"
-method = "PATCH"
-path_regex = "^/engagements/v1/engagements/6100000[1-4]$"
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/associations/*"
+kind = "create"
+matching = { fromObjectType = "contacts", fromObjectId = "512005", toObjectType = "notes" }
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/associations/*"
+kind = "create"
+matching = { fromObjectType = "companies", fromObjectId = "18234002", toObjectType = "notes" }
 
 [[solution.call]]
 endpoint = "hubspot"

@@ -10,6 +10,10 @@ timeout_sec = 900
 # The production app is checkout-web: its new ReplicaSet cannot pull the image tag
 # 2.14.0-rc3 (the tag does not exist in the registry). checkout-web-staging is also
 # Degraded, but on the staging cluster and for a different reason (a missing env var).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["checkout-web", "2.14.0-rc3"]
 regex = "(?is)(ImagePullBackOff|ErrImagePull|pull|not found|does(n't| not) exist|missing (image|tag))"

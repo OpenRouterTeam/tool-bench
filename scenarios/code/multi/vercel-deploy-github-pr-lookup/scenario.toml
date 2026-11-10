@@ -11,6 +11,10 @@ timeout_sec = 1200
 # production deployment of 7d41c9e (Next.js 15.4, #487) failed. PR #482 was written by
 # mateoalv, approved by ines-d (junpark only commented) and merged by riley-p. Distractors:
 # PR #478 has the same title but was closed unmerged (junpark), and #487 is the newest merge.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
 contains = ["c3a9f12", "482", "mateoalv", "ines-d", "riley-p"]
 
