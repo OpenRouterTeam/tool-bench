@@ -1,7 +1,126 @@
 {
+  "business/hubspot/largest-open-deal": [
+    {
+      "answer": "# Largest open deal\n\n- **Company:** Northwind Logistics\n- **Deal amount:** $412,000\n\nThe deal is \"Northwind Logistics – Fleet Telemetry\", currently in the Contract Sent stage with an expected close date of 2026-11-14. The two larger deals in the CRM are already closed (Vandelay Industries, $640,000, closed lost; Northwind Traders, $530,000, closed won), so they are not counted.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "business/multi/hubspot-largest-deal-salesforce-owner": [
+    {
+      "answer": "# Forecast prep: largest open deal\n\n## Largest open deal in HubSpot\n\n- **Deal:** Northwind Logistics – Fleet Telemetry\n- **Amount:** $412,000\n- **Stage:** Contract sent (expected close 2026-11-14)\n- **Company:** Northwind Logistics (Seattle, WA; northwindlogistics.com)\n\nTwo deals have larger amounts but are not open: Vandelay – Import Analytics Suite ($640,000, closed lost) and Northwind Traders – POS Analytics ($530,000, closed won).\n\n## Salesforce account: Northwind Logistics\n\n- **Account owner:** Daniel Okafor (daniel.okafor@northbeam.io)\n- **Open support cases:** yes, 2\n\n| Case number | Subject | Status | Priority | Opened |\n|---|---|---|---|---|\n| 00002113 | SSO login fails for depot supervisors | Escalated | Medium | 2026-10-23 |\n| 00002107 | Driver app shows stale ETAs after route change | Working | High | 2026-10-14 |\n\nBoth cases are owned by Hannah Pierce. Case 00002113 is escalated, so it is the one most likely to come up.\n\nThe account has one other case, which is closed and not counted above: 00002101 \"Telematics gateway drops GPS pings every 15 minutes\" (closed 2026-09-09).\n\nSalesforce also has similarly named accounts, Northwind Traders and Northwind Freight Brokers. Their cases are not included here because they are different companies.\n\nNothing was changed in HubSpot or Salesforce.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "business/multi/zendesk-order-status-shopify": [
+    {
+      "answer": "# Sam Ortiz – \"Where is my order??\" (Zendesk ticket #6621)\n\n**Order:** #1063 (placed May 10, 2026)\n\n**Shipped?** No. The order is paid but still **unfulfilled** in Shopify, so nothing has shipped yet (which is why Sam has no shipping email).\n\n**Order total:** $176.00 USD (no shipping or tax charged)\n\n## Details\n\n- Items: Merino Crew Sweater, size M ($128.00) and Harbor Canvas Tote, Sand ($48.00). This matches the ticket (\"a merino sweater (and a tote) on May 10th\").\n- Customer: Sam Ortiz, sam.ortiz@fastmail.com (the address in the ticket), shipping to 225 E 34th St Apt 12B, New York, NY 10016.\n- Payment status: Paid.\n\n## How I matched the order\n\n- There are two Sam Ortiz customers in the store. The ticket is signed with sam.ortiz@fastmail.com, which is Shopify customer 7301. The other Sam Ortiz (sortiz@gmail.com, a wholesale customer in Miami Beach) opened an older, solved ticket about gift wrapping and is not the one asking here.\n- Customer 7301 has two orders. #1051 (March 10, one sweater, $128.00) was already fulfilled; #1063 is the May 10 sweater-and-tote order the ticket describes.\n\nNothing was changed: no reply was posted on the ticket and no store data was modified.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "business/salesforce/open-pipeline-by-rep": [
+    {
+      "answer": "# Largest open pipeline closing in Q2 2026\n\n**Rep: Priya Raman**\n**Total open pipeline closing Q2 2026: $252,500** (3 open opportunities)\n\n## Priya Raman's open Q2 deals\n\n| Opportunity | Stage | Close date | Amount |\n|---|---|---|---|\n| Northgate Analytics - Data Quality Add-on | Value Proposition | 2026-05-29 | $47,500 |\n| Kestrel Aerospace - Flight Ops Expansion | Proposal/Price Quote | 2026-06-05 | $85,000 |\n| Northgate Analytics - Platform Renewal 2026 | Negotiation/Review | 2026-06-20 | $120,000 |\n| **Total** | | | **$252,500** |\n\n## How the reps compare (open deals only, close date 2026-04-01 to 2026-06-30)\n\n| Rep | Open deals | Open pipeline |\n|---|---|---|\n| Priya Raman | 3 | $252,500 |\n| Marcus Bell | 3 | $240,000 |\n| Sofia Alvarez | 2 | $135,000 |\n| Daniel Okafor | 1 | no amount entered |\n\n## Method and caveats\n\n- Source: Salesforce Opportunity records with `IsClosed = false` and `CloseDate` in April–June 2026, summed by opportunity owner.\n- Closed deals in the quarter are left out as asked: Priya Raman's Kestrel Aerospace - Training Package (Closed Won, $150,000), Sofia Alvarez's Lumen Retail Group - Enterprise Renewal (Closed Won, $280,000) and Marcus Bell's Cedar & Pine Clinics - Billing Insights (Closed Lost, $75,000).\n- It is close at the top: Priya Raman is ahead of Marcus Bell by $12,500.\n- Daniel Okafor's one open Q2 deal (Meridian Health Partners - Discovery, Qualification, closing 2026-06-18) has a blank Amount, so it adds nothing to his total. Worth getting a number on it before the call.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "business/shopify/top-spender": [
+    {
+      "answer": "# Top-spending customer (octo-corp Shopify store)\n\n- **Name:** Priya Raman\n- **Email:** priya.raman@outlook.com\n- **Total spent:** $1,130.00 USD\n\nThat is the sum of her three paid orders: #1002 ($386.00), #1008 ($400.00) and #1013 ($344.00). It matches the amount spent that Shopify shows on her customer record.\n\nRefunded and cancelled orders are excluded. Two customers would have ranked higher if they counted: Elena Novak's order #1003 ($1,608.00) was refunded, and Hannah Wright's order #1006 ($1,260.00) was cancelled and voided. Without those, Elena's total is $214.00 and Hannah's is $300.00.\n\nRunner-up: Tom Achebe, $1,050.00 from one order.\n\nNothing in the store was changed.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "business/stripe/customer-mrr": [
+    {
+      "answer": "# Harbor & Pine Coffee Co. — current MRR\n\n**MRR: $439.00**\n\nBreakdown: Team monthly $249.00 + 6 seats x $15.00 = $90.00 + Analytics yearly $1,200.00 / 12 = $100.00.\n\nCustomer: Harbor & Pine Coffee Co. (`cus_mxxxdqMeoA1GEc`, ap@harborpine.coffee). Counted the two subscriptions with status `active` (`sub_tDvBk5uMfpeEd4Dzi9zgshZh`, `sub_7IQ99vICK9hye0kHJVCiiyOV`); no discounts on either. Excluded: the trialing \"Extra location monthly\" subscription ($49.00/mo, `sub_vWdnUHZwIshHKfyV0uOHHgqq`) and the canceled \"Starter monthly\" subscription ($99.00/mo, `sub_b7z8qYk1uH80A2Qk5ti8j9gf`). The similarly named customer \"Harbor & Pine Roasters\" (`cus_KLuZbdeYbCuh62`) is a different account and is not included.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "business/zendesk/find-invoice-attachment": [
+    {
+      "answer": "# Priya Raman's invoice copy\n\n- **Ticket:** #3108, \"Question about our October bill\" (requester: Priya Raman, Lumen Analytics; status: open)\n- **Invoice file:** `Lumen-Invoice-INV-20931.pdf` (PDF, attached by Priya to her reply on 2026-10-22)\n\nPriya attached it after our agent asked for a copy of the invoice she was looking at.\n\nTwo similar attachments that are not the one she means:\n\n- Ticket #3110 has `Lumen-Invoice-INV-20877.pdf`, but that is the September invoice our agent sent to Tom Becker (Lumen Analytics finance), not something Priya sent us.\n- Ticket #3105 has `invoice_oct.pdf`, from a different customer (Priya Ramesh, Ramesh & Co Bakery).\n\nNothing was replied to or changed.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "cloud/aws/find-unencrypted-bucket": [
+    {
+      "answer": "northwind-legacy-exports\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "cloud/cloudflare/find-stale-origin": [
+    {
+      "answer": "checkout.octo-shop.com\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
   "cloud/mongodb/top-category-revenue": [
     {
       "answer": "# Top product category by revenue — February 2026\n\n**Winning category: outdoor**\n**Total February revenue: $1,457.50 USD**\n\n## How it was calculated\n\n- Source: production MongoDB, database `shop`, collection `orders`.\n- Orders included: `status` = `delivered`, placed (`createdAt`) from 2026-02-01 00:00 UTC up to, but not including, 2026-03-01 00:00 UTC.\n- Revenue per order line = `items.price` × `items.qty`, summed by `items.category`.\n\n## Result by category\n\n| Rank | Category    | Revenue (USD) | Delivered orders |\n|------|-------------|---------------|------------------|\n| 1    | outdoor     | 1,457.50      | 3 (10459, 10482, 10499) |\n| 2    | electronics | 1,309.00      | 3 (10433, 10466, 10493) |\n| 3    | kitchen     | 798.00        | 3 (10428, 10477, 10504) |\n| 4    | apparel     | 436.00        | 2 (10441, 10511) |\n\nOutdoor breakdown: order 10459 = $435.00, order 10482 = $214.50, order 10499 = $808.00.\n\n## What was left out\n\nFebruary orders that were not delivered are excluded: 10452 (cancelled, electronics, $899), 10470 (refunded, outdoor, $119) and 10488 (shipped but not yet delivered, outdoor, $429). If the cancelled TV order had been counted, electronics would have come out on top, so the delivered-only rule decides the result.\n\n## Note on the date basis\n\nI treated \"February\" as the month the order was placed. Using the delivery date instead gives the same winner and the same outdoor total ($1,457.50); the only difference is apparel, which drops to $237.00 because order 10511 was placed Feb 27 and delivered Mar 2.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "cloud/multi/mongodb-zendesk-order-tracking": [
+    {
+      "answer": "# Hana Sato — order lookup for Zendesk ticket #4222\n\nTicket #4222 (\"Headphones still haven't arrived\", opened 2026-10-28): Hana asks where the Studio X2 headphones she ordered on October 21 are, and which carrier has them.\n\nMatching order in the production `shop` database (`orders` collection):\n\n- **Order number:** 10601\n- **Current status:** shipped\n- **Carrier:** UPS\n- **Tracking number:** 1Z4X97W80391827364\n\nSupporting detail from the same order record:\n\n- Item: Studio X2 Headphones (SKU HDP-X2), qty 1, $199.00 USD\n- Ordered: 2026-10-21 18:02 UTC\n- Shipped: 2026-10-23 11:30 UTC\n- Carrier ETA: 2026-10-31 (not yet delivered; no delivery date recorded)\n\nHow the order was identified: it is the only order for Hana Sato (hana.sato@example.org) containing the Studio X2 headphones, and its order date matches the October 21 date in her ticket. Her other recent orders are a different product: 10605 (Chef's Knife, placed Oct 24, processing) and 10598 (USB-C cable pack, delivered Oct 6, the subject of her earlier solved ticket #4208).\n\nNothing was changed: the ticket and the database were only read.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "cloud/multi/supabase-slack-referral-signups": [
+    {
+      "answer": "# FALL26 referral campaign: sign-ups and spend so far\n\nSource: production storefront database (Supabase project `storefront-prod`), pulled Oct 29, 2026.\n\n- **New customers who signed up with FALL26: 4**\n- **Total spent by those customers: $410.50 USD**\n\nApplied as asked in the thread: QA test accounts (@octo-shop.com) are left out, and cancelled orders are not counted in the spend.\n\n## Breakdown\n\n| Customer | Signed up | Orders counted | Spend |\n|---|---|---|---|\n| Mina Park | Oct 19 | 1 (paid) | $120.00 |\n| Luis Ortega | Oct 20 | 1 (shipped) | $80.50 |\n| Omar Haddad | Oct 23 | 1 (shipped) | $210.00 |\n| Ravi Menon | Oct 27 | none yet | $0.00 |\n\n## What was excluded\n\n- 2 QA test accounts on FALL26 (qa+ref1@octo-shop.com, qa+ref2@octo-shop.com) and their orders.\n- 1 cancelled order from Luis Ortega ($40.00).\n- Customers on the retired FALL25 code are not part of this count.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "cloud/okta/failed-signins-report": [
+    {
+      "answer": "# Most failed Okta sign-ins on March 13, 2026 (UTC)\n\n- **Username (login):** jordyn.patel@octo-corp.example\n- **Failed sign-in attempts:** 6\n- **Source IP address:** 203.0.113.77\n\nAll six were `user.session.start` events with outcome FAILURE / INVALID_CREDENTIALS, one per minute from 14:20:03Z to 14:25:03Z, all from the same IP. The account is Jordyn Patel (Okta user ID 00u1jrdynpt6Cd3Ef4x7).\n\nFor comparison, the other accounts with failed or policy-denied sign-ins that day had fewer: jordan.pate@octo-corp.example had 4 sign-on policy denials, marcus.chen@octo-corp.example 3 failures, jordan.patel@octo-corp.example 2 failures, priya.raman@octo-corp.example 1 failure. Events outside the day were not counted.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "cloud/supabase/top-customer-march-revenue": [
+    {
+      "answer": "# Top customer by revenue, March 2026\n\n**Grace Kim** (grace.kim@example.kr) brought in the most revenue in March 2026: **$1,234.50 USD** across 3 orders.\n\n| Order | Date (UTC) | Status | Total (USD) |\n|---|---|---|---|\n| 5004 | 2026-03-06 | shipped | 412.50 |\n| 5008 | 2026-03-18 | paid | 389.00 |\n| 5012 | 2026-03-27 | shipped | 433.00 |\n| | | **March total** | **1,234.50** |\n\n## How this was calculated\n\n- Source: `storefront-prod` on Supabase, `public.orders` joined to `public.customers`.\n- Window: orders created from 2026-03-01 00:00:00 UTC up to (not including) 2026-04-01 00:00:00 UTC.\n- Only orders with status `paid` or `shipped` were counted; `pending`, `refunded` and `cancelled` orders were left out.\n- All orders are in USD.\n\n## Runner-up, for context\n\nFelix Wagner (felix.wagner@example.de) was second with $1,100.00. His $600.00 refunded order (15 March) and his $500.00 order placed at 00:10 UTC on 1 April are not included; neither would count under the rules above.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "code/argocd/find-degraded-app": [
+    {
+      "answer": "# Degraded production app: checkout-web\n\n**Application:** `checkout-web` (Argo CD project `storefront`, production cluster `prod-use1`, namespace `storefront`). Sync status is Synced, health is Degraded.\n\n**Failing resource:** Deployment `checkout-web` in namespace `storefront`. Its new ReplicaSet `checkout-web-7f8b9c6d5` cannot start its pod `checkout-web-7f8b9c6d5-q2x7m`, which is stuck in `ImagePullBackOff` (0/1 containers). The Deployment reports \"exceeded its progress deadline\" (`ProgressDeadlineExceeded`).\n\n**Root cause:** the lunchtime deploy (automated sync at 12:53 UTC on 2026-10-29 to revision `a23f2a7b21f788c07d95ceaeb529e54b7ae3dbcd`) changed the image to `ghcr.io/lumen-retail/checkout-web:2.14.0-rc3`, and that image tag does not exist in the registry. The pod event is:\n\n> Failed to pull image \"ghcr.io/lumen-retail/checkout-web:2.14.0-rc3\": rpc error: code = NotFound ... failed to resolve reference \"ghcr.io/lumen-retail/checkout-web:2.14.0-rc3\": not found\n\nThe kubelet has retried the pull 15 times and backed off 287 times. Because the new pod never becomes ready, the rollout stalled and the Deployment went from Progressing to Degraded at 13:03 UTC. This is a missing image tag (`NotFound`), not an application crash or a registry authentication failure.\n\n**Current impact:** the three pods of the previous ReplicaSet `checkout-web-6c9d7f5b8` (image `2.13.4`) are still Running and Healthy, so checkout is being served by the old version while the rollout is stuck.\n\n**Not the app in question:** `checkout-web-staging` is also Degraded, but it is the staging app on the staging cluster. `order-events-consumer` (production) is Progressing, not Degraded.\n\nNothing was changed or synced; this was a read-only investigation.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "code/github/ci-failure-root-cause": [
+    {
+      "answer": "# PR #42 CI failure — octo-org/payments-api\n\n**PR:** #42 \"Add exponential backoff to webhook retries\" (branch `feat/webhook-backoff`)\n**Failing run:** CI run 9005 (run #61) on Jane's latest commit `366a392` \"Cap webhook backoff at 30s\". The previous run (9004, on her first commit) was green, so the last push introduced the failure.\n\n- **Failed job:** `unit-tests` (job 50114), step `Run go test ./...`. The `lint` and `integration-tests` jobs passed.\n- **Failing test:** `TestRetryBackoffCapsAtMaxDelay` in package `github.octo-corp.com/octo-org/payments-api/internal/webhook`\n- **Assertion message:** `backoff_test.go:17: expected delay 30s, got 32s`\n\n**What to tell Jane:** the backoff is not being capped at the 30s maximum — the test expected a 30s delay and got 32s (the uncapped 1s, 2s, 4s… doubling value), so the cap added in the last commit isn't taking effect.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "code/gitlab/diagnose-failed-pipeline": [
+    {
+      "answer": "# checkout-api `main` pipeline failure — diagnosis\n\n- **Project:** `northwind/payments/checkout-api`\n- **Pipeline ID:** 5520 (most recent failed pipeline on `main`, created 2026-04-02 07:39 UTC, commit `15861d77` \"Record refund reason on partial refunds\" by Sam Okafor)\n- **Failing job:** `integration-tests` (job 88409, stage `test`, failure reason `script_failure`)\n- **Database column the log complains about:** `refund_reason` (on the `refunds` table)\n\n## What happened\n\n`build`, `lint` and `unit-tests` passed. In `integration-tests`, `pytest tests/integration` ran 48 tests: 47 passed, 1 failed.\n\nThe failing test is `tests/integration/test_refunds.py::test_partial_refund_records_reason`. It calls `record_refund` (`checkout/refunds.py`), which runs:\n\n```\nINSERT INTO refunds (payment_id, amount_cents, refund_reason) VA...\n```\n\nPostgres rejects it:\n\n```\npsycopg.errors.UndefinedColumn: column \"refund_reason\" of relation \"refunds\" does not exist\n```\n\n## Why\n\nThe commit writes a new `refund_reason` column, but the test database schema does not have it. The job's `alembic upgrade head` step only ran migration `0040 -> 0041, refund index`; no migration adding `refunds.refund_reason` was applied. The likely cause is that the commit shipped the code change without the migration that adds the column.\n\n`deploy-staging` was skipped as a result of the failure.\n\n## Actions taken\n\nNone. Nothing was retried or changed; this is read-only diagnosis.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "code/multi/argocd-degraded-gitlab-commit": [
+    {
+      "answer": "# Degraded production app: checkout-web\n\n## What is Degraded and why\n\n- **Application:** `checkout-web` (Argo CD project `storefront`, production cluster `prod-use1`, namespace `storefront`).\n- **Failing image tag:** `2.14.0-rc3` (`ghcr.io/lumen-retail/checkout-web:2.14.0-rc3`).\n- **What is wrong:** the sync itself succeeded, but the new pod `checkout-web-7f8b9c6d5-q2x7m` is stuck in `ImagePullBackOff`. The kubelet reports `failed to resolve reference \"ghcr.io/lumen-retail/checkout-web:2.14.0-rc3\": not found` — that image tag does not exist in the registry. The Deployment exceeded its progress deadline at 13:03 UTC and went Degraded. The three old `2.13.4` pods are still running and serving traffic.\n\n## How it got promoted\n\n- Argo CD auto-synced `storefront-deploy` commit `a23f2a7b` (\"checkout-web(prod): promote 2.14.0-rc3\", by Deploy Bot, Oct 29 12:51 UTC). The commit message says it was promoted by the `checkout-web` pipeline #7712 (tag `v2.14.0-rc3`).\n- **Promoting pipeline ID:** `7712` (project `lumen-retail/storefront/checkout-web`, ref `v2.14.0-rc3`, status failed).\n- **Failed job:** `image-publish` (job 77123, stage `publish`).\n- **Error it failed with:** on `docker push ghcr.io/lumen-retail/checkout-web:2.14.0-rc3`:\n\n  ```\n  denied: permission_denied: The token provided does not match expected scopes (write:packages). The CI token GHCR_TOKEN expired on 2026-10-28.\n  ERROR: Job failed: command terminated with exit code 1\n  ```\n\n- **Why the broken release still shipped:** the `promote` job (77124, stage `deploy`) runs with `rules: when: always`, so it ran even though `image-publish` had failed. It wrote the `2.14.0-rc3` tag into the production overlay and pushed commit `a23f2a7b`, pointing production at an image that was never pushed.\n\n## Not the cause\n\n- `checkout-web-staging` is also Degraded, but it is the staging app (image `2.14.0-rc2`), not production.\n- Pipeline 7716 on `main` failed later (13:14 UTC) on `lint`; it did not promote anything.\n\nNothing was changed, synced or retried.\n",
       "expect": "pass",
       "style": "pilot_agent"
     }
@@ -13,9 +132,133 @@
       "style": "pilot_agent"
     }
   ],
+  "code/terraform/payments-db-upgrade-failure": [
+    {
+      "answer": "# payments-api-prod: failed Terraform run\n\n**Failed run:** `run-Gy4tBHGggKx49nbH` (\"Upgrade payments DB to Postgres 16\"), org `acme-platform`, workspace `payments-api-prod`, created 2026-10-28 13:12 UTC, status `errored`. The plan finished; the failure happened during apply.\n\n**Resource that failed:** `aws_db_instance.payments` (RDS instance `payments-prod-db`, `rds.tf` line 12)\n\n**AWS error code:** `InvalidParameterCombination` (RDS `ModifyDBInstance`, HTTP 400)\n\n> Cannot upgrade postgres from 14.12 to 16.4. You must set AllowMajorVersionUpgrade to true when upgrading to a new major version.\n\n**What the plan said it would do:**\n\n`Plan: 1 to add, 1 to change, 0 to destroy`\n\n- create `aws_db_parameter_group.payments_pg16` (family `postgres16`)\n- update `aws_db_instance.payments` in place: `engine_version` 14.12 -> 16.4, `parameter_group_name` payments-pg14 -> payments-pg16\n\n**Where things stand:** the apply was partial (`Apply failed! Resources: 1 added, 0 changed, 0 destroyed`). The new parameter group `payments-pg16` was created. The database was not modified and is still on Postgres 14.12 with `payments-pg14`.\n\n**Cause:** this is a major-version upgrade (14 to 16) and the `aws_db_instance.payments` resource does not set `allow_major_version_upgrade = true`, so RDS rejected the change.\n\nNothing was changed during this investigation.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "code/vercel/storefront-production-status": [
+    {
+      "answer": "# Storefront (Vercel) status\n\nRead-only check of the `storefront` project (`prj_3dw2VoUa166qmaLV3P6dm828isAX`). Nothing was redeployed or changed.\n\n## 1. What production is serving right now\n\n- **Commit SHA:** `c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9`\n- **Commit message:** \"Fix tax rounding for EU orders (#482)\"\n- Branch `main`, author Mateo Alvarez\n- Deployment `dpl_8o704GjcwumkLAaxPwjoxb4V6QDF` (READY, promoted, created 2026-10-24 09:42 UTC). It holds the production aliases `acme-shop.com` and `storefront-acme-shop.vercel.app`.\n\nNote: this is not the newest commit on `main`. A later production deployment, `dpl_PXw2C2jTZZ3IIez5YkG9aXqPW0Kq` for commit `7d41c9e0b3a86f25d1e7c4b9a0f3e62d8c5b1a47` \"Upgrade to Next.js 15.4 (#487)\" (2026-10-27 16:05 UTC), failed at the build step (`BUILD_UTILS_SPAWN_1`: Command \"pnpm run build\" exited with 1) and was never aliased. Production therefore still serves `c3a9f12`.\n\n## 2. Why the most recent preview deployment failed\n\n- **Deployment:** `dpl_1KT70nyZgoWTlCSRmxLe0svxe4Xx` (created 2026-10-28 09:31 UTC), branch `feat/gift-cards`, commit `4be1d07c9a3f58e2b6d0c1a7e9f4b3d25c8a6e10` \"Gift card redemption at checkout\" by Mateo Alvarez\n- **State:** ERROR, failed in the **build** step\n- **Error code:** `FUNCTION_SIZE_EXCEEDED`\n- **Error message:** \"A Serverless Function has exceeded the unzipped maximum size of 250 MB. : https://vercel.link/serverless-function-size\"\n\nIn short: the build on the gift-cards branch produced a Serverless Function larger than Vercel's 250 MB unzipped limit, so the deployment was rejected.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
   "collab/google/northwind-invoice-lookup": [
     {
       "answer": "# Northwind Traders — October services invoice (INV-20931)\n\n- **PO number referenced:** PO-48213\n- **Amount due:** $12,480.00\n- **Due date:** November 20, 2026\n\nSource: the invoice email \"Invoice INV-20931 for October services\" from Northwind Traders Billing <billing@northwind.example>, received Tue 27 Oct 2026.\n\nNotes:\n- The invoice states that $12,480.00 replaces the draft figure of $11,900.00 mentioned on the call, so $12,480.00 is the amount to pay.\n- The PO matches the one we sent Northwind on 20 Oct (PO-48213).\n- The attached PDF (INV-20931.pdf) could not be opened through the mail tools — the download returned no content — so these figures are taken from the invoice details stated in the email itself.\n\nNothing was sent, drafted or changed.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    },
+    {
+      "answer": "# Northwind Traders invoice for October services\n\nInvoice **INV-20931**, emailed by Northwind Traders Billing (billing@northwind.example) on 27 October 2026:\n\n- **PO number:** PO-48213\n- **Amount due:** $12,480.00\n- **Due date:** 20 November 2026\n\nThe invoice email states that $12,480.00 replaces the draft figure of $11,900.00 mentioned on the call, so $11,900.00 is not the amount to pay.\n\nCross-check: PO-48213 matches the PO we sent Northwind for October services on 20 October 2026.\n\nOne caveat: these details come from the body of the invoice email. The attached PDF (INV-20931.pdf) could not be opened with the tools I have, so I did not compare it line by line. Nothing was sent, drafted or changed.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "collab/jira/blocked-sprint-item": [
+    {
+      "answer": "# Blocked story in the active Payments sprint\n\nActive sprint: **PAY Sprint 23** (PAY board, Oct 21 – Nov 4, 2026).\n\n- **Blocked issue:** PAY-119 — \"Switch production traffic to the v2 gateway\" (Story, To Do, assigned to Alex Kim)\n- **Blocking issue:** PAY-117 — \"Rotate payment gateway API credentials\" (Task, In Progress, also in Sprint 23)\n- **Assignee of the blocker:** Sam Ortiz (sam.ortiz@octo-corp.example)\n\nPAY-119 is the only story in the sprint with an \"is blocked by\" link. For clarity: PAY-121 (also in the sprint) *blocks* PAY-122, but PAY-121 itself is not blocked, and PAY-122 sits in the future PAY Sprint 24. The PAY-120 / PAY-116 link is only \"relates to\".\n\nNothing was changed in Jira.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "collab/linear/urgent-bug-owner": [
+    {
+      "answer": "# Payments v2: most urgent open bug\n\n- **Issue:** PAY-118 — \"Refund webhook retries double-charge customers after 3DS timeout\"\n- **Priority:** Urgent (the only open Urgent bug in the project)\n- **Owner:** Priya Natarajan\n- **State:** In Progress\n\nContext for the go/no-go: when the 3DS challenge times out, the retry path re-submits the capture; 14 customers have been affected since Oct 22, and the issue carries the Customer escalation label. Priya's latest comment (Oct 28) says the root cause was found in the capture retry path and a fix should be in review by Friday.\n\nThe other Urgent bug in the project, PAY-104, is already Done, so it is not counted. Nothing was changed in Linear.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "collab/multi/jira-sentry-crash-impact": [
+    {
+      "answer": "# Product grid crash: impact summary\n\nJira bug: WEB-56, \"Product grid crashes on category pages since storefront 5.3.0\" (In Progress, assigned to Alex Kim).\n\n- **Sentry issue:** STOREFRONT-WEB-8D — `TypeError: Cannot read properties of undefined (reading 'map')` in `ProductGrid` (app/components/ProductGrid.tsx:42)\n- **Events:** 2,172\n- **Affected users:** 1,318\n- **First appeared in release:** storefront@5.3.0 (first seen 2026-10-15)\n\nThe issue is still unresolved in Sentry and is still occurring in storefront@5.3.1 (last seen 2026-10-20). Nothing was changed in Jira or Sentry.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "collab/multi/slack-pagerduty-dbre-oncall": [
+    {
+      "answer": "# Production DBRE on call (as Marcus asked in the #incidents thread)\n\nMarcus's ask (after Sam Ortiz clarified this is the production alert, PD #4813 on inventory-db-replica-1, not the staging one): who is first on call for prod DBRE right now, and who is the backup if they don't answer.\n\n- **First on call:** Dana Nguyen (on the \"DBRE Primary\" schedule, shift 2026-10-30 00:00 to 2026-10-31 00:00 UTC)\n- **Backup:** Sam Okafor (DBRE lead, level 2 of the \"Database Reliability\" escalation policy, paged if level 1 doesn't acknowledge within 10 minutes)\n\nSource: PagerDuty escalation policy \"Database Reliability\" (production databases) and its current on-calls. This is the production rotation, not \"Database Reliability - Staging\".\n\nOne thing to know before you reach out: in PagerDuty, incident #4813 itself sits on the `inventory-db` service, which is routed through the \"Platform\" escalation policy, and it is currently assigned to Alex Kim (Platform primary), not to anyone on DBRE. So Dana has likely not been paged for it.\n\nI did not post in Slack or page/change anything in PagerDuty.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "collab/notion/launch-date-owner": [
+    {
+      "answer": "# Payments v2 GA launch\n\nAccording to the Product launches tracker in Notion, as it stands now:\n\n- **Launch date:** Thursday, 12 November 2026 (2026-11-12)\n- **Owner:** Lena Fischer (lena.fischer@octo-corp.example)\n- **Status:** In progress\n- **Tracker note:** \"Go/no-go on Nov 2. Needs webhook secret rotation first.\"\n\nThe row was last edited on 27 October 2026. I did not edit anything.\n\nOn the different dates you've heard: the tracker has a separate row, \"Payments v2 partner beta\", dated 20 October 2026 and already marked Done. That is the beta, not GA. The 2 November in the note is the go/no-go decision, not the launch.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "collab/slack/observability-decision": [
+    {
+      "answer": "# Observability vendor decision\n\n**Vendor picked: Grafana Cloud.**\n**New contract starts: 2026-11-15** (November 15, 2026), on a 3-year term.\n\n## Source\n\nDana Whitfield posted the decision in the #infra evaluation thread on 2026-10-27 at 15:10 CDT:\n\n> Decision: we're going with Grafana Cloud. Contract signed today; it starts 2026-11-15 on a 3-year term. Datadog stays until the migration completes on 2027-01-31.\n\nSo the contract was signed on 2026-10-27, and Datadog stays in place until the migration completes on 2027-01-31. Sam Ortiz replied that he will start the migration plan. The scorecard canvas (\"Observability vendor scorecard\") says the final decision is recorded in that #infra thread, and nothing later in the thread or channel changes it.\n\n## What was not decided (speculation to ignore)\n\n- **Honeycomb:** a 2026-10-28 #general post from Sam Ortiz asked whether we had \"chose[n] Honeycomb\". That was a rumor, phrased as a question; Marcus Webb's reply pointed back to the #infra thread. Honeycomb was not picked.\n- **Datadog:** an August 12 #eng-leads note said leadership was \"tentatively leaning Datadog\" before the evaluation ran. That was an early read, not a decision. Datadog's quote later came in at $412k/yr, about 40% over budget.\n- \"Leaning Grafana Cloud\" (Marcus Webb, 2026-10-20) was also only a lean at that point; it became the decision on 2026-10-27.\n\nNothing was posted in Slack while looking this up.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "ops/datadog/checkout-p95-peak": [
+    {
+      "answer": "# Production checkout API p95 latency — 2026-10-29, 14:00–15:00 UTC\n\n- **Peak p95 latency:** 1843 ms\n- **Time of peak:** 14:35 UTC\n\nSource: Datadog metric `checkout.api.latency.p95`, scope `env:prod` (service `checkout-api`), 5-minute points. Unit is milliseconds.\n\nProduction readings for the hour (UTC):\n\n| Time  | p95 (ms) |\n|-------|----------|\n| 14:00 | 690  |\n| 14:05 | 820  |\n| 14:10 | 1105 |\n| 14:15 | 1290 |\n| 14:20 | 1410 |\n| 14:25 | 1622 |\n| 14:30 | 1574 |\n| 14:35 | **1843** |\n| 14:40 | 1701 |\n| 14:45 | 1388 |\n| 14:50 | 1046 |\n| 14:55 | 812  |\n| 15:00 | 690  |\n\nLatency climbed from 14:05, stayed above 1.5 s from 14:25 to 14:40, and was back to its 14:00 level by 15:00.\n\nNote: the same metric also reports an `env:staging` series, which had a higher spike (2210 ms at 14:15). That is staging, not production, and is excluded from the figures above.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "ops/grafana/ack-checkout-page-oncall": [
+    {
+      "answer": "# Checkout primary on-call\n\n**On call right now:** `sbrennan` (s.brennan@octo-corp.com)\n\n- Schedule: Checkout Primary (`SCK1PRIM`), owned by the Checkout team. It is a weekly rotation and sbrennan holds the current shift.\n- Grafana IRM only exposes the username and email for this user, so I can't give a display name.\n\nAlert status: the production alert group `IHQ4K2M7` (\"[prod] HighCheckoutLatency checkout p99 above 1.5s\") is now acknowledged. The staging group `IST7B3N1` was left untouched (still new) and nothing was resolved.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "ops/grafana/top-5xx-checkout-pod": [
+    {
+      "answer": "# Checkout pod returning the most 5xx responses (production)\n\n**Pod to cordon: `checkout-7b9d6c5f4-xk2lp`** (namespace `shop-prod`)\n\n**5xx rate: about 3.5 requests/second** over the last 5 minutes (roughly 2.9/s of HTTP 500 plus 0.6/s of HTTP 502), which is about 8% of that pod's traffic.\n\nThe other two checkout pods are far lower: `checkout-7b9d6c5f4-m8vqt` at about 0.26/s and `checkout-7b9d6c5f4-r2hzn` at about 0.22/s. This one pod accounts for about 88% of checkout's 5xx responses.\n\nSource: Grafana datasource \"Prometheus (prod)\" (`prom-prod`), query:\n\n```\nsort_desc(sum by (pod) (rate(http_requests_total{service=\"checkout\",status=~\"5..\"}[5m])))\n```\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "ops/kubernetes/crashloop-root-cause": [
+    {
+      "answer": "# Crash loop in `payments` (cluster `octo-prod`) — diagnosis\n\n## Pod\n\n**`ledger-worker-zx4mrndj8b-gdg8j`** (container `ledger-worker`, image `ghcr.io/octo-corp/ledger-worker:1.9.0`, node `ip-10-0-3-52.ec2.internal`)\n\n- Status: `CrashLoopBackOff`, 0/1 ready, **14 restarts**, currently in a 5m back-off.\n- Last termination: exit code 1, reason `Error`, ran 08:33:41–08:33:44 UTC on 2026-11-03 (dies about 3 seconds after start).\n\n## The error, from its logs\n\n```\n2026-11-03T08:33:41.118Z INFO  ledger-worker 1.9.0 starting (commit 8c1e2f4)\n2026-11-03T08:33:41.240Z INFO  loading config from /etc/ledger/config.yaml\n2026-11-03T08:33:44.302Z ERROR db: connect ledger-db.payments.svc:5432: pq: password authentication failed for user \"ledger\"\n2026-11-03T08:33:44.302Z FATAL could not initialise ledger store, exiting (exit code 1)\n```\n\nThe actual failure is:\n\n> `pq: password authentication failed for user \"ledger\"` when connecting to `ledger-db.payments.svc:5432`\n\nThe previous container's log (`--previous`) is identical, so every restart fails the same way.\n\n## Why it is dying\n\nOn startup the worker connects to Postgres at `ledger-db.payments.svc:5432` as user `ledger`. The database rejects the password, the worker cannot initialise its ledger store, and it exits with code 1. Kubernetes restarts it, it fails again, and it ends up in `CrashLoopBackOff`.\n\nThis is a credentials problem, not a resource or image problem:\n\n- Not OOM: termination reason is `Error` with exit code 1, not `OOMKilled`.\n- Not an image problem: the event log shows the image is already present and pulled.\n- The database is reachable: the error is an authentication rejection, not a timeout or DNS failure.\n\n## Useful context\n\n- The sibling replica `ledger-worker-zx4mrndj8b-dwvg9` (same ReplicaSet, same image) is Running with 0 restarts and logged `connected to postgres ledger-db.payments.svc:5432 db=ledger` at 06:02 UTC today. It connected before the failures began and is still holding that connection, so it will probably hit the same error the next time it restarts or reconnects.\n- That points at the `ledger` database password having changed (or the credential the pod reads being stale) some time after 06:02 UTC on 2026-11-03. The pod spec sets `LEDGER_DB_HOST` and `LEDGER_DB_USER` as env vars but no password env var; the password comes from the config loaded at `/etc/ledger/config.yaml`. I could not see which Secret or ConfigMap supplies it from the pod spec.\n- Nothing else in the namespace is crash-looping. `payments-api` (3 pods) is healthy; `refund-scheduler-jrh52sks4-5bgnd` has a single restart from over 5 days ago and is Running.\n\n## Actions taken\n\nNone. Read-only: listed pods, read pod spec, logs and events. Nothing was restarted or deleted.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "ops/multi/crashloop-oncall-lookup": [
+    {
+      "answer": "# ledger-worker handoff\n\n## 1. Crash-looping pod\n\n- **Pod:** `ledger-worker-zx4mrndj8b-gdg8j` (namespace `payments`, cluster `octo-prod`, node `ip-10-0-3-52.ec2.internal`)\n- **State:** `CrashLoopBackOff`, 0/1 ready, 14 restarts, back-off 5m0s. Last container run started 2026-10-30T13:53:41Z and terminated 13:53:44Z with exit code 1 (reason `Error`).\n- The other replica, `ledger-worker-zx4mrndj8b-dwvg9`, is Running 1/1 with 0 restarts.\n\n**Exact error it dies with (from the pod logs):**\n\n```\n2026-10-30T13:53:44.302Z ERROR db: connect ledger-db.payments.svc:5432: pq: password authentication failed for user \"ledger\"\n2026-10-30T13:53:44.302Z FATAL could not initialise ledger store, exiting (exit code 1)\n```\n\nThe container starts (`ledger-worker 1.9.0`, commit 8c1e2f4), loads `/etc/ledger/config.yaml`, then fails Postgres authentication to `ledger-db.payments.svc:5432` as user `ledger` and exits about three seconds after start.\n\n## 2. Who is on call for ledger-worker (PagerDuty)\n\nService `ledger-worker` (PSVLEDG) uses the **Payments** escalation policy (PEPPAY1).\n\n- **First responder (level 1):** **Priya Raman**, on call via the *Payments Primary* schedule. Current shift 2026-10-30 06:00 UTC to 2026-10-31 06:00 UTC.\n- **Escalates next to (level 2):** **Marcus Chen** (Payments engineering manager), if not acknowledged within 10 minutes.\n\nThe policy has only these two levels and repeats twice.\n\n## Not touched\n\nRead-only lookups only. Nothing was restarted, deleted, acknowledged or otherwise changed in Kubernetes or PagerDuty.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "ops/multi/sentry-release-commit-lookup": [
+    {
+      "answer": "# Weekly error review: storefront-web top unresolved error\n\n- **Sentry issue:** STOREFRONT-WEB-7Q — `TypeError: Cannot read properties of undefined (reading 'map')` in `CartDrawer` (app/components/CartDrawer.tsx:27). 2,600 events, 1,904 users; the most events of the three unresolved issues in `storefront-web`.\n- **Release it first appeared in:** storefront@5.2.0 (first event 2026-10-03; it has kept occurring in 5.3.0 and 5.3.1).\n- **Pull request that introduced it:** lumen-labs/storefront #57, \"Slide-out cart drawer\" (merged 2026-10-02 as commit 9f1c2ab, the only commit in release 5.2.0; it added `CartDrawer.tsx`).\n- **Pull request author:** Sofia Alvarez (GitHub login `sofia`).\n\nNothing was changed in Sentry or GitHub.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "ops/pagerduty/payments-oncall-now": [
+    {
+      "answer": "# Payments on-call right now (PagerDuty, escalation policy \"Payments\")\n\n1. **First responder (level 1): Priya Raman** — on call on the Payments Primary schedule right now. She is covering an override shift (2026-10-30 06:00 UTC to 2026-10-31 06:00 UTC); the regular weekly rotation would otherwise have Riya Patel on this week.\n2. **Next in line (level 2): Marcus Chen** — Payments engineering manager. The policy escalates to him if level 1 has not acknowledged within 10 minutes.\n\nNobody was paged and nothing was changed in PagerDuty.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "ops/sentry/top-unresolved-checkout": [
+    {
+      "answer": "# Top unresolved checkout-api error over the past week\n\n- **Short issue ID:** CHECKOUT-API-3F\n- **Title:** OperationalError: could not obtain connection from pool within 5.0s\n\nSentry org `lumen-labs`, project `checkout-api`. It has 1,842 events and 611 affected users, the most of the three unresolved issues in the project (culprit: `checkout.views.orders in create_order`; last seen 2026-10-20T14:48Z in production).\n\nThe two issues with higher event counts are not unresolved and were excluded: CHECKOUT-API-2R (DisallowedHost, 3,104 events) is ignored and CHECKOUT-API-31 (TimeoutError from inventory-service, 2,310 events) is resolved. The other unresolved issues are CHECKOUT-API-3C (KeyError: 'shipping_address', 977 events) and CHECKOUT-API-2Z (CardError: Your card was declined., 640 events).\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/brave/caterer-saturday-hours": [
+    {
+      "answer": "# Juniper & Rye Catering (Portland, Oregon)\n\n- **Phone:** +1 503-555-0142\n- **Saturday hours:** 9:00 AM – 2:00 PM (09:00–14:00)\n- **Address:** 1120 SE Morrison St, Portland, OR 97214\n\nSource: current local business listing data (Brave Local Search).\n\nHeads-up on lookalikes, so the booking goes to the right place: \"Juniper Rye Bakery\" (Pearl District, Portland OR) and \"Juniper & Rye Catering Co.\" (Portland, Maine) are different businesses with different phone numbers and hours. The details above are for the Portland, Oregon caterer on SE Morrison St. Note it is closed on Sundays.\n",
       "expect": "pass",
       "style": "pilot_agent"
     }
@@ -27,9 +270,114 @@
       "style": "pilot_agent"
     }
   ],
+  "search/brave/hosting-sla-lookup": [
+    {
+      "answer": "# Ironbark Hosting Business plan SLA (current version)\n\n- **Monthly uptime commitment:** 99.95%\n- **Service credit when uptime falls just below that:** 10% of the monthly fee\n\nDetails from the SLA in force today (effective July 1, 2026, supersedes all previous versions; https://www.ironbarkhosting.com/legal/sla):\n\n- The 10% credit applies to any month where uptime is below 99.95%. The credit rises to 25% of the monthly fee if uptime drops below 99.0%.\n- Credits are not automatic: they must be requested within 30 days.\n- The Business plan is listed at $59/month, so the 10% credit is about $5.90 for an affected month.\n\nThe archived 2024 SLA (99.9% uptime, 5% credit) was replaced on July 1, 2026 and no longer applies. Results for the similarly named \"IronBank Hosting\" are a different company.\n\nCaveat: I read the SLA text through the search engine's extracted page content; a direct fetch of the page failed (DNS error from the scraping tool), so I could not open the page itself.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
   "search/brave/keynote-recording": [
     {
       "answer": "# PGConf Nordic 2026 opening keynote: full recording\n\n- **Speaker:** Marta Lindqvist\n- **Duration:** 47:12 (47 minutes 12 seconds)\n- **URL:** https://www.youtube.com/watch?v=Zt4mQeL1x9c\n\nVideo title: \"Keynote: Scaling Postgres to 1M writes/s - Marta Lindqvist | PGConf Nordic 2026\". It is listed as the full recording of the opening keynote given in Copenhagen on October 8, 2026.\n\nVideos I ruled out:\n\n- https://www.youtube.com/watch?v=r8Kq2PgN7aE is a highlights re-cut by DB Clips (only 12:05 long).\n- https://www.youtube.com/watch?v=Hq7wB3nVt2s is an early version from the Oslo PostgreSQL Meetup, April 2025 (only 28:40 long).\n- https://vimeo.com/987654321 is a different talk by Tom Ekberg at PGDay Paris 2026.\n\nCaveat: the search results do not show the uploading channel's name, so I identified the official recording from its title and description (the conference site says recordings are published on the PGConf Nordic YouTube channel, and the highlights video points to the full talk there).\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/elasticsearch/checkout-errors-last-hour": [
+    {
+      "answer": "# Production checkout 5xx errors, last hour\n\n- **Service with the most 5xx errors:** `payment-gateway`\n- **5xx count in the last hour:** 7\n- **Most frequent error message:** `upstream timeout from acquirer after 30000ms` (6 of the 7; all HTTP 502)\n\nScope: production only (`env: prod`, `logs-checkout-prod-*`), status codes 500-599, `@timestamp` within the last hour (`now-1h` to `now`; matching logs run from 2026-10-30 13:02 to 13:52 UTC). Staging was excluded.\n\nFor comparison, the other production services in the same hour: `cart-api` 3, `inventory` 2.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/elasticsearch/deleted-api-key-audit": [
+    {
+      "answer": "# Who deleted the `ci-deploy-bot` API key\n\n- **User:** `m.okafor`\n- **Time of deletion (UTC):** 2026-10-29 16:42:57 UTC (`2026-10-29T16:42:57Z`)\n\nSource: Elasticsearch security audit log, index `audit-security-2026.10`: event `api_key.delete`, target `ci-deploy-bot`, outcome `success`, from IP 10.8.4.77.\n\n## Related events, for context\n\n- `m.okafor` created a replacement key, `ci-deploy-bot-v2`, at 16:44:10 UTC, just over a minute after the deletion. CI probably needs to be pointed at that key.\n- `j.doe` tried to delete `ci-deploy-bot` earlier the same day (14:05:02 UTC), but that attempt was denied (missing `keys:admin`), so it is not the deletion.\n- `r.chen` deleted a different key, `ci-deploy-bot-staging`, at 17:30:00 UTC.\n- The August 12 deletion by `a.santos` was on the legacy cluster and is unrelated to yesterday's failure.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/elasticsearch/duplicate-charge-lookup": [
+    {
+      "answer": "# Duplicate charge — Jordan Lee (jordan.lee@example.com)\n\n**Double charge:** orders **ORD-109002** and **ORD-109003**\n**Amount charged twice:** **$86.40 USD** (each order is $86.40, so $172.80 was taken in total for one purchase)\n\n## Evidence (index `orders-2026`)\n\n| Order ID   | Created (UTC)        | Email                  | Items | Total  | Status | Payment intent |\n|------------|----------------------|------------------------|-------|--------|--------|----------------|\n| ORD-109002 | 2026-10-23 20:41:09  | jordan.lee@example.com | 3     | $86.40 | paid   | pi_3Qb2K       |\n| ORD-109003 | 2026-10-23 20:41:37  | jordan.lee@example.com | 3     | $86.40 | paid   | pi_3Qb2M       |\n\nSame customer, same item count, same total, both `paid`, placed 28 seconds apart, with two separate payment intents — so the card was charged twice. Neither order has been refunded.\n\n## Checked and ruled out\n\n- Jordan Lee's other orders are single purchases with different amounts: ORD-104771 ($42.00, August), ORD-109311 ($19.99, already refunded), ORD-109777 ($64.00, pending).\n- ORD-109010 is also $86.40 for 3 items on Oct 23, but it belongs to a different account (J. Lee, j.lee@example.com), placed 21 minutes later. It is not part of this customer's double charge, though it may be worth a look if that is the same person.\n- ORD-108815 / ORD-108816 ($129.99 each, 18 seconds apart on Oct 22) look like a separate double charge for a different customer, Jordan Leigh (jordan.leigh@example.com).\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/elasticsearch/latency-by-region": [
+    {
+      "answer": "# Checkout submit latency by region, October 30\n\n**Slowest region: eu-west-1, averaging 412.5 ms.**\n\nAverage duration of successful `/checkout/submit` requests on 2026-10-30 (UTC):\n\n| Region | Avg duration (ms) | Successful requests |\n|---|---|---|\n| eu-west-1 | 412.5 | 6 |\n| ap-southeast-2 | 305.0 | 5 |\n| us-east-1 | 210.0 | 7 |\n\nScope: `requests-checkout-*` indices, endpoint `/checkout/submit`, timestamps on October 30 UTC, status codes below 400. Three us-east-1 requests that returned 504 (about 30 s each) are excluded as errors; with them included us-east-1 would look far slower, so they are worth a separate look.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/exa/enrich-lead-list": [
+    {
+      "answer": "# Lead enrichment: HQ city and headcount\n\n| Company | HQ city | Approx. headcount | Source |\n|---|---|---|---|\n| Corvane Robotics | Pittsburgh, PA, USA | ~340 | https://www.corvanerobotics.com/about |\n| Lumetric Health | Austin, TX, USA | ~1,150 | https://lumetrichealth.com/company |\n| Bramblewood Foods | Leeds, United Kingdom | ~2,600 | https://www.bramblewoodfoods.co.uk/our-story |\n\nSource: one Exa Agent enrichment run over all three companies (run ID `agent_run_scs3OiJHAdhPsWK7P8UasA97`). Headcounts are approximate.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/exa/find-vp-engineering-profile": [
+    {
+      "answer": "# Priya Raman — VP of Engineering, Tessellate Bio (Boston)\n\n**LinkedIn profile:** https://www.linkedin.com/in/priya-raman-tessellate\n\n## Why this is the right person\n\n- The profile headline is \"VP of Engineering at Tessellate Bio, Boston, Massachusetts\", with experience listed as Tessellate Bio, VP of Engineering (2024–present), and before that Benchling, Engineering Manager (2019–2024). Education: Carnegie Mellon University.\n- Tessellate Bio's own team page (https://www.tessellate.bio/team, dated September 2026) lists \"Priya Raman, VP of Engineering\" in its leadership, alongside Marcus Feld (CEO) and Hana Sato (CSO). So the role is current.\n\n## Other people named Priya Raman — not her\n\n- https://www.linkedin.com/in/priya-raman-4b21a9 — the former Tessellate Bio employee. She was Director of Engineering there from 2019 to 2023 and has been CTO of Kestrel Genomics (Cambridge, MA) since 2023. Do not use this one for the outreach.\n- https://www.linkedin.com/in/priyaraman — Senior Data Scientist at Tessellate Analytics in Chicago, a different company with a similar name.\n- https://www.linkedin.com/in/dr-priya-raman-md — a cardiologist at Mass General Brigham in Boston; no connection to Tessellate Bio.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/exa/fleet-charger-research": [
+    {
+      "answer": "**Market-leading vendor:** VoltHaven (Hamburg), about 31% of installed depot V2G units in Germany.\n\n**Typical price, 22 kW bidirectional (AC) unit:** EUR 6,900.\n\nSource: Exa deep research report (model `exa-research-pro`, research ID `r_01k4fOjR4gU5lXF1HsNUQMnA`). For comparison, the report lists Ladewerk Systems at 21% share / EUR 7,450 and GridNest at 14% share / EUR 6,200 (GridNest's price requires its energy-management subscription).\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/exa/sdk-timeout-default": [
+    {
+      "answer": "# Driftwood Python SDK v4: request timeout\n\n- **Option:** `timeout_seconds` (passed to `driftwood.Client(...)`)\n- **Default:** 30 seconds\n\nSource: Driftwood's v4 Python client configuration docs, https://docs.driftwood.dev/python/v4/configuration\n\nUpgrade note: the v3 option `request_timeout` (default 60 seconds) was removed in v4, so any code that sets it needs to switch to `timeout_seconds`.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/firecrawl/northwind-team-pricing": [
+    {
+      "answer": "# Northwind Analytics: Team plan (current pricing)\n\n- **Price, billed annually:** $79 per month (USD)\n- **Seats included:** 12\n\nSource: Northwind Analytics' own pricing page, https://www.northwind-analytics.com/pricing, which states \"Prices updated September 1, 2026\".\n\nOther details for the pricing sheet:\n\n- Billed monthly instead of annually, the Team plan is $99 per month.\n- Additional seats beyond the included 12 cost $8 per seat per month.\n- The plan also includes 10M tracked events per month and 13-month data retention.\n\nOutdated figures to ignore: the company's 2025 pricing blog post and the G2 listing still show the Team plan at $69 per month with 10 seats. The September 1, 2026 changelog entry confirms the change to 12 seats and updated prices.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/multi/api-key-deletion-audit-github": [
+    {
+      "answer": "# Who deleted the `ci-deploy-bot` API key\n\n- **Deleted by:** `m.okafor` (Elasticsearch security audit log, index `audit-security-2026.10`, from IP 10.8.4.77)\n- **Deletion time (UTC):** 2026-10-29 16:42:57 UTC (`2026-10-29T16:42:57Z`), event `api_key.delete`, outcome success\n- **GitHub username:** `mokafor`\n- **Pull request:** #58 in `octo-org/deploy-pipeline`, \"Switch CI deploys to the ci-deploy-bot-v2 key\"\n- **PR status:** open, **not merged yet** (opened 2026-10-29 16:52 UTC, not a draft, no merge conflicts)\n\n## Context\n\n- About a minute after the deletion (16:44:10 UTC) the same user created the replacement key `ci-deploy-bot-v2`. The PR description says the old key showed up in a public gist, which is why it was deleted. CI deploys will keep failing until PR #58 is merged, because the pipeline still points at the deleted key.\n- Other audit events that are not the answer: an earlier delete attempt by `j.doe` at 14:05:02 UTC was denied (missing `keys:admin`); `r.chen` deleted a different key, `ci-deploy-bot-staging`, at 17:30:00 UTC; and an August delete of `ci-deploy-bot` by `a.santos` was on the legacy cluster.\n\nNothing was changed.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/multi/competitor-funding-and-pricing": [
+    {
+      "answer": "# Norvik Analytics: competitor brief inputs\n\n## 1. This week's funding round\n\n- **Amount raised:** $45 million\n- **Round:** Series B\n- **Lead investor:** Halcyon Ventures (existing investor Fjord Capital also participated)\n\nSource: TechBeat, \"Norvik Analytics raises $45M Series B led by Halcyon Ventures\", published 27 October 2026\nhttps://www.techbeat.io/2026/10/27/norvik-analytics-series-b\n\nThings that could be confused with it:\n\n- The $12M Series A led by Fjord Capital is the previous round (June 2025). DealBase still lists that as the latest round and has not been updated.\n- \"Norvik Labs raises $30M from Brightline Partners\" (TechBeat, 28 October 2026) is a different, unrelated company (warehouse robotics, Gothenburg).\n\nCaveat: I could read the TechBeat headline and summary through two search indexes (web and news), and they agree, but the article page itself would not load through any of the page fetchers, and Norvik's own site carries no announcement. The figures above come from that headline and summary.\n\n## 2. Growth plan price\n\n- **$890 per month, billed annually** (USD). The same plan is $1,090 per month if billed monthly.\n\nSource: Norvik's own pricing page, which states \"Prices updated October 1, 2026\"\nhttps://www.norvikanalytics.com/pricing\n\nOlder or third-party figures to ignore:\n\n- $690/month billed annually is the 2025 launch price from Norvik's blog post \"Introducing our new plans\" (https://www.norvikanalytics.com/blog/new-plans-2025).\n- Capterra also still lists Growth at $690/month; that listing is out of date.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/tavily/cold-chain-market-research": [
+    {
+      "answer": "# Nordic grocery cold-chain sensor market scan\n\n**Largest market share: FrostLink** (Oslo, Norway), with an estimated 38% of monitored grocery cold rooms in the Nordics.\n\n**List price: EUR 4.20 per sensor per month.**\n\nSource: Tavily research task run with the `mini` model (one run; `pro` and `auto` were not used). The report cites FrostLink's pricing page (https://www.frostlink.no/en/pricing) and the Nordic Retail Tech Report 2026.\n\nFor context, the other vendors in the report:\n\n| Vendor | Est. share | List price |\n|---|---|---|\n| Kylma Systems (Tampere, Finland) | 27% | EUR 5.10 per sensor per month |\n| ColdTrace (Malmo, Sweden) | 19% | EUR 3.80 per sensor per month, requires a 36-month lease |\n\nThe remaining share is split between global players (Sensitech, Monnit) and in-house systems.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/tavily/vendor-rate-limit": [
+    {
+      "answer": "# Quillstream API rate limit — Business plan\n\n**Current limit: 1,200 requests per minute** (burst allowance: 200).\n\n**Where I found it:** Quillstream's own API v3 reference, \"Rate limits\" page — https://docs.quillstream.io/api/rate-limits (page says \"Last updated September 14, 2026\").\n\nDetails from that page that matter for the integration:\n\n- The limit is enforced **per workspace, not per API key**, so every key in our workspace shares the same 1,200/min budget.\n- Over the limit, the API returns `429 Too Many Requests` with a `Retry-After` header.\n- Other plans, for reference: Starter 120, Team 400, Enterprise custom.\n\n## Older or wrong numbers to ignore\n\n- **600 requests/min** — this is the Business limit for the **deprecated API v2** (https://docs.quillstream.io/v2/api/rate-limits; v2 is to be retired March 31, 2027). A 2025 third-party review (techradar-weekly.com) repeats the 600 figure. It only applies if we were to build against v2, which we should not.\n- **900 requests/min** — from a February 2025 community forum question by a user seeing 429s around that rate. Quillstream staff did not confirm it; they explained that limits are per workspace and pointed to the docs page.\n- **300 requests/min** — belongs to Quillpad, a different product (docs.quillpad.com), not Quillstream.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/tavily/webhook-signature-sunset": [
+    {
+      "answer": "# Ferrowave v1 webhook signature sunset\n\n- **Date Ferrowave stops sending v1 webhook signatures:** January 15, 2027 (2027-01-15)\n- **Header to verify instead:** `Ferrowave-Signature-V2`\n\n## Details\n\n- The replacement header has the form `t=<unix timestamp>,v2=<hex HMAC-SHA256 of \"<t>.<body>\">`, signed with the endpoint secret. Deliveries whose timestamp is more than 5 minutes old should be rejected.\n- The old v1 header is `X-Ferrowave-Sig` (HMAC-SHA1). It is still sent alongside v2 until the cutoff.\n\nSource: https://docs.ferrowave.dev/guides/webhooks/verify-signatures (\"Migrating from v1 signatures\"), the current guide.\n\n## Dates on the site that are not the webhook-signature date\n\n- June 30, 2026: from the archived v1 webhooks page (https://docs.ferrowave.dev/legacy/v1/webhooks), marked \"Archived March 2025. This page is no longer maintained.\" Superseded by the current guide.\n- December 1, 2026: legacy v1 API keys stop working (changelog).\n- November 30, 2026: ferrowave-node 3.x SDK end of life (changelog).\n",
       "expect": "pass",
       "style": "pilot_agent"
     }

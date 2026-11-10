@@ -323,8 +323,9 @@ today.
 replies that unit tests used to assert on and the reader misread: 7 correct
 replies, 5 of them still left unresolved, and 29 wrong replies that pass. They
 were picked because the reader got them wrong, so they are not part of the
-rates above. `natural_answers/pilot_agent.json` holds the five replies that
-pilot agents wrote and an earlier reader left unresolved; all pass now.
+rates above. `natural_answers/pilot_agent.json` holds the 55 replies that pilot
+agents wrote to 54 lookup tasks without seeing the contracts. An earlier reader
+left five of them unresolved; all pass now.
 
 **Correct replies left unresolved** state a bare answer and then name another
 authored record in wording the reader takes for a claim ("the September invoice
