@@ -50,8 +50,10 @@ fn multi_sentence_evasion_does_not_pass() {
 
     case.unresolved(&["The fastest region overall is eu-west-1, with an average of 412.5 ms."]);
 
+    // A remark about something else neither denies nor replaces the answer.
+    case.passes(&["eu-west-1 averages 412.5 ms. It has the best uptime too."]);
+
     case.unresolved(&[
-        "eu-west-1 averages 412.5 ms. It has the best uptime too.",
         "eu-west-1 averages 412.5 ms. It wins on speed.",
         "eu-west-1: 412.5 ms. This result proves every other region is worse.",
     ]);

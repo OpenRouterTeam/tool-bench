@@ -14,6 +14,10 @@ fn notion_launch_reads_the_live_row_of_the_tracker_not_its_trashed_duplicate() {
         "Launch date: November 12, 2026\nOwner: Lena Fischer",
         "Lena Fischer owns Payments v2 GA, which launches on Nov 12.",
         "| Launch | Date | Owner |\n| Payments v2 GA | 12 November 2026 | Lena Fischer |",
+        // A polite hedge still states the answer.
+        "Probably 2026-11-12, owner Lena Fischer.",
+        // Other authored records named beside or after the answer are context.
+        "The live row says 2026-11-12 (Lena Fischer); a trashed duplicate says 2026-11-05 (Priya Natarajan).",
     ]);
     case.fails(&[
         "It is not 2026-11-12; the owner is Lena Fischer.",
@@ -30,11 +34,9 @@ fn notion_launch_reads_the_live_row_of_the_tracker_not_its_trashed_duplicate() {
         "Payments v2 GA is owned by Lena Fischer.",
     ]);
     case.unresolved(&[
-        "Probably 2026-11-12, owner Lena Fischer.",
         "Payments v2 GA launches on 11/12/2026 and is owned by Lena Fischer.",
         "Payments v2 GA launches in mid-November and is owned by Lena Fischer.",
         "Payments v2 GA launches on 2026-11-12 and is owned by Lena.",
-        "The live row says 2026-11-12 (Lena Fischer); a trashed duplicate says 2026-11-05 (Priya Natarajan).",
     ]);
     // The date follows the authored row.
     let start = "/services/notion/pages/71cdb3b7-f42a-472b-9b30-488942c27a9e/properties/Launch date/date/start";
@@ -69,6 +71,8 @@ fn slack_decision_reads_the_vendor_and_start_date_from_the_decision_message() {
         "Vendor: Grafana Cloud\nContract start: November 15, 2026",
         "We picked Grafana Cloud; the new contract begins Nov 15, 2026 (3-year term).",
         "It is Grafana Cloud, not Datadog or Honeycomb, and the contract starts 15 November 2026.",
+        // A polite hedge still states the answer.
+        "I think we went with Grafana Cloud, starting 2026-11-15.",
     ]);
     case.fails(&[
         "It is not Grafana Cloud; the contract starts 2026-11-15.",
@@ -88,7 +92,6 @@ fn slack_decision_reads_the_vendor_and_start_date_from_the_decision_message() {
         "We chose Grafana Cloud.",
     ]);
     case.unresolved(&[
-        "I think we went with Grafana Cloud, starting 2026-11-15.",
         // A negator across a verb that no reviewed incorrect form lists.
         "We did not end up with Grafana Cloud; the contract starts 2026-11-15.",
         "We chose Grafana, starting 2026-11-15.",
@@ -122,6 +125,10 @@ fn jira_blocked_item_binds_the_blocked_story_its_blocker_and_the_blockers_assign
         "- Blocked: PAY-119\n- Blocked by: PAY-117\n- Blocker assignee: Sam Ortiz",
         "PAY-117 (owned by sam.ortiz) blocks PAY-119.",
         "| Blocked story | Blocker | Blocker assignee |\n| PAY-119 | PAY-117 | Sam Ortiz |",
+        // A polite hedge still states the answer.
+        "PAY-119 seems to be blocked by PAY-117, assigned to Sam Ortiz.",
+        // Other authored records named beside or after the answer are context.
+        "PAY-119 (assigned to Alex Kim) is blocked by PAY-117 (assigned to Sam Ortiz).",
     ]);
     case.fails(&[
         // The two issues in swapped roles.
@@ -144,11 +151,7 @@ fn jira_blocked_item_binds_the_blocked_story_its_blocker_and_the_blockers_assign
         "PAY-119 is blocked by PAY-11, assigned to Sam Ortiz.",
         "PAY-119 is blocked by PAY-117, assigned to Sam Ortega.",
     ]);
-    case.unresolved(&[
-        "PAY-119 seems to be blocked by PAY-117, assigned to Sam Ortiz.",
-        "PAY-119 is blocked by PAY-117, assigned to Ortiz.",
-        "PAY-119 (assigned to Alex Kim) is blocked by PAY-117 (assigned to Sam Ortiz).",
-    ]);
+    case.unresolved(&["PAY-119 is blocked by PAY-117, assigned to Ortiz."]);
     // The assignee follows the authored blocker.
     let assignee = "/services/jira/issues/PAY-117/fields/assignee";
     assert_eq!(
@@ -196,6 +199,10 @@ fn linear_urgent_bug_selects_the_most_urgent_open_bug_of_the_project() {
         "PAY-118 - owner: Priya - state: In Progress",
         "| Issue | Owner | State |\n| PAY-118 | Priya Natarajan | In Progress |",
         "PAY-118 is assigned to Priya Natarajan; state: in-progress.",
+        // A polite hedge still states the answer.
+        "It is likely PAY-118, owned by Priya Natarajan, In Progress.",
+        // Other authored records named beside or after the answer are context.
+        "PAY-118 (Priya Natarajan, In Progress); PAY-119 is the next most urgent.",
     ]);
     case.fails(&[
         "The most urgent open bug is not PAY-118; Priya Natarajan, In Progress.",
@@ -216,11 +223,7 @@ fn linear_urgent_bug_selects_the_most_urgent_open_bug_of_the_project() {
         "PAY-1118 is owned by Priya Natarajan and is In Progress.",
         "PAY-118 is owned by Priya Natarajan.",
     ]);
-    case.unresolved(&[
-        "It is likely PAY-118, owned by Priya Natarajan, In Progress.",
-        "PAY-118 is owned by Natarajan and is In Progress.",
-        "PAY-118 (Priya Natarajan, In Progress); PAY-119 is the next most urgent.",
-    ]);
+    case.unresolved(&["PAY-118 is owned by Natarajan and is In Progress."]);
     // The selection follows the authored priorities and states.
     let priority = "/services/linear/issues/PAY-118/priority";
     assert_eq!(
@@ -259,6 +262,10 @@ fn jira_sentry_impact_follows_the_bugs_link_and_binds_each_count_to_its_unit() {
         "STOREFRONT-WEB-8D has 2,172 events affecting 1,318 users; first release storefront@5.3.0, last seen in storefront@5.3.1.",
         // The look-alike named only to set it apart.
         "STOREFRONT-WEB-8D (2,172 events, 1,318 users, first seen in 5.3.0), unlike STOREFRONT-WEB-7Q with 2,600 events.",
+        // A polite hedge still states the answer.
+        "It seems to be STOREFRONT-WEB-8D: 2,172 events and 1,318 users, first seen in 5.3.0.",
+        // Other authored records named beside or after the answer are context.
+        "STOREFRONT-WEB-8D: 2,172 events, 1,318 users, first seen in 5.3.0. STOREFRONT-WEB-7Q has 2,600 events.",
     ]);
     case.fails(&[
         "It is not STOREFRONT-WEB-8D: 2,172 events and 1,318 users, first seen in 5.3.0.",
@@ -280,13 +287,11 @@ fn jira_sentry_impact_follows_the_bugs_link_and_binds_each_count_to_its_unit() {
         "STOREFRONT-WEB-8D: 2,172 events, first seen in 5.3.0.",
     ]);
     case.unresolved(&[
-        "It seems to be STOREFRONT-WEB-8D: 2,172 events and 1,318 users, first seen in 5.3.0.",
         // Bare numbers, a table whose units sit in the header row, and
         // number words carry no reviewed unit.
         "STOREFRONT-WEB-8D: 2,172 and 1,318, first seen in 5.3.0.",
         "| Short ID | Events | Users affected | First release |\n| STOREFRONT-WEB-8D | 2,172 | 1,318 | storefront@5.3.0 |",
         "STOREFRONT-WEB-8D: about two thousand events and 1,318 users, first seen in 5.3.0.",
-        "STOREFRONT-WEB-8D: 2,172 events, 1,318 users, first seen in 5.3.0. STOREFRONT-WEB-7Q has 2,600 events.",
     ]);
     // The issue is the one the bug's description links.
     let description = "/services/jira/issues/WEB-56/fields/description";
@@ -329,6 +334,10 @@ fn google_invoice_reads_po_amount_and_due_date_from_the_october_invoice_email() 
         "- PO: PO-48213\n- Amount due: $12,480.00\n- Due: 2026-11-20",
         "PO-48213, USD 12,480, due Nov 20, 2026.",
         "The invoice references PO-48213 for $12,480.00 (this replaces the earlier draft figure of $11,900.00), due 20 November 2026.",
+        // A polite hedge still states the answer.
+        "I think it is PO-48213, $12,480.00, due November 20, 2026.",
+        // Other authored records named beside or after the answer are context.
+        "PO-48213, $12,480.00, due November 20, 2026; the September invoice was PO-47790.",
     ]);
     case.fails(&[
         "The PO is not PO-48213; $12,480.00, due November 20, 2026.",
@@ -351,10 +360,8 @@ fn google_invoice_reads_po_amount_and_due_date_from_the_october_invoice_email() 
         "PO-48213, $12,480.00.",
     ]);
     case.unresolved(&[
-        "I think it is PO-48213, $12,480.00, due November 20, 2026.",
         "PO-48213, $12,480.00, due 11/20/2026.",
         "PO-48213, about twelve and a half thousand dollars, due November 20, 2026.",
-        "PO-48213, $12,480.00, due November 20, 2026; the September invoice was PO-47790.",
     ]);
     // All three facts follow the authored body of the invoice email.
     let body = "/services/google/gmail_messages/b26a427d1034a022/body_text";
