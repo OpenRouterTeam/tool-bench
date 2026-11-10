@@ -337,6 +337,28 @@ async fn runbook_updates_accept_split_passive_formatting_and_targeted_markdown()
 }
 
 #[tokio::test]
+async fn runbook_whole_page_markdown_rewrite_edits_the_contact_line_in_place() {
+    // The Markdown tool's description recommends `replace_content`; a rewrite that changes
+    // one line must not turn the whole page into new blocks.
+    let trial = Trial::new("update-current-runbook");
+    let page = trial
+        .call("GET", &format!("/v1/pages/{RUNBOOK}/markdown"), Value::Null)
+        .await;
+    let rewritten = page["markdown"]
+        .as_str()
+        .unwrap()
+        .replace("Marcus Webb, +1 555-0100", "Sam Ortiz, +1 555-0142");
+    trial
+        .call(
+            "PATCH",
+            &format!("/v1/pages/{RUNBOOK}/markdown"),
+            json!({"type":"replace_content","replace_content":{"new_str":rewritten}}),
+        )
+        .await;
+    pass(&trial.assess());
+}
+
+#[tokio::test]
 async fn runbook_expected_words_do_not_hide_a_contradiction_or_withdrawn_statement() {
     for content in [
         json!([

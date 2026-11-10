@@ -269,6 +269,30 @@ async fn escalation_uses_new_comment_identity_and_complete_customer_claim() {
 }
 
 #[tokio::test]
+async fn escalation_accepts_the_dedicated_priority_and_assignment_tools() {
+    let trial = Trial::new("linear", "escalate-right-safari-issue");
+    trial
+        .call(
+            "linear_setIssuePriority",
+            json!({"issueId":"WEB-51","priority":1}),
+        )
+        .await;
+    trial
+        .call(
+            "linear_assignIssue",
+            json!({"issueId":"WEB-51","assigneeId":ALEX}),
+        )
+        .await;
+    trial
+        .call(
+            "linear_createComment",
+            json!({"issueId":"WEB-51","body":"Escalation from Acme Retail."}),
+        )
+        .await;
+    pass(&trial.assess());
+}
+
+#[tokio::test]
 async fn escalation_does_not_authorize_other_tickets_or_optional_field_changes() {
     let trial = Trial::new("linear", "escalate-right-safari-issue");
     trial
