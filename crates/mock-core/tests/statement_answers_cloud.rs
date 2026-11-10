@@ -228,11 +228,20 @@ fn mongodb_order_tracking_is_read_from_the_requesters_production_order() {
         "I think it's order 10601: shipped, UPS, tracking 1Z4X97W80391827364.",
         // Her other open order, named after the answer, is context.
         "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. Her other order 10605 is still processing.",
+        // Saying that the other open order has not shipped does not deny this order's status.
+        "Order number: 10601\nStatus: shipped\nCarrier: UPS\nTracking number: 1Z4X97W80391827364\n\nHer newer order 10605 is still processing and has not shipped.",
+        "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. Order 10605 hasn't shipped yet.",
+        "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. She also has order 10605 (processing, not yet shipped) and 10598 (delivered via USPS).",
+        "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. Order 10605 has not been shipped yet, so it has no tracking number.",
     ]);
     case.fails(&[
         "Order 10601 has not shipped; carrier UPS, tracking 1Z4X97W80391827364.",
         "Order 10601 hasn't shipped yet; carrier UPS, tracking 1Z4X97W80391827364.",
         "Order 10601 has not yet shipped; carrier UPS, tracking 1Z4X97W80391827364.",
+        // The aside is no status: it cannot stand in for one, nor hide the other order's.
+        "Order number: 10601\nStatus: not shipped\nCarrier: UPS\nTracking number: 1Z4X97W80391827364",
+        "Order number: 10601\nStatus: processing (not yet shipped)\nCarrier: UPS\nTracking number: 1Z4X97W80391827364",
+        "Order 10605: processing, has not shipped, no carrier or tracking number yet.",
         "It is not order 10601 (shipped, UPS, 1Z4X97W80391827364).",
         "Order 10601 won't be shipped by UPS; tracking 1Z4X97W80391827364.",
         "Order 10601 shipped, not via UPS; tracking 1Z4X97W80391827364.",
@@ -280,6 +289,14 @@ fn okta_failed_signins_are_counted_per_account_for_the_day() {
         "jordyn.patel@octo-corp.example had 6 failures, every one from 203.0.113.77.",
         "jordyn.patel@octo-corp.example had six failed attempts from 203.0.113.77.",
         "Apparently jordyn.patel@octo-corp.example had 6 failed attempts from 203.0.113.77.",
+        // The request names three values, so the count needs no unit word of its own:
+        // bare lines, a table whose header carries the label, JSON, a label the contract
+        // does not list.
+        "jordyn.patel@octo-corp.example\n6\n203.0.113.77",
+        "jordyn.patel@octo-corp.example: 6, from 203.0.113.77.",
+        "| Username | Failed attempts | IP address |\n|---|---|---|\n| jordyn.patel@octo-corp.example | 6 | 203.0.113.77 |",
+        r#"{"username": "jordyn.patel@octo-corp.example", "failed_attempts": 6, "ip": "203.0.113.77"}"#,
+        "Login: jordyn.patel@octo-corp.example\nCount: 6\nIP address: 203.0.113.77",
     ]);
     case.fails(&[
         "It was not jordyn.patel@octo-corp.example (6 failed attempts from 203.0.113.77).",
@@ -297,10 +314,16 @@ fn okta_failed_signins_are_counted_per_account_for_the_day() {
         // Near misses.
         "jordyn.patel@octo-corp.example had 7 failed attempts from 203.0.113.77.",
         "jordyn.patel@octo-corp.example had 6 failed attempts from 203.0.113.7.",
+        // A bare count is still the count: another number, the look-alike login with the
+        // right number, a count that is missing, and a 6 that counts something else.
+        "jordyn.patel@octo-corp.example\n7\n203.0.113.77",
+        "jordan.patel@octo-corp.example\n6\n203.0.113.77",
+        "jordyn.patel@octo-corp.example\n203.0.113.77",
+        r#"{"username": "jordyn.patel@octo-corp.example", "failed_attempts": 5, "ip": "203.0.113.77"}"#,
+        "jordyn.patel@octo-corp.example had 7 failed attempts over 6 minutes from 203.0.113.77.",
     ]);
     case.unresolved(&[
-        // A bare number is not tied to the attempts.
-        "jordyn.patel@octo-corp.example: 6, from 203.0.113.77.",
+        // The display name is not the login the request asks for.
         "Jordyn Patel had 6 failed attempts from 203.0.113.77.",
     ]);
     // One fewer failure for the account lowers the stated count.
@@ -327,6 +350,14 @@ fn supabase_march_revenue_is_summed_per_customer_over_paid_and_shipped_orders() 
         "Customer: Grace Kim\nEmail: grace.kim@example.kr\nMarch total: 1234.5 USD",
         "Grace Kim <grace.kim@example.kr> leads March with $1,234.50.",
         "I believe it is Grace Kim (grace.kim@example.kr) with $1,234.50.",
+        // A runner-up line or paragraph ranks the other customer, not the winner.
+        "Customer: Grace Kim\nEmail: grace.kim@example.kr\nMarch revenue: $1,234.50\nRunner-up: Felix Wagner ($1,100.00)",
+        "Grace Kim, grace.kim@example.kr, $1,234.50. Felix Wagner came second with $1,100.00.",
+        // So does naming him as second inside the winner's own clause.
+        "Grace Kim beat second-place Felix Wagner with $1,234.50 in March revenue. Her email is grace.kim@example.kr.",
+        "Grace Kim edged out runner-up Felix Wagner, $1,234.50 to $1,100.00. Email: grace.kim@example.kr",
+        "Grace Kim (grace.kim@example.kr) led March with $1,234.50 ahead of second-place Felix Wagner at $1,100.00.",
+        "Grace Kim (grace.kim@example.kr) topped March at $1,234.50 with Felix Wagner in second place ($1,100.00).",
     ]);
     case.fails(&[
         "It is not Grace Kim (grace.kim@example.kr, $1,234.50).",
@@ -341,11 +372,17 @@ fn supabase_march_revenue_is_summed_per_customer_over_paid_and_shipped_orders() 
         "Felix Wagner (felix.wagner@example.de) brought in the most: $1,700.00.",
         "Grace Kim (grace.kim@example.kr) brought in the most: $1,243.50.",
         "Grace Kim (grace.kim@example.kr) brought in the most: €1,234.50.",
+        // The set-aside phrases name the runner-up only: they do not make him the answer,
+        // and the winner named as runner-up to him is still the wrong way round.
+        "Runner-up Felix Wagner (felix.wagner@example.de) had $1,100.00.",
+        "Felix Wagner (felix.wagner@example.de) beat runner-up Grace Kim (grace.kim@example.kr): $1,700.00 to $1,234.50.",
     ]);
     case.unresolved(&[
         "Grace (grace.kim@example.kr) brought in the most: $1,234.50.",
         // The right customer ranked anywhere but first.
         "Grace Kim (grace.kim@example.kr) was second with $1,234.50.",
+        "Grace Kim (grace.kim@example.kr) came second with $1,234.50.",
+        "Grace Kim (grace.kim@example.kr) was the runner-up with $1,234.50; Felix Wagner won with $1,700.00.",
         "Grace Kim (grace.kim@example.kr) brought in about twelve hundred dollars.",
     ]);
     // Un-refunding the runner-up's order makes him the top customer.

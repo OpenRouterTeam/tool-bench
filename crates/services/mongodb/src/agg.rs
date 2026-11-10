@@ -1355,15 +1355,16 @@ fn include_path(src: &Value, dst: &mut Value, path: &str) {
                 include_path(val, &mut dst[head], rest);
             }
             Value::Array(items) => {
-                let projected: Vec<Value> = items
-                    .iter()
-                    .filter(|i| i.is_object())
-                    .map(|i| {
-                        let mut o = Value::Object(Map::new());
-                        include_path(i, &mut o, rest);
-                        o
-                    })
-                    .collect();
+                let documents: Vec<&Value> = items.iter().filter(|i| i.is_object()).collect();
+                // A second path under the same array (`items.price` after `items.category`)
+                // adds to the elements the first one built; it does not replace them.
+                let mut projected = match dst.get_mut(head).map(Value::take) {
+                    Some(Value::Array(built)) if built.len() == documents.len() => built,
+                    _ => vec![Value::Object(Map::new()); documents.len()],
+                };
+                for (document, element) in documents.into_iter().zip(&mut projected) {
+                    include_path(document, element, rest);
+                }
                 dst[head] = Value::Array(projected);
             }
             _ => {}
@@ -1782,6 +1783,34 @@ mod tests {
         fn now_ms(&self) -> i64 {
             0
         }
+    }
+
+    #[test]
+    fn several_paths_under_one_array_project_every_named_field() {
+        let order = json!({"_id": 7, "status": "delivered", "items": [
+            {"sku": "A", "category": "outdoor", "price": 189, "qty": 1},
+            "a note between the lines",
+            {"sku": "B", "category": "kitchen", "price": 25.5, "qty": 2},
+        ]});
+        let project = |spec: Value| project_stage(&order, spec.as_object().unwrap()).unwrap();
+        // MongoDB keeps every included field of each element, whatever the order of the paths,
+        // and drops array members that are not documents.
+        assert_eq!(
+            project(json!({"items.category": 1, "items.price": 1, "items.qty": 1})),
+            json!({"_id": 7, "items": [
+                {"category": "outdoor", "price": 189, "qty": 1},
+                {"category": "kitchen", "price": 25.5, "qty": 2},
+            ]})
+        );
+        assert_eq!(
+            project(json!({"_id": 0, "items.qty": 1, "status": 1, "items.sku": 1})),
+            json!({"items": [{"qty": 1, "sku": "A"}, {"qty": 2, "sku": "B"}], "status": "delivered"})
+        );
+        // One path still projects that field alone.
+        assert_eq!(
+            project(json!({"_id": 0, "items.price": 1})),
+            json!({"items": [{"price": 189}, {"price": 25.5}]})
+        );
     }
 
     #[test]

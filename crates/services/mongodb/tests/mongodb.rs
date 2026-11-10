@@ -228,6 +228,27 @@ async fn a_database_collection_named_connections_does_not_become_session_state()
 }
 
 #[tokio::test]
+async fn find_projects_every_named_field_of_the_order_lines() {
+    let app = service_app(world("refund-order"), &Mongodb);
+    let r = call(
+        &app,
+        "find",
+        json!({"connectionId": PRE, "database": "shop", "collection": "orders",
+               "filter": {"orderNumber": 10482},
+               "projection": {"_id": 0, "items.category": 1, "items.price": 1, "items.qty": 1}}),
+    )
+    .await;
+    assert!(r.get("isError").is_none(), "{r}");
+    assert_eq!(
+        r["structuredContent"]["documents"],
+        json!([{"items": [
+            {"category": "outdoor", "price": 189, "qty": 1},
+            {"category": "outdoor", "price": 25.5, "qty": 1},
+        ]}])
+    );
+}
+
+#[tokio::test]
 async fn find_filters_sorts_projects_and_wraps_untrusted_data() {
     let app = service_app(world("refund-order"), &Mongodb);
     let r = call(

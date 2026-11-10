@@ -15,8 +15,10 @@
 //! | `s3` | REST-XML, path-style | method + path + subresource |
 //! | `lambda` | REST-JSON | method + path |
 //! | `account` | REST-JSON | path (`/listRegions`) |
+//! | `sns` | query (XML) | `Action=` form field (`ListTopics`, `GetTopicAttributes`) |
 //!
-//! Signatures are not checked. Other services get an empty, protocol-correct success.
+//! Signatures are not checked. Other services, and the SNS operations not listed, get an
+//! empty, protocol-correct success.
 //! `servicereference.us-east-1.amazonaws.com` (the service reference the aws-api server
 //! reads to classify read-only operations) is served over TLS.
 //!
@@ -35,6 +37,7 @@ mod logs;
 mod query;
 mod reference;
 mod s3;
+mod sns;
 mod sts;
 mod suggest;
 pub mod util;
@@ -262,6 +265,7 @@ fn route(
         "logs" => logs::handle(&mut ctx, &req),
         "lambda" => lambda::handle(&mut ctx, &req),
         "account" => account::handle(&mut ctx, &req),
+        "sns" => sns::handle(&mut ctx, &req).unwrap_or_else(|| generic_empty(&mut ctx, &req)),
         _ => generic_empty(&mut ctx, &req),
     }
 }

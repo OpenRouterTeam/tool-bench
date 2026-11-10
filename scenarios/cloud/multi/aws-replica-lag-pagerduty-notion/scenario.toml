@@ -20,8 +20,9 @@ rationale = "Alarm orders-db-replica-2-replica-lag (ALARM 13:11Z) sits beside re
 # The note and the new Notion row are matched by actual stored identities, not predicted IDs.
 # The alarm facts are authored dataset facts: a note naming a look-alike alarm or the wrong
 # instant is a known failure, while unfamiliar complete wording requires adjudication. The
-# information prerequisites admit either alarm state or transition history, with exact
-# timestamp conversion and source-bound facts before each committed write.
+# information prerequisites admit alarm state (listed, or looked up by the replica's
+# ReplicaLag metric) or transition history, with exact timestamp conversion and source-bound
+# facts before each committed write.
 [expect]
 version = 2
 audit_history = true
@@ -127,6 +128,7 @@ projection = [
 ]
 alternatives = [
   { prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarmHistory" } }, response_field = "/AlarmHistoryItems", source = { collection = "/services/aws/alarm_history", matching = { AlarmName = "orders-db-replica-2-replica-lag", HistoryItemType = "StateUpdate", HistoryData = { newState = { stateValue = "ALARM" } } } }, projection = [{ response = ["/AlarmName"], source = "/AlarmName" }, { response = ["/HistorySummary"], source = "/HistorySummary" }, { response = ["/Timestamp"], source = "/Timestamp", format = "unix_seconds" }] },
+  { prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarmsForMetric" } }, response_field = "/MetricAlarms", source = { collection = "/services/aws/alarms", matching = { AlarmName = "orders-db-replica-2-replica-lag", StateValue = "ALARM" } }, projection = [{ response = ["/AlarmName"], source = "/AlarmName" }, { response = ["/StateValue"], source = "/StateValue" }, { response = ["/StateTransitionedTimestamp"], source = "/StateTransitionedTimestamp", format = "unix_seconds" }] },
 ]
 action = { service = "pagerduty", method = "POST", path = "/incidents/Q3K8ORDBLAG2RX/notes" }
 action_effect = { selector = { collection = "/services/pagerduty/notes", created = true }, field = "/content", nonempty_text = true }
@@ -142,6 +144,7 @@ projection = [
 ]
 alternatives = [
   { prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarmHistory" } }, response_field = "/AlarmHistoryItems", source = { collection = "/services/aws/alarm_history", matching = { AlarmName = "orders-db-replica-2-replica-lag", HistoryItemType = "StateUpdate", HistoryData = { newState = { stateValue = "ALARM" } } } }, projection = [{ response = ["/AlarmName"], source = "/AlarmName" }, { response = ["/HistorySummary"], source = "/HistorySummary" }, { response = ["/Timestamp"], source = "/Timestamp", format = "unix_seconds" }] },
+  { prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarmsForMetric" } }, response_field = "/MetricAlarms", source = { collection = "/services/aws/alarms", matching = { AlarmName = "orders-db-replica-2-replica-lag", StateValue = "ALARM" } }, projection = [{ response = ["/AlarmName"], source = "/AlarmName" }, { response = ["/StateValue"], source = "/StateValue" }, { response = ["/StateTransitionedTimestamp"], source = "/StateTransitionedTimestamp", format = "unix_seconds" }] },
 ]
 action = { service = "notion", method = "POST", path = "/v1/pages" }
 action_effect = { selector = { collection = "/services/notion/pages", created = true }, field = "/archived", equals = false }

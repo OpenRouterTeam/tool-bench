@@ -295,6 +295,32 @@ async fn a_refund_can_be_recorded_in_separate_field_updates() {
 }
 
 #[tokio::test]
+async fn a_refund_set_as_one_subdocument_is_the_same_record() {
+    let trial = trial(REFUND);
+    update(
+        &trial,
+        "shop",
+        "orders",
+        json!({"orderNumber":10482}),
+        json!({"$set":{"status":"refunded","refund":{"amount":214.5,"reason":"damaged in transit"}}}),
+    )
+    .await;
+    pass(&trial.assess());
+    // The existing refunded order records a reason and an amount only: a third field is
+    // not part of the request.
+    let extra = self::trial(REFUND);
+    update(
+        &extra,
+        "shop",
+        "orders",
+        json!({"orderNumber":10482}),
+        json!({"$set":{"status":"refunded","refund":{"amount":214.5,"reason":"damaged in transit","refundedAt":{"$date":"2026-03-14T09:00:00.000Z"}}}}),
+    )
+    .await;
+    fail(&extra.assess());
+}
+
+#[tokio::test]
 async fn a_full_refund_is_bound_to_the_actual_order_total_not_a_literal_fixture_amount() {
     let trial = prepared(REFUND, |dataset| {
         let order = dataset

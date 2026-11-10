@@ -8,6 +8,7 @@ use serde_json::{Value, json};
 use support::ContractTrial as Trial;
 
 const DNS: &str = "cloud/cloudflare/add-status-cname";
+const STALE: &str = "cloud/cloudflare/find-stale-origin";
 const FLAG: &str = "cloud/cloudflare/enable-checkout-flag";
 const ROUTE: &str = "cloud/cloudflare/route-orders-api-v2";
 const ZONE: &str = "023e105f4ecef8ad9ca31a8372d0c353";
@@ -143,6 +144,18 @@ async fn dns_creation_uses_actual_ids_and_equivalent_names_not_a_predicted_hash(
         assert_ne!(created["id"], "bc9852aa03507f9f32653fdd0d65f467");
         pass(&trial.assess());
     }
+}
+
+#[tokio::test]
+async fn a_dns_record_created_without_a_proxied_field_is_dns_only() {
+    // The API default for `proxied` is false (the dashboard's is not), so leaving the field
+    // out is the requested record; a comment and tags are the creator's to add.
+    let trial = Trial::new(DNS);
+    let created = trial
+        .dns(json!({"type":"CNAME","name":"status.octo-corp.com","content":"octocorp.statuspage.io","comment":"Atlassian Statuspage","tags":["owner:sre"]}))
+        .await;
+    assert_eq!(created["proxied"], false);
+    pass(&trial.assess());
 }
 
 #[tokio::test]
@@ -459,4 +472,30 @@ async fn kv_metadata_growth_cannot_be_hidden_by_later_restoration() {
     let grade = trial.assess();
     fail(&grade);
     assert!(grade.records_ok && !grade.history_ok, "{grade:?}");
+}
+
+#[tokio::test]
+async fn asking_the_analytics_api_about_traffic_is_not_a_change_to_the_account() {
+    // The request cites the traffic graphs. Cloudflare serves them from POST /graphql, which
+    // the mock does not model: the query fails and changes nothing.
+    let trial = Trial::new(STALE);
+    let reply = trial
+        .execute(
+            "async () => { try { return await cloudflare.request({method:'POST',path:'/graphql',body:{query:'{ viewer { zones { httpRequests1dGroups(limit: 1) { sum { requests } } } } }'}}); } catch (error) { return String(error); } }",
+        )
+        .await;
+    assert!(reply.to_string().contains("No route"), "{reply}");
+    pass(&trial.assess_with_answer(Some("checkout.octo-shop.com\n")));
+    // A write to the account is still a change, even one the API refuses.
+    let refused = Trial::new(STALE);
+    let before = refused.state();
+    refused
+        .execute(&format!(
+            "async () => {{ try {{ return await cloudflare.request({{method:'POST',path:'/zones/{ZONE}/dns_records',body:{{type:'A',name:'checkout'}}}}); }} catch (error) {{ return String(error); }} }}"
+        ))
+        .await;
+    assert_eq!(refused.state(), before);
+    let grade = refused.assess_with_answer(Some("checkout.octo-shop.com\n"));
+    fail(&grade);
+    assert!(!grade.forbidden_calls_ok, "{grade:?}");
 }

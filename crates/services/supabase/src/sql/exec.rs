@@ -78,8 +78,13 @@ pub fn execute(
     read_only: bool,
 ) -> Result<Vec<Value>, SqlError> {
     let stmts = parse_script(sql)?;
+    // The caller commits the whole script or none of it, so a transaction that wraps the
+    // script (`BEGIN; ...; COMMIT;`) adds nothing and its two statements are skipped. Any
+    // other transaction control (a rollback, a savepoint, a transaction that ends before
+    // the script does) is still an unsupported statement.
+    let wrapped = wrapped_transaction(&stmts);
     let mut out = Vec::new();
-    for stmt in &stmts {
+    for stmt in wrapped.unwrap_or(&stmts) {
         if read_only && stmt.mutates() {
             return Err(SqlError::new(
                 "25006",
@@ -93,7 +98,35 @@ pub fn execute(
         };
         out = ex.statement(stmt)?;
     }
+    if wrapped.is_some() {
+        // The script's last statement is the COMMIT, which returns no rows.
+        out.clear();
+    }
     Ok(out)
+}
+
+/// The statements between a leading `BEGIN` and a final `COMMIT`, when the script is
+/// exactly one such transaction.
+fn wrapped_transaction(stmts: &[Stmt]) -> Option<&[Stmt]> {
+    let [Stmt::Unsupported(open), body @ .., Stmt::Unsupported(close)] = stmts else {
+        return None;
+    };
+    let words = |text: &str| {
+        text.trim_end_matches(';')
+            .split_whitespace()
+            .map(str::to_ascii_lowercase)
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
+    let opens = matches!(
+        words(open).as_str(),
+        "begin" | "begin transaction" | "begin work" | "start transaction"
+    );
+    let closes = matches!(
+        words(close).as_str(),
+        "commit" | "commit transaction" | "commit work" | "end" | "end transaction" | "end work"
+    );
+    (opens && closes).then_some(body)
 }
 
 #[derive(Debug, Clone, Default)]

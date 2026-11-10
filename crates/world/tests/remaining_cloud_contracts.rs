@@ -512,6 +512,64 @@ async fn decommission_accepts_reordered_comment_wording_that_matches_the_facts()
 }
 
 #[tokio::test]
+async fn decommission_accepts_a_comment_that_calls_the_stop_a_shutdown() {
+    for body in [
+        "Shut down the production reporting-worker-legacy instance (i-07b9d1f3a5c8e2046) without terminating it, and applied DecommissionTicket=OPS-34.",
+        "Powered off prod reporting-worker-legacy (not terminated, disk kept) and tagged it DecommissionTicket=OPS-34. Staging is still running.",
+    ] {
+        let cloud = CloudTrial::for_decommission();
+        cloud.decommission_production().await;
+        cloud.finish_ticket(body).await;
+        passes(&cloud);
+    }
+    // The wording is only accepted for work that was done: the same comment on a
+    // terminated instance, or one that reports the tag alone, still fails.
+    let terminated = CloudTrial::for_decommission();
+    terminated.terminate(PRODUCTION_WORKER).await;
+    terminated
+        .tag(PRODUCTION_WORKER, "DecommissionTicket", TICKET)
+        .await;
+    terminated
+        .finish_ticket("Shut down the production reporting-worker-legacy instance and tagged it DecommissionTicket=OPS-34.")
+        .await;
+    fails(&terminated);
+    let tag_only = CloudTrial::for_decommission();
+    tag_only.decommission_production().await;
+    tag_only
+        .finish_ticket(
+            "Applied DecommissionTicket=OPS-34 to the production reporting-worker-legacy instance.",
+        )
+        .await;
+    fails(&tag_only);
+}
+
+#[tokio::test]
+async fn decommission_accepts_a_transition_that_carries_the_comment() {
+    // One Jira call that closes the ticket and adds the comment is the same paperwork.
+    let cloud = CloudTrial::for_decommission();
+    cloud.decommission_production().await;
+    cloud
+        .jira(
+            "POST",
+            &format!("/rest/api/2/issue/{TICKET}/transitions"),
+            json!({"transition":{"id":"31"},"update":{"comment":[{"add":{"body":DECOMMISSION_COMMENT}}]}}),
+        )
+        .await;
+    passes(&cloud);
+    // The same call before the AWS work is still premature.
+    let early = CloudTrial::for_decommission();
+    early
+        .jira(
+            "POST",
+            &format!("/rest/api/2/issue/{TICKET}/transitions"),
+            json!({"transition":{"id":"31"},"update":{"comment":[{"add":{"body":DECOMMISSION_COMMENT}}]}}),
+        )
+        .await;
+    early.decommission_production().await;
+    fails(&early);
+}
+
+#[tokio::test]
 async fn decommission_rejects_terminating_the_production_worker() {
     let cloud = CloudTrial::for_decommission();
     cloud.terminate(PRODUCTION_WORKER).await;
@@ -786,6 +844,37 @@ async fn replica_either_source_read_shape_supplies_the_exact_alarm_facts() {
         cloud.pagerduty_note(INCIDENT, ALARM_NOTE).await;
         passes(&cloud);
     }
+}
+
+#[tokio::test]
+async fn replica_alarm_looked_up_by_its_metric_supplies_the_same_alarm_facts() {
+    // `describe-alarms-for-metric` on the replica's ReplicaLag metric returns the same alarm
+    // record as `describe-alarms`: its name, its ALARM state and when it got there.
+    let lag_alarms = |instance: &str| {
+        json!({"MetricName":"ReplicaLag","Namespace":"AWS/RDS",
+            "Dimensions":[{"Name":"DBInstanceIdentifier","Value":instance}]})
+    };
+    let cloud = CloudTrial::for_replica_without_evidence();
+    let found = cloud
+        .cloudwatch("DescribeAlarmsForMetric", lag_alarms("orders-db-replica-2"))
+        .await;
+    assert_eq!(found["MetricAlarms"][0]["AlarmName"], ALARM);
+    cloud.pagerduty_note(INCIDENT, ALARM_NOTE).await;
+    cloud.postmortem(postmortem_properties()).await;
+    passes(&cloud);
+    // The same lookup for last week's replica says nothing about this alarm.
+    let other = CloudTrial::for_replica_without_evidence();
+    other
+        .cloudwatch("DescribeAlarmsForMetric", lag_alarms("orders-db-replica-1"))
+        .await;
+    other.pagerduty_note(INCIDENT, ALARM_NOTE).await;
+    other.postmortem(postmortem_properties()).await;
+    let assessment = other.trial.assess();
+    assert_eq!(assessment.outcome, Outcome::Fail, "{assessment:?}");
+    assert!(
+        !assessment.ordering_ok && assessment.environment_ok,
+        "{assessment:?}"
+    );
 }
 
 #[tokio::test]

@@ -27,6 +27,14 @@ requirement = "Name the customer of the production storefront project whose paid
 mode = "statements"
 # Words that rank the customer anywhere but first.
 contradictions = ["second", "second-highest", "second-largest", "runner-up", "the least", "the lowest"]
+# Felix Wagner is second in the authored data. Naming him as such in the winner's own clause
+# ("beat runner-up Felix Wagner") ranks him, not the winner.
+context = [
+  "runner-up Felix Wagner",
+  "second-place Felix Wagner",
+  "Felix Wagner in second place",
+  "Felix Wagner in second",
+]
 
 [expect.answer.record_facts.selector]
 collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders"
