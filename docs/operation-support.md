@@ -897,10 +897,10 @@ references are rejected on unsupported append rules. Default preservation protec
 all other resources, not just authored sentinels. Audit rows join the actual target
 issue and authenticated user, with per-commit bounds rather than a trial-wide
 retry cap. The comment that `update_issue` posts for its optional `reason` is
-authorized on the target issue where the request leaves room for one: the
-storefront triage (one per requested update) and the cross-system memory fix
-(one). The worker fix says to change nothing else, so a comment there, and a
-comment on any other issue, remains an unauthorized change.
+authorized on the target issue: the storefront triage (one per requested
+update), the cross-system memory fix (one) and the worker fix (one). The worker
+request says to change nothing else, which protects its look-alike issue: a
+second comment, and a comment on any other issue, remain unauthorized changes.
 
 Project create and update refuse a platform Sentry does not list
 (`GETTING_STARTED_DOCS_PLATFORMS`; empty and `other` are accepted) with

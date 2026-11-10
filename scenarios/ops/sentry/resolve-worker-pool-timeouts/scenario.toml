@@ -53,6 +53,21 @@ max_count = 1
 count_scope = "per_commit"
 cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
+# `update_issue` takes an optional `reason`, which the server posts as a comment on the issue it
+# updates. "Don't change anything else" protects the look-alike checkout issue and this issue's
+# other fields; one comment by the acting user on the resolved issue is part of resolving it.
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "note" }
+field_patterns = { "/data/text" = '\S' }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "PAYMENTS-WORKER-1K" } }, target_field = "/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+cause = { service = "sentry", methods = ["POST"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/notes/$" }
+
 [[expect.preservation.allow]]
 pointer = "/services/sentry/activities/*"
 kind = "create"
