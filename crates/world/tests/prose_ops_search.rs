@@ -591,9 +591,12 @@ async fn pricing_research_brief() {
         // The contract also selects the research by each competitor's name, and the service
         // writes the authored report only for a brief that names all three, so a brief that
         // drops one leaves that selection empty and gets a different report.
+        // A brief that names Ledgerize other than to exclude it fails the relation that reads
+        // how it is named.
         also: &[
             "/services/tavily/research selected 0 records",
             "Equals relation between /services/tavily/research/",
+            "selected identity sets do not form a nonempty bijection",
         ],
         dictated: false,
         passes: &[
@@ -602,12 +605,14 @@ async fn pricing_research_brief() {
             "# Research brief\n\nCompare current pricing for:\n- **Tallybook**\n- **Billfold**\n- **Sumwise**\n\nFor each: plan names, price per month, billing options, key limits.",
             "We position Ledgerly (invoicing software) against Tallybook, Billfold and Sumwise on our compare page. Research what each of these three competitors currently charges: plan tiers, prices, and what each tier includes. Only cover these three companies.",
             "How much do Sumwise, Billfold and Tallybook cost today? Give every plan and its cost per month.",
+            "Research the current pricing plans of Tallybook, Billfold and Sumwise only. Do not include Ledgerize, which shut down in 2025, or any other invoicing tool.",
         ],
         fails: &[
             "Current pricing plans of Tallybook and Sumwise.",
             "Compare the current pricing plans of Tallybook, Billfold, Sumwise and Zervant.",
             "Compare the feature sets of Tallybook, Billfold and Sumwise.",
             "Research the current pricing plans of the top invoicing tools: Billfold, InvoiceNinja, Tallybook, Zervant, FreshBooks and Sumwise.",
+            "Compare the current pricing plans of Tallybook, Billfold, Sumwise and Ledgerize, which shut down in 2025.",
         ],
     }
     .run(pricing_research)
