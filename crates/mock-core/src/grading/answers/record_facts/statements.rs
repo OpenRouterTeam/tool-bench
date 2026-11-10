@@ -48,7 +48,8 @@ pub(super) fn fold(text: &str, lines: bool) -> String {
             '\u{2018}' | '\u{2019}' => '\'',
             '\u{201c}' | '\u{201d}' => '"',
             '*' | '`' => continue,
-            '|' if lines => '\n',
+            // A table row is one statement; its cells read as `label: value`.
+            '|' if lines => ':',
             other => other,
         };
         if character == '\n' && lines {
@@ -75,6 +76,10 @@ pub(super) fn fold(text: &str, lines: bool) -> String {
 static MERIDIEM: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\b(\d{1,2})(?::(\d{2}))?\s?(a\.m\.|p\.m\.|am\b|pm\b)").expect("meridiem pattern")
 });
+/// A one-digit hour of a clock time (`9:00`), not part of a longer number or duration.
+static BARE_HOUR: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(^|[^\d:.])(\d:[0-5]\d(?:[^\d:]|$))").expect("bare hour pattern")
+});
 static SPOKEN_DURATION: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
         r"\b(?:(\d{1,2})\s?(?:h|hr|hrs|hours?),?\s(?:and\s)?)?(\d{1,3})\s?(?:m|min|mins|minutes?),?\s?(?:and\s)?",
@@ -86,7 +91,8 @@ static SPOKEN_DURATION: LazyLock<Regex> = LazyLock::new(|| {
 /// Rewrites two common spoken notations into the forms sources use: `9 a.m.` and
 /// `2:30 pm` become `09:00` and `14:30`, and `47 min 12 s` becomes `47:12`.
 fn notation(folded: &str) -> String {
-    let clocked = MERIDIEM.replace_all(folded, |found: &regex::Captures<'_>| {
+    let padded = BARE_HOUR.replace_all(folded, "${1}0${2}");
+    let clocked = MERIDIEM.replace_all(&padded, |found: &regex::Captures<'_>| {
         let hour: u32 = found[1].parse().unwrap_or(99);
         let minute = found.get(2).map_or("00", |minute| minute.as_str());
         if !(1..=12).contains(&hour) {
@@ -385,7 +391,7 @@ static TRAILING_NEGATION: LazyLock<Regex> = LazyLock::new(|| {
 static LATER_DENIAL: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
         r"^[^,;:()]{0,60}?\b(?:is|was|are|were)(?:\s+not|n't)\s+(?:the|a|an|it|correct|right|true|accurate|our|that|what|who|where|when|one|actually|really|on call)\b",
-        r"|\b(?:that|this)\s+(?:is|was)(?:\s+not|n't)\b",
+        r"|(?:^|[,;:]\s*|\b(?:but|and|however|yet),?\s+)(?:that|this)\s+(?:is|was)(?:\s+not|n't)\b",
         r"|\b(?:it|which|they|these|those)\s+(?:is|was|are|were)(?:\s+not|n't)\s+(?:the|a|an|correct|right|true|accurate|what|who|where|when|why|how|one|actually|really|in force|valid|current)\b",
     ))
     .expect("later denial pattern")
@@ -463,6 +469,13 @@ fn leading(before: &str) -> Option<Status> {
         if token.ends_with([',', ':', ';', '(', '.']) || token == "-" || token == "but" {
             break;
         }
+        if token.starts_with('(') && !negator(bare(token)) {
+            unknown = false;
+            word_used = false;
+            // Skip to the word before the parenthesis: it must itself be a negator
+            // directly applied to the parenthetical to count, which is not a denial.
+            break;
+        }
         let word = bare(token);
         let paired = index > 0
             && PAIRED_NEGATORS.contains(&format!("{} {word}", bare(tokens[index - 1])).as_str());
@@ -534,8 +547,8 @@ struct Sentence<'answer> {
     text: &'answer str,
     /// The sentence with every target mention blanked, for cue detection.
     masked: String,
-    /// The sentence holds a reviewed cue that contradicts the facts.
-    contradicted: bool,
+    /// Where the sentence holds a reviewed cue that contradicts the facts.
+    contradictions: Vec<(usize, usize)>,
     /// The sentence holds evaluative/ranking language not covered by any
     /// reviewed contradiction cue.  When set, fact mentions are Disputed.
     unreviewed_predicate: bool,
@@ -544,6 +557,31 @@ struct Sentence<'answer> {
 }
 
 impl Sentence<'_> {
+    /// An explicit denial after the mention, as opposed to a negated verb.
+    fn denies_after(&self, end: usize) -> bool {
+        let after = &self.masked[end..];
+        TRAILING_DENIAL.is_match(after) || LATER_DENIAL.is_match(after)
+    }
+
+    /// A reviewed contradicting cue in the mention's own clause: "unit-tests passed", but
+    /// not "unit-tests (the other jobs passed)".
+    fn contradicted(&self, start: usize, end: usize) -> bool {
+        let boundary = |character: char| matches!(character, ',' | ';' | ':' | '(' | ')');
+        let left = self.masked[..start]
+            .rfind(boundary)
+            .map_or(0, |index| index + 1);
+        let right = self.masked[end..]
+            .find(boundary)
+            .map_or(self.masked.len(), |index| end + index);
+        self.contradictions
+            .iter()
+            .any(|(from, to)| left <= *from && *to <= right)
+    }
+
+    fn retracted(&self) -> bool {
+        self.unreviewed_predicate || self.taken_back || RETRACTION.is_match(&self.masked)
+    }
+
     fn status(&self, start: usize, end: usize) -> Status {
         let after = &self.masked[end..];
         // A mention inside parentheses is governed by what follows the parenthesis.
@@ -565,7 +603,7 @@ impl Sentence<'_> {
             || LATER_DENIAL.is_match(after)
             || outer.is_some_and(|text| LATER_DENIAL.is_match(text))
             || negated_after
-            || self.contradicted
+            || self.contradicted(start, end)
             || RETRACTION.is_match(&self.masked)
             || self.unreviewed_predicate
             || self.taken_back
@@ -599,11 +637,14 @@ fn find_text(text: &str, form: &str) -> Vec<(usize, usize)> {
                 && earlier.is_some_and(|digit| digit.is_ascii_digit())
                 && form.starts_with(|digit: char| digit.is_ascii_digit());
             let joined_before = previous.is_some_and(|character| {
-                (joint(character) && !timestamp)
-                    || (matches!(character, '-' | '/') && earlier.is_some_and(joint))
+                (joint(character) && !timestamp) || (character == '-' && earlier.is_some_and(joint))
             });
+            let clock = form.len() == 5
+                && form.as_bytes()[2] == b':'
+                && form.bytes().filter(u8::is_ascii_digit).count() == 4;
+            let joined_before = joined_before && !(clock && previous == Some('-'));
             let joined_after = next.is_some_and(|character| {
-                joint(character) || (character == '-' && later.is_some_and(joint))
+                joint(character) || (character == '-' && later.is_some_and(joint) && !clock)
             });
             (!joined_before && !joined_after).then_some((start, end))
         })
@@ -719,7 +760,7 @@ fn read_number(fact: &RecordFact, token: &NumberToken, target: Rational, text: &
     let mut unit_hit = units.iter().any(|reviewed| {
         reviewed == &token.suffix
             || reviewed == &token.previous
-            || (token.suffix.is_empty()
+            || ((token.suffix.is_empty() || numbers::scale(&token.suffix, money).is_some())
                 && (word_starts(after, reviewed) || word_starts(after.trim_start(), reviewed)))
             || word_ends(before, reviewed)
             || !find_text(label, reviewed).is_empty()
@@ -730,6 +771,13 @@ fn read_number(fact: &RecordFact, token: &NumberToken, target: Rational, text: &
         && units
             .iter()
             .any(|reviewed| reviewed == "usd" || reviewed == "$");
+    // `1.2k req/min`: the suffix scales the number and the unit follows it. A suffix that is
+    // itself the reviewed unit (`$45M` for an amount in millions) is not applied twice.
+    if let Some(factor) =
+        numbers::scale(&token.suffix, money).filter(|_| unit_hit && !units.contains(&token.suffix))
+    {
+        value = token.value.mul(factor);
+    }
     if !unit_hit {
         if let Some(factor) = numbers::scale(unit, money) {
             value = token.value.mul(factor);
@@ -746,6 +794,15 @@ fn read_number(fact: &RecordFact, token: &NumberToken, target: Rational, text: &
                 _ => {}
             }
         }
+    }
+    // An amount the source gives in millions may be written out in full.
+    if !unit_hit
+        && let Some(factor) = units.iter().find_map(|unit| numbers::scale(unit, money))
+        && let Some(scaled) = token.value.div(factor)
+        && scaled == target
+    {
+        value = Some(scaled);
+        unit_hit = true;
     }
     let marked = unit_hit || (money && token.currency == Some(Currency::Usd));
     // A currency sign on a plain count, or another currency on an amount.
@@ -782,6 +839,8 @@ struct Evidence {
     /// Sentences that state another authored record's value without setting it aside and
     /// without also affirming the source value.
     rivals: Vec<usize>,
+    /// Another record's value is joined to the source value as a list ("X and Y").
+    listed: bool,
 }
 
 impl Evidence {
@@ -830,11 +889,17 @@ impl Evidence {
 /// Wording that presents a later record as the reply's real answer.
 static ANSWER_CUE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
-        r"\b(?:actually|in fact|instead|rather|correct\w*|turns out|ultimately|final\w*|answer|conclusion",
+        r"\b(?:actually|in fact|instead|rather|correct\w*|turns out|ultimately|final\w*|conclusion",
+        r"|the (?:real |right |correct |actual )?answer is|answer:",
         r"|therefore|thus|hence|decision|decided|chose|chosen|picked|selected|winner",
         r"|largest|biggest|highest|lowest|smallest|best|worst)\b",
     ))
     .expect("answer cue pattern")
+});
+/// Only a conjunction between two mentions: they are listed together.
+static LISTED_WITH: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\s*(?:,|/|&|\+|,?\s*and|,?\s*or|plus|as well as|along with|and also)\s*$")
+        .expect("listed-with pattern")
 });
 /// A line of a list or table: a ranking, not a conclusion.
 static LIST_ITEM: LazyLock<Regex> =
@@ -874,6 +939,7 @@ static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
         r"|for context|for reference|for comparison|by comparison|in contrast|e\.g|such as|including",
         r"|not (?:the|an?) (?:answer|one|right|correct|match)|not counted|not included|doesn't count|does not count",
         r"|staging|non-?prod\w*|sandbox|test environment",
+        r"|if|unless|otherwise|would|could have|in that case|hypothetical\w*",
         r")\b"
     ))
     .expect("set-aside pattern")
@@ -881,10 +947,11 @@ static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
 
 /// The value's own forms plus the reviewed wordings of exactly that value.
 fn text_forms(fact: &RecordFact, forms: &[String]) -> Vec<String> {
-    let mut folded: Vec<String> = forms.iter().map(|form| fold(form, false)).collect();
+    let read = |form: &String| notation(&fold(form, false));
+    let mut folded: Vec<String> = forms.iter().map(read).collect();
     for (value, wordings) in &fact.wordings {
         if forms.contains(value) {
-            folded.extend(wordings.iter().map(|form| fold(form, false)));
+            folded.extend(wordings.iter().map(read));
         }
     }
     // A link is the same link without its scheme or a trailing slash.
@@ -894,7 +961,12 @@ fn text_forms(fact: &RecordFact, forms: &[String]) -> Vec<String> {
             form.strip_prefix("https://")
                 .or_else(|| form.strip_prefix("http://"))
         })
-        .map(|form| form.trim_end_matches('/').to_owned())
+        .flat_map(|form| {
+            let form = form.trim_end_matches('/');
+            [Some(form), form.strip_prefix("www.")]
+        })
+        .flatten()
+        .map(str::to_owned)
         .collect();
     folded.extend(bare);
     folded.retain(|form| !form.is_empty());
@@ -1177,10 +1249,12 @@ pub(super) fn check(
                 );
             }
             let masked = blank(line, &all);
-            let contradicted = contract
+            let contradictions: Vec<(usize, usize)> = contract
                 .contradictions
                 .iter()
-                .any(|cue| !find_text(&masked, &fold(cue, false)).is_empty());
+                .flat_map(|cue| find_text(&masked, &fold(cue, false)))
+                .collect();
+            let contradicted = !contradictions.is_empty();
             let unreviewed_predicate = contract.assertions.is_empty()
                 && !contract.contradictions.is_empty()
                 && !contradicted
@@ -1188,7 +1262,7 @@ pub(super) fn check(
             Sentence {
                 text: line,
                 masked,
-                contradicted,
+                contradictions,
                 unreviewed_predicate,
                 taken_back: false,
             }
@@ -1201,22 +1275,6 @@ pub(super) fn check(
         }
     }
 
-    // Sentences that affirm any required fact: other records named there are context.
-    let affirming: Vec<bool> = read
-        .iter()
-        .zip(&located)
-        .map(|(sentence, found)| {
-            found.iter().zip(&items).any(|(spans, (_, fact, _, _))| {
-                !fact.optional
-                    && spans.iter().any(|(start, end)| {
-                        matches!(
-                            sentence.status(*start, *end),
-                            Status::Affirmed | Status::Hedged
-                        )
-                    })
-            })
-        })
-        .collect();
     let mut failure = None;
     let mut review = None;
     // Where each fact is first affirmed, for the declared statement order.
@@ -1242,9 +1300,39 @@ pub(super) fn check(
             conflict,
             ..Evidence::default()
         };
+        // A measured fact (a count, an amount, a date, a time) is restated, compared and
+        // negated in passing far more than a name is, so only a leading rival and an
+        // explicit denial count against it.
+        let measured = matches!(
+            fact.kind,
+            RecordFactKind::Number
+                | RecordFactKind::Money
+                | RecordFactKind::Date
+                | RecordFactKind::UtcDate
+                | RecordFactKind::TimeOfDay
+        ) || fact.clock;
         for (position, (sentence, found)) in read.iter().zip(&located).enumerate() {
+            let mut affirmed_here: Vec<(usize, usize)> = Vec::new();
             for (start, end) in &found[index] {
-                evidence.count(sentence.status(*start, *end), position, *start);
+                let mut status = sentence.status(*start, *end);
+                if status == Status::Disputed
+                    && measured
+                    && !sentence.denies_after(*end)
+                    && !sentence.contradicted(*start, *end)
+                    && !sentence.retracted()
+                {
+                    status = Status::Affirmed;
+                }
+                // A name inside a path (`registry/org/name`) that a negation happens to
+                // govern is not a denial of the name.
+                let in_path = sentence.text[..*start].ends_with('/');
+                if in_path && matches!(status, Status::Denied | Status::Disputed) {
+                    continue;
+                }
+                if matches!(status, Status::Affirmed | Status::Hedged) {
+                    affirmed_here.push((*start, *end));
+                }
+                evidence.count(status, position, *start);
             }
             for alternative in *alternatives {
                 if fact.optional {
@@ -1280,7 +1368,24 @@ pub(super) fn check(
                         Status::Denied | Status::Disputed
                     ) {
                         evidence.alternative = true;
-                        if !affirming[position] && !SET_ASIDE.is_match(&sentence.masked) {
+                        // Named beside the source value, another record is context unless
+                        // the two are simply listed together as the answer.
+                        let listed = affirmed_here.iter().any(|(left, right)| {
+                            let between = if *right <= start {
+                                &sentence.text[*right..start]
+                            } else if end <= *left {
+                                &sentence.text[end..*left]
+                            } else {
+                                return false;
+                            };
+                            LISTED_WITH.is_match(between)
+                        });
+                        if listed {
+                            evidence.listed = true;
+                        } else if affirmed_here.is_empty()
+                            && !SET_ASIDE.is_match(&sentence.masked)
+                            && !(measured && evidence.first_affirmed.is_some())
+                        {
                             evidence.rivals.push(position);
                         }
                     }
@@ -1331,6 +1436,10 @@ pub(super) fn check(
         } else if evidence.denied + evidence.disputed > 0 {
             review.get_or_insert(format!(
                 "answer both asserts and disputes the source {name}"
+            ));
+        } else if evidence.listed {
+            review.get_or_insert(format!(
+                "answer lists another authored record's value together with the source {name}"
             ));
         } else if evidence.contested(&read) {
             review.get_or_insert(format!(
@@ -1420,7 +1529,7 @@ mod tests {
             Sentence {
                 text: sentence,
                 masked: blank(sentence, &[(start, end)]),
-                contradicted: false,
+                contradictions: Vec::new(),
                 unreviewed_predicate: false,
                 taken_back: false,
             }

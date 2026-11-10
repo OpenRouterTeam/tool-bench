@@ -25,6 +25,8 @@ audit_history = true
 requirement = "State the ID of the most recent failed pipeline on main of northwind/payments/checkout-api, the name of the job that failed in it, and the database column that job's log reports as missing."
 mode = "statements"
 selection = { largest = { field = "/id" } }
+# The answer is a column that does not exist, so these negatives are true of it.
+predicates = ["has no", "there is no", "no such column", "is missing", "missing", "does not exist", "doesn't exist", "not found", "does not have", "doesn't have", "lacks"]
 assertions = [
   "Pipeline ${pipeline}",
   "Pipeline #${pipeline}",

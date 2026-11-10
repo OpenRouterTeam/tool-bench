@@ -50,7 +50,7 @@ kind = "identifier"
 [expect.answer.record_facts.facts.attempts]
 field = "/value"
 kind = "number"
-units = ["attempts", "attempt", "failed", "failures", "failure", "unsuccessful", "times"]
+units = ["attempts", "attempt", "failed", "failures", "failure", "fails", "unsuccessful", "times", "sign-ins", "sign-in", "logins", "login"]
 require_unit = true
 
 [expect.answer.record_facts.facts.ip]

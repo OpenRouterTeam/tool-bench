@@ -25,11 +25,7 @@ audit_history = true
  [expect.answer.record_facts]
  requirement = "State the phone number and Saturday opening hours of the Portland, Oregon caterer from local listing data."
  mode = "statements"
-assertions = [
-  "Phone: ${phone}. Saturday: ${hours}.",
-  "${phone}, Saturday hours ${hours}.",
-  "${phone}, Saturday ${hours}.",
-]
+ order = ["opens", "closes"]
 
  [expect.answer.record_facts.selector]
  collection = "/services/brave/pois"
@@ -43,26 +39,13 @@ assertions = [
  field = "/contact/telephone"
  kind = "phone"
 
- [expect.answer.record_facts.facts.hours]
+ [expect.answer.record_facts.facts.opens]
  field = "/opening_hours/days/5/0/opens"
- append = ["/opening_hours/days/5/0/closes"]
  kind = "text"
 
- [expect.answer.record_facts.facts.hours.wordings]
- "09:00 14:00" = [
-   "09:00-14:00",
-   "9:00-14:00",
-   "09:00 - 14:00",
-   "9:00 - 14:00",
-   "9am-2pm",
-   "9 am - 2 pm",
-   "9:00 AM - 2:00 PM",
-   "9:00am - 2:00pm",
-   "09:00 to 14:00",
-   "9am to 2pm",
-   "9 am to 2 pm",
-   "9:00 AM to 2:00 PM",
- ]
+ [expect.answer.record_facts.facts.closes]
+ field = "/opening_hours/days/5/0/closes"
+ kind = "text"
 
 # Phone numbers and hours only come from local listing data.
 [[expect.required_calls]]
