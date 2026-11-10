@@ -70,7 +70,7 @@ fields = { "/labelIds" = ["SENT"] }
 optional_fields = { "/headers/Cc" = "", "/headers/Bcc" = "" }
 
 [expect.records.reviewed_text."/body_text"]
-requirement = "Tell Priya Shah that the refund of her broken desk-lamp order was issued in full and state the refunded amount, $62.00. The reply thread supplies the order and customer context. The reply must confirm the refund and carry the amount; no greeting, signature, order number, card detail, apology, processing time or Stripe reference is mandatory. Denials, a wrong amount, a partial refund or an unsupported timeline are not accepted."
+requirement = "Tell Priya Shah that the refund of her broken desk-lamp order was issued in full and state the refunded amount, $62.00. The reply thread supplies the order and customer context. The reply must confirm the refund and carry the amount; no greeting, signature, order number, card detail, apology, processing time or Stripe reference is mandatory, and a routine note on when the money reaches her statement may accompany it. Denials, a wrong amount or a partial refund are not accepted."
 mentions = [
   ["refund", "refunded", "refunds", "refunding", "reimbursed", "reimbursement"],
   ["$62.00", "$62", "62.00 USD", "USD 62.00", "62 USD", "USD 62", "62.00 dollars", "62 dollars"],
@@ -86,7 +86,6 @@ rejected = [
   "Your refund of $6200.00 has been issued.",
   "We refunded $26.00 for your desk lamp order.",
   "We cannot refund your order.",
-  "Your desk lamp order has been refunded in full ($62.00). The money will arrive within 5-10 business days.",
 ]
 
 [[expect.relations]]

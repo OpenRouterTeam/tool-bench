@@ -574,7 +574,6 @@ async fn refund_message_must_confirm_the_refund_and_its_amount_in_any_wording() 
         "Your refund of $6200.00 has been issued.",
         "We refunded $26.00 for your desk lamp order.",
         "We cannot refund your order.",
-        "Your desk lamp order has been refunded in full ($62.00). The money will arrive within 5-10 business days.",
     ] {
         let attempt = trial(REFUND);
         full_refund(&attempt).await;
@@ -586,6 +585,19 @@ async fn refund_message_must_confirm_the_refund_and_its_amount_in_any_wording() 
         (
             "Thanks for flagging the damaged lamp; we've refunded the full $62.00 for order 5024.",
             true,
+        ),
+        // A routine note on when the bank shows the money is not a claim the request forbids.
+        (
+            "Your desk lamp order has been refunded in full ($62.00). The money will arrive within 5-10 business days.",
+            true,
+        ),
+        (
+            "Hi Priya,\n\nSorry about the broken lamp. I've refunded the full $62.00 to your original payment method; it usually shows on your statement within 5-10 business days.",
+            true,
+        ),
+        (
+            "We refunded $26.00 of your desk lamp order; it usually shows on your statement within 5-10 business days.",
+            false,
         ),
         (
             "Thanks for flagging the damaged lamp; the money for order 5024 is on its way back to you.",
