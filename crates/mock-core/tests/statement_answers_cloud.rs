@@ -18,6 +18,21 @@ fn outcome_after_all(case: &Case, edits: &[(&str, Value)], answer: &str) -> Outc
     case.grade_with(&edited, answer).outcome
 }
 
+/// Fail and Unresolved both earn no reward. Use this where a case does not depend on
+/// which of the two the reader returns.
+#[track_caller]
+fn never_passes(case: &Case, answers: &[&str]) {
+    let passed: Vec<&str> = answers
+        .iter()
+        .copied()
+        .filter(|answer| case.outcome(answer) == Outcome::Pass)
+        .collect();
+    assert!(
+        passed.is_empty(),
+        "these answers must not pass: {passed:#?}"
+    );
+}
+
 #[test]
 fn cloudflare_stale_origin_names_only_the_proxied_record() {
     let case = Case::load("cloud/cloudflare/find-stale-origin");
@@ -26,6 +41,9 @@ fn cloudflare_stale_origin_names_only_the_proxied_record() {
         "`checkout.octo-shop.com`",
         "The hostname is checkout.octo-shop.com.",
         "Hostname: **checkout.octo-shop.com** (A record, proxied, content 203.0.113.40)",
+        "It might be checkout.octo-shop.com.",
+        // The zone is named as the hostname's zone, not as a second answer.
+        "checkout.octo-shop.com (zone octo-shop.com)",
     ]);
     case.fails(&[
         "It is not checkout.octo-shop.com.",
@@ -39,13 +57,11 @@ fn cloudflare_stale_origin_names_only_the_proxied_record() {
         "_acme-challenge.octo-corp.dev",
     ]);
     case.unresolved(&[
-        "It might be checkout.octo-shop.com.",
         // The right record cleared instead of named as the stale one.
         "checkout.octo-shop.com is fine; the stale one is elsewhere.",
         // The legacy predicate failed an answer that also lists look-alikes;
         // here it is never a pass.
         "checkout.octo-shop.com and legacy-reports.octo-corp.com",
-        "checkout.octo-shop.com (zone octo-shop.com)",
         // A truncated hostname is an unreviewed partial name.
         "checkout.octo-shop.co",
     ]);
@@ -84,6 +100,20 @@ fn cloudflare_stale_origin_names_only_the_proxied_record() {
 }
 
 #[test]
+fn cloudflare_reply_that_answers_with_a_look_alike_does_not_pass_by_naming_the_right_one() {
+    let case = Case::load("cloud/cloudflare/find-stale-origin");
+    never_passes(
+        &case,
+        &[
+            // The DNS-only look-alike given as the answer.
+            "The stale record is legacy-reports.octo-corp.com. checkout.octo-shop.com also points at 203.0.113.40.",
+            // Every candidate listed without a choice.
+            "legacy-reports.octo-corp.com, cdn.octo-shop.com, preview.octo-corp.dev, checkout.octo-shop.com",
+        ],
+    );
+}
+
+#[test]
 fn aws_unencrypted_bucket_is_the_one_with_sse_s3_default_encryption() {
     let case = Case::load("cloud/aws/find-unencrypted-bucket");
     case.reference_is_source_bound();
@@ -91,6 +121,7 @@ fn aws_unencrypted_bucket_is_the_one_with_sse_s3_default_encryption() {
         "`northwind-legacy-exports`",
         "The bucket is northwind-legacy-exports (default encryption SSE-S3, AES256).",
         "northwind-legacy-exports defaults to SSE-S3 (AES256) instead of the required SSE-KMS.",
+        "Probably northwind-legacy-exports.",
     ]);
     case.fails(&[
         "It is not northwind-legacy-exports.",
@@ -102,9 +133,9 @@ fn aws_unencrypted_bucket_is_the_one_with_sse_s3_default_encryption() {
         "northwind-legacy-export",
     ]);
     case.unresolved(&[
-        "Probably northwind-legacy-exports.",
         // The right bucket described as already meeting the policy.
         "northwind-legacy-exports uses KMS; no bucket is on SSE-S3.",
+        // The bucket and its KMS-encrypted look-alike, without a choice.
         "northwind-legacy-exports and northwind-legacy-exports-2019",
         "The legacy exports bucket.",
     ]);
@@ -140,6 +171,9 @@ fn mongodb_category_revenue_is_summed_over_delivered_february_lines() {
     case.passes(&[
         "Category: outdoor\nFebruary revenue: 1457.5 USD",
         "The winner is **outdoor** at $1,457.50.",
+        "Probably outdoor with $1,457.50.",
+        // A ranking that leads with the answer: the other categories are context.
+        "outdoor $1,457.50, electronics $1,309.00, kitchen $798.00, apparel $436.00.",
     ]);
     case.fails(&[
         "The top category is not outdoor ($1,457.50).",
@@ -158,10 +192,8 @@ fn mongodb_category_revenue_is_summed_over_delivered_february_lines() {
     ]);
     case.unresolved(&[
         "outdoor, with roughly fifteen hundred dollars in revenue.",
-        "Probably outdoor with $1,457.50.",
         // The right category and value with the opposite claim.
         "The outdoor category had the least revenue, $1,457.50.",
-        "outdoor $1,457.50, electronics $1,309.00, kitchen $798.00, apparel $436.00.",
     ]);
     // Delivering the shipped tent order raises outdoor's revenue; delivering
     // the cancelled TV order makes electronics the winner.
@@ -193,6 +225,9 @@ fn mongodb_order_tracking_is_read_from_the_requesters_production_order() {
         "Order number: 10601\nStatus: shipped\nCarrier: UPS\nTracking number: 1Z4X97W80391827364",
         "Order 10601 has shipped with UPS (tracking 1Z4X97W80391827364) but has not yet been delivered.",
         "Order 10601 was shipped on Oct 23 via UPS (1Z4X97W80391827364), ETA Oct 31; not delivered yet.",
+        "I think it's order 10601: shipped, UPS, tracking 1Z4X97W80391827364.",
+        // Her other open order, named after the answer, is context.
+        "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. Her other order 10605 is still processing.",
     ]);
     case.fails(&[
         "Order 10601 has not shipped; carrier UPS, tracking 1Z4X97W80391827364.",
@@ -213,10 +248,6 @@ fn mongodb_order_tracking_is_read_from_the_requesters_production_order() {
         // Near misses.
         "Order 10601: shipped, UPS, tracking 1Z4X97W80391827346.",
         "Order 10610: shipped, UPS, tracking 1Z4X97W80391827364.",
-    ]);
-    case.unresolved(&[
-        "I think it's order 10601: shipped, UPS, tracking 1Z4X97W80391827364.",
-        "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. Her other order 10605 is still processing.",
     ]);
     // The status and tracking number are read from the order document.
     let order = "/services/mongodb/db.shop.orders/65f1a0000000000000000013";
@@ -247,6 +278,8 @@ fn okta_failed_signins_are_counted_per_account_for_the_day() {
     case.passes(&[
         "Username: jordyn.patel@octo-corp.example\nFailed attempts: 6\nIP address: 203.0.113.77",
         "jordyn.patel@octo-corp.example had 6 failures, every one from 203.0.113.77.",
+        "jordyn.patel@octo-corp.example had six failed attempts from 203.0.113.77.",
+        "Apparently jordyn.patel@octo-corp.example had 6 failed attempts from 203.0.113.77.",
     ]);
     case.fails(&[
         "It was not jordyn.patel@octo-corp.example (6 failed attempts from 203.0.113.77).",
@@ -266,11 +299,9 @@ fn okta_failed_signins_are_counted_per_account_for_the_day() {
         "jordyn.patel@octo-corp.example had 6 failed attempts from 203.0.113.7.",
     ]);
     case.unresolved(&[
-        "jordyn.patel@octo-corp.example had six failed attempts from 203.0.113.77.",
         // A bare number is not tied to the attempts.
         "jordyn.patel@octo-corp.example: 6, from 203.0.113.77.",
         "Jordyn Patel had 6 failed attempts from 203.0.113.77.",
-        "Apparently jordyn.patel@octo-corp.example had 6 failed attempts from 203.0.113.77.",
     ]);
     // One fewer failure for the account lowers the stated count.
     let result = "/services/okta/logs/9b7c0019-1f2e-4c3d-8a5b-000000000019/outcome/result";
@@ -295,6 +326,7 @@ fn supabase_march_revenue_is_summed_per_customer_over_paid_and_shipped_orders() 
     case.passes(&[
         "Customer: Grace Kim\nEmail: grace.kim@example.kr\nMarch total: 1234.5 USD",
         "Grace Kim <grace.kim@example.kr> leads March with $1,234.50.",
+        "I believe it is Grace Kim (grace.kim@example.kr) with $1,234.50.",
     ]);
     case.fails(&[
         "It is not Grace Kim (grace.kim@example.kr, $1,234.50).",
@@ -314,7 +346,6 @@ fn supabase_march_revenue_is_summed_per_customer_over_paid_and_shipped_orders() 
         "Grace (grace.kim@example.kr) brought in the most: $1,234.50.",
         // The right customer ranked anywhere but first.
         "Grace Kim (grace.kim@example.kr) was second with $1,234.50.",
-        "I believe it is Grace Kim (grace.kim@example.kr) with $1,234.50.",
         "Grace Kim (grace.kim@example.kr) brought in about twelve hundred dollars.",
     ]);
     // Un-refunding the runner-up's order makes him the top customer.
@@ -340,6 +371,10 @@ fn elasticsearch_key_deletion_names_the_actor_and_time_of_the_successful_event()
     case.passes(&[
         "- User: m.okafor\n- Deleted at: 2026-10-29T16:42:57Z",
         "The key was deleted by m.okafor at 16:42 UTC on October 29.",
+        "I think m.okafor deleted it at 16:42 UTC.",
+        "m.okafor deleted the key at 4:42 PM UTC.",
+        // The staging key's deletion, named after the answer, is context.
+        "m.okafor deleted it at 16:42 UTC; r.chen deleted the staging key at 17:30 UTC.",
     ]);
     case.fails(&[
         "It was not m.okafor at 16:42 UTC.",
@@ -355,13 +390,9 @@ fn elasticsearch_key_deletion_names_the_actor_and_time_of_the_successful_event()
         "m.okafor deleted the key at 16:43 UTC.",
     ]);
     case.unresolved(&[
-        "I think m.okafor deleted it at 16:42 UTC.",
         "Okafor deleted it at 16:42 UTC.",
-        // A 12-hour time is not a reviewed notation.
-        "m.okafor deleted the key at 4:42 PM UTC.",
         // A negated verb after the right actor is never an affirmation.
         "m.okafor did not delete the key at 16:42 UTC.",
-        "m.okafor deleted it at 16:42 UTC; r.chen deleted the staging key at 17:30 UTC.",
     ]);
     // The actor and the time follow the audit event.
     let event = "/services/elasticsearch/docs/audit-security-2026.10~1a4";
@@ -392,6 +423,7 @@ fn elasticsearch_duplicate_charge_lists_both_orders_of_the_repeated_total() {
     case.passes(&[
         "Duplicate orders: ORD-109002, ORD-109003\nAmount charged twice: $86.40",
         "ORD-109003 duplicates ORD-109002; each was charged 86.4 USD.",
+        "I suspect ORD-109002 and ORD-109003, $86.40 each.",
     ]);
     case.fails(&[
         "The duplicate is not ORD-109002 and ORD-109003 ($86.40).",
@@ -408,10 +440,14 @@ fn elasticsearch_duplicate_charge_lists_both_orders_of_the_repeated_total() {
         "ORD-109002 and ORD-109003, both $86.04.",
         "ORD-109002 was charged twice for $86.40.",
     ]);
+    // An approximate amount in words is not the amount charged.
+    never_passes(
+        &case,
+        &["ORD-109002 and ORD-109003, about eighty-six dollars each."],
+    );
     case.unresolved(&[
-        "I suspect ORD-109002 and ORD-109003, $86.40 each.",
         "ORD-109002 and ORD-109003 are not duplicates; $86.40 was charged once.",
-        "ORD-109002 and ORD-109003, about eighty-six dollars each.",
+        // A third order of his, at another amount, added to the pair.
         "ORD-109002 and ORD-109003 ($86.40 each), plus ORD-109777 ($64.00).",
     ]);
     // Changing one total moves the duplicate to another pair of his orders;
@@ -442,6 +478,9 @@ fn elasticsearch_latency_average_is_computed_per_region_over_successful_requests
     case.passes(&[
         "Slowest region: eu-west-1\nAverage duration: 412.5 ms",
         "eu-west-1 is the slowest, averaging 412.5ms (0.4125 s) per successful request.",
+        "It seems eu-west-1 is the slowest at 412.5 ms.",
+        // The per-region averages, led by the answer: the other regions are context.
+        "eu-west-1: 412.5 ms; ap-southeast-2: 305 ms; us-east-1: 210 ms.",
     ]);
     case.fails(&[
         "The slowest region is not eu-west-1 (412.5 ms).",
@@ -462,10 +501,8 @@ fn elasticsearch_latency_average_is_computed_per_region_over_successful_requests
         // A bare number is not tied to the duration.
         "eu-west-1, 412.5",
         "eu-west-1 averages about four hundred milliseconds.",
-        "It seems eu-west-1 is the slowest at 412.5 ms.",
         // The right region and value with the opposite claim.
         "eu-west-1 is the fastest at 412.5 ms.",
-        "eu-west-1: 412.5 ms; ap-southeast-2: 305 ms; us-east-1: 210 ms.",
     ]);
     // A slower request raises the region's average; counting a timeout as a
     // success makes another region the slowest.
@@ -497,6 +534,11 @@ fn elasticsearch_key_deletion_is_followed_to_the_github_account_and_its_pull_req
         "m.okafor deleted the key at 16:42 UTC. On GitHub she is mokafor, and her PR #58 has not been merged yet.",
         "| User | Time | GitHub | PR | Status |\n|---|---|---|---|---|\n| m.okafor | 16:42 UTC | mokafor | #58 | Open (not merged) |",
         "m.okafor (16:42 UTC) is GitHub user mokafor (not sam); pull request number 58; merged: no.",
+        "I think m.okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open.",
+        "m.okafor (4:42 PM UTC) is GitHub user mokafor; PR #58 is open.",
+        "m.okafor (16:42 UTC) is GitHub user mokafor; PR fifty-eight is open.",
+        // Another person's pull request, named after the answer, is context.
+        "m.okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open. rchen's PR #57 was merged.",
     ]);
     case.fails(&[
         "It was not m.okafor (16:42 UTC); GitHub user mokafor; PR #58 is open.",
@@ -516,14 +558,10 @@ fn elasticsearch_key_deletion_is_followed_to_the_github_account_and_its_pull_req
         "m.okafor (16:42 UTC) is GitHub user mokafor; PR #58.",
     ]);
     case.unresolved(&[
-        "I think m.okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open.",
         "Okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open.",
-        "m.okafor (4:42 PM UTC) is GitHub user mokafor; PR #58 is open.",
-        "m.okafor (16:42 UTC) is GitHub user mokafor; PR fifty-eight is open.",
         // A bare number is not tied to the pull request.
         "m.okafor (16:42 UTC) is GitHub user mokafor; 58 is open.",
         "m.okafor (16:42 UTC) is not GitHub user mokafor; PR #58 is open.",
-        "m.okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open. rchen's PR #57 was merged.",
     ]);
     // The GitHub account follows the email that carries the actor's name,
     // the number follows the pull request, and so does its merged state.

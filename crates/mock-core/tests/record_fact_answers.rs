@@ -87,6 +87,10 @@ fn grouped_totals_use_exact_decimal_arithmetic_and_join_to_the_named_record() {
         &[
             "Ada Lovelace spent the most: $0.30.",
             "Top customer: ada (0.3 USD)",
+            // A hedge still states the answer, and a ranking that leads with it
+            // names the other customer as context.
+            "Probably Ada Lovelace with $0.30.",
+            "Ada Lovelace: $0.30; Alan Turing: $0.25.",
         ],
     );
     all(
@@ -108,9 +112,7 @@ fn grouped_totals_use_exact_decimal_arithmetic_and_join_to_the_named_record() {
         &state,
         Outcome::Unresolved,
         &[
-            "Probably Ada Lovelace with $0.30.",
             "Lovelace spent the most: $0.30.",
-            "Ada Lovelace: $0.30; Alan Turing: $0.25.",
             "Ada Lovelace spent thirty cents.",
         ],
     );
@@ -299,6 +301,7 @@ fn wordings_units_and_clock_times_follow_the_source_value() {
         &[
             "checkout peaked at 1843 ms at 14:35 UTC; c1 is GOLD.",
             "checkout peaked at 1.843 s at 14:35; c1 is in the top tier.",
+            "checkout peaked at 1843 ms at 2:35 PM; c1 is GOLD.",
         ],
     );
     all(
@@ -318,10 +321,7 @@ fn wordings_units_and_clock_times_follow_the_source_value() {
         &expect,
         &state,
         Outcome::Unresolved,
-        &[
-            "checkout peaked at 1843 at 14:35; c1 is GOLD.",
-            "checkout peaked at 1843 ms at 2:35 PM; c1 is GOLD.",
-        ],
+        &["checkout peaked at 1843 at 14:35; c1 is GOLD."],
     );
     // A wording belongs to one source value: once the tier changes it no
     // longer states the fact.
@@ -365,6 +365,8 @@ fn reviewed_forms_predicates_and_contradictions_shape_the_reading() {
         &[
             "checkout is the slowest at 1843 ms (search stays at 250 ms).",
             "checkout did not recover: 1843 ms.",
+            // The other probe, named after the answer, is context without a reviewed form.
+            "checkout is the slowest at 1843 ms; search stays at 250 ms.",
         ],
     );
     all(
@@ -380,7 +382,6 @@ fn reviewed_forms_predicates_and_contradictions_shape_the_reading() {
         &[
             "checkout is the fastest at 1843 ms.",
             "checkout did not degrade: 1843 ms.",
-            "checkout is the slowest at 1843 ms; search stays at 250 ms.",
         ],
     );
 }

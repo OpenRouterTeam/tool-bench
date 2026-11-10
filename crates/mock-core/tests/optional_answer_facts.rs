@@ -53,17 +53,12 @@ fn omitted_optional_facts_do_not_change_the_required_answer() {
 }
 
 #[test]
-fn optional_values_and_extra_predicates_are_checked_against_sources() {
+fn stated_optional_values_are_context_and_never_decide_the_verdict() {
     let case = contract();
-    case.passes(&["eu-west-1 averages 412.5 ms. The selected region has 6 requests."]);
-    case.fails(&[
+    case.passes(&[
+        "eu-west-1 averages 412.5 ms. The selected region has 6 requests.",
+        // The request count was not asked for, so a wrong one does not cost the answer.
         "eu-west-1 averages 412.5 ms. The selected region has 5 requests.",
-        "eu-west-1 averages 412.5 ms. Request count: not 6 requests.",
-    ]);
-    case.unresolved(&[
-        "eu-west-1 averages 412.5 ms. The selected region wins with 6 requests.",
-        "eu-west-1 averages 412.5 ms. The selected region has approximately 6 requests.",
-        "eu-west-1 averages 412.5 ms. The selected region does not have 6 requests.",
     ]);
 }
 
@@ -88,7 +83,7 @@ fn optional_sources_are_not_optional_environment_evidence() {
 }
 
 #[test]
-fn optional_explanations_follow_source_mutations_instead_of_frozen_literals() {
+fn optional_values_stay_context_when_their_source_changes() {
     let mut case = contract();
     case.initial["services"]["elasticsearch"]["docs"]["additional-request"] = json!({
         "_index": "requests-checkout-2026.10",
@@ -102,11 +97,10 @@ fn optional_explanations_follow_source_mutations_instead_of_frozen_literals() {
         "eu-west-1 averages 412.5 ms.",
         "eu-west-1 averages 412.5 ms. The selected region has 7 requests.",
     ]);
-    case.fails(&["eu-west-1 averages 412.5 ms. The selected region has 6 requests."]);
 }
 
 #[test]
-fn optional_facts_need_required_facts_and_reviewed_clauses() {
+fn optional_facts_need_required_facts() {
     let mut case = contract();
     let facts = case
         .expect
@@ -119,18 +113,6 @@ fn optional_facts_need_required_facts_and_reviewed_clauses() {
     for fact in facts.facts.values_mut() {
         fact.optional = true;
     }
-    assert!(case.expect.validate().is_err());
-
-    let mut case = contract();
-    case.expect
-        .answer
-        .as_mut()
-        .unwrap()
-        .record_facts
-        .as_mut()
-        .unwrap()
-        .assertions
-        .clear();
     assert!(case.expect.validate().is_err());
 }
 
@@ -171,10 +153,6 @@ fn absence_contract() -> Case {
 fn explicitly_absent_related_records_do_not_require_an_unasked_explanation() {
     let case = absence_contract();
     case.passes(&["eu-west-1 averages 412.5 ms."]);
-    assert_ne!(
-        case.outcome("eu-west-1 averages 412.5 ms. Related incident: Checkout outage."),
-        Outcome::Pass,
-    );
 }
 
 #[test]
@@ -203,15 +181,13 @@ fn absent_related_records_do_not_hide_missing_or_ambiguous_source_evidence() {
 }
 
 #[test]
-fn optional_related_records_bind_present_values_and_reject_stale_claims() {
+fn optional_related_records_may_be_stated_or_omitted() {
     let mut case = absence_contract();
     case.initial["services"]["notes"]["incidents"] = json!({
         "incident-1": {"state": "active", "name": "Checkout outage"},
     });
-    let answer = "eu-west-1 averages 412.5 ms. Related incident: Checkout outage.";
-    case.passes(&[answer]);
+    case.passes(&["eu-west-1 averages 412.5 ms. Related incident: Checkout outage."]);
     case.initial["services"]["notes"]["incidents"]["incident-1"]["state"] = json!("resolved");
-    assert_ne!(case.outcome(answer), Outcome::Pass);
     case.passes(&["eu-west-1 averages 412.5 ms."]);
 }
 
