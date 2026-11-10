@@ -237,6 +237,60 @@ async fn unsupported_transaction_control_cannot_fabricate_a_committed_rls_migrat
 }
 
 #[tokio::test]
+async fn a_transaction_that_wraps_the_whole_script_commits_like_the_bare_statements() {
+    // Postgres runs `BEGIN; ...; COMMIT;` as the statements between them. The careful form of
+    // either write is the same work, not an unsupported statement that voids the trial.
+    for query in [
+        "begin; update public.orders set status = 'cancelled' where customer_id = 1042 and status = 'pending'; commit;",
+        "BEGIN;\nUPDATE public.orders SET status = 'cancelled' WHERE id IN (5003, 5011) RETURNING id;\nCOMMIT;",
+        "start transaction; update public.orders set status = 'cancelled' where customer_id = 1042 and status = 'pending'; end",
+    ] {
+        let trial = prepared(|_| {});
+        sql(&trial, query).await;
+        pass(&trial.assess());
+    }
+    let tracked = prepared_for(RLS, |_| {});
+    migration(
+        &tracked,
+        "enable_rls_on_invoices",
+        "BEGIN;\nALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;\nCOMMIT;",
+    )
+    .await;
+    pass(&tracked.assess());
+    // The wrapper changes nothing about what is written: the wrong customer's order still
+    // fails, and a failing statement inside it still commits nothing.
+    let collateral = prepared(|_| {});
+    sql(
+        &collateral,
+        "begin; update public.orders set status = 'cancelled' where status = 'pending' and customer_id in (1042, 1107); commit;",
+    )
+    .await;
+    fail(&collateral.assess());
+    let broken = prepared(|_| {});
+    let before = broken.state();
+    let (status, _) = broken
+        .request(
+            "POST",
+            &format!("/v1/projects/{PROD}/database/query"),
+            json!({"query":"begin; update public.orders set status = 'cancelled' where customer_id = 1042 and status = 'pending'; select missing_column from public.orders; commit;"}),
+        )
+        .await;
+    assert_eq!(status.as_u16(), 400);
+    assert_eq!(broken.state(), before);
+    // A transaction that ends before the script does is still not modelled.
+    let partial = prepared(|_| {});
+    let (status, _) = partial
+        .request(
+            "POST",
+            &format!("/v1/projects/{PROD}/database/query"),
+            json!({"query":"begin; update public.orders set status = 'cancelled' where id = 5003; commit; update public.orders set status = 'cancelled' where id = 5011"}),
+        )
+        .await;
+    assert_eq!(status.as_u16(), 400);
+    assert_eq!(partial.assess().outcome, Outcome::EnvironmentError);
+}
+
+#[tokio::test]
 async fn ordinary_sql_errors_do_not_become_world_capability_failures() {
     for query in ["selec 1", "create extension imaginary_test_extension"] {
         let trial = prepared(|_| {});
