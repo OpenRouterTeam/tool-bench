@@ -34,11 +34,8 @@ fn definition() -> Value {
                 "selector":{"collection":"/services/sentry/instance","key_prefix":"instance"},
                 "field":"/ingestion_origin"
             },
-            "content":{
-                "requirement":"Return the actual new project's active DSN without contradictory claims.",
-                "accepted":["${dsn}","SENTRY_DSN=${dsn}","```${dsn}```","Created the project. DSN: ${dsn}"],
-                "rejected":["No project was created. DSN: ${dsn}"]
-            }
+            "requirement":"Return the actual new project's active DSN without contradictory claims.",
+            "rejected":["No project was created"]
         }},
         "preservation":{"allow":[
             {"pointer":"/services/sentry/projects/*","kind":"create","matching":{"name":"notification-service"}},
@@ -63,13 +60,21 @@ fn assess(definition: Value, initial: Option<&Value>, state: Value, answer: &str
 }
 
 #[test]
-fn dsn_binding_accepts_actual_identity_and_reviewed_plain_or_markdown_forms() {
+fn dsn_binding_accepts_actual_identity_in_plain_markdown_or_prose() {
     let initial = initial();
     for answer in [
         DSN.to_owned(),
         format!("SENTRY_DSN={DSN}"),
         format!("```{DSN}```"),
         format!("Created the project.\nDSN: {DSN}"),
+        format!("I created notification-service under Payments. Its DSN is {DSN}"),
+        format!(
+            "## Sentry project created\n\n**DSN:** `{DSN}`\n\n- Team: Payments, not Payments Infra."
+        ),
+        format!(
+            "There was no existing project with that name, so I created it.\n\nSENTRY_DSN=\"{DSN}\""
+        ),
+        format!("You might be able to use this someday: {DSN}"),
         DSN.replace("https://", "HTTPS://")
             .replace("ingest.example.net", "INGEST.EXAMPLE.NET:443"),
         DSN.replace("actual_public@", "actual_public:actual_secret@"),
@@ -111,23 +116,30 @@ fn dsn_binding_rejects_wrong_key_project_endpoint_secret_and_extra_credential_ur
 }
 
 #[test]
-fn real_dsn_in_unreviewed_or_contradictory_prose_is_not_keyword_success() {
+fn real_dsn_in_denying_or_contradictory_prose_is_not_keyword_success() {
     let initial = initial();
-    let unresolved = assess(
-        definition(),
-        Some(&initial),
-        completed(),
-        &format!("You might be able to use this someday: {DSN}"),
-    );
-    assert_eq!(unresolved.outcome, Outcome::Unresolved, "{unresolved:?}");
-    assert!(unresolved.adjudication_needed && !unresolved.answer_ok);
-    let rejected = assess(
-        definition(),
-        Some(&initial),
-        completed(),
-        &format!("No project was created. DSN: {DSN}"),
-    );
-    assert_eq!(rejected.outcome, Outcome::Fail, "{rejected:?}");
+    for answer in [
+        format!("No project was created. DSN: {DSN}"),
+        format!("{DSN} is not the DSN for this service."),
+        format!("The DSN is not {DSN}."),
+    ] {
+        let rejected = assess(definition(), Some(&initial), completed(), &answer);
+        assert_eq!(rejected.outcome, Outcome::Fail, "{answer}: {rejected:?}");
+        assert!(!rejected.answer_ok);
+    }
+    // A negative remark that may or may not be about the DSN is undecided.
+    for answer in [
+        format!("Do not use this DSN: {DSN}"),
+        format!("SENTRY_DSN={DSN}\n\nOn reflection, {DSN} is not right."),
+    ] {
+        let unresolved = assess(definition(), Some(&initial), completed(), &answer);
+        assert_eq!(
+            unresolved.outcome,
+            Outcome::Unresolved,
+            "{answer}: {unresolved:?}"
+        );
+        assert!(unresolved.adjudication_needed && !unresolved.answer_ok);
+    }
 }
 
 #[test]
@@ -197,10 +209,15 @@ fn malformed_or_legacy_source_bound_answer_contracts_reject_at_admission() {
     legacy["version"] = json!(1);
     let expect: Expect = serde_json::from_value(legacy).unwrap();
     assert!(expect.validate().is_err());
-    for template in ["", "No value", "${dsn} ${dsn}", "${other} ${dsn}"] {
+    for template in ["", "${dsn}", "${dsn} ${dsn}", "${other} ${dsn}"] {
         let mut definition = definition();
-        definition["answer"]["sentry_dsn"]["content"]["accepted"] = json!([template]);
+        definition["answer"]["sentry_dsn"]["rejected"] = json!([template]);
         let expect: Expect = serde_json::from_value(definition).unwrap();
-        assert!(expect.validate().is_err());
+        assert!(expect.validate().is_err(), "{template}");
     }
+    // The reviewed wording whitelist is gone, not ignored.
+    let mut whitelisted = definition();
+    whitelisted["answer"]["sentry_dsn"]["content"] =
+        json!({"requirement":"x","accepted":["${dsn}"]});
+    assert!(serde_json::from_value::<Expect>(whitelisted).is_err());
 }

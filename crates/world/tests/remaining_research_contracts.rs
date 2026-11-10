@@ -321,15 +321,23 @@ async fn enrichment_answers_bind_each_lead_to_its_own_enriched_row() {
         "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh | 1,150 |\n| Lumetric Health | Austin | 340 |\n| Bramblewood Foods | Leeds | 2,600 |\n",
         "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh | 340 |\n| Lumetric Health | Austin | 1,150 |\n",
         "- Corvane Robotics: HQ Leeds; about 2600 employees\n- Lumetric Health: HQ Austin; about 1150 employees\n- Bramblewood Foods: HQ Pittsburgh; about 340 employees\n",
-        "Corvane Robotics is not headquartered in Pittsburgh.\nCorvane Robotics: HQ Pittsburgh; about 340 employees\nLumetric Health: HQ Austin; about 1150 employees\nBramblewood Foods: HQ Leeds; about 2600 employees\n",
+        "Corvane Robotics is not headquartered in Pittsburgh.\nLumetric Health: HQ Austin; about 1150 employees\nBramblewood Foods: HQ Leeds; about 2600 employees\n",
     ] {
         answer_only(&trial.assess_with_answer(Some(answer)), Outcome::Fail);
     }
+    // A fact that is both denied and stated cannot be decided either way.
+    answer_only(
+        &trial.assess_with_answer(Some(
+            "Corvane Robotics is not headquartered in Pittsburgh.\nCorvane Robotics: HQ Pittsburgh; about 340 employees\nLumetric Health: HQ Austin; about 1150 employees\nBramblewood Foods: HQ Leeds; about 2600 employees\n",
+        )),
+        Outcome::Unresolved,
+    );
+    // Ordinary prose and text around the table are read, not held for review.
     for answer in [
         "Corvane Robotics sits in Pittsburgh with roughly 340 staff, Lumetric Health in Austin with 1,150 and Bramblewood Foods in Leeds with 2,600.",
         &format!("Here are the enriched leads:\n\n{ENRICH_ANSWER}"),
     ] {
-        answer_only(&trial.assess_with_answer(Some(answer)), Outcome::Unresolved);
+        pass(&trial.assess_with_answer(Some(answer)));
     }
 }
 
@@ -504,11 +512,15 @@ async fn fleet_answers_bind_the_ranked_leader_to_its_own_price() {
         answer_only(&trial.assess_with_answer(Some(answer)), Outcome::Fail);
     }
     answer_only(
-        &trial.assess_with_answer(Some(
-            "I believe VoltHaven may lead; a 22 kW unit was EUR 6,900 at some point.",
-        )),
+        &trial.assess_with_answer(Some("Runner-up: VoltHaven, EUR 6,900 per 22 kW unit.")),
         Outcome::Unresolved,
     );
+    for answer in [
+        "I believe VoltHaven may lead; a 22 kW unit was EUR 6,900 at some point.",
+        "The pro report names VoltHaven (Hamburg) as the market leader with 31% of installed depot units. Its 22 kW AC bidirectional unit typically costs €6.9k; GridNest is cheaper at EUR 6,200 but needs a subscription.",
+    ] {
+        pass(&trial.assess_with_answer(Some(answer)));
+    }
 }
 
 #[tokio::test]
@@ -610,10 +622,13 @@ async fn cold_chain_answers_bind_the_largest_share_vendor_to_its_own_price() {
     }
     answer_only(
         &trial.assess_with_answer(Some(
-            "FrostLink seems to be ahead at EUR 4.20 a month per sensor, though ColdTrace is cheaper.",
+            "| Vendor | List price |\n|---|---|\n| FrostLink | EUR 4.200 |\n",
         )),
         Outcome::Unresolved,
     );
+    pass(&trial.assess_with_answer(Some(
+        "FrostLink seems to be ahead at EUR 4.20 a month per sensor, though ColdTrace is cheaper.",
+    )));
 }
 
 #[tokio::test]

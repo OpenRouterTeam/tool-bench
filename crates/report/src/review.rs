@@ -131,7 +131,7 @@ fn issue(
                     json!({"sentry_dsn":{
                         "project":check.project,"keys":check.keys,
                         "ingestion_origin":check.ingestion_origin,
-                        "content":{"requirement":check.content.requirement,"format":check.content.format},
+                        "requirement":check.requirement,"rejected":check.rejected,
                         "final_project_identities":targets,
                         "factual_binding":"passed_by_raw_evaluation_not_reviewable"
                     }}),
@@ -145,7 +145,7 @@ fn issue(
                     "answer_content",
                     json!({"oncall":{
                         "schedule":check.schedule,"directory":check.directory,
-                        "content":{"requirement":check.content.requirement,"format":check.content.format},
+                        "requirement":check.requirement,
                         "allow_unambiguous_surnames":check.allow_unambiguous_surnames,
                         "final_schedule_identities":targets,
                         "schedule_records":state.pointer(&check.schedule.collection),

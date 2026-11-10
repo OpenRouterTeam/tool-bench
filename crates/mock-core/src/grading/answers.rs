@@ -8,12 +8,11 @@ use url::Url;
 use super::{AnswerCheck, answer_check};
 use crate::{
     json_pointer,
-    relations::{
-        IdentitySource, RecordCheckError, RecordSelector, ReviewedText, ReviewedTextFormat,
-    },
+    relations::{IdentitySource, RecordCheckError, RecordSelector},
 };
 
 mod oncall;
+mod prose;
 mod record_facts;
 mod source_facts;
 pub use oncall::OncallAnswer;
@@ -23,13 +22,25 @@ pub use source_facts::{FactColumn, FactKind, FactRows, SourceFacts};
 static URLS: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r#"(?i)https?://[^\s<>"'`]+"#).expect("URL candidate pattern"));
 
+/// Answer grading bound to the DSN of a selected Sentry project.
+///
+/// Every credential-bearing URL in the answer must be the DSN of the selected
+/// project under one of its active keys at the baseline ingestion endpoint.
+/// The surrounding prose is free; the answer fails when it denies the DSN or
+/// contains a reviewed contradiction, and is unresolved only when it states
+/// the DSN inside a negative remark the reader cannot classify.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SentryDsn {
+    pub requirement: String,
     pub project: RecordSelector,
     pub keys: RecordSelector,
     pub ingestion_origin: IdentitySource,
-    pub content: ReviewedText,
+    /// Reviewed statements that contradict the work, such as a claim that no
+    /// project was created.  `${dsn}` stands for the bound DSN.  One of them
+    /// anywhere in the answer fails it.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub rejected: Vec<String>,
 }
 
 impl AnswerCheck {
@@ -97,23 +108,22 @@ impl SentryDsn {
         {
             return Err("DSN ingestion must select one literal baseline field".into());
         }
-        self.content.validate()?;
-        if self.content.optional
-            || self.content.bound.is_some()
-            || self.content.format != ReviewedTextFormat::Plain
-            || self
-                .content
-                .accepted
-                .iter()
-                .chain(&self.content.rejected)
-                .any(|template| {
-                    template.matches("${dsn}").count() != 1
-                        || template.replace("${dsn}", "").contains("${")
-                })
-        {
-            return Err(
-                "DSN content requires plain whole-text examples with one ${dsn} placeholder".into(),
-            );
+        if self.requirement.trim().is_empty() {
+            return Err("DSN answers require a nonempty criterion".into());
+        }
+        let mut seen = std::collections::BTreeSet::new();
+        for template in &self.rejected {
+            let literal = template.replace("${dsn}", "");
+            if prose::fold(&literal).is_empty()
+                || literal.contains("${")
+                || template.matches("${dsn}").count() > 1
+                || !seen.insert(prose::fold(template))
+            {
+                return Err(
+                    "rejected DSN statements must be distinct literal wording with at most one ${dsn} placeholder"
+                        .into(),
+                );
+            }
         }
         Ok(())
     }
@@ -224,23 +234,60 @@ impl SentryDsn {
                 "answer contains no usable Sentry DSN".into(),
             ));
         }
-        let mut content = self.content.clone();
-        content.accepted = self
-            .content
-            .accepted
-            .iter()
-            .flat_map(|template| values.iter().map(|value| template.replace("${dsn}", value)))
-            .collect();
-        content.rejected = self
-            .content
-            .rejected
-            .iter()
-            .flat_map(|template| values.iter().map(|value| template.replace("${dsn}", value)))
-            .collect();
-        content.check(
-            Some(&Value::String(answer.to_owned())),
-            Some(initial),
-            state,
-        )
+        let failed = |reason: &str| {
+            Err(RecordCheckError::Failed(format!(
+                "{reason}; requirement: {}",
+                self.requirement
+            )))
+        };
+        let whole = prose::fold(answer);
+        let values: Vec<String> = values.into_iter().map(prose::fold).collect();
+        for template in &self.rejected {
+            let template = prose::fold(template);
+            if values
+                .iter()
+                .any(|value| whole.contains(&template.replace("${dsn}", value)))
+            {
+                return failed("answer contains a reviewed contradiction of the DSN");
+            }
+        }
+        let labels: Vec<String> = [
+            "dsn",
+            "sentry_dsn",
+            "sentry",
+            "key",
+            "url",
+            "value",
+            "public",
+            "client",
+        ]
+        .map(String::from)
+        .into();
+        let mut evidence = prose::Evidence::default();
+        for line in answer.lines().map(prose::fold) {
+            for sentence in prose::sentences(&line) {
+                for value in &values {
+                    for (start, end) in prose::find(sentence, value) {
+                        evidence.count(prose::stance(
+                            sentence,
+                            start,
+                            end,
+                            sentence.len(),
+                            &labels,
+                        ));
+                    }
+                }
+            }
+        }
+        if evidence.affirmed == 0 && evidence.denied > 0 {
+            return failed("answer denies the DSN it states");
+        }
+        if evidence.denied + evidence.disputed > 0 {
+            return Err(RecordCheckError::NeedsAdjudication(format!(
+                "answer states the DSN inside a negative remark; adjudicate against: {}",
+                self.requirement
+            )));
+        }
+        Ok(())
     }
 }

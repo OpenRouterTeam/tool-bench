@@ -284,7 +284,7 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
         assert_eq!(research.declared_content.source_bound_answers, 1);
         assert_eq!(
             research.answer_check,
-            "source_bound_facts_with_typed_rows_and_reviewed_claims"
+            "source_bound_facts_with_typed_rows_and_prose_reading"
         );
         assert!(research.declared_environment_faults.is_empty());
         assert!(!research.source_gaps.contains(&"legacy_answer_semantics"));
@@ -397,10 +397,7 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
     assert!(sentry.preservation_required && sentry.history_required);
     assert_eq!(sentry.declared_content.source_bound_answers, 1);
     assert!(sentry.reference_answer_template);
-    assert_eq!(
-        sentry.answer_check,
-        "source_bound_dsn_with_reviewed_answer_content"
-    );
+    assert_eq!(sentry.answer_check, "source_bound_dsn_with_prose_reading");
     assert!(
         sentry
             .source_gaps
@@ -417,7 +414,7 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
     assert!(oncall.reference_answer_template);
     assert_eq!(
         oncall.answer_check,
-        "source_bound_oncall_with_reviewed_answer_content"
+        "source_bound_oncall_with_prose_reading"
     );
     assert!(
         oncall

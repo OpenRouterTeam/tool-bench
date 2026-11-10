@@ -19,12 +19,7 @@ fn expect() -> Expect {
             "schedule":{"collection":"/services/grafana/oncall_schedules","matching":{"name":"Checkout Primary"}},
             "directory":"/services/grafana/oncall_users",
             "allow_unambiguous_surnames":true,
-            "empty_answers":["Nobody is on call on Checkout Primary."],
-            "content":{
-                "requirement":"Identify exactly the current primary assignees without contradicting their duty.",
-                "accepted":["${oncall}","On call: ${oncall}","${oncall} is on call."],
-                "rejected":["${oncall} is not on call.","${oncall} is not on call. The primary on-call person is Mei Chen."]
-            }
+            "requirement":"Identify exactly the current primary assignees without contradicting their duty."
         }}
     })).unwrap()
 }
@@ -55,6 +50,10 @@ fn current_identity_forms_and_structured_native_user_results_are_source_bound() 
         "On call: SAM BRENNAN",
         r#"[{"id":"sam","username":"sbrennan","email":"s.brennan@example.test","role":"user"}]"#,
         r#"{"scheduleId":"primary","scheduleName":"Checkout Primary","users":[{"username":"sbrennan"}]}"#,
+        // Metadata the directory does not hold is context, not a claim.
+        r#"[{"id":"sam","shift":"OCKP0001"}]"#,
+        r#"{"scheduleId":"primary","users":[{"id":"sam"}],"checkedAt":"15:30 UTC"}"#,
+        r#"["Sam Brennan"]"#,
     ] {
         assert_eq!(
             outcome(&state(), Some(answer), &expect()),
@@ -65,10 +64,65 @@ fn current_identity_forms_and_structured_native_user_results_are_source_bound() 
 }
 
 #[test]
+fn ordinary_prose_that_names_the_assignee_passes() {
+    for answer in [
+        "Please invite sbrennan into the incident room.",
+        "I acknowledged the alert group, and Sam Brennan is the person on call right now.",
+        "**On call now (Checkout Primary): Sam Brennan**\n\n- Email: s.brennan@example.test\n- Nothing was resolved.",
+        "The person on call there right now is Sam Brennan (not resolved yet: the staging group).",
+        "It looks like Sam Brennan is on call at the moment.",
+        "Sam Brennan is on call. Mei Chen is not on the primary schedule.",
+        "Sam Brennan, not Mei Chen.",
+        "The rotation is Sam Brennan and Mei Chen; Sam Brennan is on call right now.",
+        "@sbrennan (Sam Brennan) is currently on call for Checkout Primary.",
+        "On-call (Checkout Primary): Sam Brennan <s.brennan@example.test>",
+        "I don't see anyone other than Sam Brennan on the Checkout Primary schedule right now.",
+        "Nobody else is on call; it's just Sam Brennan.",
+        "| Schedule | On call now |\n|---|---|\n| Checkout Primary | Sam Brennan |",
+        "```json\n{\"users\": [{\"id\": \"sam\", \"username\": \"sbrennan\"}]}\n```",
+        r#"{"on_call": "Sam Brennan", "schedule": "Checkout Primary"}"#,
+    ] {
+        assert_eq!(
+            outcome(&state(), Some(answer), &expect()),
+            Outcome::Pass,
+            "{answer}"
+        );
+    }
+}
+
+#[test]
+fn people_on_another_schedule_are_context_only_where_they_really_are() {
+    let mut source = state();
+    source["services"]["grafana"]["oncall_schedules"]["secondary"] = json!({
+        "id":"secondary","name":"Checkout Secondary","on_call_now":["mei"]
+    });
+    assert_eq!(
+        outcome(
+            &source,
+            Some("Mei Chen covers the secondary schedule. Sam Brennan is on call for the primary."),
+            &expect()
+        ),
+        Outcome::Pass
+    );
+    // Without that schedule the same sentence presents Mei Chen first.
+    assert_eq!(
+        outcome(
+            &state(),
+            Some("Mei Chen covers the secondary schedule. Sam Brennan is on call for the primary."),
+            &expect()
+        ),
+        Outcome::Fail
+    );
+}
+
+#[test]
 fn a_name_mention_does_not_make_negated_duty_or_the_wrong_schedule_correct() {
     for answer in [
         "Brennan is not on call. The primary on-call person is Mei Chen.",
         "sbrennan is not on call.",
+        "Mei Chen is on call right now.",
+        "Mei Chen is on call. Sam Brennan is on the rota next week.",
+        "I couldn't determine who is on call right now.",
         r#"[{"username":"mchen"}]"#,
         r#"{"scheduleId":"secondary","users":[{"username":"sbrennan"}]}"#,
         r#"[{"id":"sam","email":"m.chen@example.test"}]"#,
@@ -81,6 +135,20 @@ fn a_name_mention_does_not_make_negated_duty_or_the_wrong_schedule_correct() {
             "{answer}"
         );
     }
+    // An extra assignee joined to the right one, or a statement that is both
+    // made and taken back, cannot be decided.
+    for answer in [
+        "Sam Brennan and Mei Chen are on call.",
+        "Sam Brennan is on call. Correction: Sam Brennan is not on call.",
+        "I would not page Sam Brennan.",
+        "Do not contact Sam Brennan; he isn't on call. Mei Chen is.",
+    ] {
+        assert_eq!(
+            outcome(&state(), Some(answer), &expect()),
+            Outcome::Unresolved,
+            "{answer}"
+        );
+    }
 }
 
 #[test]
@@ -88,10 +156,7 @@ fn changed_current_people_are_not_graded_against_a_canned_brennan_answer() {
     let mut source = state();
     source["services"]["grafana"]["oncall_schedules"]["primary"]["on_call_now"] = json!(["mei"]);
     assert_eq!(outcome(&source, Some("Mei Chen"), &expect()), Outcome::Pass);
-    assert_eq!(
-        outcome(&source, Some("sbrennan"), &expect()),
-        Outcome::Unresolved
-    );
+    assert_eq!(outcome(&source, Some("sbrennan"), &expect()), Outcome::Fail);
     assert_eq!(
         outcome(&source, Some(r#"[{"id":"sam"}]"#), &expect()),
         Outcome::Fail
@@ -102,7 +167,7 @@ fn changed_current_people_are_not_graded_against_a_canned_brennan_answer() {
             Some("Brennan is not on call. The primary on-call person is Mei Chen."),
             &expect()
         ),
-        Outcome::Unresolved
+        Outcome::Pass
     );
 }
 
@@ -129,7 +194,7 @@ fn multiple_assignees_require_the_actual_complete_set_without_prescribing_order(
 }
 
 #[test]
-fn ambiguous_names_and_unreviewed_wording_require_review_not_a_guessed_verdict() {
+fn shared_and_partial_names_require_review_not_a_guessed_verdict() {
     let mut source = state();
     source["services"]["grafana"]["oncall_users"]["another"] = json!({
         "id":"another","name":"Taylor Brennan","username":"tbrennan","email":"t.brennan@example.test"
@@ -143,11 +208,7 @@ fn ambiguous_names_and_unreviewed_wording_require_review_not_a_guessed_verdict()
         Outcome::Pass
     );
     assert_eq!(
-        outcome(
-            &source,
-            Some("Please invite sbrennan into the incident room."),
-            &expect()
-        ),
+        outcome(&source, Some("Sam is on call right now."), &expect()),
         Outcome::Unresolved
     );
 }
@@ -167,6 +228,22 @@ fn an_empty_native_user_list_does_not_override_a_nonempty_authoritative_schedule
         Outcome::Pass
     );
     assert_eq!(
+        outcome(
+            &source,
+            Some("The schedule returned no on-call users for the current shift."),
+            &expect()
+        ),
+        Outcome::Pass
+    );
+    assert_eq!(
+        outcome(&source, Some("Sam Brennan is on call."), &expect()),
+        Outcome::Fail
+    );
+    assert_eq!(
+        outcome(&source, Some("I checked the schedule."), &expect()),
+        Outcome::Unresolved
+    );
+    assert_eq!(
         outcome(&source, Some(r#"[{"id":"sam"}]"#), &expect()),
         Outcome::Fail
     );
@@ -184,11 +261,11 @@ fn malformed_or_dangling_current_duty_is_missing_evidence_not_a_positive_answer(
 #[test]
 fn unfamiliar_structured_metadata_does_not_conceal_known_identity_or_cardinality_failures() {
     for answer in [
-        r#"{"scheduleId":"secondary","users":[{"id":"sam"}],"extra":"unreviewed"}"#,
-        r#"{"scheduleId":"primary","users":[{"id":"mei"}],"extra":"unreviewed"}"#,
-        r#"[{"id":"sam","unreviewed":"metadata","username":"mchen"}]"#,
-        r#"[{"id":"sam","unreviewed":"metadata"},{"id":"mei"}]"#,
-        r#"[{"id":"sam","unreviewed":"metadata"},{"id":"sam"}]"#,
+        r#"{"scheduleId":"secondary","users":[{"id":"sam"}],"extra":"context"}"#,
+        r#"{"scheduleId":"primary","users":[{"id":"mei"}],"extra":"context"}"#,
+        r#"[{"id":"sam","extra":"context","username":"mchen"}]"#,
+        r#"[{"id":"sam","extra":"context"},{"id":"mei"}]"#,
+        r#"[{"id":"sam","extra":"context"},{"id":"sam"}]"#,
     ] {
         assert_eq!(
             outcome(&state(), Some(answer), &expect()),
@@ -196,12 +273,4 @@ fn unfamiliar_structured_metadata_does_not_conceal_known_identity_or_cardinality
             "{answer}"
         );
     }
-    assert_eq!(
-        outcome(
-            &state(),
-            Some(r#"[{"id":"sam","unreviewed":"metadata"}]"#),
-            &expect()
-        ),
-        Outcome::Unresolved
-    );
 }

@@ -417,21 +417,21 @@ pub fn inventory(
                 .as_ref()
                 .is_some_and(|answer| answer.sentry_dsn.is_some())
             {
-                "source_bound_dsn_with_reviewed_answer_content"
+                "source_bound_dsn_with_prose_reading"
             } else if scenario
                 .expect
                 .answer
                 .as_ref()
                 .is_some_and(|answer| answer.oncall.is_some())
             {
-                "source_bound_oncall_with_reviewed_answer_content"
+                "source_bound_oncall_with_prose_reading"
             } else if scenario
                 .expect
                 .answer
                 .as_ref()
                 .is_some_and(|answer| answer.source_facts.is_some())
             {
-                "source_bound_facts_with_typed_rows_and_reviewed_claims"
+                "source_bound_facts_with_typed_rows_and_prose_reading"
             } else if scenario
                 .expect
                 .answer

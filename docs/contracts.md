@@ -17,24 +17,67 @@ admission. Remaining answer and qualification limits are tracked in
 Markdown table. `rows = "all"` selects every row; `rows = { largest = "share" }`
 derives the requested leader from the source values. Missing source records or
 unparseable source tables are environment faults; a tied ranking needs adjudication.
-Supported answers include reviewed Markdown/JSON row shapes and whole-text or
-whole-line claim forms with typed `${column}` slots. Values and row relationships,
-not a global keyword list, determine correctness.
 
-`claims` assert the selected rows. `neutral_claims` state facts without asserting
-selection: additional neutral rows require review rather than proving a wrong
-leader. `rejected` forms establish a failure only when their facts bind the same
-selected source row. A reviewed false sentence at the start of a claim remains
-evidence of failure even if followed by other text.
+The reply is read as it is written. Prose, bullets, a Markdown table (also
+transposed), JSON and fenced blocks are all turned into statements, and each stated
+value is attributed to the source row named with it: the row named in the same
+table row or JSON object, the row named before the value in a sentence, or the row
+the reply was last talking about. There is no list of accepted sentences, headers or
+aliases; values and row relationships decide the verdict.
 
-Unknown wording, meaningful unreviewed headers/wrappers, duplicate JSON keys,
-unreviewed fence metadata and unsupported/ambiguous numeric notation do not pass.
-They require adjudication unless another independently established contradiction
-proves failure. A missing reviewed required column or row can prove omission;
-an unknown populated column cannot. Flexible numeric spelling and reviewed place
-aliases are supported, but this is not a general natural-language factuality
-judge. The authored table is authoritative; companion structured representations
-are not independently cross-checked.
+- **Pass**: every requested row is named, each required fact is stated for its own
+  row, and nothing denies it. Extra columns, extra rows from the same source, other
+  true context, approximation marks (`~340`, `≈340`, "about 340"), grouping and
+  magnitude notations (`1,150`, `1.15k`, `EUR 6,900`, `€6.9k`, `6.900 €`) and place
+  qualifiers ("Pittsburgh, PA (USA)") do not change the verdict. With
+  `rows = { largest = ... }` the reply must lead with the requested row. Other rows
+  may follow it as context; they may precede it only when they are set aside
+  ("compared with", "runner-up", "not X") or carry their own value of the ranking
+  column.
+- **Fail**: a requested row or required fact is missing, denied or wrong; another
+  row's value is stated for a requested row before its own; a currency differs; or
+  another source row is named first.
+- **Unresolved**: a fact is both stated and disputed; the requested row is named only
+  under a label that ranks it lower or negates it ("Runner-up: X", a
+  `notTheMarketLeader` key); a JSON object gives one key two values; or a figure is in
+  a notation that cannot be read exactly (a range, number words, scientific notation,
+  `4.200` for 4.20).
+
+Known limits: a reply that pairs lists with "respectively" is not attributed, a
+wrong region after the right city ("Pittsburgh, Ohio") is not detected, and a reply
+that states the requested row's facts first and then names another row as the leader
+passes the lead rule. The authored table is authoritative; companion structured
+representations are not independently cross-checked.
+
+## On-Call Answers
+
+`expect.answer.oncall` binds the answer to the selected schedule's `on_call_now`
+identities and the directory collection:
+
+```toml
+[expect.answer.oncall]
+requirement = "Identify exactly the current assignees of Checkout Primary."
+schedule = { collection = "/services/grafana/oncall_schedules", matching = { name = "Checkout Primary" } }
+directory = "/services/grafana/oncall_users"
+allow_unambiguous_surnames = true
+```
+
+A person is identified by username, email, full name or (when allowed) a surname
+no other directory person shares. A structured user list (`[{...}]` or
+`{"users": [...]}`) must identify exactly the current assignees and may carry
+fields the directory does not hold. Any other reply is read as prose:
+
+- **Pass**: every current assignee is named and not denied. Other directory people
+  may appear after the answer, in a denial ("not Mei Chen"), or with the other
+  schedule they are really on call for.
+- **Fail**: an assignee is missing or denied ("Sam Brennan is not on call"), or
+  another directory person is named first.
+- **Unresolved**: only a shared surname or a first name is given, the assignee
+  appears only in a negative remark ("I would not page X"), the duty is both stated
+  and denied, or another person is joined to the assignee ("X and Y are on call")
+  with no separate plain statement.
+
+When nobody is on call, the reply passes when it says so and names no one.
 
 ## Historical Revisions
 
@@ -1536,10 +1579,11 @@ Version-2 answer contracts can use `answer.sentry_dsn`:
 
 ```toml
 [expect.answer.sentry_dsn]
+requirement = "Return the actual usable new project DSN without contradictory claims."
 project = { collection = "/services/sentry/projects", created = true, matching = { name = "notification-service" } }
 keys = { collection = "/services/sentry/keys", created = true, matching = { isActive = true } }
 ingestion_origin = { selector = { collection = "/services/sentry/instance", key_prefix = "instance" }, field = "/ingestion_origin" }
-content = { requirement = "Return the actual usable new project DSN without contradictory claims.", accepted = ["${dsn}", "SENTRY_DSN=${dsn}"], rejected = ["No project was created. DSN: ${dsn}"] }
+rejected = ["No project was created"]
 ```
 
 The URI binds an actual active key to the selected project's slug and numeric
@@ -1550,14 +1594,18 @@ another project's DSN, inactive keys and later endpoint rewrites cannot pass.
 Missing authoritative endpoint information is an environment fault, not an
 invented model failure.
 
-Every content example is complete plain text with exactly one `${dsn}` placeholder.
-URI binding is checked first. Known contradictory wording fails; unfamiliar
-nonempty wording with a valid URI remains unresolved and blocks raw comparison.
-The authenticated review coordinator can review that complete answer wording,
-bound to its exact collected bytes and full declarations. It cannot override a
-known URI failure, change the original grade, or turn scripted fixture signatures
-into human semantic validation. Legacy answer-file collection and genuine native
-completion remain separate trust requirements.
+URI binding is checked first: every credential-bearing URL in the answer must be
+that DSN, and at least one must be present. The surrounding wording is free. The
+answer fails when it denies the DSN it states ("X is not the DSN") or contains a
+`rejected` statement; those are reviewed contradictions of the work, matched
+anywhere in the answer, with `${dsn}` standing for the bound DSN. It is unresolved
+only when the DSN appears inside a negative remark the reader cannot classify
+("do not use this DSN yet: X") or is both stated and denied. The authenticated
+review coordinator can review such an answer, bound to its exact collected bytes
+and full declarations. It cannot override a known URI failure, change the original
+grade, or turn scripted fixture signatures into human semantic validation. Legacy
+answer-file collection and genuine native completion remain separate trust
+requirements.
 
 ## Admin protection and local use
 

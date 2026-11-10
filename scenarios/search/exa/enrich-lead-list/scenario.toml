@@ -45,43 +45,19 @@ requirement = "Report every lead with its own headquarters city and approximate 
 source = { selector = { collection = "/services/exa/agent_outputs", matching = { id = "enrich-three-leads" } }, field = "/output/content" }
 key = "company"
 rows = "all"
-claims = [
-  "${company}: HQ ${city}; about ${employees} employees",
-  "${company}: HQ ${city}; ~${employees} employees",
-  "${company}: HQ ${city}, about ${employees} employees",
-  "${company}: ${city}, about ${employees} employees",
-  "${company}: ${city}; about ${employees} employees",
-  "${company}: ${city}, ~${employees} employees",
-  "${company} — ${city} — ~${employees} employees",
-  "${company} is headquartered in ${city} and has about ${employees} employees.",
-  "${company} is headquartered in ${city} with about ${employees} employees.",
-]
-rejected = [
-  "${company} is not headquartered in ${city}.",
-  "${company} does not have about ${employees} employees.",
-]
-
-[expect.answer.source_facts.aliases]
-"United Kingdom" = ["UK", "U.K.", "England"]
-USA = ["US", "U.S.", "U.S.A.", "United States"]
-PA = ["Pennsylvania"]
-TX = ["Texas"]
 
 [expect.answer.source_facts.columns.company]
 header = "Company"
 kind = "name"
 short_names = true
-answer_headers = ["Company name", "Name", "Lead", "Organization"]
 
 [expect.answer.source_facts.columns.city]
 header = "HQ city"
 kind = "place"
-answer_headers = ["HQ", "Headquarters", "Headquarters city", "HQ location", "City", "Location"]
 
 [expect.answer.source_facts.columns.employees]
 header = "Employees (approx.)"
 kind = "number"
-answer_headers = ["Employees", "Headcount", "Employee count", "Approx. headcount", "Approximate headcount", "Approx. employees", "Approximate employees"]
 
 [solution]
 answer = "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh, PA | ~340 |\n| Lumetric Health | Austin, TX | ~1,150 |\n| Bramblewood Foods | Leeds, UK | ~2,600 |\n"

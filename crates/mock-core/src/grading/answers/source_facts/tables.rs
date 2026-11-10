@@ -6,6 +6,9 @@ use serde::{
 };
 use serde_json::Value;
 
+/// The message of the error for an object that repeats a key.
+pub(super) const DUPLICATE_KEY: &str = "duplicate answer key";
+
 struct UniqueVisitor {
     depth: usize,
 }
@@ -47,7 +50,7 @@ impl<'input> Visitor<'input> for UniqueVisitor {
         let mut values = serde_json::Map::new();
         while let Some(key) = object.next_key::<String>()? {
             if values.contains_key(&key) {
-                return Err(de::Error::custom("duplicate answer key"));
+                return Err(de::Error::custom(DUPLICATE_KEY));
             }
             let value: Box<serde_json::value::RawValue> = object.next_value()?;
             values.insert(
@@ -96,11 +99,6 @@ pub(super) struct Grid {
     pub(super) rows: Vec<Vec<String>>,
 }
 
-pub(super) struct Markdown {
-    pub(super) tables: Vec<Grid>,
-    pub(super) prose: bool,
-}
-
 fn cells(line: &str) -> Option<Vec<String>> {
     let trimmed = line.trim();
     if !trimmed.contains('|') {
@@ -126,88 +124,102 @@ fn separator(line: &str, width: usize) -> bool {
     })
 }
 
-pub(super) fn markdown(text: &str) -> Markdown {
-    let lines: Vec<&str> = text.lines().collect();
-    let mut tables = Vec::new();
-    let mut prose = false;
-    let mut index = 0;
-    while index < lines.len() {
-        let header = cells(lines[index]);
-        if let Some(headers) = header
-            && lines
-                .get(index + 1)
-                .is_some_and(|line| separator(line, headers.len()))
-        {
-            let mut rows = Vec::new();
-            index += 2;
-            while let Some(row) = lines.get(index).and_then(|line| cells(line)) {
-                rows.push(row);
-                index += 1;
-            }
-            tables.push(Grid { headers, rows });
-            continue;
-        }
-        prose |= !lines[index].trim().is_empty();
-        index += 1;
+/// The Markdown table that starts at `lines[index]`, with the index of the
+/// first line after it.
+pub(super) fn table_at(lines: &[&str], index: usize) -> Option<(Grid, usize)> {
+    let headers = cells(lines.get(index)?)?;
+    if !lines
+        .get(index + 1)
+        .is_some_and(|line| separator(line, headers.len()))
+    {
+        return None;
     }
-    Markdown { tables, prose }
+    let mut rows = Vec::new();
+    let mut next = index + 2;
+    while let Some(row) = lines.get(next).and_then(|line| cells(line)) {
+        rows.push(row);
+        next += 1;
+    }
+    Some((Grid { headers, rows }, next))
 }
 
 fn scalar(value: &Value) -> Option<String> {
     match value {
         Value::String(text) => Some(text.clone()),
         Value::Number(number) => Some(number.to_string()),
-        Value::Null => Some(String::new()),
+        Value::Bool(flag) => Some(flag.to_string()),
         _ => None,
     }
 }
 
-pub(super) fn structured(value: &Value) -> Option<Grid> {
-    let records: Vec<&serde_json::Map<String, Value>> = match value {
-        Value::Array(rows) => rows.iter().map(Value::as_object).collect::<Option<_>>()?,
-        Value::Object(object)
-            if object
-                .values()
-                .all(|field| !field.is_array() && !field.is_object()) =>
-        {
-            vec![object]
-        }
-        Value::Object(object) => {
-            let [(key, nested)] = object.iter().collect::<Vec<_>>()[..] else {
-                return None;
-            };
-            if !matches!(
-                super::header_key(key).as_str(),
-                "companies" | "vendors" | "results" | "rows" | "leads"
-            ) {
-                return None;
+/// `marketLeader` and `market_leader` as the words `market leader`.
+fn words(key: &str) -> String {
+    let mut text = String::with_capacity(key.len() + 4);
+    let mut previous = None::<char>;
+    for character in key.chars() {
+        if matches!(character, '_' | '-') {
+            text.push(' ');
+        } else {
+            if character.is_uppercase()
+                && previous.is_some_and(|before| before.is_lowercase() || before.is_ascii_digit())
+            {
+                text.push(' ');
             }
-            nested
-                .as_array()?
-                .iter()
-                .map(Value::as_object)
-                .collect::<Option<_>>()?
+            text.push(character);
         }
-        _ => return None,
-    };
-    let mut headers: Vec<String> = Vec::new();
-    for record in &records {
-        for field in record.keys() {
-            if !headers.contains(field) {
-                headers.push(field.clone());
-            }
-        }
+        previous = Some(character);
     }
-    let rows = records
-        .iter()
-        .map(|record| {
-            headers
+    text
+}
+
+/// Writes a structured answer as table-like lines: one line per object, each
+/// scalar field a `label: value` cell.  The label carries the keys of every
+/// enclosing object, so a wrapper such as `vendorsOtherThanTheLeader` still
+/// qualifies the values inside it.
+pub(super) fn flatten(value: &Value, prefix: &str, lines: &mut Vec<String>) {
+    let labelled = |label: &str, text: &str| match (prefix.is_empty(), label.is_empty()) {
+        (true, true) => text.to_owned(),
+        (true, false) => format!("{label}: {text}"),
+        (false, true) => format!("{prefix}: {text}"),
+        (false, false) => format!("{prefix} {label}: {text}"),
+    };
+    let (cells, nested): (Vec<String>, Vec<(String, &Value)>) = match value {
+        Value::Object(fields) => (
+            fields
                 .iter()
-                .map(|field| record.get(field).map_or(Some(String::new()), scalar))
-                .collect::<Option<Vec<_>>>()
-        })
-        .collect::<Option<Vec<_>>>()?;
-    Some(Grid { headers, rows })
+                .filter_map(|(key, field)| Some(labelled(&words(key), &scalar(field)?)))
+                .collect(),
+            fields
+                .iter()
+                .filter(|(_, field)| field.is_array() || field.is_object())
+                .map(|(key, field)| (format!("{prefix} {}", words(key)), field))
+                .collect(),
+        ),
+        Value::Array(items) => (
+            items
+                .iter()
+                .filter_map(|item| Some(labelled("", &scalar(item)?)))
+                .collect(),
+            items
+                .iter()
+                .filter(|item| item.is_array() || item.is_object())
+                .map(|item| (prefix.to_owned(), item))
+                .collect(),
+        ),
+        other => (
+            scalar(other)
+                .map(|text| labelled("", &text))
+                .into_iter()
+                .collect(),
+            Vec::new(),
+        ),
+    };
+    if !cells.is_empty() {
+        lines.push(cells.join(" | "));
+    }
+    for (prefix, field) in nested {
+        flatten(field, prefix.trim(), lines);
+    }
 }
 
 pub(super) fn transposed(grid: &Grid) -> Grid {

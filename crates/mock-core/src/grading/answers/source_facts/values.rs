@@ -1,12 +1,10 @@
-use std::{
-    cmp::Ordering,
-    collections::{BTreeMap, BTreeSet},
+use std::cmp::Ordering;
+
+use super::{
+    super::prose::{find, fold},
+    FactKind,
 };
 
-use super::FactKind;
-
-const MAX_PLACE_QUALIFIERS: usize = 4;
-const MAX_PLACE_PRESENTATIONS: usize = 512;
 const APPROXIMATIONS: [&str; 11] = [
     "~",
     "≈",
@@ -36,14 +34,6 @@ const CURRENCIES: [(&str, &str); 12] = [
 ];
 const PERCENT_WORDS: [&str; 4] = ["%", "percent", "per cent", "prozent"];
 
-pub(super) fn normalized(source: &str) -> String {
-    source
-        .split_whitespace()
-        .collect::<Vec<_>>()
-        .join(" ")
-        .to_lowercase()
-}
-
 pub(super) fn header_key(source: &str) -> String {
     source
         .chars()
@@ -71,11 +61,6 @@ fn word_character(character: Option<char>) -> bool {
     character.is_some_and(char::is_alphanumeric)
 }
 
-pub(super) fn bounded(text: &str, start: usize, end: usize) -> bool {
-    !word_character(text[..start].chars().next_back())
-        && !word_character(text[end..].chars().next())
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Amount {
     integer: String,
@@ -89,6 +74,15 @@ impl Amount {
             integer: if integer.is_empty() { "0" } else { integer }.to_owned(),
             fraction: fraction.trim_end_matches('0').to_owned(),
         }
+    }
+
+    /// The amount multiplied by ten to the `power`.
+    fn scaled(&self, power: usize) -> Self {
+        let fraction = format!("{:0<power$}", self.fraction);
+        Self::new(
+            &format!("{}{}", self.integer, &fraction[..power]),
+            &fraction[power..],
+        )
     }
 }
 
@@ -119,8 +113,23 @@ fn digit_run(bytes: &[u8], start: usize) -> usize {
 pub(super) struct Number {
     pub(super) amount: Amount,
     pub(super) length: usize,
-    pub(super) magnitude: bool,
+    /// Scientific notation, which is not read.
+    pub(super) unsupported: bool,
+    /// The other reading of `4.200` or `1,150`: a decimal, not a grouping.
+    pub(super) alternative: Option<Amount>,
 }
+
+/// Magnitude suffixes and their power of ten.  One-letter suffixes must
+/// touch the number (`6.9k`); words may follow one space (`6.9 thousand`).
+const MAGNITUDES: [(&str, usize); 7] = [
+    ("thousand", 3),
+    ("million", 6),
+    ("billion", 9),
+    ("mn", 6),
+    ("bn", 9),
+    ("k", 3),
+    ("m", 6),
+];
 
 pub(super) fn leading_number(text: &str) -> Option<Number> {
     let bytes = text.as_bytes();
@@ -155,23 +164,37 @@ pub(super) fn leading_number(text: &str) -> Option<Number> {
             end += 1 + run;
         }
     }
+    let mut amount = Amount::new(&integer, fraction);
+    let alternative = match (grouping, end) {
+        (Some(b'.' | b','), length) if length == head + 4 => {
+            Some(Amount::new(&text[..head], &text[head + 1..length]))
+        }
+        _ => None,
+    };
     let rest = &text[end..];
-    let scientific = rest.strip_prefix('e').is_some_and(|exponent| {
+    let unsupported = rest.strip_prefix('e').is_some_and(|exponent| {
         let digits = exponent.strip_prefix(['+', '-']).unwrap_or(exponent);
         digits.starts_with(|character: char| character.is_ascii_digit())
     });
-    let magnitude = scientific
-        || ["k", "m", "bn", "mn", "b", "thousand", "million", "billion"]
-            .iter()
-            .any(|suffix| {
-                rest.trim_start()
-                    .strip_prefix(suffix)
-                    .is_some_and(|tail| !word_character(tail.chars().next()))
-            });
+    if !unsupported {
+        for (suffix, power) in MAGNITUDES {
+            let spaced = suffix.len() > 2 && rest.starts_with(' ');
+            let tail = if spaced { &rest[1..] } else { rest };
+            if tail
+                .strip_prefix(suffix)
+                .is_some_and(|after| !word_character(after.chars().next()))
+            {
+                amount = amount.scaled(power);
+                end += suffix.len() + usize::from(spaced);
+                break;
+            }
+        }
+    }
     Some(Number {
-        amount: Amount::new(&integer, fraction),
+        amount,
         length: end,
-        magnitude,
+        unsupported,
+        alternative,
     })
 }
 
@@ -188,34 +211,21 @@ fn optional_space(text: &str) -> usize {
     usize::from(text.starts_with(' '))
 }
 
-pub(super) struct Money {
-    pub(super) currency: &'static str,
-    pub(super) amount: Amount,
-    pub(super) length: usize,
-}
-
-pub(super) fn leading_money(text: &str) -> Option<Money> {
+/// A leading amount of money: its currency code and value.
+fn leading_money(text: &str) -> Option<(&'static str, Amount)> {
     if let Some((currency, symbol)) = leading_currency(text) {
         let start = symbol + optional_space(&text[symbol..]);
-        let number = leading_number(&text[start..]).filter(|number| !number.magnitude)?;
-        return Some(Money {
-            currency,
-            amount: number.amount,
-            length: start + number.length,
-        });
+        let number = leading_number(&text[start..]).filter(|number| !number.unsupported)?;
+        return Some((currency, number.amount));
     }
-    let number = leading_number(text).filter(|number| !number.magnitude)?;
+    let number = leading_number(text).filter(|number| !number.unsupported)?;
     let start = number.length + optional_space(&text[number.length..]);
-    let (currency, symbol) = leading_currency(&text[start..])?;
-    Some(Money {
-        currency,
-        amount: number.amount,
-        length: start + symbol,
-    })
+    let (currency, _) = leading_currency(&text[start..])?;
+    Some((currency, number.amount))
 }
 
 fn leading_percent(text: &str) -> Option<(Amount, usize)> {
-    let number = leading_number(text).filter(|number| !number.magnitude)?;
+    let number = leading_number(text).filter(|number| !number.unsupported)?;
     let start = number.length + optional_space(&text[number.length..]);
     PERCENT_WORDS.iter().find_map(|word| {
         let tail = text[start..].strip_prefix(word)?;
@@ -231,179 +241,126 @@ fn without_approximation(text: &str) -> &str {
         .map_or(text, str::trim_start)
 }
 
-fn ambiguous_number(text: &str, expected: &Amount) -> bool {
-    let value = leading_currency(text).map_or(text, |(_, length)| text[length..].trim_start());
-    let Some(number) = leading_number(value) else {
-        return false;
+/// A number, percentage or amount of money found in answer text.
+pub(super) struct Quantity {
+    pub(super) start: usize,
+    pub(super) end: usize,
+    amount: Amount,
+    currency: Option<&'static str>,
+    percent: bool,
+    /// A range or scientific notation: the value cannot be read exactly.
+    unclear: bool,
+    alternative: Option<Amount>,
+}
+
+const RANGE_MARKS: [&str; 3] = ["-", "..", " to "];
+
+fn quantity_at(text: &str) -> Option<Quantity> {
+    let (currency, start) = match leading_currency(text) {
+        Some((currency, symbol)) => (Some(currency), symbol + optional_space(&text[symbol..])),
+        None => (None, 0),
     };
-    let tail = value[number.length..].trim_start();
-    if number.magnitude
-        || ["–", "—", "-", ".."].iter().any(|separator| {
-            tail.strip_prefix(separator).is_some_and(|rest| {
-                rest.trim_start()
-                    .starts_with(|character: char| character.is_ascii_digit())
-            })
+    let number = leading_number(&text[start..])?;
+    let mut quantity = Quantity {
+        start: 0,
+        end: start + number.length,
+        amount: number.amount,
+        currency,
+        percent: false,
+        unclear: number.unsupported,
+        alternative: number.alternative,
+    };
+    let rest = &text[quantity.end..];
+    let gap = optional_space(rest);
+    if currency.is_none()
+        && let Some((currency, symbol)) = leading_currency(&rest[gap..])
+    {
+        quantity.currency = Some(currency);
+        quantity.end += gap + symbol;
+    } else if currency.is_none()
+        && let Some(word) = PERCENT_WORDS.iter().find(|word| {
+            rest[gap..]
+                .strip_prefix(**word)
+                .is_some_and(|tail| **word == "%" || !word_character(tail.chars().next()))
         })
     {
-        return true;
+        quantity.percent = true;
+        quantity.end += gap + word.len();
     }
-    let token = &value[..number.length];
-    let separators: Vec<_> = token.match_indices(['.', ',']).collect();
-    if let [(index, _)] = separators.as_slice() {
-        let fraction = &token[index + 1..];
-        if fraction.len() == 3
-            && fraction.bytes().all(|byte| byte.is_ascii_digit())
-            && Amount::new(&token[..*index], fraction) == *expected
-            && number.amount != *expected
-        {
-            return true;
-        }
-    }
-    false
+    // `201-500`, `28,000..35,000`, `EUR 300 to EUR 400`: a range, not one value.
+    let tail = &text[quantity.end..];
+    quantity.unclear |= RANGE_MARKS.iter().any(|mark| {
+        tail.strip_prefix(mark).is_some_and(|rest| {
+            let rest = leading_currency(rest).map_or(rest, |(_, symbol)| &rest[symbol..]);
+            rest.trim_start()
+                .starts_with(|character: char| character.is_ascii_digit())
+        })
+    });
+    Some(quantity)
 }
 
-pub(super) struct Aliases(Vec<BTreeSet<String>>);
-
-impl Aliases {
-    pub(super) fn new(source: &BTreeMap<String, Vec<String>>) -> Self {
-        Self(
-            source
-                .iter()
-                .map(|(name, values)| {
-                    std::iter::once(name)
-                        .chain(values)
-                        .map(|value| normalized(value))
-                        .collect()
-                })
-                .collect(),
-        )
-    }
-
-    fn of(&self, segment: &str) -> Vec<String> {
-        let mut values = BTreeSet::from([segment.to_owned()]);
-        for group in &self.0 {
-            if group.contains(segment) {
-                values.extend(group.iter().cloned());
-            }
+/// Every quantity in folded answer text, skipping digits inside words,
+/// dates, times and version numbers.
+pub(super) fn quantities(text: &str) -> Vec<Quantity> {
+    let mut found = Vec::new();
+    let mut index = 0;
+    while index < text.len() {
+        let mut before = text[..index].chars().rev();
+        let (previous, earlier) = (before.next(), before.next());
+        let inside = previous
+            .is_some_and(|character| character.is_alphanumeric() || character == '_')
+            || (matches!(previous, Some('-' | '/' | ':' | '.' | ','))
+                && earlier.is_some_and(|character| character.is_ascii_digit()));
+        if !inside && let Some(mut quantity) = quantity_at(&text[index..]) {
+            quantity.start = index;
+            quantity.end += index;
+            // The upper end of a range is no more exact than its lower end.
+            quantity.unclear |= found.last().is_some_and(|lower: &Quantity| {
+                lower.unclear && RANGE_MARKS.contains(&&text[lower.end..index])
+            });
+            index = quantity.end;
+            found.push(quantity);
+            continue;
         }
-        values.into_iter().collect()
+        index += text[index..].chars().next().map_or(1, char::len_utf8);
     }
+    found
 }
 
+/// One typed cell of the authored source table.
 #[derive(Debug, Clone)]
 pub(super) enum Fact {
     Name(Vec<String>),
-    Place {
-        cities: Vec<String>,
-        qualifiers: Vec<Vec<String>>,
-        presentations: Vec<String>,
-    },
-    Number {
-        amount: Amount,
-        rest: String,
-    },
-    Percent {
-        amount: Amount,
-        rest: String,
-    },
+    Place(String),
+    Number(Amount),
+    Percent(Amount),
     Money {
         currency: &'static str,
         amount: Amount,
-        rest: String,
     },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum CellMatch {
-    Exact,
-    Partial,
-    Contradicted,
-    Unknown,
-}
-
-fn segments(text: &str) -> Vec<String> {
-    text.split(',')
-        .map(str::trim)
-        .filter(|segment| !segment.is_empty())
-        .map(str::to_owned)
-        .collect()
-}
-
-fn place_presentations(cities: &[String], qualifiers: &[Vec<String>]) -> Option<Vec<String>> {
-    let mut presentations = BTreeSet::new();
-    for mask in 0..1usize << qualifiers.len() {
-        let mut partial: Vec<String> = cities.to_vec();
-        for (index, options) in qualifiers.iter().enumerate() {
-            if mask & (1 << index) == 0 {
-                continue;
-            }
-            partial = partial
-                .iter()
-                .flat_map(|prefix| {
-                    options
-                        .iter()
-                        .map(move |option| format!("{prefix}, {option}"))
-                })
-                .collect();
-            if partial.len() > MAX_PLACE_PRESENTATIONS {
-                return None;
-            }
-        }
-        presentations.extend(partial);
-        if presentations.len() > MAX_PLACE_PRESENTATIONS {
-            return None;
-        }
-    }
-    Some(presentations.into_iter().collect())
-}
-
 impl Fact {
-    pub(super) fn parse(kind: FactKind, cell: &str, aliases: &Aliases) -> Option<Self> {
-        let text = normalized(strip_markup(cell));
+    pub(super) fn parse(kind: FactKind, cell: &str) -> Option<Self> {
+        let text = fold(strip_markup(cell));
         if text.is_empty() {
             return None;
         }
+        let value = without_approximation(&text);
         match kind {
             FactKind::Name => Some(Self::Name(vec![text])),
-            FactKind::Place => {
-                let parts = segments(&text);
-                let (city, rest) = parts.split_first()?;
-                if rest.len() > MAX_PLACE_QUALIFIERS {
-                    return None;
-                }
-                let cities = aliases.of(city);
-                let qualifiers: Vec<_> = rest.iter().map(|segment| aliases.of(segment)).collect();
-                let presentations = place_presentations(&cities, &qualifiers)?;
-                Some(Self::Place {
-                    cities,
-                    qualifiers,
-                    presentations,
-                })
-            }
-            FactKind::Number => {
-                let value = without_approximation(&text);
-                let number = leading_number(value).filter(|number| !number.magnitude)?;
-                Some(Self::Number {
-                    amount: number.amount,
-                    rest: value[number.length..].trim().to_owned(),
-                })
-            }
-            FactKind::Percent => {
-                let value = without_approximation(&text);
-                let (amount, length) = leading_percent(value)?;
-                Some(Self::Percent {
-                    amount,
-                    rest: value[length..].trim().to_owned(),
-                })
-            }
+            // The city leads; region and country qualifiers follow commas.
+            FactKind::Place => text
+                .split(',')
+                .map(str::trim)
+                .find(|segment| !segment.is_empty())
+                .map(|city| Self::Place(city.to_owned())),
+            FactKind::Number => leading_number(value)
+                .filter(|number| !number.unsupported)
+                .map(|number| Self::Number(number.amount)),
+            FactKind::Percent => leading_percent(value).map(|(amount, _)| Self::Percent(amount)),
             FactKind::Money => {
-                let value = without_approximation(&text);
-                let money = leading_money(value)?;
-                Some(Self::Money {
-                    currency: money.currency,
-                    amount: money.amount,
-                    rest: value[money.length..].trim().to_owned(),
-                })
+                leading_money(value).map(|(currency, amount)| Self::Money { currency, amount })
             }
         }
     }
@@ -425,122 +382,64 @@ impl Fact {
 
     pub(super) fn amount(&self) -> Option<(&Amount, Option<&'static str>)> {
         match self {
-            Self::Number { amount, .. } | Self::Percent { amount, .. } => Some((amount, None)),
-            Self::Money {
-                amount, currency, ..
-            } => Some((amount, Some(currency))),
+            Self::Number(amount) | Self::Percent(amount) => Some((amount, None)),
+            Self::Money { amount, currency } => Some((amount, Some(currency))),
             _ => None,
         }
     }
 
-    pub(super) fn consume(&self, text: &str) -> Vec<usize> {
-        let prefixes = |candidates: &[String]| -> Vec<usize> {
-            candidates
-                .iter()
-                .filter(|candidate| {
-                    text.starts_with(candidate.as_str()) && bounded(text, 0, candidate.len())
-                })
-                .map(String::len)
-                .collect()
-        };
+    /// Whether a quantity is written the way this fact is: a plain count, a
+    /// percentage, or an amount in the source currency (the currency may be
+    /// left out, another one never matches).
+    fn written_as(&self, quantity: &Quantity) -> bool {
         match self {
-            Self::Name(names) => prefixes(names),
-            Self::Place { presentations, .. } => prefixes(presentations),
-            Self::Number { amount, .. } => leading_number(text)
-                .filter(|number| !number.magnitude && &number.amount == amount)
-                .map(|number| number.length)
-                .into_iter()
-                .collect(),
-            Self::Percent { amount, .. } => leading_percent(text)
-                .filter(|(value, _)| value == amount)
-                .map(|(_, length)| length)
-                .into_iter()
-                .collect(),
-            Self::Money {
-                currency, amount, ..
-            } => leading_money(text)
-                .filter(|money| money.currency == *currency && &money.amount == amount)
-                .map(|money| money.length)
-                .into_iter()
+            Self::Number(_) => quantity.currency.is_none() && !quantity.percent,
+            Self::Percent(_) => quantity.percent,
+            Self::Money { currency, .. } => {
+                !quantity.percent && quantity.currency.is_none_or(|found| found == *currency)
+            }
+            _ => false,
+        }
+    }
+
+    /// Where the folded `text` states this fact.
+    pub(super) fn spans(&self, text: &str, quantities: &[Quantity]) -> Vec<(usize, usize)> {
+        match self {
+            Self::Name(names) => {
+                let mut ordered: Vec<&String> = names.iter().collect();
+                ordered.sort_by_key(|name| std::cmp::Reverse(name.len()));
+                let mut found: Vec<(usize, usize)> = Vec::new();
+                for name in ordered {
+                    for span in find(text, name) {
+                        if !found
+                            .iter()
+                            .any(|other| other.0 < span.1 && span.0 < other.1)
+                        {
+                            found.push(span);
+                        }
+                    }
+                }
+                found
+            }
+            Self::Place(city) => find(text, city),
+            Self::Number(amount) | Self::Percent(amount) | Self::Money { amount, .. } => quantities
+                .iter()
+                .filter(|quantity| {
+                    !quantity.unclear && self.written_as(quantity) && &quantity.amount == amount
+                })
+                .map(|quantity| (quantity.start, quantity.end))
                 .collect(),
         }
     }
 
-    pub(super) fn cell(&self, cell: &str) -> CellMatch {
-        let text = normalized(strip_markup(cell));
-        let numeric = |amount: &Amount, rest: &str, parsed: Option<(Amount, usize)>| {
-            let value = without_approximation(&text);
-            if ambiguous_number(value, amount) {
-                return CellMatch::Unknown;
-            }
-            match parsed {
-                Some((found, _)) if &found != amount => CellMatch::Contradicted,
-                Some((_, length)) => {
-                    let tail = value[length..].trim();
-                    if tail.is_empty() || tail == rest {
-                        CellMatch::Exact
-                    } else {
-                        CellMatch::Partial
-                    }
-                }
-                None => match leading_number(value) {
-                    Some(number) if number.magnitude => CellMatch::Unknown,
-                    Some(number) if &number.amount != amount => CellMatch::Contradicted,
-                    Some(_) => CellMatch::Partial,
-                    None => CellMatch::Unknown,
-                },
-            }
-        };
-        match self {
-            Self::Name(names) => {
-                if names.contains(&text) {
-                    CellMatch::Exact
-                } else {
-                    CellMatch::Unknown
-                }
-            }
-            Self::Place {
-                cities, qualifiers, ..
-            } => {
-                let parts = segments(&text);
-                let Some((city, rest)) = parts.split_first() else {
-                    return CellMatch::Unknown;
-                };
-                if !cities.contains(city) {
-                    return CellMatch::Unknown;
-                }
-                let mut available = qualifiers.iter();
-                if rest
-                    .iter()
-                    .all(|segment| available.any(|options| options.contains(segment)))
-                {
-                    CellMatch::Exact
-                } else {
-                    CellMatch::Partial
-                }
-            }
-            Self::Number { amount, rest } => {
-                let value = without_approximation(&text);
-                let parsed = leading_number(value)
-                    .filter(|number| !number.magnitude)
-                    .map(|number| (number.amount, number.length));
-                numeric(amount, rest, parsed)
-            }
-            Self::Percent { amount, rest } => {
-                numeric(amount, rest, leading_percent(without_approximation(&text)))
-            }
-            Self::Money {
-                currency,
-                amount,
-                rest,
-            } => {
-                let value = without_approximation(&text);
-                match leading_money(value) {
-                    Some(money) if money.currency != *currency => CellMatch::Contradicted,
-                    Some(money) => numeric(amount, rest, Some((money.amount, money.length))),
-                    None => numeric(amount, rest, None),
-                }
-            }
-        }
+    /// Whether a quantity may state this fact in a notation that cannot be
+    /// read exactly: a range, scientific notation, or `4.200` for 4.20.
+    pub(super) fn unclear(&self, quantity: &Quantity) -> bool {
+        self.amount().is_some_and(|(amount, _)| {
+            self.written_as(quantity)
+                && (quantity.unclear
+                    || (quantity.alternative.as_ref() == Some(amount)
+                        && &quantity.amount != amount))
+        })
     }
 }
