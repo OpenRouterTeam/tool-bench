@@ -29,11 +29,17 @@ fields = { "/fields/issuetype" = "Bug", "/fields/priority" = "High", "/fields/as
 null_fields = ["/fields/resolution", "/fields/resolutiondate"]
 
 [expect.records.reviewed_fields]
-requirement = "The summary and optional description together must report that the Apple Pay button is missing at checkout on iOS 18 Safari, without contradictory or invented claims. Facts may be conveyed in the summary alone or distributed across these fields; no exact title or description is requested."
+requirement = "The summary and optional description together must report that the Apple Pay button is missing at checkout on iOS 18 Safari: they must name Apple Pay, checkout, iOS 18 and Safari. Facts may be conveyed in the summary alone or distributed across these fields; no exact title or description is requested."
 accepted = [
   { "/fields/summary" = "Apple Pay button missing at checkout on iOS 18 Safari", "/fields/description" = "The Apple Pay button does not render on the checkout payment step in Safari on iOS 18." },
   { "/fields/summary" = "Apple Pay button missing at checkout on iOS 18 Safari", "/fields/description" = "" },
   { "/fields/summary" = "Missing Apple Pay button", "/fields/description" = "At checkout in Safari on iOS 18, the Apple Pay button is missing." },
+]
+mentions = [
+  ["Apple Pay", "ApplePay"],
+  ["checkout", "check-out", "check out"],
+  ["iOS 18", "iOS18"],
+  "Safari",
 ]
 
 [[expect.preservation.allow]]

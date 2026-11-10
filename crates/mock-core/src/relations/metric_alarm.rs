@@ -123,15 +123,14 @@ impl MetricAlarmGoal {
         {
             return Err(failed("the threshold, comparison or M-of-N window differs"));
         }
-        if alarm
-            .get("TreatMissingData")
-            .is_some_and(|policy| policy != "missing")
-        {
-            return Err(unresolved(
-                "nondefault missing-data behavior requires review",
-            ));
+        // `notBreaching` and `ignore` still need real breaching datapoints, so the alarm fires
+        // on the requested condition. `breaching` also fires when the metric stops reporting.
+        match alarm.get("TreatMissingData").map(Value::as_str) {
+            None | Some(Some("missing" | "notBreaching" | "ignore")) => Ok(()),
+            _ => Err(failed(
+                "missing data counts as breaching, so the alarm also fires without the requested condition",
+            )),
         }
-        Ok(())
     }
 
     fn check_queries(&self, source: &Value) -> Result<(), RecordCheckError> {

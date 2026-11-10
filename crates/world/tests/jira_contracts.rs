@@ -256,16 +256,21 @@ async fn bug_facts_can_live_in_the_summary_or_across_summary_and_description() {
 }
 
 #[tokio::test]
-async fn a_matching_summary_cannot_hide_a_contradictory_description_or_keyword_fragments() {
+async fn bug_facts_pass_in_unlisted_wording_and_fail_as_keyword_fragments_or_a_wrong_platform() {
+    let trial = Trial::new("file-apple-pay-bug");
+    trial
+        .create(json!({"summary": "Apple Pay unavailable", "description": "Checkout in iOS 18 Safari does not offer the Apple Pay button."}))
+        .await;
+    passed(&trial.assess());
     for fields in [
-        json!({"description": "Actually the button works correctly and no bug exists."}),
         json!({"summary": "Apple Pay", "description": null}),
-        json!({"summary": "Apple Pay unavailable", "description": "Checkout in iOS 18 Safari does not offer the Apple Pay button."}),
+        json!({"summary": "Apple Pay button missing at checkout", "description": "The button is not shown on the payment step."}),
+        json!({"summary": "Apple Pay button missing at checkout on iOS 17 Safari", "description": null}),
+        json!({"summary": "Google Pay button missing at checkout on iOS 18 Safari", "description": null}),
     ] {
         let trial = Trial::new("file-apple-pay-bug");
         trial.create(fields).await;
-        let assessment = trial.assess();
-        assert_eq!(assessment.outcome, Outcome::Unresolved, "{assessment:?}");
+        failed(&trial.assess());
     }
 }
 
@@ -426,17 +431,25 @@ async fn shipment_requires_a_new_comment_on_the_correct_issue_and_correct_resolu
 }
 
 #[tokio::test]
-async fn release_identifiers_and_contradictions_are_not_truthful_shipment_proof() {
+async fn shipment_comment_passes_in_unlisted_wording_and_fails_without_the_release_or_the_claim() {
+    let trial = Trial::new("ship-refund-retries");
+    trial.transition("PAY-121", "31", json!({})).await;
+    trial
+        .comment(
+            "PAY-121",
+            "Refund webhook retries went live in release 2026.11.",
+        )
+        .await;
+    passed(&trial.assess());
     for comment in [
         "2026.11",
-        "Not shipped in release 2026.11.",
+        "Shipped in release 2026.10.",
         "Refund webhook retries went live with the November 2026 release.",
     ] {
         let trial = Trial::new("ship-refund-retries");
         trial.transition("PAY-121", "31", json!({})).await;
         trial.comment("PAY-121", comment).await;
-        let assessment = trial.assess();
-        assert_eq!(assessment.outcome, Outcome::Unresolved, "{assessment:?}");
+        failed(&trial.assess());
     }
 }
 
@@ -565,16 +578,13 @@ async fn bulk_creation_keeps_successful_items_but_never_publishes_a_failed_items
 }
 
 #[tokio::test]
-async fn restoring_a_final_positive_comment_does_not_erase_an_unreviewed_committed_claim() {
+async fn a_reworded_shipment_comment_is_judged_by_its_final_text() {
     let trial = Trial::new("ship-refund-retries");
     trial.transition("PAY-121", "31", json!({})).await;
     let identity = trial
         .comment("PAY-121", "Shipped in release 2026.11.")
         .await;
-    for body in [
-        "The refund webhook retry story did not ship in release 2026.11.",
-        "Shipped in release 2026.11.",
-    ] {
+    let rewrite = async |body: &str| {
         trial
             .call(
                 "PUT",
@@ -582,20 +592,25 @@ async fn restoring_a_final_positive_comment_does_not_erase_an_unreviewed_committ
                 json!({"body": body}),
             )
             .await;
-    }
+    };
+    // Left without the release, the comment no longer says what was asked.
+    rewrite("This story has shipped.").await;
+    let assessment = trial.assess();
+    failed(&assessment);
+    assert!(!assessment.adjudication_needed, "{assessment:?}");
+    assert!(
+        assessment.failures.iter().any(|failure| failure.check
+            == mock_core::grading::CheckKind::Records
+            && failure.reason.contains("does not mention")),
+        "{assessment:?}"
+    );
+    rewrite("Shipped in release 2026.11.").await;
     assert_eq!(
         trial.snapshot()["comments"][&identity]["body"],
         "Shipped in release 2026.11."
     );
+    // An interim wording that lacked the release is a draft, not a committed wrong claim.
     let assessment = trial.assess();
-    assert_eq!(assessment.outcome, Outcome::Unresolved, "{assessment:?}");
-    assert!(
-        assessment.environment_ok && assessment.history_checked && assessment.adjudication_needed
-    );
-    assert!(
-        assessment.failures.iter().any(|failure| failure.check
-            == mock_core::grading::CheckKind::Records
-            && !failure.event_evidence.is_empty()),
-        "{assessment:?}"
-    );
+    passed(&assessment);
+    assert!(assessment.history_checked && !assessment.adjudication_needed);
 }

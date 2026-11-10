@@ -178,9 +178,14 @@ async fn equivalent_offset_shift_instants_are_accepted_without_losing_precision(
 
 #[tokio::test]
 async fn a_handoff_note_must_communicate_the_complete_requested_message() {
-    let trial = prepared(HANDOFF, |_| {});
-    handoff(&trial, "replica-2").await;
-    assert_ne!(trial.assess().outcome, Outcome::Pass);
+    for content in [
+        "replica-2",
+        "Handing off to DBRE, replica-2 needs a bigger disk.",
+    ] {
+        let trial = prepared(HANDOFF, |_| {});
+        handoff(&trial, content).await;
+        assessment(&trial, Outcome::Fail);
+    }
 }
 
 #[tokio::test]
@@ -423,17 +428,29 @@ async fn exact_note_repetition_is_admitted_without_fabricating_retry_lineage() {
 }
 
 #[tokio::test]
-async fn reviewed_resolution_paraphrases_pass_but_unknown_wording_requires_review() {
-    let trial = prepared(RESOLVE, |_| {});
-    resolve(
-        &trial,
-        "Rolling back release 2026.10.29.3 resolved this incident.",
-    )
-    .await;
-    assessment(&trial, Outcome::Pass);
-    let trial = prepared(RESOLVE, |_| {});
-    resolve(&trial, "The production fix looks good after the revert.").await;
-    assessment(&trial, Outcome::Unresolved);
+async fn resolution_note_passes_in_reviewed_or_unlisted_wording_and_fails_without_the_release() {
+    for (content, expected) in [
+        (
+            "Rolling back release 2026.10.29.3 resolved this incident.",
+            Outcome::Pass,
+        ),
+        (
+            "Errors returned to baseline once release 2026.10.29.3 had been rolled back, so this is resolved.",
+            Outcome::Pass,
+        ),
+        (
+            "The production fix looks good after the revert.",
+            Outcome::Fail,
+        ),
+        (
+            "Errors returned to baseline once release 2026.10.29.2 had been rolled back, so this is resolved.",
+            Outcome::Fail,
+        ),
+    ] {
+        let trial = prepared(RESOLVE, |_| {});
+        resolve(&trial, content).await;
+        assessment(&trial, expected);
+    }
 }
 
 #[tokio::test]

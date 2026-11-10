@@ -88,6 +88,32 @@ fn a_known_usable_link_does_not_require_redundant_convenience_fields() {
         .remove("conferenceData");
     goal.check(Some(&initial()), &state).unwrap();
 }
+
+#[test]
+fn a_link_quoted_in_the_description_is_prose_not_a_provisioned_conference() {
+    use mock_core::relations::RecordCheckError;
+    let quoted = "Join here: https://meet.google.com/abc-defg-hij";
+    // Alongside the event's real conference it is harmless context.
+    let mut state = complete();
+    state["services"]["google"]["calendar_events"]["event"]["description"] = json!(quoted);
+    contract(json!({})).check(Some(&initial()), &state).unwrap();
+    // Without a conference it does not supply the required video link.
+    let event = state["services"]["google"]["calendar_events"]["event"]
+        .as_object_mut()
+        .unwrap();
+    event.remove("conferenceData");
+    event.remove("hangoutLink");
+    assert!(matches!(
+        contract(json!({})).check(Some(&initial()), &state),
+        Err(RecordCheckError::Failed(_))
+    ));
+    // An event that needs no video link is not failed for quoting one.
+    let mut definition = serde_json::to_value(contract(json!({}))).unwrap();
+    definition["calendar_meeting"]["require_meet"] = json!(false);
+    let optional: RecordCheck = serde_json::from_value(definition).unwrap();
+    optional.check(Some(&initial()), &state).unwrap();
+}
+
 #[test]
 fn organizer_meeting_completion_does_not_require_guest_email_or_receipt_evidence() {
     let goal = contract(json!({}));

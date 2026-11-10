@@ -129,6 +129,15 @@ pub fn html_to_text(html: &str) -> String {
         ("</p>", "\n\n"),
         ("</li>\n", "\n"),
         ("</li>", "\n"),
+        // Other block ends also end a line, so a heading does not run into the next paragraph.
+        ("</h1>", "\n\n"),
+        ("</h2>", "\n\n"),
+        ("</h3>", "\n\n"),
+        ("</h4>", "\n\n"),
+        ("</h5>", "\n\n"),
+        ("</h6>", "\n\n"),
+        ("</blockquote>", "\n"),
+        ("</div>", "\n"),
     ] {
         s = s.replace(from, to);
     }
@@ -161,6 +170,18 @@ mod tests {
         let text = "Hi Dana,\nthanks & regards.\n\nSecond paragraph.";
         assert_eq!(html_to_text(&markdown_to_html(text)), text);
         assert_eq!(html_to_text(&plain_to_comment_html(text)), text);
+    }
+
+    #[test]
+    fn html_to_text_ends_a_line_at_every_block_end() {
+        assert_eq!(
+            html_to_text("<h3>Refund reference</h3><p>RF-88213</p>"),
+            "Refund reference\n\nRF-88213"
+        );
+        assert_eq!(
+            html_to_text("<div>Escalated</div><blockquote>INC-4471</blockquote>to on-call"),
+            "Escalated\nINC-4471\nto on-call"
+        );
     }
 
     #[test]

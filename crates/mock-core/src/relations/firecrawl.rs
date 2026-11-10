@@ -324,7 +324,15 @@ impl FirecrawlMonitorGoal {
             _ => return Err(failed("judging flag is not Boolean")),
         };
         if judged && (complete || enabled && status == "active") {
-            self.judged_goal.check(record.get("goal"), initial, state)?;
+            self.judged_goal
+                .check(record.get("goal"), initial, state)
+                .map_err(|error| match error {
+                    RecordCheckError::Failed(reason) => failed(&format!("monitor goal: {reason}")),
+                    RecordCheckError::NeedsAdjudication(reason) => {
+                        unresolved(&format!("monitor goal: {reason}"))
+                    }
+                    other => other,
+                })?;
         }
         match record.get("lastCheckId") {
             None | Some(Value::Null) => {

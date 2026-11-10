@@ -50,6 +50,7 @@ rejected = [
   "Lumenwise Scale plan pricing",
   "Lumenrail Scale plan beta pricing: $299/month",
 ]
+mentions = ["Lumenrail", "Scale"]
 
 [expect.records.reviewed_text."/body"]
 requirement = "State the generally available Lumenrail Scale plan price of $349 per month when billed annually and its 50 million included events per month, and include the supporting Lumenrail source URL (the GA launch post or the live pricing page). Do not present the 2025 beta price or allowance ($299, 25M events) or Lumenwise's price as current. The $419 monthly-billing price, $6 per million overage, retention, SSO and beta-customer grandfathering are accurate optional context, not requirements."
@@ -70,6 +71,7 @@ rejected = [
   "Lumenrail Scale plan (generally available): 50M events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available",
   "Lumenrail Scale plan (generally available): $349 per month billed annually, 50M events per month included.",
 ]
+mentions = [["$349", "$349.00", "349 USD", "USD 349"], ["50M", "50 M", "50 million", "50,000,000"], ["lumenrail.io/blog/scale-plan-generally-available", "lumenrail.io/pricing"]]
 
 [[expect.information]]
 prerequisite = { service = "exa", method = "POST", path_regex = "^/(search|contents)$" }

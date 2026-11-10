@@ -112,11 +112,6 @@ fn fail(result: &Grade) {
     assert!(result.contract_ok && result.environment_ok && result.integrity_ok);
 }
 
-fn unresolved(result: &Grade) {
-    assert_eq!(result.outcome, Outcome::Unresolved, "{result:?}");
-    assert!(result.environment_ok && result.adjudication_needed);
-}
-
 #[tokio::test]
 async fn all_three_gitlab_workflows_require_real_outcomes_and_authoritative_preservation() {
     for slug in [
@@ -166,14 +161,22 @@ async fn creation_follows_shifted_ids_and_allows_staged_classification_and_exist
 }
 
 #[tokio::test]
-async fn required_description_is_not_established_by_a_service_name_or_a_negation() {
+async fn description_passes_in_unlisted_wording_and_fails_on_a_service_name_or_another_service() {
+    let truthful = Trial::new("file-circuit-breaker-issue");
+    truthful
+        .create(json!({
+            "description":"When fraud-score latency spiked during the outage, checkout requests timed out waiting on it."
+        }))
+        .await;
+    pass(&truthful.assess());
     for description in [
         "fraud-score",
-        "Fraud-score latency spikes did NOT cascade into checkout timeouts.",
+        "Fraud-score errors caused the checkout outage.",
+        "Address-validation latency spikes cascaded into checkout timeouts.",
     ] {
         let trial = Trial::new("file-circuit-breaker-issue");
         trial.create(json!({"description":description})).await;
-        unresolved(&trial.assess());
+        fail(&trial.assess());
     }
 }
 
@@ -258,15 +261,22 @@ async fn thread_reply_and_individual_note_resolution_follow_actual_shifted_ident
 }
 
 #[tokio::test]
-async fn reply_requires_the_complete_changelog_claim_not_a_commit_token() {
+async fn reply_passes_in_unlisted_wording_and_fails_on_a_commit_token_or_another_commit() {
+    let truthful = Trial::new("answer-changelog-review-thread");
+    truthful
+        .reply("Yes, CHANGELOG.md was updated in 24f172e5.")
+        .await;
+    truthful.resolve().await;
+    pass(&truthful.assess());
     for body in [
         "24f172e5",
-        "The changelog was NOT added in commit 24f172e5.",
+        "Yes, the changelog entry has been added.",
+        "The changelog entry was added in commit 1d91daaa.",
     ] {
         let trial = Trial::new("answer-changelog-review-thread");
         trial.reply(body).await;
         trial.resolve().await;
-        unresolved(&trial.assess());
+        fail(&trial.assess());
     }
 }
 
@@ -295,25 +305,31 @@ async fn replies_on_another_thread_cannot_satisfy_the_requested_thread() {
 }
 
 #[tokio::test]
-async fn restoring_a_truthful_reply_cannot_erase_a_committed_contradiction() {
+async fn a_reworded_reply_is_judged_by_its_final_text() {
+    const DRAFT: &str = "Yes, the changelog entry has been added.";
     let trial = Trial::new("answer-changelog-review-thread");
     let reply = trial.reply(REPLY).await;
     trial.resolve().await;
     let completed = trial.state();
-    for body in [
-        "The changelog entry was NOT added in commit 24f172e5.",
-        REPLY,
-    ] {
-        trial
-            .call(
-                "PUT",
-                &format!("{BILLING}/notes/{reply}"),
-                json!({"body":body}),
-            )
-            .await;
-    }
+    trial
+        .call(
+            "PUT",
+            &format!("{BILLING}/notes/{reply}"),
+            json!({"body":DRAFT}),
+        )
+        .await;
+    // Left without the commit, the reply no longer says what was asked.
+    fail(&trial.assess());
+    trial
+        .call(
+            "PUT",
+            &format!("{BILLING}/notes/{reply}"),
+            json!({"body":REPLY}),
+        )
+        .await;
     assert_eq!(trial.state(), completed);
-    unresolved(&trial.assess());
+    // An interim wording that lacked the commit is a draft, not a committed wrong claim.
+    pass(&trial.assess());
 }
 
 #[tokio::test]

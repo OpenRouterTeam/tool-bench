@@ -24,7 +24,7 @@ equals = 1
 fields = { "/model" = "pro", "/status" = "completed" }
 
 [expect.records.reviewed_text."/input"]
-requirement = "Ask for one comprehensive report on the current pricing plans of exactly Tallybook, Billfold and Sumwise, the competitors on the Ledgerly compare page, without adding other tools."
+requirement = "Ask for one comprehensive report on the current pricing plans of exactly Tallybook, Billfold and Sumwise, the competitors on the Ledgerly compare page, without adding other tools: FreshBooks, InvoiceNinja and Zervant are not on that page and Ledgerize was dropped from it."
 accepted = [
   "Compare the current pricing plans (plan names, monthly prices and what each plan includes) of the invoicing tools Tallybook, Billfold and Sumwise.",
   "Research the current pricing plans of Tallybook, Billfold and Sumwise.",
@@ -38,6 +38,8 @@ rejected = [
   "Current pricing plans of Tallybook, Billfold, Sumwise and Invoice Ninja.",
   "Current pricing plans of Tallybook, Billfold, Sumwise and Ledgerize.",
 ]
+mentions = ["Tallybook", "Billfold", "Sumwise", ["pricing", "price", "prices", "priced", "plans", "cost", "costs"]]
+forbids = ["FreshBooks", "Fresh Books", "InvoiceNinja", "Invoice Ninja", "Zervant", "Ledgerize"]
 
 [[expect.records]]
 selector = { collection = "/services/tavily/research", created = true, field_patterns = { "/input" = '(?i)\btallybook\b' } }

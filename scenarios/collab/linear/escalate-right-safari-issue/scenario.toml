@@ -29,7 +29,7 @@ equals = "0bfae6ae-01d0-58d1-a611-7d1973102c45"
 [[expect.records]]
 selector = { collection = "/services/linear/comments", created = true }
 equals = 1
-reviewed_text = { "/body" = { requirement = "Say the escalation came from Acme Retail. The issue association supplies the Safari checkout context; priority/assignment narration and one particular spelling are not mandatory. Other nonempty wording requires adjudication, not an invented model failure.", accepted = ["Acme Retail escalated this Safari checkout issue.", "Escalated to Urgent: Acme Retail raised this through support, it is blocking their enterprise checkouts. Assigned to Alex Kim."] } }
+reviewed_text = { "/body" = { requirement = "Say the escalation came from Acme Retail. The issue association supplies the Safari checkout context. The comment must name Acme Retail and the escalation; priority/assignment narration and one particular spelling are not mandatory.", accepted = ["Acme Retail escalated this Safari checkout issue.", "Escalated to Urgent: Acme Retail raised this through support, it is blocking their enterprise checkouts. Assigned to Alex Kim."], mentions = ["Acme Retail", ["escalated", "escalation", "escalate", "escalating", "escalates", "escalations"]] } }
 
 [[expect.relations]]
 source = { collection = "/services/linear/comments", created = true }

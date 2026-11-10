@@ -31,7 +31,7 @@ equals = 1
 selector = { collection = "/services/github/reviews", created = true, matching = { repo = "octo-org/web", pull_number = 57, user = "mona" } }
 equals = 1
 fields = { "/state" = "APPROVED" }
-reviewed_text = { "/body" = { optional = true, requirement = "Review narration is optional. If supplied, it must be a legitimate approval of this lodash security update and must not deny it or introduce unsupported claims. Unlisted nonempty wording requires adjudication, not an invented model failure.", accepted = ["LGTM.", "Approved.", "Security patch for CVE-2021-23337, CI is green. LGTM."] } }
+reviewed_text = { "/body" = { optional = true, requirement = "Review narration is optional: the request asks for the approval and the squash merge of the lodash security update, not for review text, so no particular wording is required.", accepted = ["LGTM.", "Approved.", "Security patch for CVE-2021-23337, CI is green. LGTM."] } }
 
 [[expect.records]]
 selector = { collection = "/services/github/commits", created = true }

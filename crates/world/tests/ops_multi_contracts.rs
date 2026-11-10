@@ -353,17 +353,27 @@ async fn scale_requires_a_note_not_only_a_resolved_incident() {
 }
 
 #[tokio::test]
-async fn scale_unknown_complete_note_meaning_requires_adjudication() {
-    let trial = prepared(SCALE);
-    scale(&trial).await;
-    note(
-        &trial,
-        INCIDENT,
-        "The checkout remediation has been completed.",
-    )
-    .await;
-    resolve_incident(&trial, None).await;
-    assert_outcome(&trial, Outcome::Unresolved);
+async fn scale_note_in_unlisted_wording_passes_with_the_new_replica_count_and_fails_without_it() {
+    for (content, expected) in [
+        (
+            "Scaled the checkout deployment up to 9 replicas as the runbook asks; the new pods are Ready.",
+            Outcome::Pass,
+        ),
+        (
+            "The checkout remediation has been completed.",
+            Outcome::Fail,
+        ),
+        (
+            "Scaled the checkout deployment up to 6 replicas as the runbook asks.",
+            Outcome::Fail,
+        ),
+    ] {
+        let trial = prepared(SCALE);
+        scale(&trial).await;
+        note(&trial, INCIDENT, content).await;
+        resolve_incident(&trial, None).await;
+        assert_outcome(&trial, expected);
+    }
 }
 
 #[tokio::test]

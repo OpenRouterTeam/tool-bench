@@ -10,6 +10,7 @@ mod bound_text;
 mod calendar_meeting;
 mod firecrawl;
 mod interval_coverage;
+mod mentions;
 mod metric_alarm;
 mod references;
 mod structured;
@@ -18,6 +19,7 @@ pub use bound_text::{BoundText, IdentitySource};
 pub use calendar_meeting::{CalendarMeeting, meet_uri, meeting_uri};
 pub use firecrawl::{FirecrawlCrawlGoal, FirecrawlMonitorGoal};
 pub use interval_coverage::IntervalCoverage;
+pub use mentions::Mention;
 pub use metric_alarm::MetricAlarmGoal;
 pub use references::RecordReference;
 pub(crate) use references::ReferenceSet;
@@ -115,6 +117,12 @@ pub struct ReviewedText {
     pub accepted: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub rejected: Vec<String>,
+    /// Facts any other wording must carry; each entry is one phrase or equivalent spellings.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mentions: Vec<Mention>,
+    /// Wrong values no wording may carry.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub forbids: Vec<String>,
     #[serde(default)]
     pub format: ReviewedTextFormat,
     #[serde(default)]
@@ -130,6 +138,12 @@ fn is_false(value: &bool) -> bool {
 pub struct ReviewedFields {
     pub requirement: String,
     pub accepted: Vec<BTreeMap<String, String>>,
+    /// Facts any other projection must carry somewhere across its fields.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mentions: Vec<Mention>,
+    /// Wrong values no field may carry.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub forbids: Vec<String>,
 }
 
 impl ReviewedFields {
@@ -160,11 +174,24 @@ impl ReviewedFields {
             if normalized.values().all(String::is_empty) || !seen.insert(normalized) {
                 return Err("reviewed field examples must be nonempty and distinct after whitespace folding".into());
             }
+            if !mentions::example_satisfies(
+                &joined(example.values()),
+                &self.mentions,
+                &BTreeSet::new(),
+            )? {
+                return Err("a reviewed field example lacks a required mention".into());
+            }
         }
-        Ok(())
+        mentions::validate(&self.mentions, &self.forbids, &BTreeSet::new())
     }
 
-    fn check(&self, record: &Value) -> Result<(), RecordCheckError> {
+    /// Whether other projections have a deterministic reading.
+    pub fn deterministic(&self) -> bool {
+        !self.mentions.is_empty()
+    }
+
+    /// The whitespace-folded text of every projected field; absent fields read as empty.
+    fn projection(&self, record: &Value) -> Result<BTreeMap<&str, String>, RecordCheckError> {
         let mut projection = BTreeMap::new();
         for pointer in self.accepted[0].keys() {
             let text = match record.pointer(pointer) {
@@ -176,25 +203,90 @@ impl ReviewedFields {
                     )));
                 }
             };
-            projection.insert(pointer.clone(), text);
+            projection.insert(pointer.as_str(), text);
         }
         if projection.values().all(String::is_empty) {
             return Err(RecordCheckError::Failed(
                 "required reviewed content is empty".into(),
             ));
         }
+        Ok(projection)
+    }
+
+    /// `Ok(true)` for a reviewed example, `Ok(false)` for other wording and a failure for a
+    /// projection that carries a forbidden phrase.
+    fn reviewed(
+        &self,
+        projection: &BTreeMap<&str, String>,
+        reading: &mentions::Reading,
+    ) -> Result<bool, RecordCheckError> {
         if self.accepted.iter().any(|example| {
             example
                 .iter()
-                .all(|(pointer, text)| projection[pointer] == normalized_text(text))
+                .all(|(pointer, text)| projection[pointer.as_str()] == normalized_text(text))
         }) {
+            return Ok(true);
+        }
+        match reading.forbidden(&self.forbids) {
+            Some(phrase) => Err(RecordCheckError::Failed(format!(
+                "the reviewed fields state {phrase:?}, which violates: {}",
+                self.requirement
+            ))),
+            None => Ok(false),
+        }
+    }
+
+    /// An earlier committed projection fails only for content known to be wrong: a draft that
+    /// still lacks a fact is not a claim, and the final projection is checked separately.
+    /// Without a deterministic reading, unlisted earlier wording still needs adjudication.
+    fn check_committed(&self, record: &Value) -> Result<(), RecordCheckError> {
+        let adjudicate = |reason: String| {
+            RecordCheckError::NeedsAdjudication(format!(
+                "committed content requires adjudication against: {} ({reason})",
+                self.requirement
+            ))
+        };
+        let projection = match self.projection(record) {
+            Ok(projection) => projection,
+            Err(RecordCheckError::Failed(reason)) => return Err(adjudicate(reason)),
+            Err(error) => return Err(error),
+        };
+        let reading = mentions::Reading::new(&joined(projection.values()));
+        if self.reviewed(&projection, &reading)? || self.deterministic() {
             return Ok(());
+        }
+        Err(adjudicate("unreviewed field projection".into()))
+    }
+
+    fn check(&self, record: &Value) -> Result<(), RecordCheckError> {
+        let projection = self.projection(record)?;
+        let reading = mentions::Reading::new(&joined(projection.values()));
+        if self.reviewed(&projection, &reading)? {
+            return Ok(());
+        }
+        if self.deterministic() {
+            let missing = reading
+                .missing(&self.mentions, &mentions::Identities::new())
+                .map_err(RecordCheckError::InvalidContract)?;
+            return if missing.is_empty() {
+                Ok(())
+            } else {
+                Err(RecordCheckError::Failed(format!(
+                    "the reviewed fields do not mention {}",
+                    missing.join("; ")
+                )))
+            };
         }
         Err(RecordCheckError::NeedsAdjudication(format!(
             "unreviewed field projection requires adjudication against: {}",
             self.requirement
         )))
     }
+}
+
+/// Field texts read as one text, so a fact may sit in any of them.
+fn joined<'text>(texts: impl Iterator<Item = &'text String>) -> String {
+    texts.map(String::as_str).collect::<Vec<_>>().join("\n")
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -247,18 +339,43 @@ impl ReviewedText {
         if self.requirement.trim().is_empty() {
             return Err("reviewed text requires a nonempty criterion".into());
         }
+        let names: BTreeSet<&str> = self
+            .bound
+            .iter()
+            .flat_map(|bound| bound.identities.keys().map(String::as_str))
+            .collect();
+        mentions::validate(&self.mentions, &self.forbids, &names)?;
+        let lacks_mention = |example: &String| {
+            mentions::example_satisfies(example, &self.mentions, &names).map(|satisfied| !satisfied)
+        };
         if let Some(bound) = &self.bound {
             if !self.accepted.is_empty() || !self.rejected.is_empty() {
                 return Err(
                     "reviewed text must choose static examples or source-bound examples".into(),
                 );
             }
-            return bound.validate();
+            bound.validate()?;
+            for example in &bound.examples {
+                if lacks_mention(example)? {
+                    return Err(format!(
+                        "bound example {example:?} lacks a required mention"
+                    ));
+                }
+            }
+            return Ok(());
         }
-        if self.accepted.is_empty() {
+        if self.accepted.is_empty() && self.mentions.is_empty() {
             return Err(
-                "reviewed text requires a criterion and positive whole-text examples".into(),
+                "reviewed text requires a criterion and positive whole-text examples or mentions"
+                    .into(),
             );
+        }
+        for example in &self.accepted {
+            if lacks_mention(example)? {
+                return Err(format!(
+                    "accepted example {example:?} lacks a required mention"
+                ));
+            }
         }
         let mut seen = std::collections::BTreeSet::new();
         for example in &self.accepted {
@@ -330,17 +447,98 @@ impl ReviewedText {
             }
             return Err(RecordCheckError::Failed("required text is empty".into()));
         }
-        if self.matches_text(&normalized, initial, state)? {
+        self.read(&normalized, initial, state)
+    }
+
+    /// Whether wording outside the reviewed examples has a deterministic verdict.
+    pub fn deterministic(&self) -> bool {
+        self.optional || !self.mentions.is_empty()
+    }
+
+    /// The verdict for nonempty text in its declared format's plain projection: a reviewed
+    /// example passes; a rejected example or forbidden phrase fails; other wording passes when it
+    /// carries every mention and fails when it lacks one. Optional narration without mentions
+    /// passes. Only required text without mentions is left for adjudication.
+    fn read(
+        &self,
+        text: &str,
+        initial: Option<&Value>,
+        state: &Value,
+    ) -> Result<(), RecordCheckError> {
+        match self.matches_text(text, initial, state) {
+            Ok(true) => return Ok(()),
+            Ok(false) => {}
+            // No template matched. The mentions read every actual identity themselves, so a
+            // missing reference or several identities are theirs to judge; unreadable source
+            // identities surface again when the mentions resolve them.
+            Err(RecordCheckError::Failed(_) | RecordCheckError::NeedsAdjudication(_))
+                if !self.mentions.is_empty() => {}
+            Err(error) => return Err(error),
+        }
+        self.known_incorrect(text)?;
+        if !self.mentions.is_empty() {
+            let identities = match &self.bound {
+                Some(bound) => bound.identity_values(initial, state)?,
+                None => mentions::Identities::new(),
+            };
+            let missing = mentions::Reading::new(text)
+                .missing(&self.mentions, &identities)
+                .map_err(RecordCheckError::InvalidContract)?;
+            return if missing.is_empty() {
+                Ok(())
+            } else {
+                Err(RecordCheckError::Failed(format!(
+                    "the text does not mention {}",
+                    missing.join("; ")
+                )))
+            };
+        }
+        if self.optional {
             return Ok(());
         }
-        if self.rejects_text(&normalized) {
+        Err(RecordCheckError::NeedsAdjudication(format!(
+            "unreviewed wording requires adjudication against: {}",
+            self.requirement
+        )))
+    }
+
+    /// Fails text that is a rejected example or carries a forbidden phrase.
+    fn known_incorrect(&self, text: &str) -> Result<(), RecordCheckError> {
+        if self.rejects_text(text) {
             return Err(RecordCheckError::Failed(format!(
                 "reviewed incorrect text violates: {}",
                 self.requirement
             )));
         }
+        if let Some(phrase) = mentions::Reading::new(text).forbidden(&self.forbids) {
+            return Err(RecordCheckError::Failed(format!(
+                "the text states {phrase:?}, which violates: {}",
+                self.requirement
+            )));
+        }
+        Ok(())
+    }
+
+    /// An earlier committed version of the text. It fails only for content known to be wrong: a
+    /// draft that still lacks a fact is not a claim, and the final text is checked separately.
+    /// Without a deterministic reading, unlisted earlier wording still needs adjudication.
+    fn read_committed(
+        &self,
+        text: &str,
+        initial: Option<&Value>,
+        state: &Value,
+    ) -> Result<(), RecordCheckError> {
+        match self.matches_text(text, initial, state) {
+            Ok(true) => return Ok(()),
+            Ok(false) | Err(RecordCheckError::Failed(_)) => {}
+            Err(error) => return Err(error),
+        }
+        self.known_incorrect(text)?;
+        if self.deterministic() {
+            return Ok(());
+        }
         Err(RecordCheckError::NeedsAdjudication(format!(
-            "unreviewed wording requires adjudication against: {}",
+            "requires adjudication against: {}",
             self.requirement
         )))
     }
@@ -697,18 +895,16 @@ impl RecordCheck {
                 {
                     continue;
                 }
-                if check.rejects_text(&text) {
-                    return Err(RecordCheckError::Failed(format!(
-                        "committed reviewed incorrect text at {field} violates: {}",
-                        check.requirement
-                    )));
-                }
-                match check.matches_text(&text, initial, state) {
-                    Ok(true) => {}
-                    Ok(false) | Err(RecordCheckError::Failed(_)) => {
+                match check.read_committed(&text, initial, state) {
+                    Ok(()) => {}
+                    Err(RecordCheckError::Failed(reason)) => {
+                        return Err(RecordCheckError::Failed(format!(
+                            "committed content at {field}: {reason}"
+                        )));
+                    }
+                    Err(RecordCheckError::NeedsAdjudication(reason)) => {
                         return Err(RecordCheckError::NeedsAdjudication(format!(
-                            "committed content at {field} requires adjudication against: {}",
-                            check.requirement
+                            "committed content at {field} {reason}"
                         )));
                     }
                     Err(error) => return Err(error),
@@ -728,15 +924,7 @@ impl RecordCheck {
                 Some(_) => true,
             });
             if changed && nonempty {
-                match check.check(after) {
-                    Err(RecordCheckError::Failed(reason)) => {
-                        return Err(RecordCheckError::NeedsAdjudication(format!(
-                            "committed content requires adjudication against: {} ({reason})",
-                            check.requirement
-                        )));
-                    }
-                    result => result?,
-                }
+                check.check_committed(after)?;
             }
         }
         Ok(())
@@ -1301,6 +1489,9 @@ impl RecordCheck {
                     }
                 }
             }
+            // A service may render one written text into several checked fields; name each
+            // field that fails rather than only the first.
+            let mut failed_texts = Vec::new();
             for (field, check) in &self.reviewed_text {
                 match check.check(record.pointer(field), initial, final_state) {
                     Ok(()) => {}
@@ -1313,13 +1504,17 @@ impl RecordCheck {
                         });
                     }
                     Err(RecordCheckError::Failed(reason)) => {
-                        return Err(RecordCheckError::Failed(format!(
-                            "{} record {key} field {field}: {reason}",
-                            self.selector.collection
-                        )));
+                        failed_texts.push(format!("field {field}: {reason}"));
                     }
                     Err(error) => return Err(error),
                 }
+            }
+            if !failed_texts.is_empty() {
+                return Err(RecordCheckError::Failed(format!(
+                    "{} record {key} {}",
+                    self.selector.collection,
+                    failed_texts.join("; ")
+                )));
             }
             if let Some(check) = &self.reviewed_fields {
                 match check.check(record) {

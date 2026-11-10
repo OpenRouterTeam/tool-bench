@@ -234,15 +234,23 @@ async fn creating_for_the_wrong_requester_or_creating_duplicate_tickets_is_not_s
 }
 
 #[tokio::test]
-async fn a_place_name_alone_is_not_a_factual_description() {
+async fn a_description_needs_the_site_the_scanners_the_sync_failure_and_the_update() {
+    let trial = Trial::new("create-ticket-for-caller");
+    trial
+        .create(
+            json!({"description": "Bergen scanners stopped syncing counts after today's update."}),
+        )
+        .await;
+    passed(&trial.assess());
     for description in [
         "Bergen",
-        "The Bergen scanners are syncing normally after the update.",
-        "Bergen scanners stopped syncing counts after today's update.",
+        "The barcode scanners in the warehouse stopped syncing inventory counts after this morning's app update.",
+        "The Stavanger scanners stopped syncing inventory counts after this morning's app update.",
+        "Elena reports a problem at the Bergen warehouse since this morning's app update.",
     ] {
         let trial = Trial::new("create-ticket-for-caller");
         trial.create(json!({"description": description})).await;
-        unresolved(&trial.assess());
+        failed(&trial.assess());
     }
 }
 
@@ -324,11 +332,18 @@ async fn escalation_does_not_authorize_reassignment_or_a_different_customer_audi
 }
 
 #[tokio::test]
-async fn the_incident_reference_alone_or_an_unreviewed_claim_is_not_proof_of_escalation() {
-    for note in [
-        "INC-4471",
-        "Not escalated to on-call engineering under incident INC-4471.",
-        "I escalated this outage to the engineering on-call, incident INC-4471.",
+async fn an_escalation_note_needs_the_escalation_to_on_call_and_the_incident_reference() {
+    for (note, truthful) in [
+        (
+            "I escalated this outage to the engineering on-call, incident INC-4471.",
+            true,
+        ),
+        ("INC-4471", false),
+        ("Escalated to on-call engineering.", false),
+        (
+            "Escalated to on-call engineering under incident INC-4417.",
+            false,
+        ),
     ] {
         let trial = Trial::new("escalate-outage-ticket");
         trial
@@ -338,7 +353,11 @@ async fn the_incident_reference_alone_or_an_unreviewed_claim_is_not_proof_of_esc
             )
             .await;
         trial.comment(6230, false, note).await;
-        unresolved(&trial.assess());
+        if truthful {
+            passed(&trial.assess());
+        } else {
+            failed(&trial.assess());
+        }
     }
 }
 
@@ -412,17 +431,34 @@ async fn solving_before_replying_is_not_repaired_by_reopening_and_solving_again(
 }
 
 #[tokio::test]
-async fn a_refund_reference_without_truthful_complete_communication_cannot_pass() {
-    for reply in [
-        "RF-88213",
-        "The duplicate October charge was not refunded. RF-88213, 5-7 business days.",
-        "Your duplicate October payment has been returned; reference RF-88213. Allow five to seven business days for your card.",
-        "Marcus, billing has issued the refund for the duplicate October charge. Reference RF-88213; it should reach your card within 5-7 business days. Actually, that is false.",
+async fn a_refund_reply_needs_the_reference_and_the_arrival_estimate() {
+    for (reply, truthful) in [
+        (
+            "Your duplicate October payment has been returned; reference RF-88213. Allow five to seven business days for your card.",
+            true,
+        ),
+        ("RF-88213", false),
+        (
+            "Marcus, billing has issued the refund for the duplicate October charge. Reference RF-88213.",
+            false,
+        ),
+        (
+            "Marcus, billing has issued the refund for the duplicate October charge. It should reach your card within 5-7 business days.",
+            false,
+        ),
+        (
+            "Marcus, billing has issued the refund for the duplicate October charge. Reference RF-87002; it should reach your card within 5-7 business days.",
+            false,
+        ),
     ] {
         let trial = Trial::new("reply-refund-and-solve");
         trial.comment(4217, true, reply).await;
         trial.update(4217, json!({"status": "solved"})).await;
-        unresolved(&trial.assess());
+        if truthful {
+            passed(&trial.assess());
+        } else {
+            failed(&trial.assess());
+        }
     }
 }
 

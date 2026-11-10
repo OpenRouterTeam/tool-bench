@@ -26,11 +26,7 @@ fn pass(grade: &Grade) {
 fn fail(grade: &Grade) {
     assert_eq!(grade.outcome, Outcome::Fail, "{grade:?}");
     assert!(grade.environment_ok && grade.contract_ok && grade.integrity_ok);
-}
-
-fn unresolved(grade: &Grade) {
-    assert_eq!(grade.outcome, Outcome::Unresolved, "{grade:?}");
-    assert!(grade.adjudication_needed && grade.environment_ok);
+    assert!(!grade.adjudication_needed, "{grade:?}");
 }
 
 struct Competitor(Trial);
@@ -142,7 +138,7 @@ async fn accepted_sources_wording_label_order_and_staged_construction_pass() {
 }
 
 #[tokio::test]
-async fn omitted_requirements_fail_or_wait_for_adjudication() {
+async fn omitted_requirements_fail_without_waiting_for_adjudication() {
     for (title, body, labels) in [
         (GA_TITLE, GA_BODY, vec!["pricing"]),
         (GA_TITLE, GA_BODY, vec!["lumenrail"]),
@@ -190,7 +186,7 @@ async fn stale_or_look_alike_facts_are_known_failures() {
 }
 
 #[tokio::test]
-async fn unlisted_wording_requires_adjudication_instead_of_a_model_failure() {
+async fn unlisted_wording_passes_with_the_current_facts_and_fails_with_a_stale_or_missing_one() {
     let wording = Competitor::new();
     wording.research().await;
     wording
@@ -200,18 +196,31 @@ async fn unlisted_wording_requires_adjudication_instead_of_a_model_failure() {
             &GA_LABELS,
         )
         .await;
-    unresolved(&wording.0.assess());
+    pass(&wording.0.assess());
 
-    let contradictory = Competitor::new();
-    contradictory.research().await;
-    contradictory
-        .open(
-            GA_TITLE,
-            "Lumenrail Scale plan costs $349 per month billed annually with 50M events, which is wrong: it is $299.\n\nSource: https://lumenrail.io/pricing",
-            &GA_LABELS,
-        )
+    for body in [
+        "Scale now costs $299 a month on annual billing and bundles 50M events monthly (https://lumenrail.io/pricing).",
+        "Scale now costs $349 a month on annual billing and bundles 25M events monthly (https://lumenrail.io/pricing).",
+        "Scale now costs $349 a month on annual billing and bundles 50M events monthly (https://www.saasnewsdaily.com/2026/10/28/lumenrail-scale-ga).",
+    ] {
+        let wrong = Competitor::new();
+        wrong.research().await;
+        wrong.open(GA_TITLE, body, &GA_LABELS).await;
+        fail(&wrong.0.assess());
+    }
+
+    let titled = Competitor::new();
+    titled.research().await;
+    titled
+        .open("Scale plan leaves beta at Lumenrail", GA_BODY, &GA_LABELS)
         .await;
-    unresolved(&contradictory.0.assess());
+    pass(&titled.0.assess());
+    let untitled = Competitor::new();
+    untitled.research().await;
+    untitled
+        .open("Scale plan leaves beta", GA_BODY, &GA_LABELS)
+        .await;
+    fail(&untitled.0.assess());
 }
 
 #[tokio::test]
@@ -326,7 +335,7 @@ async fn commenting_on_or_editing_existing_issues_fails_even_after_restoration()
 }
 
 #[tokio::test]
-async fn committed_stale_claims_cannot_be_erased_by_restoring_an_accepted_body() {
+async fn committed_stale_claims_cannot_be_erased_but_an_incomplete_draft_can_be_completed() {
     let stale = Competitor::new();
     stale.research().await;
     let number = stale
@@ -349,11 +358,13 @@ async fn committed_stale_claims_cannot_be_erased_by_restoring_an_accepted_body()
         .await;
     fail(&stale.0.assess());
 
+    // A draft that states nothing wrong is not a claim; only the completed description is read.
     let draft = Competitor::new();
     draft.research().await;
     let number = draft
         .open(GA_TITLE, "Pricing to be confirmed.", &GA_LABELS)
         .await;
+    assert_eq!(draft.0.assess().outcome, Outcome::Fail);
     draft
         .0
         .call_from(
@@ -363,7 +374,7 @@ async fn committed_stale_claims_cannot_be_erased_by_restoring_an_accepted_body()
             json!({"body": GA_BODY}),
         )
         .await;
-    unresolved(&draft.0.assess());
+    pass(&draft.0.assess());
 }
 
 struct Vendor(Trial);
@@ -505,16 +516,34 @@ async fn vendor_stale_look_alike_and_missing_figures_are_known_failures() {
 }
 
 #[tokio::test]
-async fn vendor_unlisted_or_contradictory_reply_wording_requires_adjudication() {
-    for body in [
-        "Hi Priya, Business accounts can make 750 calls every minute per Quillstream's docs. Rita",
-        "Hi Priya,\n\nQuillstream's current docs say 750 requests per minute for Business, although some older sources claim 300.\n\nRita",
+async fn vendor_unlisted_reply_wording_passes_with_the_current_figure_and_fails_without_it() {
+    for (body, correct) in [
+        (
+            "Hi Priya, Business accounts can make 750 calls every minute per Quillstream's docs. Rita",
+            true,
+        ),
+        (
+            "Hi Priya,\n\nQuillstream's current docs say 750 requests per minute for Business, although some older sources claim 300.\n\nRita",
+            true,
+        ),
+        (
+            "Hi Priya, Business accounts can make 300 calls every minute per Quillstream's docs. Rita",
+            false,
+        ),
+        (
+            "Hi Priya,\n\nQuillstream's limit for Business is shared by the whole workspace, so other integrations count towards it.\n\nRita",
+            false,
+        ),
     ] {
         let trial = Vendor::new();
         trial.research().await;
         trial.comment(5302, true, body).await;
         trial.status(5302, "pending").await;
-        unresolved(&trial.0.assess());
+        if correct {
+            pass(&trial.0.assess());
+        } else {
+            fail(&trial.0.assess());
+        }
     }
 }
 

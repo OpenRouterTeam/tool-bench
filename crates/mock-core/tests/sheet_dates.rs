@@ -62,7 +62,48 @@ fn equivalent_date_encodings_do_not_need_literal_iso_storage() {
         assert_eq!(sheet_date::matches(&value, "2027-11-30"), Ok(false));
     }
     assert!(sheet_date::matches(&json!("11/12/2027"), "2027-11-30").is_err());
-    assert!(sheet_date::matches(&json!("November 30, 2027"), "2027-11-30").is_err());
+}
+
+#[test]
+fn month_name_spellings_are_unambiguous_dates_and_other_text_is_not_the_date() {
+    for value in [
+        "November 30, 2027",
+        "Nov 30, 2027",
+        "Nov. 30 2027",
+        "30 November 2027",
+        "30-Nov-2027",
+        "November 30th, 2027",
+        "Tuesday, November 30, 2027",
+        "Tue 30 Nov 2027",
+        "2027 Nov 30",
+    ] {
+        assert_eq!(
+            sheet_date::matches(&json!(value), "2027-11-30"),
+            Ok(true),
+            "{value}"
+        );
+    }
+    assert_eq!(
+        sheet_date::matches(&json!("Sept 5, 2027"), "2027-09-05"),
+        Ok(true)
+    );
+    for value in [
+        "November 29, 2027",
+        "October 30, 2027",
+        "November 30, 2026",
+        "November 31, 2027",
+        "November 2027",
+        "end of November 2027",
+        "No 30, 2027",
+        "TBD",
+        "renewed",
+    ] {
+        assert_eq!(
+            sheet_date::matches(&json!(value), "2027-11-30"),
+            Ok(false),
+            "{value}"
+        );
+    }
 }
 
 #[test]

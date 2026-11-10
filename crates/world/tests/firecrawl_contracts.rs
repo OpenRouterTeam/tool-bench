@@ -583,14 +583,21 @@ async fn already_paused_state_can_be_verified_without_a_redundant_patch() {
 }
 
 #[tokio::test]
-async fn unreviewed_active_goal_wording_requires_review_instead_of_guessing_failure() {
-    let trial = prepared(CREATE);
-    monitor(
-        &trial,
-        json!({"goal":"Watch meaningful price and limit revisions."}),
-    )
-    .await;
-    assessment(&trial, Outcome::Unresolved);
+async fn unlisted_active_goal_wording_passes_only_when_it_covers_prices_and_limits() {
+    for (goal, expected) in [
+        ("Watch for price and plan limit revisions.", Outcome::Pass),
+        (
+            "Tell us about any changes Fabrikam makes to its pricing page.",
+            Outcome::Pass,
+        ),
+        ("Watch for price revisions.", Outcome::Fail),
+        ("Watch for plan limit revisions.", Outcome::Fail),
+        ("Watch for new job postings.", Outcome::Fail),
+    ] {
+        let trial = prepared(CREATE);
+        monitor(&trial, json!({"goal":goal})).await;
+        assessment(&trial, expected);
+    }
 }
 
 #[tokio::test]

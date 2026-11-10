@@ -316,6 +316,26 @@ pub fn inventory(
         if static_count != reference_calls.len() {
             source_gaps.push("captured_argument_constraints_deferred")
         }
+        // Required free text whose unlisted wording has no deterministic verdict: without an
+        // adjudication step such a trial can only be recorded as a failure.
+        if scenario.expect.records.iter().any(|record| {
+            record
+                .reviewed_text
+                .values()
+                .chain(
+                    record
+                        .firecrawl_monitor
+                        .iter()
+                        .map(|goal| &goal.judged_goal),
+                )
+                .any(|text| !text.deterministic())
+                || record
+                    .reviewed_fields
+                    .as_ref()
+                    .is_some_and(|fields| !fields.deterministic())
+        }) {
+            source_gaps.push("text_requires_adjudication")
+        }
         let scenario_authoring =
             authoring.review(scenario, &reference_calls, tools, scored, &mut source_gaps);
         if scored {

@@ -457,11 +457,6 @@ fn fails(cloud: &CloudTrial) {
     assert_outcome(cloud, Outcome::Fail);
 }
 
-#[track_caller]
-fn unresolved(cloud: &CloudTrial) {
-    assert_outcome(cloud, Outcome::Unresolved);
-}
-
 #[tokio::test]
 async fn decommission_reference_outcome_is_reachable() {
     let cloud = CloudTrial::for_decommission();
@@ -681,7 +676,7 @@ async fn decommission_rejects_closing_or_commenting_before_the_aws_work() {
 }
 
 #[tokio::test]
-async fn decommission_rejects_untruthful_comments_and_leaves_unknown_prose_unresolved() {
+async fn decommission_rejects_untruthful_or_vague_comments_and_accepts_unlisted_truthful_wording() {
     for body in [
         "Terminated the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34.",
         "Stopped the staging instance reporting-worker-legacy (i-0e4a6c8b2d1f35790) and tagged it DecommissionTicket=OPS-34.",
@@ -691,10 +686,24 @@ async fn decommission_rejects_untruthful_comments_and_leaves_unknown_prose_unres
         cloud.finish_ticket(body).await;
         fails(&cloud);
     }
-    let vague = CloudTrial::for_decommission();
-    vague.decommission_production().await;
-    vague.finish_ticket("Done as requested.").await;
-    unresolved(&vague);
+    for body in [
+        "Done as requested.",
+        "Stopped the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046); its EBS volume is kept.",
+        "Tagged the production instance reporting-worker-legacy DecommissionTicket=OPS-34.",
+    ] {
+        let incomplete = CloudTrial::for_decommission();
+        incomplete.decommission_production().await;
+        incomplete.finish_ticket(body).await;
+        fails(&incomplete);
+    }
+    let unlisted = CloudTrial::for_decommission();
+    unlisted.decommission_production().await;
+    unlisted
+        .finish_ticket(
+            "The prod instance i-07b9d1f3a5c8e2046 is now stopped (not terminated) and carries the tag DecommissionTicket=OPS-34; staging is untouched.",
+        )
+        .await;
+    passes(&unlisted);
 }
 
 #[tokio::test]
@@ -894,7 +903,7 @@ async fn replica_rejects_the_look_alike_alarms_and_incidents() {
 }
 
 #[tokio::test]
-async fn replica_does_not_accept_incomplete_notes_as_success() {
+async fn replica_rejects_notes_without_the_alarm_name_or_the_alarm_time() {
     for note in [
         ALARM,
         "Replication lag alarm fired for orders-db replica 2.",
@@ -903,7 +912,7 @@ async fn replica_does_not_accept_incomplete_notes_as_success() {
         let cloud = CloudTrial::for_replica().await;
         cloud.pagerduty_note(INCIDENT, note).await;
         cloud.postmortem(postmortem_properties()).await;
-        unresolved(&cloud);
+        fails(&cloud);
     }
     let missing = CloudTrial::for_replica().await;
     missing.postmortem(postmortem_properties()).await;
@@ -943,8 +952,8 @@ async fn replica_requires_the_exact_postmortem_row() {
 }
 
 #[tokio::test]
-async fn replica_leaves_unfamiliar_postmortem_text_unresolved() {
-    let unfamiliar = [
+async fn replica_rejects_postmortem_text_that_is_not_the_requested_value() {
+    let different = [
         postmortem_with("Incident", json!({"rich_text":[text("4812")]})),
         postmortem_with("Incident", json!({"rich_text":[text("PagerDuty #48123")]})),
         postmortem_with(
@@ -956,11 +965,11 @@ async fn replica_leaves_unfamiliar_postmortem_text_unresolved() {
             json!({"rich_text":[text("orders-db-replica-2-replica-lag-old")]}),
         ),
     ];
-    for properties in unfamiliar {
+    for properties in different {
         let cloud = CloudTrial::for_replica().await;
         cloud.pagerduty_note(INCIDENT, ALARM_NOTE).await;
         cloud.postmortem(properties).await;
-        unresolved(&cloud);
+        fails(&cloud);
     }
 }
 
@@ -1242,7 +1251,7 @@ async fn offboard_rejects_a_notice_in_the_wrong_channel_or_with_extra_messages()
 }
 
 #[tokio::test]
-async fn offboard_rejects_untruthful_notices_and_leaves_unknown_prose_unresolved() {
+async fn offboard_rejects_untruthful_or_vague_notices_and_accepts_unlisted_truthful_wording() {
     for message in [
         "Lena Fisher has been offboarded. Her Okta account is deactivated and she has been removed from Linear.",
         "Lena Fischer has been offboarded. Her Okta account was deleted and she has been removed from Linear.",
@@ -1253,11 +1262,27 @@ async fn offboard_rejects_untruthful_notices_and_leaves_unknown_prose_unresolved
         cloud.notify(IT_OPS, message).await;
         fails(&cloud);
     }
-    let vague = CloudTrial::for_offboard();
-    vague.deactivate(FISCHER).await;
-    vague.remove_from_both_teams().await;
-    vague.notify(IT_OPS, "All set for the leaver.").await;
-    unresolved(&vague);
+    for message in [
+        "All set for the leaver.",
+        "Lena Fischer has been offboarded.",
+        "Lena Fischer has been offboarded and removed from Linear.",
+    ] {
+        let incomplete = CloudTrial::for_offboard();
+        incomplete.deactivate(FISCHER).await;
+        incomplete.remove_from_both_teams().await;
+        incomplete.notify(IT_OPS, message).await;
+        fails(&incomplete);
+    }
+    let unlisted = CloudTrial::for_offboard();
+    unlisted.deactivate(FISCHER).await;
+    unlisted.remove_from_both_teams().await;
+    unlisted
+        .notify(
+            IT_OPS,
+            "Lena Fischer (Product) is offboarded: her Okta account has been deactivated and she is off every Linear team.",
+        )
+        .await;
+    passes(&unlisted);
 }
 
 #[tokio::test]

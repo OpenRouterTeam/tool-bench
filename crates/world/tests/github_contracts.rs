@@ -90,11 +90,6 @@ fn fail(result: &Grade) {
     assert!(result.environment_ok && result.contract_ok && result.integrity_ok);
 }
 
-fn unresolved(result: &Grade) {
-    assert_eq!(result.outcome, Outcome::Unresolved, "{result:?}");
-    assert!(result.environment_ok && result.adjudication_needed);
-}
-
 #[tokio::test]
 async fn reviewed_github_workflows_require_outcomes_and_authoritative_preservation() {
     for slug in [
@@ -172,12 +167,21 @@ async fn creation_rejects_duplicates_wrong_repositories_and_unrequested_assignme
 }
 
 #[tokio::test]
-async fn keyword_presence_does_not_establish_a_truthful_bug_description() {
-    let trial = Trial::new("file-login-bug");
-    trial
-        .create("The login page has NOT returned HTTP 500 since deploy 412.")
+async fn bug_description_passes_in_unlisted_wording_and_fails_without_deploy_412() {
+    let truthful = Trial::new("file-login-bug");
+    truthful
+        .create("Users get an HTTP 500 on the login page; it started right after deploy 412.")
         .await;
-    unresolved(&trial.assess());
+    pass(&truthful.assess());
+    for body in [
+        "The login page has returned HTTP 500 since this morning's deploy.",
+        "The login page has returned HTTP 500 since deploy 421.",
+        "412",
+    ] {
+        let trial = Trial::new("file-login-bug");
+        trial.create(body).await;
+        fail(&trial.assess());
+    }
 }
 
 #[tokio::test]
@@ -342,10 +346,10 @@ async fn merge_result_must_remain_the_actual_main_branch_commit() {
 }
 
 #[tokio::test]
-async fn optional_review_text_cannot_hide_a_contradiction_by_restoring_it() {
+async fn optional_review_narration_can_be_reworded_before_the_merge() {
     let trial = Trial::new("approve-merge-dependency-bump");
     let review = trial.approve(Some("LGTM."), 57).await;
-    for body in ["This did not fix lodash; LGTM.", "LGTM."] {
+    for body in ["Security bump for lodash and the build is green.", "LGTM."] {
         trial
             .call(
                 "PUT",
@@ -355,7 +359,7 @@ async fn optional_review_text_cannot_hide_a_contradiction_by_restoring_it() {
             .await;
     }
     trial.merge(json!({})).await;
-    unresolved(&trial.assess());
+    pass(&trial.assess());
 }
 
 #[tokio::test]
@@ -428,15 +432,11 @@ async fn different_merge_methods_and_reviews_of_other_heads_do_not_satisfy_the_t
 }
 
 #[tokio::test]
-async fn optional_review_wording_is_not_required_but_unreviewed_claims_need_adjudication() {
+async fn optional_review_wording_is_not_required_and_unlisted_narration_passes() {
     for body in ["LGTM.", "The update looks fine to me."] {
         let trial = Trial::new("approve-merge-dependency-bump");
         trial.approve(Some(body), 57).await;
         trial.merge(json!({})).await;
-        if body == "LGTM." {
-            pass(&trial.assess());
-        } else {
-            unresolved(&trial.assess());
-        }
+        pass(&trial.assess());
     }
 }

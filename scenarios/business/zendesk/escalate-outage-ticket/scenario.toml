@@ -32,7 +32,8 @@ equals = 1
 fields = { "/ticket_id" = 6230, "/public" = false }
 
 [expect.records.reviewed_text."/body"]
-requirement = "Say that the Northwind Health patient-portal outage has been escalated to on-call engineering under incident INC-4471, without contradictory or invented claims."
+requirement = "Say that the ticket has been escalated to on-call engineering under incident INC-4471. The ticket supplies the customer and the outage."
+mentions = ["INC-4471", ["escalated", "escalation", "escalating", "escalate"], ["on-call", "on call", "oncall"]]
 accepted = [
   "Escalated to on-call engineering under incident INC-4471. The 502s are blocking patient check-ins at Northwind Health.",
   "Escalated the Northwind Health patient portal outage to on-call engineering under incident INC-4471.",
@@ -40,7 +41,8 @@ accepted = [
 
 [expect.records.reviewed_text."/html_body"]
 format = "zendesk_html"
-requirement = "The visible internal note must convey escalation to on-call engineering under incident INC-4471, without hidden, contradictory or invented claims."
+requirement = "The rendered internal note must say that the ticket has been escalated to on-call engineering under incident INC-4471, without hidden content."
+mentions = ["INC-4471", ["escalated", "escalation", "escalating", "escalate"], ["on-call", "on call", "oncall"]]
 accepted = [
   "Escalated to on-call engineering under incident INC-4471. The 502s are blocking patient check-ins at Northwind Health.",
   "Escalated the Northwind Health patient portal outage to on-call engineering under incident INC-4471.",

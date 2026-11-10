@@ -62,16 +62,6 @@ fn fail(grade: &Grade) {
 }
 
 #[track_caller]
-fn unresolved(grade: &Grade) {
-    audited(grade);
-    assert_eq!(grade.outcome, Outcome::Unresolved, "{grade:?}");
-    assert!(
-        grade.adjudication_needed && grade.environment_ok,
-        "{grade:?}"
-    );
-}
-
-#[track_caller]
 fn failed_with(grade: &Grade, expected: &[CheckKind]) -> Vec<CheckKind> {
     fail(grade);
     let kinds: Vec<CheckKind> = grade.failures.iter().map(|failure| failure.check).collect();
@@ -652,16 +642,26 @@ async fn pricing_reference_and_reviewed_briefs_pass() {
 }
 
 #[tokio::test]
-async fn pricing_unreviewed_briefs_wait_for_adjudication() {
-    for brief in [
+async fn pricing_unlisted_briefs_pass_for_the_three_competitors_and_fail_off_topic_or_off_page() {
+    let trial = tavily(PRICING);
+    compare_page(&trial).await;
+    tavily_research(
+        &trial,
         "Find the latest plan names and monthly prices for Tallybook, Billfold & Sumwise.",
-        "Current pricing of Tallybook, Billfold, Sumwise and Wave invoicing.",
+        Some("pro"),
+    )
+    .await;
+    pass(&trial.assess());
+    for brief in [
+        "Current pricing of Tallybook, Billfold, Sumwise and Zervant invoicing.",
         "Market share of Tallybook, Billfold and Sumwise.",
     ] {
         let trial = tavily(PRICING);
         compare_page(&trial).await;
         tavily_research(&trial, brief, Some("pro")).await;
-        unresolved(&trial.assess());
+        let grade = trial.assess();
+        fail(&grade);
+        assert!(!grade.records_ok && !grade.adjudication_needed, "{grade:?}");
     }
 }
 

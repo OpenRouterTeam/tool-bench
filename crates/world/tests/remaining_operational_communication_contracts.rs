@@ -145,12 +145,6 @@ fn fail(trial: &ContractTrial) -> Grade {
     assert_outcome(trial, Outcome::Fail)
 }
 
-fn unresolved(trial: &ContractTrial) -> Grade {
-    let grade = assert_outcome(trial, Outcome::Unresolved);
-    assert!(grade.adjudication_needed, "{grade:#?}");
-    grade
-}
-
 fn instruction(id: &str) -> String {
     std::fs::read_to_string(
         std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -549,24 +543,35 @@ async fn annotation_counts_one_created_record_and_rejects_duplicates_or_decoys()
 }
 
 #[tokio::test]
-async fn annotation_meaning_is_unresolved_for_plausible_unreviewed_or_contradictory_summaries() {
+async fn annotation_unlisted_wording_passes_with_the_run_and_error_code_and_fails_without() {
     for text in [
-        format!("Terraform {FAILED_RUN} succeeded after {ERROR_CODE} was resolved"),
-        format!(
-            "Terraform {FAILED_RUN} applied: {ERROR_CODE} no longer occurs and the database is on Postgres 16"
-        ),
-        format!(
-            "Terraform {FAILED_RUN} failed with {ERROR_CODE}; the database rolled back to Postgres 14"
-        ),
-        format!("Terraform {FAILED_RUN} failed with {ERROR_CODE}; AWS applied the upgrade anyway"),
-        format!("Terraform {FAILED_RUN} did not fail; {ERROR_CODE}"),
         format!("{FAILED_RUN} {ERROR_CODE}"),
         format!("Terraform {FAILED_RUN} failed with {ERROR_CODE} at 13:12:09Z"),
-        format!("Terraform {FAILED_RUN} failed with {ERROR_CODE} on payments-api-staging"),
+        format!(
+            "Payments DB upgrade to Postgres 16 errored during apply ({ERROR_CODE}), run {FAILED_RUN}"
+        ),
     ] {
         let trial = annotation_trial(|_| {});
         annotate(&trial, json!({"text":text})).await;
-        unresolved(&trial);
+        pass(&trial);
+    }
+    for text in [
+        format!("Payments DB upgrade to Postgres 16 errored during apply, run {FAILED_RUN}"),
+        format!("Payments DB upgrade to Postgres 16 errored during apply ({ERROR_CODE})"),
+        format!(
+            "Payments DB upgrade to Postgres 16 errored during apply ({ERROR_CODE}), run {PLAN_ERROR_RUN}"
+        ),
+        format!(
+            "Payments DB upgrade to Postgres 16 errored during apply (InvalidParameterValue), run {FAILED_RUN}"
+        ),
+        format!(
+            "Payments DB upgrade to Postgres 16 errored during apply ({ERROR_CODE}), run {FAILED_RUN}b"
+        ),
+    ] {
+        let trial = annotation_trial(|_| {});
+        annotate(&trial, json!({"text":text})).await;
+        let grade = fail(&trial);
+        assert!(!grade.adjudication_needed, "{grade:#?}");
     }
 }
 
@@ -715,6 +720,10 @@ async fn escalation_reference_and_alternative_plans_pass() {
         "GitHub issue lumen-labs/checkout#NUMBER tracks the fix.",
         "Opened GitHub issue #NUMBER in lumen-labs/checkout for this incident.",
         "GitHub issue #NUMBER in lumen-labs/checkout",
+        // Wording outside the reviewed examples that still gives the emitted issue number.
+        "Opened GitHub issue NUMBER for the payments team.",
+        "GitHub issue number: NUMBER",
+        "https://github.octo-corp.com/lumen-labs/checkout/issues/NUMBER",
     ];
     for template in notes {
         let trial = escalation_trial(|_| {});
@@ -867,34 +876,58 @@ async fn escalation_rejects_wrong_sentry_issue_incident_or_missing_source_facts(
 }
 
 #[tokio::test]
-async fn escalation_meaning_is_unresolved_for_plausible_fabricated_issue_text() {
-    let bodies = [
-        format!("{ISSUE_BODY}\nRoot cause: the 2026.10.19 deploy halved the pool size."),
-        format!("{ISSUE_BODY}\nThis has already been fixed and deployed."),
-        "PagerDuty incident #4810\nSentry: CHECKOUT-API-3F\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s\nNot actually an error.".to_string(),
-        "Incident 4810 happened in checkout.views.orders in create_order. Error could not obtain connection from pool within 5.0s. Sentry CHECKOUT-API-3F".to_string(),
-    ];
-    for body in bodies {
+async fn escalation_unlisted_issue_wording_passes_with_the_required_facts_and_fails_without() {
+    for (title, body) in [
+        (
+            ISSUE_TITLE,
+            "Incident 4810 happened in checkout.views.orders in create_order. Error could not obtain connection from pool within 5.0s. Sentry CHECKOUT-API-3F",
+        ),
+        (
+            ISSUE_TITLE,
+            "Paged by PagerDuty #4810. The culprit in Sentry is checkout.views.orders in create_order and the message is: could not obtain connection from pool within 5.0s",
+        ),
+        (
+            "CHECKOUT-API-3F: connection pool exhausted in create_order",
+            ISSUE_BODY,
+        ),
+        // Markdown code spans around the culprit do not change what the description says.
+        (
+            ISSUE_TITLE,
+            "PagerDuty **#4810**\n\n- Culprit: `checkout.views.orders` in `create_order`\n- Message: `could not obtain connection from pool within 5.0s`",
+        ),
+    ] {
         let trial = escalation_trial(|_| {});
-        issue_flow(&trial, ISSUE_TITLE, &body).await;
-        unresolved(&trial);
+        issue_flow(&trial, title, body).await;
+        pass(&trial);
     }
-    let both = escalation_trial(|_| {});
-    issue_flow(
-        &both,
-        ISSUE_TITLE,
-        "PagerDuty incident #4810 and #4811\nSentry: CHECKOUT-API-3F\nCulprit: checkout.views.orders in create_order\nError: OperationalError: could not obtain connection from pool within 5.0s",
-    )
-    .await;
-    unresolved(&both);
-    let title = escalation_trial(|_| {});
-    issue_flow(
-        &title,
-        "CHECKOUT-API-3F: all clear, no action needed",
-        ISSUE_BODY,
-    )
-    .await;
-    unresolved(&title);
+    for (title, body) in [
+        (
+            ISSUE_TITLE,
+            "Incident 4811 happened in checkout.views.orders in create_order. Error could not obtain connection from pool within 5.0s. Sentry CHECKOUT-API-3F",
+        ),
+        (
+            ISSUE_TITLE,
+            "Incident 4810 happened in checkout.views.orders in create_order. Sentry CHECKOUT-API-3F",
+        ),
+        (
+            ISSUE_TITLE,
+            "Incident 4810 happened in checkout.serializers.address in validate. Error could not obtain connection from pool within 5.0s. Sentry CHECKOUT-API-3F",
+        ),
+        // The request asks only that the title start with the Sentry short ID.
+        (
+            "OperationalError: could not obtain connection from pool within 5.0s",
+            ISSUE_BODY,
+        ),
+        (
+            "CHECKOUT-API-3C: could not obtain connection from pool",
+            ISSUE_BODY,
+        ),
+    ] {
+        let trial = escalation_trial(|_| {});
+        issue_flow(&trial, title, body).await;
+        let grade = fail(&trial);
+        assert!(!grade.adjudication_needed, "{grade:#?}");
+    }
 }
 
 #[tokio::test]
@@ -936,23 +969,23 @@ async fn escalation_note_rejects_wrong_targets_numbers_and_unsupported_claims() 
     note(&nonexistent, PRODUCTION_INCIDENT, &tracking(215)).await;
     fail(&nonexistent);
     let wrong_repository = escalation_trial(|_| {});
-    let number = open_issue(&wrong_repository, ISSUE_TITLE, ISSUE_BODY).await;
+    open_issue(&wrong_repository, ISSUE_TITLE, ISSUE_BODY).await;
     note(
         &wrong_repository,
         PRODUCTION_INCIDENT,
-        &format!("Tracking the fix in GitHub issue lumen-labs/payments-worker#{number}."),
+        "Tracking the fix in GitHub issue lumen-labs/payments-worker#88.",
     )
     .await;
-    unresolved(&wrong_repository);
+    fail(&wrong_repository);
     let claims = escalation_trial(|_| {});
-    let number = open_issue(&claims, ISSUE_TITLE, ISSUE_BODY).await;
+    open_issue(&claims, ISSUE_TITLE, ISSUE_BODY).await;
     note(
         &claims,
         PRODUCTION_INCIDENT,
-        &format!("Fixed and deployed in GitHub issue lumen-labs/checkout#{number}; the payments team was paged."),
+        "Fixed and deployed for incident 4810; the payments team was paged.",
     )
     .await;
-    unresolved(&claims);
+    fail(&claims);
 }
 
 #[tokio::test]
@@ -1020,19 +1053,6 @@ async fn escalation_rejects_status_changes_edits_and_unrelated_comments_even_whe
         )
         .await;
     fail(&resolved);
-    let edited = escalation_trial(|_| {});
-    let number = issue_flow(&edited, ISSUE_TITLE, ISSUE_BODY).await;
-    for body in ["Edited body", ISSUE_BODY] {
-        edited
-            .call_from(
-                "github",
-                "PATCH",
-                &format!("{ISSUES}/{number}"),
-                json!({"body":body}),
-            )
-            .await;
-    }
-    unresolved(&edited);
     let existing = escalation_trial(|_| {});
     issue_flow(&existing, ISSUE_TITLE, ISSUE_BODY).await;
     existing
@@ -1071,6 +1091,26 @@ async fn escalation_accepts_staged_completion_and_graphql_issue_creation() {
         .await;
     note(&staged, PRODUCTION_INCIDENT, &tracking(number)).await;
     pass(&staged);
+
+    // An interim description of the new issue that states nothing known to be wrong is a draft,
+    // not a claim: only the final description must carry the required facts.
+    let revised = escalation_trial(|_| {});
+    let number = issue_flow(&revised, ISSUE_TITLE, ISSUE_BODY).await;
+    for (body, complete) in [("Edited body", false), (ISSUE_BODY, true)] {
+        revised
+            .call_from(
+                "github",
+                "PATCH",
+                &format!("{ISSUES}/{number}"),
+                json!({"body":body}),
+            )
+            .await;
+        if complete {
+            pass(&revised);
+        } else {
+            fail(&revised);
+        }
+    }
 
     let graphql = escalation_trial(|_| {});
     let repository = graphql
