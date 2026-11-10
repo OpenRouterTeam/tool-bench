@@ -386,6 +386,34 @@ async fn direct_and_single_metric_stat_alarms_are_valid_configuration_representa
 }
 
 #[tokio::test]
+async fn an_explicit_percent_unit_description_and_quiet_missing_data_are_the_same_alarm() {
+    let trial = Trial::new(ALARM);
+    let mut definition = alarm();
+    definition.as_object_mut().unwrap().extend(
+        json!({"Unit":"Percent","AlarmDescription":"orders-api prod CPU above 80% for 15 minutes","TreatMissingData":"notBreaching","DatapointsToAlarm":3})
+            .as_object()
+            .unwrap()
+            .clone(),
+    );
+    trial.cloudwatch("PutMetricAlarm", definition).await;
+    pass(&trial.assess());
+    // Paging on recovery, or firing when the metric goes missing, was not asked for.
+    for extra in [
+        json!({"OKActions":[TOPIC]}),
+        json!({"TreatMissingData":"breaching"}),
+    ] {
+        let trial = Trial::new(ALARM);
+        let mut definition = alarm();
+        definition
+            .as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        trial.cloudwatch("PutMetricAlarm", definition).await;
+        fail(&trial.assess());
+    }
+}
+
+#[tokio::test]
 async fn a_metric_query_identity_alias_does_not_change_the_requested_cpu_condition() {
     let trial = Trial::new(ALARM);
     let mut definition = metric_alarm();

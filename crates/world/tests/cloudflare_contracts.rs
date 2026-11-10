@@ -146,6 +146,18 @@ async fn dns_creation_uses_actual_ids_and_equivalent_names_not_a_predicted_hash(
 }
 
 #[tokio::test]
+async fn a_dns_record_created_without_a_proxied_field_is_dns_only() {
+    // The API default for `proxied` is false (the dashboard's is not), so leaving the field
+    // out is the requested record; a comment and tags are the creator's to add.
+    let trial = Trial::new(DNS);
+    let created = trial
+        .dns(json!({"type":"CNAME","name":"status.octo-corp.com","content":"octocorp.statuspage.io","comment":"Atlassian Statuspage","tags":["owner:sre"]}))
+        .await;
+    assert_eq!(created["proxied"], false);
+    pass(&trial.assess());
+}
+
+#[tokio::test]
 async fn dns_batch_and_returned_id_metadata_updates_are_valid_plans() {
     let trial = Trial::new(DNS);
     let created=trial.api("POST",&format!("/zones/{ZONE}/dns_records/batch"),json!({

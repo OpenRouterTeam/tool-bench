@@ -326,6 +326,25 @@ async fn a_complete_preserved_profile_and_repeated_requested_writes_are_valid() 
 }
 
 #[tokio::test]
+async fn title_and_department_can_be_set_in_separate_profile_updates() {
+    let trial = prepared(TRANSFER, |_| {});
+    for profile in [
+        json!({"title":"Site Reliability Engineer"}),
+        json!({"department":"Platform Engineering"}),
+    ] {
+        trial
+            .call(
+                "POST",
+                &format!("/api/v1/users/{MARIA}"),
+                json!({"profile":profile}),
+            )
+            .await;
+    }
+    memberships(&trial).await;
+    assert_outcome(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
 async fn the_two_password_denials_can_be_applied_separately() {
     let trial = prepared(PASSWORD, |_| {});
     let mut first = denied_rule(&trial);
