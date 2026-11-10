@@ -136,6 +136,28 @@ fn main() -> anyhow::Result<()> {
         .filter(|s| include_examples || s.scored())
         .collect();
 
+    // The production planner names trials by the first 44 characters of the task name;
+    // two tasks that share them fail the whole run.
+    let mut prefixes = std::collections::BTreeMap::new();
+    for s in &tasks {
+        let name = s.task_name();
+        let slug: String = name
+            .to_lowercase()
+            .chars()
+            .map(|character| {
+                if character.is_ascii_alphanumeric() {
+                    character
+                } else {
+                    '-'
+                }
+            })
+            .take(44)
+            .collect();
+        if let Some(other) = prefixes.insert(slug, name.clone()) {
+            bail!("tasks {other} and {name} share their first 44 characters");
+        }
+    }
+
     let target = if check {
         std::env::temp_dir().join(format!("tool-bench-taskgen-check-{}", std::process::id()))
     } else {

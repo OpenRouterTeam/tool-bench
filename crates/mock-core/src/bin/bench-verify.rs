@@ -222,16 +222,15 @@ fn verify(options: Options) -> Result<bool, Box<dyn Error>> {
         .and_then(|bytes| {
             serde_json::from_slice::<WorldEvidence>(bytes).map_err(|error| error.to_string())
         });
-    let answer = answer_bytes
+    // The agent wrote this file. Bytes that are not UTF-8 are graded as the garbled text
+    // they are, a wrong answer, and are not a reason to withhold the trial's reward.
+    let answer_text = answer_bytes
         .as_ref()
-        .map_err(ToString::to_string)
-        .and_then(|bytes| {
-            bytes
-                .as_ref()
-                .map(|bytes| std::str::from_utf8(bytes))
-                .transpose()
-                .map_err(|error| error.to_string())
-        });
+        .map(|bytes| bytes.as_ref().map(|bytes| String::from_utf8_lossy(bytes)));
+    let answer = answer_text
+        .as_ref()
+        .map(|text| text.as_deref())
+        .map_err(ToString::to_string);
     let empty_contract = Expect::default();
     let expected = contract.as_ref().unwrap_or(&empty_contract);
     let native = inference
