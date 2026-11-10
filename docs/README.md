@@ -26,6 +26,8 @@ Start with [production.md](production.md). The project overview is in
 ## Change it
 
 - [runbook.md](runbook.md): images, regenerating tasks, local checks, the strict controller, replay, tool-list capture.
+- [`../deploy/pilot/README.md`](../deploy/pilot/README.md): attempt one task by hand, or with an AI subagent, through the real MCP servers and have it graded.
+- [`../deploy/production/README.md`](../deploy/production/README.md): run the production worker's own code against generated tasks; [findings](../deploy/production/FINDINGS.md) from the last rehearsal.
 - [authoring.md](authoring.md): writing a service mock and its scenarios.
 - [authoring-admission.md](authoring-admission.md): what `taskgen` validates, and the generated inventory (`coverage/scenario-inventory.json`).
 - [organization-materialization.md](organization-materialization.md): a shared organization dataset with per-task overlays.

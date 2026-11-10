@@ -24,9 +24,11 @@ Nothing in this repository has to be installed on the worker.
 | Collect | Harbor copies the answer file out of `main` and stops `main`. It then runs the task's collect hook inside `world`, which closes the world to new requests and exports its sealed evidence, and collects that file. |
 | Verify | Harbor builds the separate verifier from `tests/` and runs `tests/test.sh`: `bench-verify --allow-unattested-runner --withhold-invalid-reward` on the contract, the evidence and the answer. |
 
-The verifier container has no network and no agent process beside it, and
-`bench-verify` uses no credentials. `test.sh` has those two flags because `taskgen`
-generates tasks with `--runner-admission optional` unless told otherwise; see
+The verifier container has no agent process beside it, and `bench-verify` makes no
+network request and uses no credentials. The task does not ask Harbor to cut the
+verifier's network: that declaration made the worker pull and build two extra images
+in every trial, after the agent had finished. `test.sh` has those two flags because
+`taskgen` generates tasks with `--runner-admission optional` unless told otherwise; see
 [Assurance](#assurance).
 
 ## Reading one trial
@@ -45,9 +47,12 @@ passed.
 Two cases are deliberately **not** scored:
 
 - **The trial could not be assessed** (outcome 4 or 5: an invalid contract, missing or
-  mismatched evidence). The verifier writes `reward.invalid.json` instead of
-  `reward.json` and exits with status 3. Harbor records `RewardFileNotFoundError`, and
-  the production pipeline counts the trial as skipped, not as incorrect.
+  mismatched evidence, or an operation the agent asked for that the mock does not
+  model). The verifier writes `reward.invalid.json` instead of `reward.json` and exits
+  with status 3. Harbor records `RewardFileNotFoundError`, and the production pipeline
+  counts the trial as skipped, not as incorrect. Such a trial is void whether or not
+  the agent would have passed, so watch the skipped count per arm: an arm with many
+  more skips than another is not being compared on the same tasks.
 - **The harness or environment failed before grading.** Harbor records the exception and
   there is no reward.
 
@@ -67,8 +72,10 @@ production pipeline treats that as a scored trial, not a skipped one, and
 
 A reply is unresolved when it states the right facts but the reader cannot tell which
 record it presents as the answer, for example a bare list of every candidate. It
-earns no reward. On 500 correct replies written in ordinary prose, 493 pass; the
-measured limits are in [answer-fact-contracts.md](answer-fact-contracts.md).
+earns no reward. The reader's measured limits are in
+[answer-fact-contracts.md](answer-fact-contracts.md), and
+[What has been checked](#what-has-been-checked) has the rate on replies written by
+agents.
 
 The two consumers treat it differently. The production pipeline sees reward 0 and
 counts the trial as incorrect. `bench-report` lists unresolved trials beside the pass
