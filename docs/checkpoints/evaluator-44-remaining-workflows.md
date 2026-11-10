@@ -79,10 +79,29 @@ postgres-meta licence discrepancy remains disclosed.
 
 ## Validation status
 
-Integration validation is in progress. Final Cargo-selected executable hashes,
-complete workspace results, strict clippy, host/runner tests, canonical generation
-and clean-checkout freshness must be recorded before calling this a source gate.
-Intermediate focused passes are not pooled into a final green count.
+The final Cargo source gate (workspace tests, doctests, format and clean-checkout
+freshness) had not completed when this was written; no pass count is claimed.
+Intermediate focused passes are not pooled into a final green count. Observed
+local checks, each separate from release qualification:
+
+- **Source checks:** 355 host Python tests and 61 strict-runner Python tests
+  passed; eleven oracle/protocol/host-guard scripts passed; shell and JS
+  syntax checks passed with no tracked ignored files. Strict clippy and
+  canonical generation (150 tasks, 152 scenarios) completed.
+- **Local smoke candidate:** a frozen local image pair (not the published
+  images, and built before the last parser-nesting guard, test-only lint fix
+  and inventory-summary change) passed native stdio probes for all 79
+  Grafana tools. This does not qualify the final head.
+- **Oracle/nop smoke (scripted native MCP, not native-model or adversarial
+  runtime admission):** the first four concurrent groups were interrupted when
+  OrbStack stopped. Four oracle/nop pairs passed beforehand; the rest were
+  withheld as invalid assessments (runner receipt phase failed), not model
+  failures, and are retained. A two-group retry over the sixteen migrated
+  workflows plus the Grafana silence task (17 pairs) gave 17/17 oracle rewards
+  of 1.0 and 15/17 nop rewards of 0.0. The two other nop runs
+  (`collab/multi/google-refund-damaged-order`,
+  `search/multi/competitor-research-github-issue`) ended as
+  `invalid_assessment` and are retained unresolved, not counted as passes.
 
 The local preflight and subsequent integration distinguish:
 
