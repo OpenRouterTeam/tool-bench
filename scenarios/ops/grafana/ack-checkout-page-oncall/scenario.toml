@@ -25,11 +25,10 @@ fields = { "/state" = "acknowledged" }
 null_fields = ["/resolved_at", "/resolved_by", "/silenced_at"]
 
 [expect.answer.oncall]
+requirement = "Identify exactly the current assignees of Checkout Primary, as given by the authoritative schedule and user directory. Username, email, full name, an unambiguous surname and truthful structured user records all identify a person. The answer must not deny that person's duty, name another schedule's assignee in their place, or add an assignee."
 schedule = { collection = "/services/grafana/oncall_schedules", matching = { name = "Checkout Primary" }, references = [{ source_field = "/team_id", target_field = "/id", target = { collection = "/services/grafana/oncall_teams", matching = { name = "Checkout" } } }] }
 directory = "/services/grafana/oncall_users"
 allow_unambiguous_surnames = true
-empty_answers = ["Nobody is on call on Checkout Primary.", "No one is currently on call on Checkout Primary."]
-content = { requirement = "Identify exactly the current assignees of Checkout Primary, using authoritative schedule/directory relationships. Username, email, full name, unambiguous surname and truthful structured user records are acceptable. Do not negate current duty, substitute another schedule, or invent another assignee; unreviewed wording requires adjudication.", accepted = ["${oncall}", "On call: ${oncall}", "Checkout Primary: ${oncall}", "${oncall} is on call.", "The current primary on-call engineer is ${oncall}.", "On call right now on the Checkout Primary schedule: ${oncall}.", 'Acknowledged the production alert group IHQ4K2M7 ("[prod] HighCheckoutLatency checkout p99 above 1.5s"). On call right now on the Checkout Primary schedule: ${oncall}.'], rejected = ["${oncall} is not on call.", "${oncall} is not on call. The primary on-call person is Mei Chen.", "Do not contact ${oncall}; they are not on call."] }
 
 [[expect.forbidden_calls]]
 service = "grafana"

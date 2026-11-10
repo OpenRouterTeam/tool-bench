@@ -100,28 +100,42 @@ fn enrichment_swaps_omissions_contradictions_and_negations_fail() {
             "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane | Lisbon | 45 |\n| Lumetric Health | Austin | 1,150 |\n| Bramblewood Foods | Leeds | 2,600 |\n",
             "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh | 340 |\n| Lumetric Health | Austin | 1,150 |\n",
             "| Company | HQ city |\n|---|---|\n| Corvane Robotics | Pittsburgh |\n| Lumetric Health | Austin |\n| Bramblewood Foods | Leeds |\n",
-            "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh | 340 |\n| Corvane Robotics | Pittsburgh | 340 |\n| Lumetric Health | Austin | 1,150 |\n| Bramblewood Foods | Leeds | 2,600 |\n",
             "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh | 3,400 |\n| Lumetric Health | Austin | 1,150 |\n| Bramblewood Foods | Leeds | 2,600 |\n",
             "- Corvane Robotics: HQ Leeds; about 2600 employees\n- Lumetric Health: HQ Austin; about 1150 employees\n- Bramblewood Foods: HQ Pittsburgh; about 340 employees\n",
             "- Corvane Robotics: HQ Pittsburgh; about 340 employees\n- Lumetric Health: HQ Austin; about 1150 employees\n",
             "Corvane Robotics is not headquartered in Pittsburgh.\nLumetric Health: HQ Austin; about 1150 employees\nBramblewood Foods: HQ Leeds; about 2600 employees\n",
             r#"[{"company":"Corvane Robotics","city":"Austin","employees":340},{"company":"Lumetric Health","city":"Pittsburgh","employees":1150},{"company":"Bramblewood Foods","city":"Leeds","employees":2600}]"#,
+            // The look-alike company's city, or a figure that is simply wrong.
+            &ENRICH_TABLE.replace("Pittsburgh, PA", "Lisbon"),
+            "Corvane Robotics: Pittsburgh, 340. Lumetric Health: Austin, 1,150. Bramblewood Foods: Leeds, 26,000.",
+            // Every value is present, but attached to the wrong companies.
+            "Corvane Robotics is in Austin with about 1,150 employees, Lumetric Health is in Leeds with about 2,600, and Bramblewood Foods is in Pittsburgh with about 340.",
         ],
     );
 }
 
 #[test]
-fn enrichment_unreviewed_wording_and_extra_material_wait_for_adjudication() {
+fn enrichment_free_wording_and_extra_material_pass_when_every_row_is_right() {
     expect_all(
         &answer_contract(ENRICH_SCENARIO),
         &enrich_state(),
-        Outcome::Unresolved,
+        Outcome::Pass,
         &[
             "Corvane Robotics sits in Pittsburgh with roughly 340 staff, Lumetric Health in Austin with 1,150 and Bramblewood Foods in Leeds with 2,600.",
             &format!("Here are the enriched leads:\n\n{ENRICH_TABLE}"),
             "| Company | HQ city | Employees | Founded |\n|---|---|---|---|\n| Corvane Robotics | Pittsburgh | 340 | 2015 |\n| Lumetric Health | Austin | 1,150 | 2009 |\n| Bramblewood Foods | Leeds | 2,600 | 1952 |\n",
-            "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh, Ohio | 340 |\n| Lumetric Health | Austin | 1,150 |\n| Bramblewood Foods | Leeds | 2,600 |\n",
-            "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh | 0.34k |\n| Lumetric Health | Austin | 1,150 |\n| Bramblewood Foods | Leeds | 2,600 |\n",
+            // A repeated row and an unfamiliar or missing header change nothing.
+            "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh | 340 |\n| Corvane Robotics | Pittsburgh | 340 |\n| Lumetric Health | Austin | 1,150 |\n| Bramblewood Foods | Leeds | 2,600 |\n",
+            &ENRICH_TABLE.replace("Employees", "Staff"),
+            &ENRICH_TABLE.replace("Employees", "No. of employees (est.)"),
+            "| HQ city | Employees | Company |\n|---|---|---|\n| Pittsburgh | 340 | Corvane Robotics |\n| Austin | 1,150 | Lumetric Health |\n| Leeds | 2,600 | Bramblewood Foods |\n",
+            r#"[{"company":"Corvane Robotics","city":"Pittsburgh","employees":340},{"company":"Lumetric Health","hq":"Austin","employees":1150},{"company":"Bramblewood Foods","city":"Leeds","employees":2600}]"#,
+            // Magnitude notations are read exactly.
+            &ENRICH_TABLE.replace("~340", "0.34k"),
+            &ENRICH_TABLE.replace("~1,150", "1.15 thousand"),
+            "Corvane Robotics\n- HQ: Pittsburgh, PA (USA)\n- Headcount: ≈340\n\nLumetric Health\n- HQ: Austin, TX\n- Headcount: ≈1.15k\n\nBramblewood Foods\n- HQ: Leeds (United Kingdom)\n- Headcount: ≈2.6k\n",
+            // A true remark about another row's value is context.
+            &format!("{ENRICH_TABLE}\nCorvane Robotics is not headquartered in Leeds."),
         ],
     );
 }
@@ -166,21 +180,15 @@ fn enrichment_facts_follow_the_authored_output_rather_than_a_retyped_answer() {
 }
 
 #[test]
-fn unreviewed_filled_cells_and_number_words_are_not_proven_omissions() {
-    for answer in [
-        ENRICH_TABLE.replace("~340", "three hundred forty"),
-        ENRICH_TABLE.replace("Pittsburgh, PA", "Lisbon"),
-    ] {
-        assert_eq!(
-            outcome(
-                &answer_contract(ENRICH_SCENARIO),
-                &enrich_state(),
-                Some(&answer)
-            ),
-            Outcome::Unresolved,
-            "{answer}"
-        );
-    }
+fn number_words_are_not_proven_omissions() {
+    assert_eq!(
+        outcome(
+            &answer_contract(ENRICH_SCENARIO),
+            &enrich_state(),
+            Some(&ENRICH_TABLE.replace("~340", "three hundred forty"))
+        ),
+        Outcome::Unresolved
+    );
     assert_eq!(
         outcome(
             &answer_contract(FLEET_SCENARIO),
@@ -204,46 +212,38 @@ fn unreviewed_filled_cells_and_number_words_are_not_proven_omissions() {
 }
 
 #[test]
-fn true_non_target_negations_and_neutral_context_are_not_proven_failures() {
+fn true_remarks_about_other_rows_are_context_but_do_not_replace_the_answer() {
     expect_all(
         &answer_contract(FLEET_SCENARIO),
         &fleet_state(),
-        Outcome::Unresolved,
+        Outcome::Pass,
         &[
             "GridNest is not the leader. VoltHaven leads, and its 22 kW unit costs EUR 6,900.",
-            "The market leader is not GridNest.",
+            "Not GridNest (14%) or Ladewerk Systems (21%): the leader is VoltHaven with 31%, and its 22 kW unit costs EUR 6,900.",
+            "VoltHaven is the market leader at EUR 6,900 per 22 kW unit. VoltHaven does not publish a list price online, so the figure is the report's.",
         ],
+    );
+    expect_all(
+        &answer_contract(FLEET_SCENARIO),
+        &fleet_state(),
+        Outcome::Fail,
+        &["The market leader is not GridNest."],
     );
     expect_all(
         &answer_contract(COLD_SCENARIO),
         &cold_state(),
-        Outcome::Unresolved,
+        Outcome::Pass,
         &[
             "Market leader: FrostLink. List price: EUR 4.20 per sensor per month.\nKylma Systems is not the market leader.",
             "Market leader: FrostLink. List price: EUR 4.20 per sensor per month.\nColdTrace — EUR 3.80 per sensor per month.",
         ],
     );
-    let answer = format!("{ENRICH_TABLE}\nCorvane Robotics is not headquartered in Leeds.");
-    assert_eq!(
-        outcome(
-            &answer_contract(ENRICH_SCENARIO),
-            &enrich_state(),
-            Some(&answer)
-        ),
-        Outcome::Unresolved
-    );
-    expect_all(
-        &answer_contract(ENRICH_SCENARIO),
-        &enrich_state(),
-        Outcome::Unresolved,
-        &[
-            "- Corvane Robotics: HQ Pittsburgh, PA; about 340 employees\n- Lumetric Health: HQ Austin, TX; about 1,150 employees\n- Bramblewood Foods: HQ Leeds, UK; about 2,600 employees\n- Corvane Robotics is not headquartered in Leeds.",
-        ],
-    );
 }
 
 #[test]
-fn semantic_headers_wrappers_and_fence_metadata_cannot_be_discarded() {
+fn headers_keys_and_fence_text_that_contradict_the_answer_earn_no_reward() {
+    // A label that negates or down-ranks the row cannot be decided; a key
+    // given two values cannot be read.
     expect_all(
         &answer_contract(FLEET_SCENARIO),
         &fleet_state(),
@@ -255,6 +255,16 @@ fn semantic_headers_wrappers_and_fence_metadata_cannot_be_discarded() {
             r#"{"vendorsOtherThanTheMarketLeader":[{"vendor":"VoltHaven","price":"EUR 6,900"}]}"#,
             r#"{"marketLeader":"GridNest","marketLeader":"VoltHaven","price":"EUR 6,900"}"#,
             r#"{"results":[{"marketLeader":"GridNest","marketLeader":"VoltHaven","price":"EUR 6,900"}]}"#,
+            "Runner-up: VoltHaven, EUR 6,900 per 22 kW unit.",
+            "VoltHaven is second, at EUR 6,900 per 22 kW unit.",
+        ],
+    );
+    // Wording placed where a language tag belongs is still wording.
+    expect_all(
+        &answer_contract(FLEET_SCENARIO),
+        &fleet_state(),
+        Outcome::Fail,
+        &[
             "```GridNest is the actual leader\n{\"vendor\":\"VoltHaven\",\"price\":\"EUR 6,900\"}\n```",
         ],
     );
@@ -267,43 +277,30 @@ fn semantic_headers_wrappers_and_fence_metadata_cannot_be_discarded() {
 }
 
 #[test]
-fn unknown_headers_and_heterogeneous_aliases_require_review_not_omission_failures() {
-    let expect = answer_contract(ENRICH_SCENARIO);
-    for answer in [
-        ENRICH_TABLE.replace("Employees", "Staff"),
-        ENRICH_TABLE.replace("Employees", "Employees (est.)"),
-        r#"[{"company":"Corvane Robotics","city":"Pittsburgh","employees":340},{"company":"Lumetric Health","hq":"Austin","employees":1150},{"company":"Bramblewood Foods","city":"Leeds","employees":2600}]"#.into(),
-    ] {
-        assert_eq!(outcome(&expect, &enrich_state(), Some(&answer)), Outcome::Unresolved, "{answer}");
-    }
+fn unfamiliar_headers_wrappers_and_fences_do_not_hide_a_correct_answer() {
     expect_all(
         &answer_contract(FLEET_SCENARIO),
         &fleet_state(),
-        Outcome::Unresolved,
-        &["| Leader | Cost |\n|---|---|\n| VoltHaven | EUR 6,900 |"],
+        Outcome::Pass,
+        &[
+            "| Leader | Cost |\n|---|---|\n| VoltHaven | EUR 6,900 |",
+            "| Top vendor by installed share | What a 22 kW unit costs |\n|---|---|\n| VoltHaven | EUR 6,900 |",
+            r#"{"answer":{"leader":"VoltHaven","unitPrice":"EUR 6,900"},"model":"exa-research-pro"}"#,
+            "```text\nVoltHaven, EUR 6,900\n```",
+            "Here is the result:\n\n```json\n{\"vendor\":\"VoltHaven\",\"price\":\"EUR 6,900\"}\n```\n\nThe other vendors are Ladewerk Systems and GridNest.",
+        ],
     );
 }
 
 #[test]
-fn ambiguous_numeric_notation_is_not_a_proven_contradiction() {
-    for answer in [
-        ENRICH_TABLE.replace("~340", "201–500"),
-        ENRICH_TABLE.replace("~1,150", "1.15 thousand"),
-    ] {
-        assert_eq!(
-            outcome(
-                &answer_contract(ENRICH_SCENARIO),
-                &enrich_state(),
-                Some(&answer)
-            ),
-            Outcome::Unresolved
-        );
-    }
-    expect_all(
-        &answer_contract(FLEET_SCENARIO),
-        &fleet_state(),
-        Outcome::Unresolved,
-        &["| Vendor | Price |\n|---|---|\n| VoltHaven | EUR 6.9 thousand |"],
+fn notation_that_cannot_be_read_exactly_is_not_a_proven_contradiction() {
+    assert_eq!(
+        outcome(
+            &answer_contract(ENRICH_SCENARIO),
+            &enrich_state(),
+            Some(&ENRICH_TABLE.replace("~340", "201–500"))
+        ),
+        Outcome::Unresolved
     );
     expect_all(
         &answer_contract(COLD_SCENARIO),
@@ -314,7 +311,32 @@ fn ambiguous_numeric_notation_is_not_a_proven_contradiction() {
 }
 
 #[test]
-fn reviewed_claim_skeletons_detect_off_source_values_without_keyword_scanning() {
+fn common_notations_of_the_source_figures_pass() {
+    expect_all(
+        &answer_contract(FLEET_SCENARIO),
+        &fleet_state(),
+        Outcome::Pass,
+        &[
+            "| Vendor | Price |\n|---|---|\n| VoltHaven | EUR 6.9 thousand |",
+            "VoltHaven: €6.9k per 22 kW unit.",
+            "VoltHaven, 6 900 EUR.",
+            "VoltHaven (about 6,900 euros per unit).",
+            "| Market leader | Price |\n|---|---|\n| VoltHaven | 6,900 |\n",
+        ],
+    );
+    expect_all(
+        &answer_contract(COLD_SCENARIO),
+        &cold_state(),
+        Outcome::Pass,
+        &[
+            "FrostLink, €4.20/sensor/month.",
+            "FrostLink at ~EUR 4.2 per sensor per month (≈38% share).",
+        ],
+    );
+}
+
+#[test]
+fn off_source_values_and_vendors_fail() {
     expect_all(
         &answer_contract(FLEET_SCENARIO),
         &fleet_state(),
@@ -337,6 +359,7 @@ fn structured_numeric_facts_are_compared_without_binary_float_rounding() {
     assert_eq!(outcome(&expect, &source, Some(correct)), Outcome::Pass);
     let almost = correct.replace("340.000", "339.9999999999999999999999");
     assert_eq!(outcome(&expect, &source, Some(&almost)), Outcome::Fail);
+    // Scientific notation is not read; the figure may still be right.
     let scientific = correct.replace("340.000", "3.4e2");
     assert_eq!(
         outcome(&expect, &source, Some(&scientific)),
@@ -350,7 +373,7 @@ fn structured_numeric_facts_are_compared_without_binary_float_rounding() {
 }
 
 #[test]
-fn deeply_nested_unreviewed_json_is_adjudicated_without_recursive_resource_exhaustion() {
+fn deeply_nested_json_is_read_without_recursive_resource_exhaustion() {
     let nested = format!("{}0{}", "[".repeat(512), "]".repeat(512));
     let answer = format!("{{\"vendor\":\"VoltHaven\",\"price\":\"EUR 6,900\",\"extra\":{nested}}}");
     assert_eq!(
@@ -359,12 +382,21 @@ fn deeply_nested_unreviewed_json_is_adjudicated_without_recursive_resource_exhau
             &fleet_state(),
             Some(&answer)
         ),
-        Outcome::Unresolved
+        Outcome::Pass
+    );
+    let wrong = answer.replace("6,900", "7,450");
+    assert_eq!(
+        outcome(
+            &answer_contract(FLEET_SCENARIO),
+            &fleet_state(),
+            Some(&wrong)
+        ),
+        Outcome::Fail
     );
 }
 
 #[test]
-fn fleet_leader_and_its_own_price_pass_in_reviewed_forms_and_tables() {
+fn fleet_leader_and_its_own_price_pass_in_prose_tables_and_json() {
     expect_all(
         &answer_contract(FLEET_SCENARIO),
         &fleet_state(),
@@ -401,15 +433,27 @@ fn fleet_negated_misattributed_or_wrong_rows_fail() {
 }
 
 #[test]
-fn fleet_unreviewed_claims_wait_for_adjudication() {
+fn fleet_hedged_wording_and_a_table_led_by_the_leader_pass() {
     expect_all(
         &answer_contract(FLEET_SCENARIO),
         &fleet_state(),
-        Outcome::Unresolved,
+        Outcome::Pass,
         &[
             "I believe VoltHaven may lead; a 22 kW unit was EUR 6,900 at some point.",
             "| Vendor | Price |\n|---|---|\n| VoltHaven | EUR 6,900 |\n| Ladewerk Systems | EUR 7,450 |\n| GridNest | EUR 6,200 |\n",
-            "| Market leader | Price |\n|---|---|\n| VoltHaven | 6,900 |\n",
+            // The other rows may come first when each carries its own share.
+            "| Vendor | Share | Price |\n|---|---|---|\n| GridNest | 14% | EUR 6,200 |\n| Ladewerk Systems | 21% | EUR 7,450 |\n| VoltHaven | 31% | EUR 6,900 |\n",
+            "Compared with Ladewerk Systems and GridNest, VoltHaven is the leader; its 22 kW unit costs EUR 6,900.",
+        ],
+    );
+    // Without a share or any other cue, a table led by another vendor
+    // presents that vendor.
+    expect_all(
+        &answer_contract(FLEET_SCENARIO),
+        &fleet_state(),
+        Outcome::Fail,
+        &[
+            "| Vendor | Price |\n|---|---|\n| Ladewerk Systems | EUR 7,450 |\n| VoltHaven | EUR 6,900 |\n| GridNest | EUR 6,200 |\n",
         ],
     );
 }
@@ -489,9 +533,75 @@ fn cold_chain_leader_price_relation_is_source_bound() {
     expect_all(
         &expect,
         &source,
-        Outcome::Unresolved,
+        Outcome::Pass,
         &[
             "FrostLink seems to be ahead at EUR 4.20 a month per sensor, though ColdTrace is cheaper.",
+        ],
+    );
+}
+
+#[test]
+fn values_are_attributed_to_the_row_they_are_stated_for() {
+    // Lists, CSV, enumerations and inverted sentences keep each value with
+    // its own company.
+    expect_all(
+        &answer_contract(ENRICH_SCENARIO),
+        &enrich_state(),
+        Outcome::Pass,
+        &[
+            "Company,HQ city,Headcount\nCorvane Robotics,Pittsburgh,340\nLumetric Health,Austin,1150\nBramblewood Foods,Leeds,2600",
+            "The three leads: Corvane Robotics (Pittsburgh; ~340 staff), Lumetric Health (Austin; ~1,150 staff), Bramblewood Foods (Leeds; ~2,600 staff).",
+            "1. **Corvane Robotics** – HQ: Pittsburgh, PA, USA – approx. 340 employees\n2. **Lumetric Health** – HQ: Austin, TX, USA – approx. 1,150 employees\n3. **Bramblewood Foods** – HQ: Leeds, United Kingdom – approx. 2,600 employees",
+            "Pittsburgh is home to Corvane Robotics (about 340 people). Lumetric Health is based in Austin and employs about 1,150. Bramblewood Foods, based in Leeds, has about 2,600 employees.",
+            "```\nCompany            HQ city      Headcount\nCorvane Robotics   Pittsburgh   340\nLumetric Health    Austin       1150\nBramblewood Foods  Leeds        2600\n```",
+        ],
+    );
+    expect_all(
+        &answer_contract(ENRICH_SCENARIO),
+        &enrich_state(),
+        Outcome::Fail,
+        &[
+            "All three companies are headquartered in Pittsburgh with 340 employees: Corvane Robotics, Lumetric Health and Bramblewood Foods.",
+            "- Corvane Robotics: Pittsburgh, 340\n- Lumetric Health: Austin, 1,150\n- Bramblewood Foods: Leeds (headcount not found)",
+            "Corvane Robotics: Pittsburgh, 340 employees. Lumetric Health: Austin, 11,500 employees. Bramblewood Foods: Leeds, 2,600 employees.",
+        ],
+    );
+    // Other vendors' figures stay with those vendors, also in brackets, in
+    // a range, or in a sentence about "others".
+    expect_all(
+        &answer_contract(FLEET_SCENARIO),
+        &fleet_state(),
+        Outcome::Pass,
+        &[
+            "Leader: VoltHaven. Price per 22 kW unit: EUR 6,900 (Ladewerk Systems: EUR 7,450; GridNest: EUR 6,200).",
+            "VoltHaven is the market leader. The cheapest unit is EUR 6,200 (GridNest); VoltHaven's costs EUR 6,900.",
+            "VoltHaven is the leader. Prices across vendors range from EUR 6,200 to EUR 7,450; VoltHaven's is EUR 6,900.",
+            "VoltHaven leads. Others charge EUR 7,450 and EUR 6,200. VoltHaven charges EUR 6,900.",
+            "EUR 6,900 per 22 kW unit is what VoltHaven, the vendor with the largest share, charges.",
+            "Ladewerk Systems and GridNest trail VoltHaven, the market leader, whose 22 kW unit costs EUR 6,900.",
+            "I ran the research task. The report lists Ladewerk Systems at 21% and GridNest at 14%, both behind the leader.\n\nVoltHaven: EUR 6,900 per 22 kW unit.",
+            r#"Summary: {"source":"https://example.com/report","vendor":"VoltHaven","price":"EUR 6,900"} (from the report)"#,
+        ],
+    );
+    expect_all(
+        &answer_contract(FLEET_SCENARIO),
+        &fleet_state(),
+        Outcome::Fail,
+        &[
+            "Market leader: VoltHaven (EUR 6,200)",
+            "GridNest leads at EUR 6,200. VoltHaven: EUR 6,900.",
+            "Largest share: Ladewerk Systems (EUR 7,450). For comparison, VoltHaven charges EUR 6,900.",
+            "Market leader: Ladewerk Systems\nPrice: EUR 6,900",
+            "The research task failed, so I could not determine the market leader.",
+        ],
+    );
+    expect_all(
+        &answer_contract(FLEET_SCENARIO),
+        &fleet_state(),
+        Outcome::Unresolved,
+        &[
+            "The market leader is Ladewerk Systems; VoltHaven is second with EUR 6,900.",
+            "VoltHaven is the leader. Its price is EUR 6,200 to EUR 7,450.",
         ],
     );
 }
@@ -511,14 +621,15 @@ fn malformed_source_fact_contracts_are_rejected() {
             .is_ok()
     );
     assert!(invalid(&|contract| contract["version"] = json!(1)));
+    // The reviewed claim forms and answer headers are gone, not ignored.
     assert!(invalid(&|contract| {
         contract["answer"]["source_facts"]["claims"] = json!(["Market leader: ${vendor}."])
     }));
     assert!(invalid(&|contract| {
-        contract["answer"]["source_facts"]["claims"] = json!(["${vendor} costs ${cost}."])
+        contract["answer"]["source_facts"]["columns"]["hq"]["answer_headers"] = json!(["Base"])
     }));
     assert!(invalid(&|contract| {
-        contract["answer"]["source_facts"]["claims"] = json!(["${vendor}${price}"])
+        contract["answer"]["source_facts"]["columns"]["hq"]["header"] = json!("Vendor")
     }));
     assert!(invalid(&|contract| {
         contract["answer"]["source_facts"]["rows"] = json!({"largest": "hq"})
@@ -530,16 +641,13 @@ fn malformed_source_fact_contracts_are_rejected() {
         contract["answer"]["source_facts"]["source"]["selector"]["created"] = json!(true)
     }));
     assert!(invalid(&|contract| {
-        contract["answer"]["source_facts"]["columns"]["hq"]["answer_headers"] = json!(["Price"])
-    }));
-    assert!(invalid(&|contract| {
-        contract["answer"]["source_facts"]["aliases"] = json!({"Hamburg": []})
+        contract["answer"]["source_facts"]["columns"]["hq"]["short_names"] = json!(true)
     }));
     assert!(invalid(&|contract| {
         contract["answer"]["oncall"] = json!({
             "schedule": {"collection": "/services/grafana/oncall_schedules", "matching": {"id": "primary"}},
             "directory": "/services/grafana/oncall_users",
-            "content": {"requirement": "x", "accepted": ["${oncall}"]}
+            "requirement": "x"
         })
     }));
 }
@@ -573,11 +681,15 @@ fn failures_name_the_relational_defect_rather_than_a_missing_keyword() {
         ),
         (
             "- Corvane Robotics: HQ Leeds; about 2600 employees\n- Lumetric Health: HQ Austin; about 1150 employees\n- Bramblewood Foods: HQ Pittsburgh; about 340 employees\n",
-            "attributes another source row's fact",
+            "another source row's city",
         ),
         (
             "Corvane Robotics does not have about 340 employees.\nCorvane Robotics: HQ Pittsburgh; about 340 employees\nLumetric Health: HQ Austin; about 1150 employees\nBramblewood Foods: HQ Leeds; about 2600 employees\n",
-            "reviewed incorrect claim form",
+            "both states and disputes the source employees",
+        ),
+        (
+            "Corvane Robotics is in Pittsburgh but does not have about 340 employees.\nLumetric Health: HQ Austin; about 1150 employees\nBramblewood Foods: HQ Leeds; about 2600 employees\n",
+            "denies the source employees",
         ),
     ] {
         let reason = answer_reason(&enrich, &enrich_state(), answer);
@@ -587,11 +699,11 @@ fn failures_name_the_relational_defect_rather_than_a_missing_keyword() {
     for (answer, defect) in [
         (
             "VoltHaven is not the leader. Ladewerk Systems leads, and its 22 kW unit costs EUR 6,900.",
-            "reviewed incorrect claim form",
+            "denies that volthaven is the requested source row",
         ),
         (
-            "Ladewerk Systems leads, and its 22 kW unit costs EUR 6,900.\nVoltHaven trails.",
-            "attributes another source row's fact",
+            "VoltHaven leads the German depot V2G market; its 22 kW bidirectional unit typically costs EUR 7,450.\nElsewhere EUR 6,900 is quoted.",
+            "another source row's price to volthaven",
         ),
         (
             "Market leader: Ladewerk Systems. Typical price of its 22 kW bidirectional unit: EUR 7,450.\nVoltHaven costs EUR 6,900.",
@@ -607,8 +719,5 @@ fn failures_name_the_relational_defect_rather_than_a_missing_keyword() {
         &cold_state(),
         "ColdTrace has the largest share. FrostLink charges EUR 4.20 per sensor per month.",
     );
-    assert!(
-        reason.contains("attributes another source row's fact"),
-        "{reason}"
-    );
+    assert!(reason.contains("other than the requested one"), "{reason}");
 }

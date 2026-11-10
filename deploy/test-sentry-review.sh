@@ -45,9 +45,9 @@ for variant in approved rejected collateral forged_signature wrong_key missing_p
       }}}}' > "$TASK/solution/collateral.json"
     printf '%s\n' 'call 7113 "$DIR/collateral.json"' >> "$TASK/solution/solve.sh"
   fi
-  expression='"Unfamiliar but potentially correct answer wording: "+.dsn'
+  expression='"Do not use this DSN yet: "+.dsn'
   if [ "$variant" = wrong_key ]; then
-    expression='"Unfamiliar but potentially correct answer wording: "+(.dsn|sub("://[^@]+@";"://00000000000000000000000000000000@"))'
+    expression='"Do not use this DSN yet: "+(.dsn|sub("://[^@]+@";"://00000000000000000000000000000000@"))'
   fi
   printf 'jq -j '\''%s'\'' "$WORK/bindings.json" > "$WORK/answer.md"\n' "$expression" \
     >> "$TASK/solution/solve.sh"

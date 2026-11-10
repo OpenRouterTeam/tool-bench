@@ -356,9 +356,8 @@ pub fn write_sentry_answer_reviewable(
     } else {
         &public
     };
-    let answer = format!(
-        "Unfamiliar but potentially correct answer wording: https://{public}@ingest.example.net/sentry/{project_id}"
-    );
+    let answer =
+        format!("Do not use this DSN yet: https://{public}@ingest.example.net/sentry/{project_id}");
     let definition = json!({
         "version":2,"audit_history":true,
         "answer":{"sentry_dsn":{
@@ -368,8 +367,7 @@ pub fn write_sentry_answer_reviewable(
                 "selector":{"collection":"/services/sentry/instance","key_prefix":"instance"},
                 "field":"/ingestion_origin"
             },
-            "content":{"requirement":"Return the actual project DSN without misleading surrounding claims.",
-                "accepted":["${dsn}"]}
+            "requirement":"Return the actual project DSN without misleading surrounding claims."
         }}
     });
     write_fixture(
@@ -404,7 +402,7 @@ pub fn write_oncall_answer_reviewable(
         trial,
         task,
         definition,
-        b"Please page Sam Brennan for Checkout Primary right now.",
+        b"Sam is the one to page for Checkout Primary right now.",
         Some(policy),
         Some(dataset),
     );

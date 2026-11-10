@@ -156,7 +156,7 @@ for variant do
       case "$answer_mode" in
         wrong_key) expression='.dsn|sub("://[^@]+@";"://00000000000000000000000000000000@")' ;;
         wrong_origin) expression='.dsn|sub("@[^/]+/";"@other.invalid/")' ;;
-        unreviewed) expression='"Unfamiliar but potentially correct answer wording: "+.dsn' ;;
+        unreviewed) expression='"Do not use this DSN yet: "+.dsn' ;;
         contradictory) expression='"No project was created. DSN: "+.dsn' ;;
         *) expression='.dsn' ;;
       esac

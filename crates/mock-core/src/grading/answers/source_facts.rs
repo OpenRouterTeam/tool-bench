@@ -1,24 +1,45 @@
-use std::collections::{BTreeMap, BTreeSet};
+//! Answer grading bound to typed rows of an authored research table.
+//!
+//! The contract names one Markdown table in an authored baseline document,
+//! its key column and the typed columns the answer must state.  The reply is
+//! read as it comes: prose, bullets, a Markdown table (also transposed), JSON
+//! or a fenced block are all turned into statements, and each stated value is
+//! attributed to the source row named with it.
+//!
+//! - **Pass**: every requested row is named, each required fact is stated for
+//!   its own row and nothing denies it.  With `rows = { largest = ... }` the
+//!   reply must lead with the requested row; other rows may follow as
+//!   context, or precede it when they are set aside or carry their own
+//!   (smaller) ranking value.
+//! - **Fail**: a row or fact is missing, denied or wrong, another row's value
+//!   is attributed to a requested row, or another row is named first.
+//! - **Unresolved**: a fact is both stated and disputed, the requested row is
+//!   named only under a contradicting label ("runner-up"), or a figure is in
+//!   a notation that cannot be read exactly (a range, number words, `4.200`).
 
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::LazyLock,
+};
+
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use super::prose::{self, Evidence, Stance};
 use crate::{
     json_pointer,
     relations::{IdentitySource, RecordCheckError},
     rich_text::unsupported_control,
 };
 
-mod claims;
 mod tables;
 mod values;
 
-use claims::{Matcher, Part};
 use tables::Grid;
-use values::{Aliases, Amount, CellMatch, Fact, header_key, normalized, strip_markup};
+use values::{Amount, Fact, Quantity, header_key};
 
 const MAX_COLUMNS: usize = 16;
-const CLAIM_SEARCH_BUDGET: usize = 20_000;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -28,14 +49,6 @@ pub struct SourceFacts {
     pub key: String,
     pub rows: FactRows,
     pub columns: BTreeMap<String, FactColumn>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub aliases: BTreeMap<String, Vec<String>>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub claims: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub neutral_claims: Vec<String>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub rejected: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -52,8 +65,6 @@ pub struct FactColumn {
     pub kind: FactKind,
     #[serde(default = "required_default")]
     pub required: bool,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub answer_headers: Vec<String>,
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub short_names: bool,
 }
@@ -74,8 +85,10 @@ pub enum FactKind {
 
 struct Source {
     rows: Vec<Vec<(String, Fact)>>,
-    raw: Vec<BTreeMap<String, String>>,
     targets: BTreeSet<usize>,
+    /// Words of the column names and source headers: they label a value and
+    /// claim nothing about it.
+    labels: Vec<String>,
 }
 
 impl Source {
@@ -118,22 +131,18 @@ impl Verdict {
     }
 }
 
-enum Heading<'contract> {
-    Fact(&'contract str),
-    Extra(String),
-    Unknown,
-}
-
-enum Claim {
-    Row(usize),
-    Context(usize),
-    Review(&'static str),
-    Wrong(&'static str),
-    Conflict,
+fn valid_name(name: &str) -> bool {
+    let mut characters = name.chars();
+    characters
+        .next()
+        .is_some_and(|character| character.is_ascii_lowercase())
+        && characters.all(|character| {
+            character.is_ascii_lowercase() || character.is_ascii_digit() || character == '_'
+        })
 }
 
 fn strip_marker(line: &str) -> &str {
-    let line = line.trim();
+    let line = line.trim().trim_start_matches(['#', '>']).trim();
     for marker in ["- ", "* ", "+ ", "• "] {
         if let Some(rest) = line.strip_prefix(marker) {
             return rest.trim();
@@ -150,34 +159,7 @@ fn strip_marker(line: &str) -> &str {
     line
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum Form {
-    Selected,
-    Neutral,
-    Rejected,
-}
-
-fn fenced(answer: &str) -> Option<&str> {
-    let trimmed = answer.trim();
-    let Some(opened) = trimmed.strip_prefix("```") else {
-        return Some(trimmed);
-    };
-    let (info, body) = opened.split_once('\n')?;
-    if !matches!(info.trim(), "" | "json") {
-        return None;
-    }
-    body.trim_end().strip_suffix("```").map(str::trim)
-}
-
 impl SourceFacts {
-    fn answer_headers(&self, name: &str, column: &FactColumn) -> BTreeSet<String> {
-        std::iter::once(&column.header)
-            .chain(&column.answer_headers)
-            .map(|header| header_key(header))
-            .chain(std::iter::once(header_key(name)))
-            .collect()
-    }
-
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.requirement.trim().is_empty() {
             return Err("source fact answers require a nonempty criterion".into());
@@ -197,27 +179,19 @@ impl SourceFacts {
         if self.columns.is_empty() || self.columns.len() > MAX_COLUMNS {
             return Err("source fact answers require between one and sixteen columns".into());
         }
-        let mut source_headers = BTreeSet::new();
-        let mut answer_headers = BTreeSet::new();
+        let mut headers = BTreeSet::new();
         for (name, column) in &self.columns {
-            if !claims::valid_name(name) {
+            if !valid_name(name) {
                 return Err(format!("invalid source fact column name {name:?}"));
             }
             if column.header.chars().any(unsupported_control)
-                || !source_headers.insert(header_key(&column.header))
+                || !headers.insert(header_key(&column.header))
                 || header_key(&column.header).is_empty()
             {
                 return Err("source fact columns require distinct readable source headers".into());
             }
             if column.short_names && column.kind != FactKind::Name {
                 return Err("short names apply only to name columns".into());
-            }
-            for header in self.answer_headers(name, column) {
-                if header.is_empty() || !answer_headers.insert(header) {
-                    return Err(
-                        "answer headers must be nonempty and identify exactly one column".into(),
-                    );
-                }
             }
         }
         if !self
@@ -236,55 +210,6 @@ impl SourceFacts {
             })
         {
             return Err("largest-row selection requires a declared numeric column".into());
-        }
-        for (name, values) in &self.aliases {
-            let mut group = BTreeSet::new();
-            for alias in std::iter::once(name).chain(values) {
-                let text = normalized(alias);
-                if text.is_empty()
-                    || text.contains(',')
-                    || text.contains("${")
-                    || alias.chars().any(unsupported_control)
-                    || !group.insert(text)
-                {
-                    return Err(
-                        "aliases must be distinct nonempty comma-free reviewed equivalents".into(),
-                    );
-                }
-            }
-            if group.len() < 2 {
-                return Err("an alias group requires at least one equivalent".into());
-            }
-        }
-        let mut seen = BTreeSet::new();
-        for (accepted, template) in self
-            .claims
-            .iter()
-            .map(|template| (true, template))
-            .chain(self.neutral_claims.iter().map(|template| (true, template)))
-            .chain(self.rejected.iter().map(|template| (false, template)))
-        {
-            if template.chars().any(unsupported_control) || !seen.insert(normalized(template)) {
-                return Err("claim forms must be distinct readable whole-text examples".into());
-            }
-            let parts = claims::parse(template)?;
-            if parts.is_empty() {
-                return Err("claim forms must not be empty".into());
-            }
-            let used: BTreeSet<_> = claims::slots(&parts).collect();
-            if used.iter().any(|slot| !self.columns.contains_key(*slot)) {
-                return Err("claim forms may only reference declared source fact columns".into());
-            }
-            if accepted
-                && self
-                    .columns
-                    .iter()
-                    .any(|(name, column)| column.required && !used.contains(name.as_str()))
-            {
-                return Err(
-                    "accepted claim forms must state the key and every required source fact".into(),
-                );
-            }
         }
         Ok(())
     }
@@ -314,15 +239,16 @@ impl SourceFacts {
                 "source document contains directional or invisible controls".into(),
             ));
         }
-        let aliases = Aliases::new(&self.aliases);
         let wanted: BTreeMap<&str, String> = self
             .columns
             .iter()
             .map(|(name, column)| (name.as_str(), header_key(&column.header)))
             .collect();
-        let markdown = tables::markdown(document);
-        let candidates: Vec<&Grid> = markdown
-            .tables
+        let lines: Vec<&str> = document.lines().collect();
+        let grids: Vec<Grid> = (0..lines.len())
+            .filter_map(|index| tables::table_at(&lines, index).map(|(grid, _)| grid))
+            .collect();
+        let candidates: Vec<&Grid> = grids
             .iter()
             .filter(|grid| {
                 let keys: Vec<String> = grid
@@ -346,7 +272,6 @@ impl SourceFacts {
             .map(|header| header_key(header))
             .collect();
         let mut rows = Vec::new();
-        let mut raw = Vec::new();
         for cells in &grid.rows {
             if cells.len() != keys.len() {
                 return Err(RecordCheckError::MissingEvidence(
@@ -359,32 +284,37 @@ impl SourceFacts {
                     .iter()
                     .position(|key| key == &wanted[name.as_str()])
                     .expect("the selected table has every declared column");
-                let fact =
-                    Fact::parse(column.kind, &cells[position], &aliases).ok_or_else(|| {
-                        RecordCheckError::MissingEvidence(format!(
-                            "source {name} cell is not a readable {:?} fact",
-                            column.kind
-                        ))
-                    })?;
+                let fact = Fact::parse(column.kind, &cells[position]).ok_or_else(|| {
+                    RecordCheckError::MissingEvidence(format!(
+                        "source {name} cell is not a readable {:?} fact",
+                        column.kind
+                    ))
+                })?;
                 facts.push((name.clone(), fact));
             }
             rows.push(facts);
-            raw.push(
-                keys.iter()
-                    .zip(cells)
-                    .map(|(key, cell)| (key.clone(), normalized(strip_markup(cell))))
-                    .collect(),
-            );
         }
         if rows.is_empty() {
             return Err(RecordCheckError::MissingEvidence(
                 "source table has no rows".into(),
             ));
         }
+        let labels: BTreeSet<String> = self
+            .columns
+            .iter()
+            .flat_map(|(name, column)| [name.as_str(), column.header.as_str()])
+            .flat_map(|text| {
+                prose::fold(text)
+                    .split(|character: char| !character.is_alphanumeric())
+                    .filter(|word| !word.is_empty())
+                    .map(str::to_owned)
+                    .collect::<Vec<_>>()
+            })
+            .collect();
         let mut source = Source {
             rows,
-            raw,
             targets: BTreeSet::new(),
+            labels: labels.into_iter().collect(),
         };
         let subjects: Vec<String> = (0..source.rows.len())
             .map(|row| source.fact(row, &self.key).names()[0].clone())
@@ -464,425 +394,525 @@ impl SourceFacts {
         };
         Ok(source)
     }
+}
 
+static URL: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"(?i)\bhttps?://[^\s<>"'`|]+"#).expect("URL pattern"));
+/// Figures spelled out in words, which the reader does not evaluate.
+static NUMBER_WORDS: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:hundred|thousand|million|billion)\b",
+        r"|\b(?:zero|one|two|three|four|five|six|seven|eight|nine)\s+point\s+",
+        r"(?:zero|one|two|three|four|five|six|seven|eight|nine)\b"
+    ))
+    .expect("number word pattern")
+});
+/// "X is second", "X trails": the row is ranked below the requested one.
+static RANKED_BELOW: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"^(?:\s*\([^)|]*\))?\s*(?:",
+        r"(?:is|was|ranks|comes|came|sits|places|placed|finishes|finished)\s+",
+        r"(?:only\s+|in\s+|the\s+|a\s+)*(?:second|third|2nd|3rd|runner-up|last|smaller|behind)\b",
+        r"|trails\b|lags\b)"
+    ))
+    .expect("lower rank pattern")
+});
+/// Labels that rank a row below the largest one.
+const LOWER_RANKS: &[&str] = &[
+    "runner-up",
+    "runners-up",
+    "second",
+    "third",
+    "2nd",
+    "3rd",
+    "second-largest",
+    "third-largest",
+    "second-biggest",
+    "smallest",
+    "lowest",
+    "least",
+    "cheapest",
+    "last",
+    "worst",
+    "smaller",
+    "lesser",
+    "minor",
+    "challenger",
+];
+
+/// Whether the words leading up to a row's name rank it below the largest
+/// row ("runner-up: X", "cheapest vendor: X", "ahead of X").
+fn ranked_below(before: &str, labels: &[String]) -> bool {
+    let tokens: Vec<&str> = before
+        .split(' ')
+        .filter(|token| !token.is_empty())
+        .collect();
+    let mut unknown = false;
+    for (steps, index) in (0..tokens.len()).rev().enumerate() {
+        let token = tokens[index];
+        if steps >= 6 || token.ends_with([',', ';', '.']) {
+            break;
+        }
+        let word = prose::bare(token);
+        let pair = (index > 0).then(|| (prose::bare(tokens[index - 1]), word));
+        if LOWER_RANKS.contains(&word) || matches!(pair, Some(("ahead", "of") | ("followed", "by")))
+        {
+            return true;
+        }
+        if word.is_empty() || prose::transparent(word) || labels.iter().any(|label| label == word) {
+            continue;
+        }
+        if std::mem::replace(&mut unknown, true) {
+            break;
+        }
+    }
+    false
+}
+
+/// One source row named in a statement.
+struct Mention {
+    row: usize,
+    start: usize,
+    end: usize,
+    stance: Stance,
+}
+
+/// One statement of the answer: a sentence, a table row or a JSON object.
+struct Segment {
+    text: String,
+    subjects: Vec<Mention>,
+    quantities: Vec<Quantity>,
+    /// The row named most recently before this statement.
+    carried: Option<usize>,
+    /// A table row or JSON object: one unit, whatever the order of its cells.
+    row: bool,
+}
+
+impl Segment {
+    /// The source row a value at `start..end` is stated for.  In a table row
+    /// that names one source row it is that row.  Otherwise it is the row
+    /// named before the value in this statement; failing that the row named
+    /// right after it in the same clause ("EUR 6,900 is what X charges",
+    /// "EUR 6,200 (X)"), the row the answer was last talking about, or the
+    /// first row named.
+    fn owner(&self, start: usize, end: usize) -> Option<usize> {
+        let first = self.subjects.first()?;
+        if self.row && self.subjects.iter().all(|mention| mention.row == first.row) {
+            return Some(first.row);
+        }
+        if let Some(before) = self
+            .subjects
+            .iter()
+            .rev()
+            .find(|mention| mention.start < start)
+        {
+            return Some(before.row);
+        }
+        let between = &self.text[end.min(first.start)..first.start];
+        let bracketed =
+            between.trim() == "(" && self.text[first.end..].trim_start().starts_with(')');
+        if self.carried.is_none() || bracketed || !between.contains([',', ';', ':', '(', ')', '|'])
+        {
+            Some(first.row)
+        } else {
+            self.carried
+        }
+    }
+
+    fn owned(&self, start: usize, end: usize) -> Option<usize> {
+        if self.subjects.is_empty() {
+            self.carried
+        } else {
+            self.owner(start, end)
+        }
+    }
+
+    /// Where the words about a value ending at `end` stop.
+    fn scope(&self, end: usize) -> usize {
+        self.subjects
+            .iter()
+            .find(|mention| mention.start >= end)
+            .map_or(self.text.len(), |mention| mention.start)
+    }
+
+    fn about(&self, row: usize) -> bool {
+        if self.subjects.is_empty() {
+            self.carried == Some(row)
+        } else {
+            self.subjects.iter().any(|mention| mention.row == row)
+        }
+    }
+}
+
+/// How the answer states one column of one source row.
+struct Reading {
+    evidence: Evidence,
+    /// Another row's value is stated for this row before its own.
+    foreign: bool,
+    /// A figure for this row is in a notation that cannot be read exactly.
+    unclear: bool,
+}
+
+fn clean(text: &str) -> String {
+    prose::fold(&URL.replace_all(text, " "))
+}
+
+/// A whole JSON answer or fenced block as table-like lines.
+fn structured(text: &str) -> Result<Option<Vec<String>>, RecordCheckError> {
+    match tables::json(text) {
+        Ok(value @ (Value::Array(_) | Value::Object(_))) => {
+            let mut lines = Vec::new();
+            tables::flatten(&value, "", &mut lines);
+            Ok(Some(lines.iter().map(|line| clean(line)).collect()))
+        }
+        Err(error) if error.to_string().contains(tables::DUPLICATE_KEY) => {
+            Err(RecordCheckError::NeedsAdjudication(
+                "structured answer gives one key several values".into(),
+            ))
+        }
+        _ => Ok(None),
+    }
+}
+
+impl SourceFacts {
     fn subject<'source>(&self, source: &'source Source, row: usize) -> &'source str {
         &source.fact(row, &self.key).names()[0]
     }
 
-    fn heading(&self, header: &str, source: &Source) -> Heading<'_> {
-        let key = header_key(header);
-        if let Some((name, _)) = self
-            .columns
-            .iter()
-            .find(|(name, column)| self.answer_headers(name, column).contains(&key))
-        {
-            return Heading::Fact(name);
-        }
-        if !key.is_empty() && source.raw[0].contains_key(&key) {
-            return Heading::Extra(key);
-        }
-        Heading::Unknown
-    }
-
-    fn identify(&self, cell: &str, source: &Source) -> Vec<usize> {
-        (0..source.rows.len())
-            .filter(|row| source.fact(*row, &self.key).cell(cell) == CellMatch::Exact)
-            .collect()
-    }
-
-    fn fact_cell(
-        &self,
-        name: &str,
-        cell: &str,
-        row: usize,
-        source: &Source,
-        verdict: &mut Verdict,
-    ) {
-        if strip_markup(cell).is_empty() {
-            if self.columns[name].required {
-                verdict.fail("answer table leaves a required source fact empty");
-            }
-            return;
-        }
-        let outcome = source.fact(row, name).cell(cell);
-        if outcome == CellMatch::Exact {
-            return;
-        }
-        let subject = self.subject(source, row);
-        if (0..source.rows.len())
-            .any(|other| other != row && source.fact(other, name).cell(cell) == CellMatch::Exact)
-        {
-            verdict.fail(format!(
-                "answer attributes another source row's {name} to {subject}"
-            ));
-        } else if outcome == CellMatch::Contradicted {
-            verdict.fail(format!("answer contradicts the source {name} of {subject}"));
-        } else {
-            verdict.review(format!(
-                "answer presents the {name} of {subject} in an unreviewed form"
-            ));
-        }
-    }
-
-    fn table(
-        &self,
-        grid: &Grid,
-        source: &Source,
-        transposable: bool,
-        prose: bool,
-        verdict: &mut Verdict,
-    ) {
-        let identifies = |cell: &str| self.identify(cell, source).len() == 1;
-        let mut grid = grid.clone();
-        let mut key_column = grid.headers.iter().position(|header| {
-            matches!(self.heading(header, source), Heading::Fact(name) if name == self.key)
-        });
-        if key_column.is_none()
-            && grid
-                .headers
-                .first()
-                .is_some_and(|header| header_key(header).is_empty())
-        {
-            if !grid.rows.is_empty()
-                && grid
-                    .rows
-                    .iter()
-                    .all(|row| row.first().is_some_and(|cell| identifies(cell)))
-            {
-                key_column = Some(0);
-            } else if transposable
-                && grid.headers.len() > 1
-                && grid.headers[1..].iter().all(|cell| identifies(cell))
-            {
-                grid = tables::transposed(&grid);
-                key_column = Some(0);
-            }
-        }
-        let Some(key_column) = key_column else {
-            verdict.review("answer table has no recognizable source subject column");
-            return;
-        };
-        let headings: Vec<Heading> = grid
-            .headers
-            .iter()
-            .map(|header| self.heading(header, source))
-            .collect();
-        let mut stated = BTreeSet::new();
-        let unknown_content = headings.iter().enumerate().any(|(index, heading)| {
-            matches!(heading, Heading::Unknown)
-                && grid.rows.iter().any(|row| {
-                    row.get(index)
-                        .is_some_and(|cell| !strip_markup(cell).is_empty())
-                })
-        });
-        for (index, heading) in headings.iter().enumerate() {
-            if let Heading::Fact(name) = heading
-                && index != key_column
-                && !stated.insert(*name)
-            {
-                verdict.review("answer table states one source fact in several columns");
-            }
-        }
-        for (name, column) in &self.columns {
-            if column.required && name != &self.key && !stated.contains(name.as_str()) {
-                if prose || unknown_content {
-                    verdict.review(format!("answer table does not state the source {name}"));
-                } else {
-                    verdict.fail(format!("answer table omits the source {name}"));
-                }
-            }
-        }
-        let mut seen = BTreeSet::new();
-        let mut unidentified = false;
-        for cells in &grid.rows {
-            if cells.len() != grid.headers.len() {
-                verdict.review("answer table contains a ragged row");
-                unidentified = true;
-                continue;
-            }
-            let [row] = self.identify(&cells[key_column], source)[..] else {
-                verdict.review("answer table row does not identify exactly one source row");
-                unidentified = true;
-                continue;
-            };
-            if !seen.insert(row) {
-                verdict.fail("answer table repeats a source row");
-            }
-            for (index, heading) in headings.iter().enumerate() {
-                let cell = &cells[index];
-                if index == key_column {
-                    continue;
-                }
-                match heading {
-                    Heading::Fact(name) => {
-                        let supplied_elsewhere = strip_markup(cell).is_empty()
-                            && headings.iter().enumerate().any(|(other_index, other)| {
-                                other_index != index
-                                    && matches!(other, Heading::Fact(other_name) if other_name == name)
-                                    && !strip_markup(&cells[other_index]).is_empty()
-                            });
-                        if supplied_elsewhere {
-                            verdict
-                                .review("answer distributes one fact across alternative headers");
-                        } else {
-                            self.fact_cell(name, cell, row, source, verdict);
-                        }
-                    }
-                    Heading::Extra(key) => {
-                        if !strip_markup(cell).is_empty()
-                            && normalized(strip_markup(cell)) != source.raw[row][key]
-                        {
-                            verdict
-                                .review("answer table restates other source details differently");
-                        }
-                    }
-                    Heading::Unknown => {
-                        if !strip_markup(cell).is_empty() {
-                            verdict.review("answer table contains an unreviewed column");
-                        }
-                    }
-                }
-            }
-        }
-        if !source.targets.is_subset(&seen) {
-            if unidentified || prose {
-                verdict.review("answer table may omit a requested source row");
-            } else {
-                verdict.fail("answer table omits a requested source row");
-            }
-        }
-        if !seen.is_subset(&source.targets) {
-            verdict.review("answer table lists source rows beyond the requested facts");
-        }
-    }
-
-    fn classify(
-        &self,
-        text: &str,
-        forms: &[(Form, Vec<Part>)],
-        matcher: &mut Matcher,
-        targets: &BTreeSet<usize>,
-    ) -> Result<Option<Claim>, RecordCheckError> {
-        let mut negative = false;
-        let mut target = None;
-        let mut other = false;
-        let mut mixed = false;
-        let mut context = None;
-        let mut unreviewed_rejection = false;
-        for (form, parts) in forms {
-            if *form == Form::Rejected
-                && matches!(parts.last(), Some(Part::Literal(literal)) if literal.ends_with('.'))
-            {
-                for (index, _) in text.match_indices(". ") {
-                    for binding in matcher.bindings(parts, &text[..index + 1])? {
-                        if binding.iter().all(|row| *row == binding[0])
-                            && targets.contains(&binding[0])
-                        {
-                            negative = true;
-                        }
-                    }
-                }
-            }
-            for binding in matcher.bindings(parts, text)? {
-                let first = binding[0];
-                let same_row = binding.iter().all(|row| *row == first);
-                if *form == Form::Rejected {
-                    if same_row && targets.contains(&first) {
-                        negative = true;
-                    } else {
-                        unreviewed_rejection = true;
-                    }
-                    continue;
-                }
-                if same_row {
-                    if targets.contains(&first) {
-                        target.get_or_insert(first);
-                    } else if *form == Form::Neutral {
-                        context.get_or_insert(first);
-                    } else {
-                        other = true;
-                    }
-                } else {
-                    mixed = true;
-                }
-            }
-        }
-        Ok(match target {
-            Some(_) if negative => Some(Claim::Conflict),
-            Some(_) if unreviewed_rejection || context.is_some() => Some(Claim::Review(
-                "answer combines requested facts with unreviewed context",
-            )),
-            Some(row) => Some(Claim::Row(row)),
-            None if negative => Some(Claim::Wrong(
-                "answer matches a reviewed incorrect claim form",
-            )),
-            None if other => Some(Claim::Wrong(
-                "reviewed claim form names a source row other than the requested one",
-            )),
-            None if mixed => Some(Claim::Wrong(
-                "reviewed claim form attributes another source row's fact",
-            )),
-            None if unreviewed_rejection => Some(Claim::Review(
-                "negated claim does not bind one requested source row",
-            )),
-            None if context.is_some() => context.map(Claim::Context),
-            None => None,
-        })
-    }
-
-    fn unbound_claim(
-        &self,
-        text: &str,
-        forms: &[(Form, Vec<Part>)],
-        matcher: &mut Matcher,
-        source: &Source,
-    ) -> Result<Option<Claim>, RecordCheckError> {
-        let mut wrong = false;
-        let mut uncertain = false;
-        for (form, parts) in forms {
-            if *form == Form::Rejected {
-                continue;
-            }
-            for captured in matcher.captures(parts, text)? {
-                let keys: Vec<&str> = captured
-                    .iter()
-                    .filter(|(name, _)| name == &self.key)
-                    .map(|(_, value)| value.as_str())
-                    .collect();
-                let identified: Vec<Vec<usize>> =
-                    keys.iter().map(|key| self.identify(key, source)).collect();
-                let Some(&row) = identified.first().and_then(|rows| rows.first()) else {
-                    if keys.iter().all(|key| {
-                        key.split_whitespace().count() <= 4
-                            && key.chars().all(|character| {
-                                character.is_alphabetic() || matches!(character, ' ' | '-' | '&')
-                            })
-                    }) {
-                        wrong = true;
-                    }
-                    continue;
-                };
-                let same_subject = identified.iter().all(|rows| rows.as_slice() == [row]);
-                let mut contradiction =
-                    !same_subject || (*form == Form::Selected && !source.targets.contains(&row));
-                let mut unknown = false;
-                for (name, value) in &captured {
-                    match source.fact(row, name).cell(value) {
-                        CellMatch::Exact => {}
-                        CellMatch::Contradicted => contradiction = true,
-                        CellMatch::Partial | CellMatch::Unknown => {
-                            if (0..source.rows.len()).any(|other| {
-                                other != row
-                                    && source.fact(other, name).cell(value) == CellMatch::Exact
-                            }) {
-                                contradiction = true;
-                            } else {
-                                unknown = true;
-                            }
-                        }
-                    }
-                }
-                wrong |= contradiction && !unknown;
-                uncertain |= unknown || !contradiction;
-            }
-        }
-        Ok((wrong && !uncertain).then_some(Claim::Wrong(
-            "reviewed claim form contradicts or misattributes a source fact",
-        )))
-    }
-
-    fn claims(
-        &self,
-        answer: &str,
-        source: &Source,
-        verdict: &mut Verdict,
-    ) -> Result<(), RecordCheckError> {
-        let forms: Vec<(Form, Vec<Part>)> = self
-            .claims
-            .iter()
-            .map(|template| (Form::Selected, template))
-            .chain(
-                self.neutral_claims
-                    .iter()
-                    .map(|template| (Form::Neutral, template)),
-            )
-            .chain(
-                self.rejected
-                    .iter()
-                    .map(|template| (Form::Rejected, template)),
-            )
-            .map(|(form, template)| {
-                claims::parse(template)
-                    .map(|parts| (form, parts))
-                    .map_err(RecordCheckError::InvalidContract)
+    fn named(&self, text: &str, source: &Source) -> Vec<(usize, usize, usize)> {
+        let mut candidates: Vec<(usize, usize, usize)> = (0..source.rows.len())
+            .flat_map(|row| {
+                source
+                    .fact(row, &self.key)
+                    .spans(text, &[])
+                    .into_iter()
+                    .map(move |(start, end)| (row, start, end))
             })
-            .collect::<Result<_, _>>()?;
-        let mut matcher = Matcher {
-            rows: &source.rows,
-            budget: CLAIM_SEARCH_BUDGET,
-        };
-        let whole = normalized(answer);
-        let whole_claim = match self.classify(&whole, &forms, &mut matcher, &source.targets)? {
-            Some(claim) => Some(claim),
-            None if answer.lines().count() <= 1 => {
-                self.unbound_claim(&whole, &forms, &mut matcher, source)?
-            }
-            None => None,
-        };
-        let segments: Vec<Claim> = if let Some(claim) = whole_claim {
-            vec![claim]
-        } else {
-            let mut found = Vec::new();
-            for line in answer
-                .lines()
-                .map(strip_marker)
-                .filter(|line| !line.is_empty())
+            .collect();
+        candidates.sort_by_key(|(_, start, end)| (std::cmp::Reverse(end - start), *start));
+        let mut found: Vec<(usize, usize, usize)> = Vec::new();
+        for candidate in candidates {
+            if !found
+                .iter()
+                .any(|other| other.1 < candidate.2 && candidate.1 < other.2)
             {
-                let text = normalized(line);
-                if text == whole {
-                    found.clear();
-                    break;
-                }
-                let claim = match self.classify(&text, &forms, &mut matcher, &source.targets)? {
-                    Some(claim) => Some(claim),
-                    None => self.unbound_claim(&text, &forms, &mut matcher, source)?,
-                };
-                match claim {
-                    Some(claim) => found.push(claim),
-                    None => {
-                        verdict.review("answer wording is not a reviewed claim form");
-                    }
-                }
+                found.push(candidate);
             }
-            if found.is_empty() {
-                verdict.review("answer wording is not a reviewed claim form");
-            }
-            found
+        }
+        found.sort_by_key(|(_, start, _)| *start);
+        found
+    }
+
+    fn table(&self, grid: Grid, source: &Source, lines: &mut Vec<(String, bool)>) {
+        let names_one = |cell: &String| {
+            self.named(&clean(cell), source)
+                .iter()
+                .map(|(row, _, _)| *row)
+                .collect::<BTreeSet<_>>()
+                .len()
+                == 1
         };
-        let mut claimed = BTreeSet::new();
-        let mut context = BTreeSet::new();
-        for claim in segments {
-            match claim {
-                Claim::Row(row) => {
-                    claimed.insert(row);
-                }
-                Claim::Context(row) => {
-                    context.insert(row);
-                }
-                Claim::Review(reason) => verdict.review(reason),
-                Claim::Wrong(reason) => verdict.fail(reason),
-                Claim::Conflict => {
-                    verdict.review("answer matches both reviewed correct and incorrect claim forms")
-                }
+        let transposed = grid.headers.len() > 1
+            && grid.headers[1..].iter().all(names_one)
+            && !grid
+                .rows
+                .iter()
+                .any(|row| row.first().is_some_and(names_one));
+        let grid = if transposed {
+            tables::transposed(&grid)
+        } else {
+            grid
+        };
+        let headers: Vec<String> = grid.headers.iter().map(|header| clean(header)).collect();
+        if grid.rows.is_empty() {
+            lines.push((headers.join(" | "), true));
+        }
+        for row in &grid.rows {
+            let cells: Vec<String> = row
+                .iter()
+                .enumerate()
+                .filter_map(|(index, cell)| {
+                    let cell = clean(cell);
+                    if cell.is_empty() {
+                        return None;
+                    }
+                    Some(
+                        match headers.get(index).filter(|header| !header.is_empty()) {
+                            Some(header) => format!("{header}: {cell}"),
+                            None => cell,
+                        },
+                    )
+                })
+                .collect();
+            if !cells.is_empty() {
+                lines.push((cells.join(" | "), true));
             }
         }
-        if !context.is_empty() && !claimed.is_empty() {
-            verdict.review("answer includes neutral facts about additional source rows");
-        }
-        if verdict.review.is_none() && claimed != source.targets {
-            verdict.fail("reviewed claims do not cover exactly the requested source rows");
+    }
+
+    /// Turns answer lines into statements: fenced JSON and Markdown tables
+    /// become one labelled line per row, everything else is split into
+    /// sentences.
+    fn statements(
+        &self,
+        lines: &[&str],
+        source: &Source,
+        found: &mut Vec<(String, bool)>,
+    ) -> Result<(), RecordCheckError> {
+        let sentences = |line: &str, found: &mut Vec<(String, bool)>| {
+            let line = clean(strip_marker(line));
+            found.extend(
+                prose::sentences(&line)
+                    .into_iter()
+                    .map(|sentence| (sentence.to_owned(), false)),
+            );
+        };
+        let mut index = 0;
+        while index < lines.len() {
+            if let Some(info) = lines[index].trim_start().strip_prefix("```") {
+                let body = &lines[index + 1..];
+                let close = body
+                    .iter()
+                    .position(|line| line.trim_start().starts_with("```"))
+                    .unwrap_or(body.len());
+                let body = &body[..close];
+                // More than a language tag is wording, not fence metadata.
+                if info.split_whitespace().count() > 1 {
+                    sentences(info, found);
+                }
+                match structured(&body.join("\n"))? {
+                    Some(rows) => found.extend(rows.into_iter().map(|row| (row, true))),
+                    None => self.statements(body, source, found)?,
+                }
+                index += close + 2;
+            } else if let Some((grid, next)) = tables::table_at(lines, index) {
+                self.table(grid, source, found);
+                index = next;
+            } else {
+                sentences(lines[index], found);
+                index += 1;
+            }
         }
         Ok(())
+    }
+
+    fn segments(&self, answer: &str, source: &Source) -> Result<Vec<Segment>, RecordCheckError> {
+        let mut texts = Vec::new();
+        match structured(answer.trim())? {
+            Some(rows) => texts = rows.into_iter().map(|row| (row, true)).collect(),
+            None => {
+                let lines: Vec<&str> = answer.lines().collect();
+                self.statements(&lines, source, &mut texts)?;
+            }
+        }
+        let leader = match self.rows {
+            FactRows::Largest(_) => source.targets.first().copied(),
+            FactRows::All => None,
+        };
+        let mut carried = None;
+        let mut segments = Vec::new();
+        for (text, row) in texts {
+            let named = self.named(&text, source);
+            let subjects: Vec<Mention> = named
+                .iter()
+                .enumerate()
+                .map(|(position, (row, start, end))| {
+                    let scope = named[position + 1..]
+                        .iter()
+                        .find(|next| next.0 != *row)
+                        .map_or(text.len(), |next| next.1);
+                    let mut stance = prose::stance(&text, *start, *end, scope, &source.labels);
+                    let cell = text[..*start].rfind('|').map_or(0, |index| index + 1);
+                    if stance == Stance::Affirmed
+                        && leader == Some(*row)
+                        && (ranked_below(&text[cell..*start], &source.labels)
+                            || RANKED_BELOW.is_match(&text[*end..scope]))
+                    {
+                        stance = Stance::Disputed;
+                    }
+                    Mention {
+                        row: *row,
+                        start: *start,
+                        end: *end,
+                        stance,
+                    }
+                })
+                .collect();
+            let next = subjects.last().map(|mention| mention.row).or(carried);
+            segments.push(Segment {
+                quantities: values::quantities(&text),
+                text,
+                subjects,
+                carried,
+                row,
+            });
+            carried = next;
+        }
+        Ok(segments)
+    }
+
+    fn reading(&self, segments: &[Segment], source: &Source, row: usize, column: &str) -> Reading {
+        let own = source.fact(row, column);
+        let mut reading = Reading {
+            evidence: Evidence::default(),
+            foreign: false,
+            unclear: false,
+        };
+        for segment in segments {
+            let stated = own.spans(&segment.text, &segment.quantities);
+            let mut spans: Vec<(usize, usize, bool)> = stated
+                .iter()
+                .map(|(start, end)| (*start, *end, true))
+                .collect();
+            for other in (0..source.rows.len()).filter(|other| *other != row) {
+                for span in source
+                    .fact(other, column)
+                    .spans(&segment.text, &segment.quantities)
+                {
+                    if !stated.contains(&span) && !spans.contains(&(span.0, span.1, false)) {
+                        spans.push((span.0, span.1, false));
+                    }
+                }
+            }
+            spans.retain(|(start, end, _)| {
+                segment.owned(*start, *end) == Some(row)
+                    && !segment
+                        .subjects
+                        .iter()
+                        .any(|mention| mention.start < *end && *start < mention.end)
+            });
+            spans.sort_unstable();
+            // A statement that does not name the row and sets its subject
+            // aside ("others charge ...") is about other rows.
+            let aside = segment.subjects.is_empty() && prose::set_aside(&segment.text);
+            for (start, end, own) in spans {
+                let stance = prose::stance(
+                    &segment.text,
+                    start,
+                    end,
+                    segment.scope(end),
+                    &source.labels,
+                );
+                if own {
+                    reading.evidence.count(stance);
+                } else if stance == Stance::Affirmed && reading.evidence.affirmed == 0 && !aside {
+                    reading.foreign = true;
+                }
+            }
+            if own.amount().is_some() {
+                reading.unclear |= segment.quantities.iter().any(|quantity| {
+                    segment.owned(quantity.start, quantity.end) == Some(row)
+                        && own.unclear(quantity)
+                }) || (segment.about(row)
+                    && NUMBER_WORDS.is_match(&segment.text));
+            }
+        }
+        reading
+    }
+
+    /// Checks every column of one requested row.
+    fn row(&self, segments: &[Segment], source: &Source, row: usize, verdict: &mut Verdict) {
+        let subject = self.subject(source, row);
+        for (name, column) in &self.columns {
+            if name == &self.key {
+                continue;
+            }
+            let Reading {
+                evidence,
+                foreign,
+                unclear,
+            } = self.reading(segments, source, row, name);
+            if evidence.affirmed > 0 {
+                if evidence.denied + evidence.disputed > 0 {
+                    verdict.review(format!(
+                        "answer both states and disputes the source {name} of {subject}"
+                    ));
+                } else if foreign {
+                    verdict.fail(format!(
+                        "answer attributes another source row's {name} to {subject}"
+                    ));
+                }
+            } else if evidence.denied > 0 {
+                verdict.fail(format!("answer denies the source {name} of {subject}"));
+            } else if foreign {
+                verdict.fail(format!(
+                    "answer attributes another source row's {name} to {subject}"
+                ));
+            } else if evidence.disputed > 0 {
+                verdict.review(format!(
+                    "answer mentions the source {name} of {subject} only in a negative remark"
+                ));
+            } else if !column.required {
+                continue;
+            } else if unclear {
+                verdict.review(format!(
+                    "answer may state the {name} of {subject} in a notation that cannot be read exactly"
+                ));
+            } else {
+                verdict.fail(format!(
+                    "answer does not state the source {name} of {subject}"
+                ));
+            }
+        }
+    }
+
+    /// With one requested row, the answer must present that row and lead
+    /// with it.
+    fn leader(
+        &self,
+        segments: &[Segment],
+        source: &Source,
+        row: usize,
+        ranking: &str,
+        verdict: &mut Verdict,
+    ) {
+        let subject = self.subject(source, row);
+        let mut evidence = Evidence::default();
+        let mut first = None;
+        for (index, segment) in segments.iter().enumerate() {
+            for mention in segment.subjects.iter().filter(|mention| mention.row == row) {
+                evidence.count(mention.stance);
+                if mention.stance == Stance::Affirmed {
+                    first.get_or_insert(index);
+                }
+            }
+        }
+        let Some(first) = first else {
+            if evidence.denied > 0 {
+                verdict.fail(format!(
+                    "answer denies that {subject} is the requested source row"
+                ));
+            } else if evidence.disputed > 0 {
+                verdict.review(format!(
+                    "answer names {subject} only in a negative or lower-ranked remark"
+                ));
+            } else {
+                verdict.fail("answer does not name the requested source row");
+            }
+            return;
+        };
+        if evidence.denied + evidence.disputed > 0 {
+            verdict.review(format!(
+                "answer both presents and disputes {subject} as the requested source row"
+            ));
+        }
+        // A row named earlier is context only when it is set aside or carries
+        // its own value of the ranking column.
+        let rival = segments[..first].iter().any(|segment| {
+            segment.subjects.iter().any(|mention| {
+                mention.row != row
+                    && mention.stance == Stance::Affirmed
+                    && !prose::set_aside(&segment.text)
+                    && !source
+                        .fact(mention.row, ranking)
+                        .spans(&segment.text, &segment.quantities)
+                        .iter()
+                        .any(|(start, end)| segment.owned(*start, *end) == Some(mention.row))
+            })
+        });
+        if rival {
+            verdict.fail("answer names a source row other than the requested one first");
+        }
     }
 
     pub(crate) fn check(
@@ -902,30 +932,22 @@ impl SourceFacts {
             ));
         }
         let source = self.source(initial)?;
+        let segments = self.segments(answer, &source)?;
         let mut verdict = Verdict::default();
-        let Some(structured_text) = fenced(answer) else {
-            return Err(RecordCheckError::NeedsAdjudication(
-                "answer has unreviewed or incomplete fence metadata".into(),
-            ));
-        };
-        match tables::json(structured_text) {
-            Ok(value @ (Value::Array(_) | Value::Object(_))) => match tables::structured(&value) {
-                Some(grid) => self.table(&grid, &source, false, false, &mut verdict),
-                None => verdict.review("unrecognized structured answer shape"),
-            },
-            _ => {
-                let markdown = tables::markdown(answer);
-                match markdown.tables.as_slice() {
-                    [] => self.claims(answer, &source, &mut verdict)?,
-                    [grid] => {
-                        self.table(grid, &source, true, markdown.prose, &mut verdict);
-                        if markdown.prose {
-                            verdict.review("answer text outside the table is unreviewed");
-                        }
-                    }
-                    _ => verdict.review("answer contains several tables"),
-                }
+        for row in &source.targets {
+            if let FactRows::Largest(ranking) = &self.rows {
+                self.leader(&segments, &source, *row, ranking, &mut verdict);
+            } else if !segments
+                .iter()
+                .any(|segment| segment.subjects.iter().any(|mention| mention.row == *row))
+            {
+                verdict.fail(format!(
+                    "answer omits the source row {}",
+                    self.subject(&source, *row)
+                ));
+                continue;
             }
+            self.row(&segments, &source, *row, &mut verdict);
         }
         verdict.finish(&self.requirement)
     }
