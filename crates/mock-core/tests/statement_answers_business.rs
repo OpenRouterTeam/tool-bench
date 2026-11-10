@@ -118,8 +118,11 @@ fn salesforce_pipeline_total_is_summed_per_owner_from_the_opportunities() {
         "It is probably Priya Raman with $252,500.",
         // A ranking that leads with the answer: the other reps' totals are context.
         "Priya Raman: $252,500. Marcus Bell: $240,000. Sofia Alvarez: $135,000.",
+        // The request asks for "the total amount" and the org has one currency.
+        "Priya Raman — 252,500",
     ]);
     case.fails(&[
+        "Priya Raman — 240,000",
         "Priya Raman does not have the largest pipeline; it is not $252,500.",
         "Not Priya Raman ($252,500): the largest open pipeline belongs to Marcus Bell.",
         // Another rep with the leader's total, and the leader with another
