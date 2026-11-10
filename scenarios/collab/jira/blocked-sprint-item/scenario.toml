@@ -50,23 +50,6 @@ context = [
   "Blocked story",
   "status ${blocker_status}",
 ]
-assertions = [
-  "Blocked: ${blocked}",
-  "Blocked story: ${blocked}",
-  "Blocked story ${blocked}",
-  "Blocker ${blocker}",
-  "Blocker assignee ${assignee}",
-  "${blocked} is blocked by ${blocker}",
-  "Blocked by: ${blocker}",
-  "Blocker: ${blocker}",
-  "${blocker} blocks ${blocked}",
-  "owned by ${assignee}",
-  "Blocker assignee: ${assignee}",
-  "assigned to ${assignee}",
-  "${blocker} (owned by ${assignee}) blocks ${blocked}",
-  "${blocked} is blocked by ${blocker}, assigned to ${assignee}",
-  "| ${blocked} | ${blocker} | ${assignee} |",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/jira/issues"

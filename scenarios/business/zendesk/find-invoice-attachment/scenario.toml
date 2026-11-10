@@ -27,13 +27,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "State the number of the Zendesk ticket on which Priya Raman of Lumen Analytics posted a comment with an invoice attachment, and that attachment's file name."
 mode = "statements"
-assertions = [
-  "Ticket: ${ticket}\nFile: ${file}",
-  "It's on ticket ${ticket}; the attachment is ${file}.",
-  "Ticket ${ticket}, file ${file}.",
-  "Priya Raman's invoice is on ticket ${ticket}; the file is ${file}.",
-  "The invoice attachment is on ticket ${ticket}: ${file}.",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/zendesk/comments"

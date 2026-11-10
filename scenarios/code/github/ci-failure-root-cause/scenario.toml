@@ -46,24 +46,6 @@ context = [
   "run ${run_id}",
   "Assertion",
 ]
-assertions = [
-  "Job: ${job}",
-  "the ${job} job is red",
-  "the ${job} job",
-  "${job}",
-  "Failing test: ${test}",
-  "${test}",
-  "Assertion: ${assertion}",
-  '"${assertion}"',
-  "${assertion}",
-  '${test} reports "${assertion}"',
-  "${job} failed: ${test}",
-  "${job} failed",
-  "${test} (${test_location}) reports ${assertion}",
-  '${test} (${test_location}) reports "${assertion}"',
-  "${test_location}",
-  "Assertion: ${test_location}: ${assertion}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/github/pulls"

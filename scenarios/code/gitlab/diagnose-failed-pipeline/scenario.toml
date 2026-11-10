@@ -25,23 +25,6 @@ audit_history = true
 requirement = "State the ID of the most recent failed pipeline on main of northwind/payments/checkout-api, the name of the job that failed in it, and the database column that job's log reports as missing."
 mode = "statements"
 selection = { largest = { field = "/id" } }
-assertions = [
-  "Pipeline ${pipeline}",
-  "Pipeline #${pipeline}",
-  "${job}",
-  "job ${job}",
-  "${job} broke pipeline ${pipeline}",
-  "${job} failed",
-  "column ${column}",
-  "| Pipeline | ${pipeline} |",
-  "| Job | ${job} |",
-  "| Column | ${column} |",
-  "the column ${column} does not exist",
-  'column "${column}" of relation "refunds" does not exist',
-  "Pipeline ${pipeline} failed in ${job}",
-  "Pipeline #${pipeline} failed in ${job}",
-  "Pipeline ${pipeline}, job ${job}, column ${column}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/gitlab/pipelines"

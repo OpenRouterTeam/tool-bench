@@ -41,16 +41,6 @@ context = [
   "(Medium)",
   "(Low)",
 ]
-assertions = [
-  "Company: ${company}\nAccount owner: ${owner}\nOpen cases: ${cases}",
-  "The largest open deal is with ${company}. Its Salesforce account is owned by ${owner} and has open cases: ${cases}.",
-  "The largest open deal is with ${company}. Its Salesforce account is owned by ${owner} and has two open cases: ${cases}.",
-  "${company}; account owner ${owner}; open cases ${cases}.",
-  "${company}; account owner ${owner}; open cases ${cases} and ${cases}.",
-  "${company}; account owner ${owner}; one open case, ${cases}.",
-  "${company}; account owner ${owner}; open case, ${cases}.",
-  "Largest open deal: ${company}. Salesforce owner: ${owner}. Open cases: ${cases}.",
-]
 selection = { largest = { field = "/properties/amount" } }
 
 [expect.answer.record_facts.selector]

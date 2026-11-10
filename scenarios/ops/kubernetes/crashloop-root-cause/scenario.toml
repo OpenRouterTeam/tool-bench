@@ -56,14 +56,6 @@ context = [
   "Its previous container log ends with:",
   "2026-11-03T08:33:44.302Z FATAL could not initialise ledger store, exiting (exit code 1)",
 ]
-assertions = [
-  "Pod: ${pod} Error: pq: ${error}",
-  "${pod} is crash-looping: pq: ${error}",
-  "${pod} is crash-looping. pq: ${error}",
-  "${pod}: pq: ${error}",
-  "${pod} cannot authenticate to Postgres: ${error}",
-  "${pod} never becomes ready: ${error}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/kubernetes/pods"

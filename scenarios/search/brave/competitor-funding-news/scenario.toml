@@ -36,14 +36,6 @@ context = [
   "participation from existing investor ${participating_investor}",
   "participation from ${participating_investor}",
 ]
-assertions = [
-  "Amount: ${amount} Round: ${round} Lead investor: ${lead}",
-  "${amount} ${round} led by ${lead}",
-  "${amount}, ${round}, led by ${lead}",
-  "Norvik Analytics raised ${amount} in a ${round} round led by ${lead}.",
-  "${amount} dollars, ${round}, led by ${lead}",
-  "${amount} ${round}, lead: ${lead}",
-]
 # The same article names an existing investor that took part without leading.
 
 

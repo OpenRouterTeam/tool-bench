@@ -24,14 +24,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "Name the Salesforce user who owns the largest total Amount of open (not closed) opportunities with a close date in April-June 2026, and state that total in US dollars."
 mode = "statements"
-assertions = [
-  "${rep} has the largest open pipeline: ${total}.",
-  "${rep} - ${total}",
-  "${rep}: ${total}",
-  "Rep: ${rep}\nOpen Q2 pipeline: ${total}",
-  "${rep} leads with ${total} of open pipeline closing in Q2.",
-  "${rep} leads with ${total} of open pipeline.",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/salesforce/Opportunity"

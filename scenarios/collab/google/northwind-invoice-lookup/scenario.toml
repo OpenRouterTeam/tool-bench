@@ -27,19 +27,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "From the invoice email Northwind Traders sent for October services, give the PO number it references, the amount due in US dollars, and the due date."
 mode = "statements"
-assertions = [
-  "PO: ${po}",
-  "${po}",
-  "references ${po}",
-  "Amount due: ${amount}",
-  "${amount}",
-  "for ${amount}",
-  "USD ${amount}",
-  "Due: ${due}",
-  "due ${due}",
-  "${po}, ${amount}, due ${due}",
-  "The invoice references ${po} for ${amount}",
-]
 context = [
   "this replaces the earlier draft figure of ${draft_amount}",
 ]

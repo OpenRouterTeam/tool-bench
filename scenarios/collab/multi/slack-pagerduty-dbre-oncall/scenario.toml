@@ -33,15 +33,6 @@ audit_history = true
    "Level 2: ${oncall1}",
    "Backup: ${oncall1}",
  ]
- assertions = [
-   "Level 1: ${oncall1}",
-   "First on call: ${oncall1}",
-   "Level 2: ${oncall2}",
-   "Backup: ${oncall2}",
-   "${oncall1} and ${oncall2}",
-   "On call: ${oncall1}, backup: ${oncall2}",
-   "Level 1: ${oncall1}. Level 2: ${oncall2}",
- ]
 
  [expect.answer.record_facts.selector]
  collection = "/services/pagerduty/escalation_policies"

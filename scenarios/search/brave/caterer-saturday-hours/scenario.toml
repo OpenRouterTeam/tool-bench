@@ -25,11 +25,6 @@ audit_history = true
  [expect.answer.record_facts]
  requirement = "State the phone number and Saturday opening hours of the Portland, Oregon caterer from local listing data."
  mode = "statements"
-assertions = [
-  "Phone: ${phone}. Saturday: ${hours}.",
-  "${phone}, Saturday hours ${hours}.",
-  "${phone}, Saturday ${hours}.",
-]
 
  [expect.answer.record_facts.selector]
  collection = "/services/brave/pois"

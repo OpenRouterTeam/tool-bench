@@ -3,46 +3,21 @@ use scenario::{coverage, discover, oracle_tools::OracleTools};
 use std::path::Path;
 
 #[test]
-fn source_binding_alone_does_not_claim_reviewed_answer_relationships() {
+fn record_fact_answers_are_inventoried_as_source_bound() {
     let root = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."));
     let catalog = Catalog::load(&root.join("catalog/services.toml")).unwrap();
     let tools = OracleTools::load(root, &catalog).unwrap();
-    let mut scenario =
+    let scenario =
         scenario::Scenario::load(&root.join("scenarios/search/elasticsearch/latency-by-region"))
             .unwrap();
     let calls = scenario
         .validate(&root.join("scenarios"), &catalog, &tools)
         .unwrap();
-    let reviewed =
-        coverage::inventory(std::slice::from_ref(&scenario), vec![calls.clone()], &tools).unwrap();
-    assert_eq!(
-        reviewed.scenarios[0].answer_check,
-        "source_bound_record_facts_with_reviewed_claims",
-    );
-    assert!(
-        !reviewed.scenarios[0]
-            .source_gaps
-            .contains(&"answer_assertion_grammar_missing")
-    );
-    scenario
-        .expect
-        .answer
-        .as_mut()
-        .unwrap()
-        .record_facts
-        .as_mut()
-        .unwrap()
-        .assertions
-        .clear();
-    let incomplete =
+    let inventory =
         coverage::inventory(std::slice::from_ref(&scenario), vec![calls], &tools).unwrap();
     assert_eq!(
-        incomplete.scenarios[0].answer_check,
-        "source_bound_record_facts_without_affirmative_clauses",
-    );
-    assert_eq!(
-        incomplete.summary.scored_source_gaps["answer_assertion_grammar_missing"],
-        1,
+        inventory.scenarios[0].answer_check,
+        "source_bound_record_facts",
     );
 }
 

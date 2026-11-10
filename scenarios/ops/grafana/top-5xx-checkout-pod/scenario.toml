@@ -25,11 +25,6 @@ contradictions = ["fewest", "the least", "the lowest"]
 context = [
   "(~${five_xx_rate} 5xx/s, roughly 8% of its requests)",
 ]
-assertions = [
-  "${pod}",
-  "Pod to cordon: ${pod}",
-  "The checkout pod with the highest 5xx rate is ${pod}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/grafana/prom_series"

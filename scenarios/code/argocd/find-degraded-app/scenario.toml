@@ -29,23 +29,6 @@ audit_history = true
 requirement = "Name the Argo CD application that is Degraded on production (its failing Deployment has the same name), the image tag its failing pod runs, and why that pod is not starting (the reason it is waiting)."
 mode = "statements"
 context = ["The old pods are still serving", "pod ${pod_name}", "Why"]
-assertions = [
-  "Application: ${app}",
-  "Failing workload: Deployment ${app}",
-  "Root cause: ${reason}",
-  "the image tag ${image_tag} was never pushed",
-  "${app} is Degraded",
-  "its new pod cannot pull ghcr.io/lumen-retail/${app}:${image_tag} (${reason})",
-  "its pod cannot pull image tag ${image_tag} (${reason})",
-  "App: ${app}",
-  "App ${app}",
-  "Tag ${image_tag}",
-  "Tag: ${image_tag}",
-  "the kubelet ${reason} the image",
-  "| App | ${app} |",
-  "| Tag | ${image_tag} |",
-  "| Why | the kubelet ${reason} the image |",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/argocd/applications"

@@ -24,13 +24,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "State the login of the Okta account with the most failed sign-in events (user.session.start with outcome FAILURE) published on 2026-03-13 UTC, the number of those failed attempts, and the client IP address they all came from."
 mode = "statements"
-assertions = [
-  "${login} had the most failed sign-ins (${attempts}), all from IP ${ip}.",
-  "Username: ${login}\nFailed attempts: ${attempts}\nIP address: ${ip}",
-  "${login} had ${attempts}, every one from ${ip}.",
-  "${login} had ${attempts} from ${ip}.",
-  "${login} had ${attempts} attempts from ${ip}.",
-]
 
 
 [expect.answer.record_facts.selector]

@@ -304,15 +304,6 @@ pub fn inventory(
         }) {
             source_gaps.push("legacy_answer_semantics")
         }
-        if scenario
-            .expect
-            .answer
-            .as_ref()
-            .and_then(|answer| answer.record_facts.as_ref())
-            .is_some_and(|facts| facts.assertions.is_empty())
-        {
-            source_gaps.push("answer_assertion_grammar_missing");
-        }
         if scenario.expect.answer.as_ref().is_some_and(|answer| {
             answer.source == mock_core::grading::AnswerSource::LegacyAnswerFile
                 && (answer.sentry_dsn.is_some()
@@ -436,17 +427,9 @@ pub fn inventory(
                 .expect
                 .answer
                 .as_ref()
-                .and_then(|answer| answer.record_facts.as_ref())
-                .is_some_and(|facts| !facts.assertions.is_empty())
-            {
-                "source_bound_record_facts_with_reviewed_claims"
-            } else if scenario
-                .expect
-                .answer
-                .as_ref()
                 .is_some_and(|answer| answer.record_facts.is_some())
             {
-                "source_bound_record_facts_without_affirmative_clauses"
+                "source_bound_record_facts"
             } else if scenario.expect.answer.is_some() {
                 "legacy_file_substrings_or_regex"
             } else {

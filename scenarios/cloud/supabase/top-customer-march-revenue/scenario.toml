@@ -27,13 +27,6 @@ requirement = "Name the customer of the production storefront project whose paid
 mode = "statements"
 # Words that rank the customer anywhere but first.
 contradictions = ["second", "second-highest", "second-largest", "runner-up", "the least", "the lowest"]
-assertions = [
-  "${name} (${email}) brought in the most revenue: ${total}.",
-  "${name} (${email}): ${total}",
-  "Customer: ${name}\nEmail: ${email}\nMarch total: ${total}",
-  "${name} <${email}> leads March with ${total}.",
-  "${name} <${email}> leads with ${total}.",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders"

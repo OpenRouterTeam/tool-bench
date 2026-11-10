@@ -41,13 +41,6 @@ source = "final_response"
 requirement = "Affirm that the duplicate charge was already refunded in full, and identify its actual existing refund."
 mode = "statements"
 selection = "only"
-assertions = [
-  "The duplicate charge was ${refunded} as refund ${refund}",
-  "The duplicate charge was ${refunded} in full as refund ${refund}",
-  "${refunded} in full as ${refund}",
-  "Refund: ${refund}. The charge ${refunded}.",
-  "The duplicate charge for order #${order} was ${refunded} in full on ${refund_date} (refund ${refund}), so I made no changes",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/stripe/charges"

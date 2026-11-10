@@ -34,15 +34,6 @@ context = [
   "Shipped: No",
   "payment PAID",
 ]
-assertions = [
-  "Order #${order} — total ${total} — ${status} (${status}).",
-  "Order #${order} — total ${total} — ${status}.",
-  "Order #${order}, ${status}, total ${total}.",
-  "- Order number: ${order}\n- Status: ${status}\n- Order total: ${total}",
-  "Order number: #${order}\n— fulfillment status is ${status}\nOrder total: ${total}",
-  "The order is #${order}, ${status}, total ${total}.",
-  "Order #${order} is ${status}; total ${total}.",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/shopify/orders"

@@ -31,15 +31,6 @@ context = [
   "not ${key_deadline}",
   "(${v2_algorithm} over timestamp and body)",
 ]
-assertions = [
-  "Date: ${date} Header: ${header}",
-  "v1 signatures stop on ${date}; verify the ${header} header instead.",
-  "${date} - ${header}",
-  "Ferrowave will no longer send v1 signatures after ${date}; switch to ${header}.",
-  "${date}",
-  "verify ${header}",
-  "${date}; verify ${header}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/tavily/pages"

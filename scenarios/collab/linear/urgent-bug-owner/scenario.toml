@@ -33,18 +33,6 @@ rejected = ["no longer ${state}", "no longer assigned to ${owner}", "no longer o
 context = [
   "| Issue | Owner | State |",
 ]
-assertions = [
-  "${issue}",
-  "Issue: ${issue}",
-  "${issue} is assigned to ${owner}",
-  "${issue} is owned by ${owner}",
-  "owner: ${owner}",
-  "${owner}",
-  "state: ${state}",
-  "${state}",
-  "${issue}, ${owner}, ${state}",
-  "${issue} - owner: ${owner} - state: ${state}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/linear/issues"

@@ -24,13 +24,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "Name the company associated with the largest non-archived HubSpot deal that is neither closed won nor closed lost, and state that deal's amount in US dollars."
 mode = "statements"
-assertions = [
-  "${company} has the largest open deal, worth ${amount}.",
-  "${company}, ${amount}.",
-  "Company: ${company}\nDeal amount: ${amount}",
-  "The biggest open deal belongs to ${company} and is worth ${amount}.",
-  "Largest open deal: ${company}, ${amount}.",
-]
 selection = { largest = { field = "/properties/amount" } }
 
 [expect.answer.record_facts.selector]

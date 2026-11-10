@@ -26,13 +26,6 @@ requirement = "Name the product category with the largest revenue (unit price ti
 mode = "statements"
 # Words that say the opposite of most revenue.
 contradictions = ["the least", "the lowest", "the smallest", "least revenue", "lowest revenue"]
-assertions = [
-  "Top category: ${category}, with ${revenue} in revenue.",
-  "Category: ${category}\nFebruary revenue: ${revenue}",
-  "The winner is ${category} at ${revenue}.",
-  "${category}: ${revenue}",
-  "${category}, ${revenue}.",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/mongodb/db.shop.orders"

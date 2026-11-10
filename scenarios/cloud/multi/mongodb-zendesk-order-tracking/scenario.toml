@@ -42,14 +42,6 @@ context = [
   "estimated delivery 2026-10-31",
 ]
 
-assertions = [
-  "Order number: ${order}\nStatus: ${status}\nCarrier: ${carrier}\nTracking number: ${tracking}",
-  "Order ${order} has ${status} with ${carrier} (tracking ${tracking})",
-  "Order ${order} was ${status} via ${carrier} (${tracking})",
-  "Order ${order}: ${status}, ${carrier}, tracking ${tracking}.",
-  "Order ${order}: ${status}. Carrier: ${carrier}. Tracking number: ${tracking}.",
-]
-
 [expect.answer.record_facts.selector]
 collection = "/services/mongodb/db.shop.orders"
 field_patterns = { "/createdAt/$date" = "^2026-10-21T" }

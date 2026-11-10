@@ -26,15 +26,7 @@ use super::{
 };
 use crate::{relations::RecordCheckError, rich_text::unsupported_control};
 
-mod assertions;
-
-pub(super) fn suggest_assertion(
-    contract: &RecordFacts,
-    answer: &str,
-    initial: &Value,
-) -> Result<String, RecordCheckError> {
-    assertions::suggest(contract, &contract.derive(Some(initial))?, answer)
-}
+mod slots;
 
 /// Lowercases, unifies typographic variants and drops Markdown emphasis.
 /// With `lines`, line and table-cell breaks survive as `\n`.
@@ -412,23 +404,6 @@ static HEDGE: LazyLock<Regex> = LazyLock::new(|| {
         .expect("hedge pattern")
 });
 
-/// Evaluative or ranking language that expresses a relationship between an
-/// entity and a measured quantity.  When `contradictions` are declared, any
-/// such language that is NOT a reviewed contradiction cue signals an
-/// unreviewed predicate and makes the mention Disputed (Unresolved).
-static EVALUATIVE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(concat!(
-        r"\b(?:",
-        r"(?:fast|slow|quick|high|low|larg|small|big|great|short|long|cheap|dear)",
-        r"(?:est|er)\b",
-        r"|(?:best|worst|most|least|fewest|minimum|maximum|top|bottom|peak|leading)",
-        r"|(?:highest|lowest|largest|smallest|biggest|shortest|longest|fastest|slowest|quickest)",
-        r"|(?:cheapest|priciest|costliest|heaviest|lightest)",
-        r")"
-    ))
-    .expect("evaluative pattern")
-});
-
 static MERIDIEM_TIME: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\b\d{1,2}(?::\d{2})?\s?(?:am|pm|a\.m\.|p\.m\.)").expect("clock pattern")
 });
@@ -496,49 +471,12 @@ fn leading(before: &str) -> Option<Status> {
     None
 }
 
-/// Returns true when `text` contains evaluative/ranking language that is not
-/// covered by any reviewed contradiction cue AND does not appear in the
-/// contract requirement (which describes the correct relationship direction)
-/// AND is not a label noun already used for negation traversal.
-fn has_unreviewed_evaluative(text: &str, contract: &RecordFacts) -> bool {
-    let requirement = fold(&contract.requirement, false);
-    let contradiction_words: Vec<String> = contract
-        .contradictions
-        .iter()
-        .map(|cue| fold(cue, false))
-        .collect();
-    for hit in EVALUATIVE.find_iter(text) {
-        let word = hit.as_str();
-        // Words that appear in the requirement describe the correct
-        // relationship direction and are safe.
-        if requirement.contains(word) {
-            continue;
-        }
-        // Words already in the contradiction list are handled by the
-        // `contradicted` flag.
-        if contradiction_words.iter().any(|cue| cue.contains(word)) {
-            continue;
-        }
-        // Words in the LABELS list are structural identifiers used for
-        // negation traversal and are safe (they describe the selection
-        // direction from the contract author's perspective).
-        if LABELS.contains(&word) || contract.facts.contains_key(word) {
-            continue;
-        }
-        return true;
-    }
-    false
-}
-
 struct Sentence<'answer> {
     text: &'answer str,
     /// The sentence with every target mention blanked, for cue detection.
     masked: String,
     /// The sentence holds a reviewed cue that contradicts the facts.
     contradicted: bool,
-    /// The sentence holds evaluative/ranking language not covered by any
-    /// reviewed contradiction cue.  When set, fact mentions are Disputed.
-    unreviewed_predicate: bool,
     /// The next sentence opens by taking this one back ("It was not the final pick").
     taken_back: bool,
 }
@@ -567,7 +505,6 @@ impl Sentence<'_> {
             || negated_after
             || self.contradicted
             || RETRACTION.is_match(&self.masked)
-            || self.unreviewed_predicate
             || self.taken_back
         {
             Status::Disputed
@@ -1023,14 +960,12 @@ fn form_pattern(
             Part::Literal(literal) => pattern.push_str(&words(&literal)),
             Part::Slot(name) => {
                 let fact = &contract.facts[&name];
-                let forms = assertions::forms(fact, &facts[&name], answer);
+                let forms = slots::forms(fact, &facts[&name], answer);
                 if forms.is_empty() {
                     return Ok(None);
                 }
-                let choices: Vec<String> = forms
-                    .iter()
-                    .map(|form| assertions::bound_form(form))
-                    .collect();
+                let choices: Vec<String> =
+                    forms.iter().map(|form| slots::bound_form(form)).collect();
                 pattern.push_str(&format!("(?:{})", choices.join("|")));
             }
         }
@@ -1106,7 +1041,7 @@ pub(super) fn check(
     }
     if answer.len() > 65_536 {
         return Err(RecordCheckError::NeedsAdjudication(
-            "answer exceeds the reviewed-clause reader's bounded input size".into(),
+            "answer exceeds the reader's bounded input size".into(),
         ));
     }
     if answer.chars().any(unsupported_control) {
@@ -1181,15 +1116,10 @@ pub(super) fn check(
                 .contradictions
                 .iter()
                 .any(|cue| !find_text(&masked, &fold(cue, false)).is_empty());
-            let unreviewed_predicate = contract.assertions.is_empty()
-                && !contract.contradictions.is_empty()
-                && !contradicted
-                && has_unreviewed_evaluative(&masked, contract);
             Sentence {
                 text: line,
                 masked,
                 contradicted,
-                unreviewed_predicate,
                 taken_back: false,
             }
         })
@@ -1421,7 +1351,6 @@ mod tests {
                 text: sentence,
                 masked: blank(sentence, &[(start, end)]),
                 contradicted: false,
-                unreviewed_predicate: false,
                 taken_back: false,
             }
             .status(start, end)

@@ -30,15 +30,6 @@ context = [
   "(SLA effective ${effective_date})",
   "${escalated_credit}% below ${escalated_threshold}%",
 ]
-assertions = [
-  "Uptime: ${uptime} Service credit: ${credit} of the monthly fee",
-  "The Business plan commits to ${uptime} monthly uptime; the credit is ${credit} of the monthly fee.",
-  "The Business plan commits to ${uptime} percent monthly uptime; the credit is ${credit} percent of the monthly fee.",
-  "| Uptime | ${uptime} | | Credit | ${credit} |",
-  "${uptime} (credit: ${credit}; ${escalated_credit}% if uptime drops below ${escalated_threshold}%)",
-  "${uptime} (credit: ${credit})",
-  "${uptime} monthly uptime, ${credit} service credit",
-]
 # Both facts are percentages, so a swap of the two roles is rejected outright.
 rejected = [
   "uptime: ${credit}%",

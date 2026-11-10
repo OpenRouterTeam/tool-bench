@@ -32,12 +32,6 @@ context = [
   "(default encryption SSE-S3, AES256)",
   "(AES256)",
 ]
-assertions = [
-  "${bucket}",
-  "The bucket is ${bucket}.",
-  "${bucket} defaults to SSE-S3 instead of the required SSE-KMS.",
-  "${bucket} defaults to SSE-S3 instead of SSE-KMS.",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/aws/buckets"
