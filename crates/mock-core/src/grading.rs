@@ -891,14 +891,16 @@ pub fn grade(input: &GradeInput) -> Grade {
         .any(|failure| failure.disposition == CheckDisposition::Failed);
     // A check that could not find its evidence makes the trial unassessable only when
     // nothing else is proven wrong. An agent that also broke the task has failed it, and
-    // must not drop out of the score by damaging what the check reads.
+    // must not drop out of the score by damaging what the check reads. A fault the
+    // contract itself declares is no agent's doing, so it is never a failure.
     let task_failure = failures.iter().any(|failure| {
         failure.disposition == CheckDisposition::Failed
             && !matches!(failure.check, CheckKind::Contract | CheckKind::Environment)
     });
+    let declared_fault = !input.expect.environment_faults.is_empty();
     let outcome = if !contract_ok {
         Outcome::InvalidContract
-    } else if !environment_ok && !task_failure {
+    } else if !environment_ok && (declared_fault || !task_failure) {
         Outcome::EnvironmentError
     } else if !integrity_ok {
         Outcome::IntegrityViolation
