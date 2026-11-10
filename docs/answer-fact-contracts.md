@@ -166,7 +166,10 @@ RFC 3339 form.
 ## How a reply is read
 
 1. A `rejected` form (a template with `${fact}` slots, such as
-   `${blocker} is blocked by ${blocked}`) fails the reply outright.
+   `${blocker} is blocked by ${blocked}`) fails the reply where the reply makes
+   that claim. It does not where the reply quotes it as a question (`the "we
+   chose Honeycomb?" message`), denies or retracts it, or reports it as a
+   rumour or speculation.
 2. `context` forms are set aside before reading. `predicates` are negative
    phrases that are true of the facts (`does not match the expected scopes`) and
    are not read as denials. `contradictions` are words that say the opposite of
@@ -191,12 +194,14 @@ RFC 3339 form.
    has not been merged`, `could not pull X`); anything else needs a `predicates`
    entry.
 
-   A statement negated only **in passing** does not count once the reply has
-   concluded on the value elsewhere (`Round: Series B`, then `the profile has
-   not been updated for the Series B`). In passing means the negator reaches
-   the value across a verb (`not owned by X`, `did not pick X`) or follows it
-   as a negated verb (`X did not delete …`), and nothing denies or retracts
-   the value itself. Without a concluding statement it counts as before.
+   What a denial attaches to decides whether it counts once the reply has
+   concluded on the value (`Round: Series B`):
+
+   | It attaches to | Examples | Counts |
+   |---|---|---|
+   | The value | `not X`, `X is wrong`, `X's deal is not the largest`, a `contradictions` cue in its clause | Always |
+   | A predicate about the value | `not owned by X`, `has not been updated for X`, `X did not delete …` | Only if the reply never concludes on the value |
+   | The whole sentence | a retraction word in it, or the next sentence taking it back (`… reviewed #482; that was not an approval`) | Only if the reply never concludes on the value in another sentence, or that sentence or the next offers another record in its place (`I first wrote Series B, but that isn't right: it is a Series A`) |
 5. For each fact that is affirmed and nowhere denied or disputed, the reply's
    answer is read from its claims, in order (see
    [The reply's answer](#the-replys-answer)).
@@ -246,7 +251,8 @@ What makes a claim, with the cue lists in `statements.rs`:
 - **Not a claim: set aside.** An alternative is set aside by a word anywhere in
   its sentence (`SET_ASIDE`: `excluding`, `compared with`, `the runner-up`,
   `previous`, `also`, `other`, `for context`, `staging`, `failed`, `if`,
-  `should`, `normally`), or by
+  `should`, `normally`, `stale`), by a word for hearsay (`rumour`,
+  `speculation`), by a question mark closing a quotation of it, or by
   a `contradictions` cue in the sentence. The source value is set aside by
   wording in its own clause, before it (`DEMOTED_BY`: `ruled out`, `rather
   than`, `ahead of`, `behind`, `over`) or after it (`DEMOTED_AS`: `is a red
@@ -262,8 +268,10 @@ What makes a claim, with the cue lists in `statements.rs`:
   `current`, `→`), or the value completes an identification (`IDENTIFIES`: `the
   app is X`) or answers a label. A label is the lead-in before a colon or
   equals sign with at most two words between it and the value (`Owner: X`,
-  `That leaves one: order X`); a lead-in that itself sets the value aside
-  (`Previous owner: X`) does not conclude.
+  `That leaves one: order X`, `Failed job: X`). A lead-in that itself sets the
+  value aside (`LABEL_ASIDE`: `Previous owner: X`, `Not the cause: X`) does not
+  conclude, and neither does wording the value shares with a listed record
+  (`Errored runs: X and Y`).
 - **Strong** (other record): the clause holds an answer cue, or the value
   directly completes an identification (`the vendor is Y`). For a measured
   fact only `ASSERTED` wording counts as a cue: a date or amount that happens
@@ -272,7 +280,9 @@ What makes a claim, with the cue lists in `statements.rs`:
   a cue does not take the answer from a source value the reply has already
   concluded on (`Winning category: outdoor`, then `the only difference is
   apparel`).
-- **Opening** (other record): the value answers a label or opens its line.
+- **Opening** (other record): the value answers a label or opens its line,
+  outside quotation marks. Inside them it is someone else's text, such as a
+  commit title.
 
 A clause runs to the nearest comma, semicolon, colon or clause word (`but`,
 `so`, `while`, `because`, `however`); a parenthetical is a clause of its own.
@@ -323,9 +333,9 @@ today.
 replies that unit tests used to assert on and the reader misread: 7 correct
 replies, 5 of them still left unresolved, and 29 wrong replies that pass. They
 were picked because the reader got them wrong, so they are not part of the
-rates above. `natural_answers/pilot_agent.json` holds the 55 replies that pilot
-agents wrote to 54 lookup tasks without seeing the contracts. An earlier reader
-left five of them unresolved; all pass now.
+rates above. `natural_answers/pilot_agent.json` holds 103 replies that pilot
+agents wrote to 54 lookup tasks without seeing the contracts. Earlier readers
+left eight of them unresolved or failed; all pass now.
 
 **Correct replies left unresolved** state a bare answer and then name another
 authored record in wording the reader takes for a claim ("the September invoice

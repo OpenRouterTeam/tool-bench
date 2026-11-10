@@ -140,12 +140,47 @@ fn sentences(text: &str) -> Vec<&str> {
         .collect()
 }
 
+/// Whether the reply makes the claim at `start..end` of `text`, as opposed to quoting it
+/// as a question, denying it, retracting it or reporting it as a rumour. A claim that
+/// runs across sentences is taken as made.
+fn asserted(text: &str, start: usize, end: usize) -> bool {
+    let base = text.as_ptr() as usize;
+    let Some((from, line)) = sentences(text)
+        .into_iter()
+        .map(|line| (line.as_ptr() as usize - base, line))
+        .find(|(from, line)| *from <= start && end <= from + line.len())
+    else {
+        return true;
+    };
+    let (before, after) = (&line[..start - from], &line[end - from..]);
+    let asked = ASKED.is_match(after) || text[from + line.len()..].trim_start().starts_with('?');
+    !(asked
+        || leading(before).is_some()
+        || TRAILING_DENIAL.is_match(after)
+        || LATER_DENIAL.is_match(after)
+        || RETRACTION.is_match(line)
+        || HEARSAY.is_match(line))
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Status {
     Affirmed,
     Denied,
     Disputed,
     Hedged,
+}
+
+/// What a denial or dispute of a mention attaches to.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Reach {
+    /// The value itself: "not X", "X is wrong", "X's deal is not the largest".
+    Value,
+    /// A predicate about the value: "has not been updated for X", "X did not delete the
+    /// key". It need not deny that X is the answer.
+    Predicate,
+    /// The sentence as a whole: a retraction word in it, or the next sentence taking it
+    /// back ("That was not an approval"). It need not be about X.
+    Sentence,
 }
 
 const PREPOSITIONS: &[&str] = &[
@@ -407,6 +442,14 @@ static RETRACTION: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\b(?:at first|initially|originally|first thought|looked like|previously thought|was thought|on second thought|scratch that|false that|untrue that|not true|not the case|isn't the case|wrong to say|incorrect to say|mistaken)\b")
         .expect("retraction pattern")
 });
+/// Wording that reports a claim as hearsay rather than making it.
+static HEARSAY: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\b(?:rumou?r\w*|speculat\w*|hearsay|gossip|unconfirmed|unfounded)\b")
+        .expect("hearsay pattern")
+});
+/// Closing quotes and brackets, then a question mark: the text before is asked, not said.
+static ASKED: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"^[\s"'”’)\]*`]*\?"#).expect("asked pattern"));
 static HEDGE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\b(?:might|maybe|perhaps|possibly|probably|presumably|i think|i believe|i guess|i suspect|i assume|not sure|unsure|unclear|uncertain|not certain|could be|may be|may have|may lead|seems|seem to|appears to|apparently|likely|if i recall|can't confirm|cannot confirm|couldn't verify|could not verify|unverified|unable to (?:confirm|verify|determine))\b")
         .expect("hedge pattern")
@@ -529,10 +572,8 @@ impl Sentence<'_> {
         self.reading(start, end).0
     }
 
-    /// How the sentence treats a mention, and whether it negates it only in passing:
-    /// through a predicate about it ("has not been updated for X", "X did not delete
-    /// the key"), with nothing that denies or retracts the value itself.
-    fn reading(&self, start: usize, end: usize) -> (Status, bool) {
+    /// How the sentence treats a mention, and what a denial or dispute of it attaches to.
+    fn reading(&self, start: usize, end: usize) -> (Status, Reach) {
         let after = &self.masked[end..];
         // A mention inside parentheses is governed by what follows the parenthesis.
         let before = &self.masked[..start];
@@ -546,23 +587,21 @@ impl Sentence<'_> {
                 .is_some_and(|captures| !BENIGN_PREDICATE.is_match(&captures[1]))
         };
         let negated_after = negated(after) || outer.is_some_and(negated);
-        let explicit = TRAILING_DENIAL.is_match(after)
+        let denied_after = TRAILING_DENIAL.is_match(after)
             || outer.is_some_and(|text| TRAILING_DENIAL.is_match(text))
             || LATER_DENIAL.is_match(after)
             || outer.is_some_and(|text| LATER_DENIAL.is_match(text))
-            || self.contradicted(start, end)
-            || RETRACTION.is_match(&self.masked)
-            || self.taken_back;
-        if let Some((status, across)) = leading(&self.masked[..start]) {
-            (status, across && !explicit)
-        } else if explicit {
-            (Status::Disputed, false)
-        } else if negated_after {
-            (Status::Disputed, true)
-        } else if HEDGE.is_match(&self.masked) {
-            (Status::Hedged, false)
-        } else {
-            (Status::Affirmed, false)
+            || self.contradicted(start, end);
+        let retracted = RETRACTION.is_match(&self.masked) || self.taken_back;
+        match leading(&self.masked[..start]) {
+            Some((status, across)) if !across || denied_after => (status, Reach::Value),
+            Some((status, _)) if retracted => (status, Reach::Sentence),
+            Some((status, _)) => (status, Reach::Predicate),
+            None if denied_after => (Status::Disputed, Reach::Value),
+            None if retracted => (Status::Disputed, Reach::Sentence),
+            None if negated_after => (Status::Disputed, Reach::Predicate),
+            None if HEDGE.is_match(&self.masked) => (Status::Hedged, Reach::Value),
+            None => (Status::Affirmed, Reach::Value),
         }
     }
 }
@@ -823,8 +862,11 @@ struct Evidence {
     first_affirmed: Option<(usize, usize)>,
     /// The source value is stated only where the reply sets it aside.
     demoted: bool,
-    /// Mentions negated only in passing, weighed once the whole reply is read.
-    in_passing: Vec<Status>,
+    /// Mentions negated through a predicate about them, or disputed with their whole
+    /// sentence, by sentence. Weighed once the whole reply is read.
+    indirect: Vec<(usize, Status, Reach)>,
+    /// Sentences that offer another authored record's value.
+    rivals: Vec<usize>,
     claims: Vec<(Mention, Claim)>,
 }
 
@@ -970,6 +1012,16 @@ static IDENTIFIES_DIRECTLY: LazyLock<Regex> = LazyLock::new(|| {
 /// A mention that answers a label: "Owner: ...".
 static LABELLED: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"[:=]\s*[#@]?$").expect("label pattern"));
+/// A label that sets its own value aside: "Previous owner: X", "Not the cause: X".
+static LABEL_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:not|no|non|never|except\w*|exclud\w*|ignor\w*|discard\w*|rul(?:e|ed|ing) out|rejected|instead of",
+        r"|rather than|other|others|another|alternative\w*|previous|prior|former|formerly|earlier|old|older",
+        r"|outdated|superseded|deprecated|legacy|runner-up|runners-up|second|third|distractor\w*|decoy",
+        r"|look-?alike\w*|similar|unrelated|irrelevant|draft|staging|sandbox|rumou?r\w*|speculat\w*)\b",
+    ))
+    .expect("label-aside pattern")
+});
 /// The lead-in a mention answers, read past the clause boundary its colon makes:
 /// "Owner: X", "That leaves one: order X". Not the colon of a clock time or a link.
 static LEAD_IN: LazyLock<Regex> = LazyLock::new(|| {
@@ -1289,9 +1341,11 @@ pub(super) fn check(
     };
     let mut folded = notation(&fold(answer, true));
     for template in &contract.rejected {
-        if form_pattern(template, contract, &facts, &folded)?
-            .is_some_and(|pattern| pattern.is_match(&folded))
-        {
+        if form_pattern(template, contract, &facts, &folded)?.is_some_and(|pattern| {
+            pattern
+                .find_iter(&folded)
+                .any(|found| asserted(&folded, found.start(), found.end()))
+        }) {
             return failed("answer matches a reviewed incorrect claim form".into());
         }
     }
@@ -1405,7 +1459,7 @@ pub(super) fn check(
         for (position, (sentence, found)) in read.iter().zip(&located).enumerate() {
             let mut affirmed_here: Vec<(usize, usize)> = Vec::new();
             for (start, end) in &found[index] {
-                let (mut status, in_passing) = sentence.reading(*start, *end);
+                let (mut status, reach) = sentence.reading(*start, *end);
                 if status == Status::Disputed
                     && measured
                     && !sentence.denies_after(*end)
@@ -1420,8 +1474,8 @@ pub(super) fn check(
                 if in_path && matches!(status, Status::Denied | Status::Disputed) {
                     continue;
                 }
-                if in_passing && matches!(status, Status::Denied | Status::Disputed) {
-                    evidence.in_passing.push(status);
+                if reach != Reach::Value && matches!(status, Status::Denied | Status::Disputed) {
+                    evidence.indirect.push((position, status, reach));
                     continue;
                 }
                 if matches!(status, Status::Affirmed | Status::Hedged) {
@@ -1440,7 +1494,7 @@ pub(super) fn check(
                         // value aside ("Previous owner: X").
                         let labelled = LEAD_IN
                             .captures(&sentence.masked[..*start])
-                            .is_some_and(|lead| !SET_ASIDE.is_match(&lead[1]));
+                            .is_some_and(|lead| !LABEL_ASIDE.is_match(&lead[1]));
                         let concluding = answer_cue(&around)
                             || CONCLUSION_CUE.is_match(&around)
                             || IDENTIFIES.is_match(before)
@@ -1496,23 +1550,38 @@ pub(super) fn check(
                     };
                     // Joined to the source value by nothing but a conjunction, the other
                     // record is offered as an answer too.
-                    let listed = !measured
-                        && affirmed_here.iter().any(|(left, right)| {
-                            let between = if *right <= start {
-                                &masked[*right..start]
-                            } else if end <= *left {
-                                &masked[end..*left]
-                            } else {
-                                return false;
-                            };
-                            let between: String = PARENTHETICAL
-                                .replace_all(between, "")
-                                .chars()
-                                .filter(|character| !character.is_whitespace())
-                                .collect();
-                            LISTED_WITH.is_match(&between)
-                        });
-                    if listed {
+                    let listed = (!measured)
+                        .then(|| {
+                            affirmed_here.iter().find(|(left, right)| {
+                                let between = if *right <= start {
+                                    &masked[*right..start]
+                                } else if end <= *left {
+                                    &masked[end..*left]
+                                } else {
+                                    return false;
+                                };
+                                let between: String = PARENTHETICAL
+                                    .replace_all(between, "")
+                                    .chars()
+                                    .filter(|character| !character.is_whitespace())
+                                    .collect();
+                                LISTED_WITH.is_match(&between)
+                            })
+                        })
+                        .flatten();
+                    if let Some((source, _)) = listed {
+                        // The source value shares its label or cue with the other record,
+                        // so that wording concludes nothing.
+                        let listed_source = Mention {
+                            sentence: position,
+                            start: *source,
+                        };
+                        for (mention, claim) in &mut evidence.claims {
+                            if *mention == listed_source {
+                                *claim = Claim::Source { concluding: false };
+                            }
+                        }
+                        evidence.rivals.push(position);
                         evidence.claims.push((mention, Claim::Listed));
                         continue;
                     }
@@ -1520,9 +1589,14 @@ pub(super) fn check(
                     // opposite of what the task asks ("lint and unit-tests passed").
                     let mut rest = masked.clone();
                     rest.replace_range(start..end, &" ".repeat(end - start));
-                    if SET_ASIDE.is_match(&rest) || !sentence.contradictions.is_empty() {
+                    if SET_ASIDE.is_match(&rest)
+                        || HEARSAY.is_match(&rest)
+                        || ASKED.is_match(&masked[end..])
+                        || !sentence.contradictions.is_empty()
+                    {
                         continue;
                     }
+                    evidence.rivals.push(position);
                     let (around, offset) = clause(&masked, start, end);
                     let before = &around[..offset];
                     // A date or amount that happens to equal another record's turns up
@@ -1536,8 +1610,12 @@ pub(super) fn check(
                     let identified = IDENTIFIES_DIRECTLY.is_match(before);
                     // A measured value near the answer is usually a comparison; it
                     // competes only when it is claimed as the answer.
-                    let opening =
-                        !measured && (LABELLED.is_match(before) || OPENS_LINE.is_match(before));
+                    // Inside quotation marks it is someone else's text (a commit title, a
+                    // message), not the reply's opening.
+                    let quoted = masked[..start].matches('"').count() % 2 == 1;
+                    let opening = !measured
+                        && !quoted
+                        && (LABELLED.is_match(before) || OPENS_LINE.is_match(before));
                     evidence.claims.push((
                         mention,
                         Claim::Other {
@@ -1549,14 +1627,28 @@ pub(super) fn check(
                 }
             }
         }
-        // A negative predicate about the value ("has not been updated for X") denies
-        // nothing once the reply has stated the value as its answer.
-        let concluded = evidence
+        // Once the reply has concluded on the value, a negative predicate about it ("has
+        // not been updated for X") denies nothing. A dispute of another sentence that
+        // names it ("... reviewed #482; that was not an approval") does not either,
+        // unless that sentence or the next offers another record in its place.
+        let concluded: Vec<usize> = evidence
             .claims
             .iter()
-            .any(|(_, claim)| matches!(claim, Claim::Source { concluding: true }));
-        for status in std::mem::take(&mut evidence.in_passing) {
-            if !concluded {
+            .filter(|(_, claim)| matches!(claim, Claim::Source { concluding: true }))
+            .map(|(mention, _)| mention.sentence)
+            .collect();
+        for (position, status, reach) in std::mem::take(&mut evidence.indirect) {
+            let stands = match reach {
+                Reach::Predicate => !concluded.is_empty(),
+                _ => {
+                    concluded.iter().any(|sentence| *sentence != position)
+                        && !evidence
+                            .rivals
+                            .iter()
+                            .any(|rival| *rival == position || *rival == position + 1)
+                }
+            };
+            if !stands {
                 evidence.count(status, 0, 0);
             }
         }
