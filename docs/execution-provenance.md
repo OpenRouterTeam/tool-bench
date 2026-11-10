@@ -1,16 +1,19 @@
 # Source and execution provenance
 
-## Current admission scope
+## Scope
+
+This page describes the attested tier: trials run by the strict controller
+(`deploy/run-trial.sh`) and compared with `bench-report --require-attested`.
+Production runs on stock Harbor are unattested and need none of it; see
+[production.md](production.md#assurance).
 
 Evaluator 15, evidence schema 5, `offline-world-evidence-v5`, and
-`tool-bench-runner-v3` add source-bound local scripted execution. This admits
-calibration with the exact host `OracleAgent` and `NopAgent`, not native/model
-benchmark comparisons. Unverified native producers are rejected before setup;
-trusted native runtime/completion and isolated product-condition support remain
-required full-overhaul work.
+`tool-bench-runner-v3` add source-bound execution. The controller accepts the exact
+host `OracleAgent` and `NopAgent`, and model runs whose inference it captures on
+the host ([native-inference-capture.md](native-inference-capture.md)). Any other
+agent is rejected before setup.
 
-Do not describe a source-bound scripted comparison as a model result, a complete
-realized native manifest, a production admission certificate, or proof of
+Do not describe a source-bound scripted comparison as a model result or as proof of
 unawareness.
 
 ## World-to-contract chain
@@ -79,7 +82,8 @@ and hardware-condition accounting remains open.
 
 This section describes `bench-report --require-attested`. Without that flag the tool
 reports stock-Harbor runs, which have no runner receipt or realized manifest, at a
-weaker and explicitly labelled tier; see the [runbook](runbook.md#4-read-results).
+weaker and explicitly labelled tier; see
+[production.md](production.md#comparing-arms).
 
 Retain the whole trial export, including `artifacts/world/evidence.json`,
 the collected answer when present, and the separate verifier's exact input copies.
@@ -111,8 +115,10 @@ cargo run --locked -p report --bin bench-report -- --require-attested run-a run-
 ```
 
 It is recorded in JSON and Markdown and does not permit other condition changes.
-It cannot hide heterogeneous agents within an arm. Outputs explicitly label
-`admission_level = "source_bound_scripted_only"` and record the release fingerprint.
+It cannot hide heterogeneous agents within an arm. Outputs label a comparison of
+scripted trials `admission_level = "source_bound_scripted_only"`, and one that
+includes host-captured model trials `source_bound_host_capture`, and record the
+release fingerprint.
 The CLI declaration does **not** authenticate preregistration: prospective design
 binding, replacement policy and complete treatment/matched-information admission
 remain release requirements. Do not use the flag to retrofit an experiment.

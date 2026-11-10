@@ -1,7 +1,11 @@
 # Host-side inference capture
 
-This is a source implementation, not a qualified model campaign, production
-Harbor integration, published-image admission or held-out release.
+This page describes inference capture under the optional strict controller
+(`deploy/run-trial.sh`). Production model runs go through stock Harbor without it:
+there, token and cost figures are what Harbor records, and a context overflow is
+Harbor's `ContextWindowExceededError` ([production.md](production.md)).
+
+This is a source implementation, not a model campaign or a held-out release.
 
 ## Actual host seam
 
@@ -228,21 +232,23 @@ channel even if an actor file contains a different answer.
 
 Oracle/nop remain explicitly scripted controls; their reference-answer files
 are not natural model replies. Existing task instructions are unchanged by
-this source slice. Deliberate natural-response task migrations, semantic
-answer hardening and their evaluator release remain outstanding.
+this source slice. Replies are already read as ordinary prose
+([answer-fact-contracts.md](answer-fact-contracts.md)); moving a task from the
+answer file to the natural final reply remains outstanding.
 
 The same channel now works for the proxied arms: a `final_response` contract is
 graded from the proxy-captured reply even when the container wrote a different
 answer file, and a `legacy_answer_file` contract is still graded from the
 collected file.
 
-No scored task was moved. 56 of the 152 scenarios declare an answer contract,
-and all 56 instructions ask for the answer to be written to `/app/answer.md`.
-That is an authored artifact request, so they stay `legacy_answer_file`, and
-scenario validation rejects a `final_response` declaration on them. The other
-96 scenarios have no answer contract. Grading any of the 56 from the natural
-reply needs a new authored instruction, which is a task migration, not a
-capture change.
+No scored task was moved. 57 of the 154 scenarios declare an answer contract.
+The unscored `diagnostic/stripe/no-action-already-refunded` declares
+`final_response`; the other 56 instructions ask for the answer to be written to
+`/app/answer.md`. That is an authored artifact request, so they stay
+`legacy_answer_file`, and scenario validation rejects a `final_response`
+declaration on them. The other 97 scenarios have no answer contract. Grading any
+of the 56 from the natural reply needs a new authored instruction, which is a
+task migration, not a capture change.
 
 ## Identity, failures and costs
 
@@ -284,5 +290,5 @@ path reads sealed proxy captures only; neither reads `.meta` or transcripts.
   this source change does not remove it or certify a blinded condition.
 - Integrate the separate source slices, bump the evaluator deliberately,
   regenerate canonical tasks/inventory and qualify final published images.
-- Validate the actual external production consumer and preserve durable
-  evidence custody. The draft PR remains do-not-merge.
+- The production worker does not consume this capture. Using it there means
+  running the strict controller on the worker and keeping its evidence.

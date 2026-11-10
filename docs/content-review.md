@@ -1,5 +1,10 @@
 # Source-bound content review
 
+This page describes an optional signed-review layer for strict-controller trials
+compared with `bench-report --require-attested`. Production runs do not use it and
+wait on no reviewer: a reply or text the grader cannot decide is recorded as
+unresolved with reward 0 ([production.md](production.md#unresolved)).
+
 Status: the local scripted coordinator/report path is implemented and verified
 through CLI and isolated-container controls. Operational human-review validation
 and trusted native runtime integration remain open. No human review or
@@ -180,8 +185,8 @@ review conditions, cannot be pooled. Derived release identifiers are distinct.
 
 Human-assisted results are labeled separately from raw deterministic grades.
 Scripted review fixtures are protocol controls, not human semantic validation
-or model-performance estimates. All currently admitted execution remains
-scripted; this workflow does not restore native model admission.
+or model-performance estimates. This workflow applies to attested trials only; it
+neither enables nor blocks model runs, which production makes through stock Harbor.
 
 The isolated policy-bound and forged-artifact campaign is retained in
 `/tmp/tool-bench-content-review.qHCVEA`; the progress log records its distinct
@@ -194,9 +199,9 @@ packets, signatures and raw attempts remain.
 Operational human review needs separate blinding, independence, rubric-quality
 and disagreement validation. Reviewers must treat retrieved/business text as
 untrusted evidence rather than instructions, and judge all applicable fields and
-commits in each signed scope. Trusted
-native final-message/runtime provenance is still required before native model
-comparisons or genuine final-reply adjudication are admitted.
+commits in each signed scope. Under `--require-attested`, reviewing a model's final
+reply also needs that reply captured on the host
+([native-inference-capture.md](native-inference-capture.md)).
 
 ## Provenance prerequisite
 

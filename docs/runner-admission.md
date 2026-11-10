@@ -1,5 +1,10 @@
 # Runner admission
 
+This page describes the optional strict controller (`deploy/run-trial.sh`) and tasks
+generated with `taskgen --runner-admission required`. Production runs on stock Harbor
+use the default optional mode and the unattested tier described in
+[production.md](production.md); they need nothing on this page.
+
 ## Offline Verifier Networking
 
 The reviewed Linux verifier uses Docker `network_mode: none`, not Harbor's
@@ -27,14 +32,14 @@ the evaluator/world/tools images are otherwise identical. Complete realized
 verifier/hardware manifests and external production integration remain separate
 open work.
 
-Since evaluator revision 8, generated scored tasks require a trusted runner receipt.
+Tasks generated with `--runner-admission required` require a trusted runner receipt.
 An ordinary Harbor result, a successful collect hook, or a sealed world by itself
-does not prove that the agent was stopped before evidence collection.
+does not prove that the agent was stopped before evidence collection, which is why a
+stock Harbor trial is reported as unattested.
 Revision 11 requires `tool-bench-runner-v2`: main artifact collection must also
 follow independently inspected shutdown, and legacy answer bytes are receipt-bound.
 Revision 15 requires `tool-bench-runner-v3` and `offline-world-evidence-v5`,
-including protected source/context/execution inputs. It admits only local scripted
-calibration until native runtime provenance is implemented.
+including protected source/context/execution inputs.
 
 ## Supported execution path
 
@@ -57,8 +62,10 @@ sh deploy/run-trial.sh \
 
 The wrapper uses the installed Harbor launcher's Python interpreter; set
 `HARBOR_PYTHON` explicitly if that launcher does not have an absolute Python
-shebang. It currently exposes only scripted `oracle` and `nop` diagnostics, not
-restored native/universal/upfront model runners.
+shebang. It accepts the scripted `oracle` and `nop` agents, and the `computer-1` and
+`claude-code` model agents with the host-side capture described in
+[native-inference-capture.md](native-inference-capture.md). Any other agent is
+rejected before the trial starts.
 
 For locally built images, `deploy/oracle.sh <scenario-id>` generates tasks with
 explicit image overrides and selects this controller automatically. Selecting
@@ -188,13 +195,16 @@ checked evidence, not a blanket `history_ok=1` assertion.
 
 Generated verifier commands always supply both `--runner-policy` and
 `--runner-admission`, with `--task-source`, `--task-context` and
-`--realized-manifest`. Direct diagnostic invocations without runner inputs remain
-possible, but cannot establish runner safety. `verification.json` records the
-actual policy and receipt input hashes alongside the existing world/contract hashes.
+`--realized-manifest`. Tasks generated in the default optional mode add
+`--allow-unattested-runner --withhold-invalid-reward`: a trial with no receipt is
+then graded from the sealed world evidence with `runner_admission_checked: 0`, and a
+receipt that is present is still verified in full. Direct diagnostic invocations
+without runner inputs remain possible, but cannot establish runner safety.
+`verification.json` records the actual policy and receipt input hashes alongside the
+existing world/contract hashes.
 
 The runner receipt does not prove genuine harness final-response completion, complete
 inference accounting, model unawareness, or a leakage-free resolved native prompt.
-Those remain separate release gates.
 Version-3 source/execution checks, image equivalence and reporting restrictions
 are detailed in [execution provenance](execution-provenance.md).
 
@@ -217,8 +227,9 @@ restart/stop between state inspection and main archive transfer. Hook failures
 may terminate the trial without a verifier assessment; that is an invalid attempt,
 not a scored model failure. Do not synthesize a reward to fill the missing result.
 
-The external Argo/GKE runner must integrate an independently validated equivalent
-control path and its own explicitly approved policy. Metadata declarations alone
-do not grant support, and changing the approved hash just to admit an unvalidated
-adapter is not a valid integration. Until that work is validated, this revision is
-not admitted for that production execution path.
+The production worker runs stock Harbor and does not implement this protocol. It
+runs optional-mode tasks, so its trials are graded and reported as unattested
+([production.md](production.md#assurance)). A runner that wants attested results
+must implement an equivalent control path with its own approved policy. Metadata
+declarations alone do not grant support, and changing the approved hash just to
+accept an unvalidated adapter is not a valid integration.

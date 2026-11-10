@@ -1,5 +1,10 @@
 # Controlled exposure, the resolved-surface audit and awareness conditions
 
+Controlled exposure works with stock Harbor and is how production changes the size of
+the tool set ([production.md](production.md#changing-the-size-of-the-tool-set)). The
+resolved-surface audit and the `--information-treatment` comparison apply only to
+strict-controller trials.
+
 Status: wired into real consumers at source-test scope. No model was run. Nothing here
 qualifies a published image, a native harness or a provider.
 

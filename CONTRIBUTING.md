@@ -25,17 +25,18 @@ Harbor environment in `deploy/runner/requirements.txt`; CI runs those separately
   uncommitted image input cannot be assumed present in CI.
 - Include alternative valid plans, unsafe collateral changes, restored changes,
   ordering violations and missing-evidence controls for changed contracts.
-- Use `deploy/oracle.sh <scenario-id>` for local oracle/no-op controls. It invokes
-  `deploy/run-trial.sh` and requires Docker plus Harbor 0.23.0. Raw stock Harbor
-  does not supply the required runner receipt.
+- Use `deploy/stock-campaign.sh --only '<task glob>'` for local oracle/no-op runs.
+  It runs them through stock Harbor, the way production does, and needs Docker,
+  Harbor 0.23.0 and a `tool-bench-tools:dev` image. `deploy/oracle.sh <scenario-id>`
+  runs the same pair under the strict controller; see `docs/runbook.md`.
 - A business failure, environment fault, invalid contract and unresolved answer
-  are different outcomes. Unknown semantics require adjudication, not keyword
-  success or an invented model failure.
-- Source tests, scripted client trials, published-image qualification and model
-  performance are separate claims. Record exact conditions and never pool
-  incompatible checkpoints.
-- Do not merge the overhaul into a production-consumed task path before the
-  corresponding runner integration and published-image checks are validated.
+  are different outcomes. Text the grader cannot decide is unresolved. Do not turn
+  it into keyword success or an invented model failure.
+- Source tests, scripted trials and model performance are separate claims. Record
+  the evaluator version and never pool results across evaluator versions.
+- The production worker clones `main`. Before merging a change to scenarios,
+  crates, servers or the catalog, follow "Releasing a change" in
+  `docs/production.md`.
 
 ## Data
 
