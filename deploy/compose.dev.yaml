@@ -1,28 +1,52 @@
-# Local stack: world + tools. Aliases come from `catalog aliases`.
-# docker compose -f deploy/compose.dev.yaml up
+# Local stack: world + tools, for trying the MCP endpoints by hand.
+#   docker compose -f deploy/compose.dev.yaml up
+# MCP endpoints are on http://127.0.0.1:7101-7132/mcp (`catalog port <id>`), the world's admin
+# API on http://127.0.0.1:9000/_bench/. WORLD_IMAGE and TOOLS_IMAGE choose other images.
+# The world runs unprotected here (no admin token, any caller), which a generated task never does.
+name: tool-bench-dev
 services:
   world:
-    image: tool-bench-world:dev
+    image: ${WORLD_IMAGE:-tool-bench-world:dev}
     environment:
       SCENARIO_ID: example/github/basic
       BENCH_ALLOW_INSECURE_LOCAL: "1"
     networks:
       default:
         aliases:
+          # Where the tools image fetches the world's CA.
+          - world-bootstrap
+          # The output of `catalog aliases`. A hostname missing here resolves on the internet instead.
           - api.datadoghq.com
+          - api.exa.ai
+          - api.firecrawl.dev
           - api.github.com
+          - api.pagerduty.com
           - api.search.brave.com
           - api.tavily.com
+          - app.terraform.io
+          - argocd.lumen-retail.dev
           - github.octo-corp.com
+          - gitlab.lumen.internal
+          - gitlab.northwind.internal
+          - grafana.octo-corp.com
           - octo-corp.myshopify.com
           - octo-corp.okta.com
           - registry.terraform.io
+          - sentry.eu.lumenlabs.dev
+          - sentry.lumenlabs.dev
+          - servicereference.us-east-1.amazonaws.com
+          - xguihxuzqibwxjnimxev.supabase.co
     ports:
       - "127.0.0.1:9000:9000"
   tools:
-    image: tool-bench-tools:dev
+    image: ${TOOLS_IMAGE:-tool-bench-tools:dev}
     depends_on:
       world:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-o", "/dev/null", "http://localhost:7132/mcp"]
+      interval: 1s
+      timeout: 3s
+      retries: 120
     ports:
       - "127.0.0.1:7101-7132:7101-7132"

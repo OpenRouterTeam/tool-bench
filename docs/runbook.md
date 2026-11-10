@@ -104,6 +104,16 @@ curl localhost:8101/api/v3/repos/octo-org/app/issues
 curl localhost:9000/_bench/journal
 ```
 
+The same scenario with the `tools` container in front of the world, also unprotected.
+The MCP endpoints are published on `127.0.0.1:7101` to `7132` and the world's admin
+API on `127.0.0.1:9000`:
+
+```bash
+docker compose -f deploy/compose.dev.yaml up        # WORLD_IMAGE and TOOLS_IMAGE choose other images
+cargo run --locked -p catalog --bin catalog -- port github    # 7101: http://127.0.0.1:7101/mcp
+curl localhost:9000/_bench/journal
+```
+
 ## The strict controller
 
 `deploy/run-trial.sh` runs one trial under a local controller instead of plain
@@ -157,13 +167,21 @@ cargo run --locked -p mcp-tools --bin toolmeter -- report
 ```
 
 `capture-stack.sh` starts `world` and `tools` on an internal Docker network and lists
-each endpoint's tools through `toolmeter`, exactly as an agent reaches them. A full
-capture also rewrites `crates/world/startup-calls.json`, the requests the servers make
-on their own, which grading leaves out of `api_calls`. `toolmeter report` prints the
-per-endpoint tool, byte and token counts.
+each endpoint's tools through `toolmeter`, exactly as an agent reaches them. The world
+runs protected, as in a generated task, with an admin token made for the run. The
+images are `tool-bench-world:dev` and `tool-bench-tools:dev` unless `WORLD_IMAGE` and
+`TOOLS_IMAGE` name others. `toolmeter report` prints the per-endpoint tool, byte and
+token counts.
 
-The script has not been updated for the current images. It starts `world` without
-`BENCH_ALLOW_INSECURE_LOCAL=1`, so the world exits, and `tools` looks for its CA at
-`world-bootstrap`, a name the script does not create. Fix both before relying on it.
-Replica tool lists are captured from their source servers by
-`servers/capture/replicas.sh` and `servers/capture/cloudflare/run.sh`.
+A capture of every endpoint also rewrites `crates/world/startup-calls.json`, the
+requests the servers make on their own, which grading leaves out of `api_calls`. It
+does so wherever the snapshots are written. A capture of named endpoints leaves that
+file alone.
+
+A replica endpoint serves the snapshot its `tools` image was built with, so capturing
+one finds no new tools. Its file can still change: `protocol_version` becomes the version
+`toolmeter` asked for, and `server_info` keeps only the name and version, which loses
+the `source` note in `slack.json` and `stripe.json`. Restore a replica's file with
+`git checkout` after a capture into `servers/snapshots`. Replica tool lists come from
+their source servers through `servers/capture/replicas.sh` and
+`servers/capture/cloudflare/run.sh`.
