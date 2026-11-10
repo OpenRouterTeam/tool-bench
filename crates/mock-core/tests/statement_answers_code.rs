@@ -93,8 +93,21 @@ fn github_ci_failure_reads_the_failed_job_of_the_latest_run_of_the_pr_branch() {
         "Probably the unit-tests job: TestRetryBackoffCapsAtMaxDelay, expected delay 30s, got 32s.",
         // A true remark about another job, in a parenthesis, is context.
         "unit-tests failed (lint was green): TestRetryBackoffCapsAtMaxDelay - expected delay 30s, got 32s",
+        // The run's jobs with the conclusions the API reports, as bullets and on one line.
+        "CI run 9005:\n- lint: success\n- unit-tests: failure\n- integration-tests: success\n\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        "The run has three jobs: lint (success), unit-tests (failure), integration-tests (success).\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        "lint ✅  unit-tests ❌  integration-tests ✅\n\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        // The failed job in one clause with what passed: the other jobs, everything but
+        // it, or the job itself on the earlier run.
+        "All checks passed except unit-tests. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
+        "unit-tests failed and the other two jobs passed. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
+        "unit-tests passed on the previous run (9004) and fails on the latest (9005). Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
+        "The failing job is unit-tests - lint and integration-tests are both green. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
     ]);
     case.fails(&[
+        // The same wordings around a job that did not fail in this run.
+        "All checks passed except lint. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
+        "integration-tests failed and the other two jobs passed. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
         "It was not the unit-tests job; TestRetryBackoffCapsAtMaxDelay printed \"expected delay 30s, got 32s\".",
         "Rather than unit-tests, the integration-tests job failed: TestRetryBackoffCapsAtMaxDelay, expected delay 30s, got 32s.",
         // Jobs and tests of the other authored runs.
@@ -111,6 +124,11 @@ fn github_ci_failure_reads_the_failed_job_of_the_latest_run_of_the_pr_branch() {
         // ("passed" where the failed job is asked for): never an assertion.
         "unit-tests did not fail; TestRetryBackoffCapsAtMaxDelay: expected delay 30s, got 32s",
         "The unit-tests job passed. TestRetryBackoffCapsAtMaxDelay: expected delay 30s, got 32s",
+        "unit-tests is green. TestRetryBackoffCapsAtMaxDelay: expected delay 30s, got 32s.",
+        // The run's jobs with the conclusions swapped.
+        "CI run 9005:\n- lint: failure\n- unit-tests: success\n- integration-tests: success\n\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        "The run has three jobs: lint (failure), unit-tests (success), integration-tests (success).\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        "lint ❌  unit-tests ✅  integration-tests ✅\n\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
         // The message is a text fact: a paraphrase or a near-miss value shares
         // its words and is left to adjudication rather than failed.
         "unit-tests failed: TestRetryBackoffCapsAtMaxDelay expected a 30s delay but got 32s.",
