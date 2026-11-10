@@ -161,6 +161,7 @@ collateral_change = [
 [[scenario]]
 id = "ops/sentry/create-notification-project"
 valid_alternative = [
+  "crates/world/tests/sentry_contracts.rs::a_platform_sentry_does_not_know_is_refused_and_the_retry_still_passes",
   "crates/world/tests/sentry_contracts.rs::new_project_accepts_an_explicit_alternate_slug_and_unspecified_platform",
 ]
 

@@ -894,6 +894,11 @@ all other resources, not just authored sentinels. Audit rows join the actual tar
 issue and authenticated user, with per-commit bounds rather than a trial-wide
 retry cap. Optional reason comments are not silently authorized.
 
+Project create and update refuse a platform Sentry does not list
+(`GETTING_STARTED_DOCS_PLATFORMS`; empty and `other` are accepted) with
+`{"platform": ["Invalid platform"]}`, as the upstream serializers do, so a guessed
+identifier such as `nodejs` is an error to recover from, not a stored value.
+
 Installed `@sentry/mcp-server 0.42.0` source extraction confirms Markdown project
 creation and structured `find_dsns` output. The reference captures that actual
 DSN and renders the answer from it. A separate evaluator binds URI components

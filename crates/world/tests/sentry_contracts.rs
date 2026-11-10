@@ -485,3 +485,48 @@ async fn deactivating_the_only_delivered_key_cannot_produce_a_usable_dsn() {
     fail(&assessment);
     assert!(!assessment.answer_ok);
 }
+
+#[tokio::test]
+async fn a_platform_sentry_does_not_know_is_refused_and_the_retry_still_passes() {
+    let trial = prepared(CREATE, |_| {});
+    let before = trial.state();
+    for platform in ["nodejs", "javascript-node", "node.js", "react"] {
+        let (status, body) = trial
+            .request(
+                "POST",
+                "/api/0/teams/lumen-labs/payments/projects/",
+                json!({"name":"notification-service","platform":platform}),
+            )
+            .await;
+        assert_eq!(status.as_u16(), 400, "{platform}: {body}");
+        assert_eq!(body, json!({"platform":["Invalid platform"]}));
+        assert_eq!(trial.state(), before);
+    }
+    let dsn = create(&trial).await;
+    let (status, body) = trial
+        .request(
+            "PUT",
+            "/api/0/projects/lumen-labs/notification-service/",
+            json!({"platform":"nodejs"}),
+        )
+        .await;
+    assert_eq!(status.as_u16(), 400, "{body}");
+    pass(&trial.assess_with_answer(Some(&dsn)));
+}
+
+#[tokio::test]
+async fn a_known_platform_other_than_node_is_stored_and_is_not_the_requested_service() {
+    for platform in ["javascript", "node-express", "python"] {
+        let trial = prepared(CREATE, |_| {});
+        let project = trial
+            .call(
+                "POST",
+                "/api/0/teams/lumen-labs/payments/projects/",
+                json!({"name":"notification-service","platform":platform}),
+            )
+            .await;
+        assert_eq!(project["platform"], platform);
+        let dsn = dsn_for(&trial, project["slug"].as_str().unwrap()).await;
+        fail(&trial.assess_with_answer(Some(&dsn)));
+    }
+}
