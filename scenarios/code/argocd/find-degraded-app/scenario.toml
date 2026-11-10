@@ -26,9 +26,12 @@ audit_history = true
 # tag it runs and the reason it is waiting. The failing Deployment carries the application's
 # own name, so the `app` fact also names the workload.
 [expect.answer.record_facts]
-requirement = "Name the Argo CD application that is Degraded on production (its failing Deployment has the same name), the image tag its failing pod runs, and why that pod is not starting (the reason it is waiting)."
+requirement = "Name the Argo CD application that is Degraded on production (its failing Deployment has the same name), the image tag its failing pod runs, and why that pod is not starting (the reason it is waiting, or the cause its events give for that reason)."
 mode = "statements"
 context = ["The old pods are still serving", "pod ${pod_name}", "Why"]
+# The failing Deployment carries the application's name and cannot roll out, so these
+# negatives are true of the application and do not deny it.
+predicates = ["cannot roll out", "can't roll out", "could not roll out"]
 
 [expect.answer.record_facts.selector]
 collection = "/services/argocd/applications"
@@ -56,7 +59,11 @@ kind = "identifier"
 optional = true
 
 # The coded source value is the pod's waiting reason; the pod's own health message names
-# the same condition. The wordings are bound to that code and are plain wordings of it only.
+# the same condition. The wordings are bound to that code. The first group are plain
+# wordings of it. The second group state its cause as this pod's events give it (the
+# registry answers NotFound for the tag): the request asks for the root cause, and a reply
+# that gives the cause without the Kubernetes status word has answered it. They restate the
+# authored events and need a new review if those change.
 [expect.answer.record_facts.facts.reason]
 record = "pod"
 field = "/manifest/status/containerStatuses/0/state/waiting/reason"
@@ -80,6 +87,33 @@ ImagePullBackOff = [
   "can't be pulled",
   "could not be pulled",
   "couldn't be pulled",
+
+  "not found",
+  "NotFound",
+  "does not exist",
+  "doesn't exist",
+  "nonexistent",
+  "non-existent",
+  "no such image",
+  "no such tag",
+  "never pushed",
+  "never published",
+  "not in the registry",
+  "isn't in the registry",
+  "not present in the registry",
+  "missing from the registry",
+  "missing from ghcr",
+  "missing tag",
+  "missing image",
+  "tag is missing",
+  "image is missing",
+  "registry has no",
+  "registry does not have",
+  "registry doesn't have",
+  "cannot be found",
+  "can't be found",
+  "could not be found",
+  "couldn't be found",
 ]
 
 [[expect.forbidden_calls]]

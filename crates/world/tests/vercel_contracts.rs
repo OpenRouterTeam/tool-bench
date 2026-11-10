@@ -12,6 +12,8 @@ const CHECKOUT: &str = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH";
 const GOOD: &str = "dpl_8o704GjcwumkLAaxPwjoxb4V6QDF";
 const BAD: &str = "dpl_7wC1vKiBnuwDgHLXzdLRklqAYci5";
 const SAME_SHA: &str = "dpl_same_commit_different_build";
+const CHECKOUT_LIVE: &str = "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL";
+const CHECKOUT_OLDER: &str = "dpl_older_checkout_build";
 
 fn prepared(id: &str, prepare: impl FnOnce(&mut Dataset)) -> ContractTrial {
     ContractTrial::load_with_dataset(
@@ -395,6 +397,87 @@ async fn rotation_does_not_require_a_deployment_or_mutate_existing_snapshots() {
     );
     assert_eq!(initial["aliases"], final_state["aliases"]);
     assert_outcome(&trial, Outcome::Pass);
+}
+
+async fn deploy_checkout(trial: &ContractTrial, arguments: Value) {
+    tool(trial, "vercel-create-deployment", arguments).await;
+    tool(
+        trial,
+        "vercel-find-project",
+        json!({"idOrName":"checkout-api-next"}),
+    )
+    .await;
+}
+
+#[tokio::test]
+async fn rotation_may_redeploy_the_build_serving_production_so_the_key_takes_effect() {
+    let live =
+        json!({"name":"checkout-api-next","deploymentId":CHECKOUT_LIVE,"target":"production"});
+    // Left queued, observed until it serves the domain, and repeated.
+    let trial = prepared(ROTATE, |_| {});
+    rotate(&trial, "sensitive").await;
+    tool(&trial, "vercel-create-deployment", live.clone()).await;
+    assert_outcome(&trial, Outcome::Pass);
+    deploy_checkout(&trial, live.clone()).await;
+    let state = trial.state();
+    let serving = state["aliases"]["api.acme-shop.com"]["deploymentId"]
+        .as_str()
+        .unwrap();
+    assert_ne!(serving, CHECKOUT_LIVE);
+    assert_eq!(
+        state["deployments"][serving]["meta"]["originalDeploymentId"],
+        CHECKOUT_LIVE
+    );
+    assert_outcome(&trial, Outcome::Pass);
+    // The redeploy does not stand in for the rotation, in either order.
+    let trial = prepared(ROTATE, |_| {});
+    deploy_checkout(&trial, live).await;
+    assert_outcome(&trial, Outcome::Fail);
+    rotate(&trial, "sensitive").await;
+    assert_outcome(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
+async fn rotation_does_not_authorize_any_other_deployment() {
+    for arguments in [
+        // An older build of the same project.
+        json!({"name":"checkout-api-next","deploymentId":CHECKOUT_OLDER,"target":"production"}),
+        // The live build to another target.
+        json!({"name":"checkout-api-next","deploymentId":CHECKOUT_LIVE,"target":"preview"}),
+        // A new build from the branch instead of the build that is serving.
+        json!({"name":"checkout-api-next","project":"checkout-api-next","target":"production",
+            "gitSource":{"type":"github","ref":"main","repoId":"1"}}),
+        // The legacy checkout project.
+        json!({"name":"checkout-api","deploymentId":"dpl_1ijIq6r015f3b89pqQsLeT07whaO",
+            "target":"production"}),
+    ] {
+        let trial = prepared(ROTATE, |dataset| {
+            let deployments = dataset
+                .services
+                .get_mut("vercel")
+                .unwrap()
+                .collection_mut("deployments");
+            let mut older = deployments.get(CHECKOUT_LIVE).unwrap().clone();
+            older["id"] = json!(CHECKOUT_OLDER);
+            older["alias"] = json!([]);
+            older["createdAt"] = json!(older["createdAt"].as_i64().unwrap() - 86_400_000);
+            deployments.insert(CHECKOUT_OLDER, older);
+        });
+        rotate(&trial, "sensitive").await;
+        let before = trial.state()["deployments"].as_object().unwrap().len();
+        deploy_checkout(&trial, arguments.clone()).await;
+        assert_eq!(
+            trial.state()["deployments"].as_object().unwrap().len(),
+            before + 1,
+            "{arguments}"
+        );
+        let assessment = trial.assess();
+        assert_eq!(
+            assessment.outcome,
+            Outcome::Fail,
+            "{arguments}: {assessment:?}"
+        );
+    }
 }
 
 #[tokio::test]

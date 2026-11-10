@@ -72,7 +72,17 @@ rejected = [
 context = [
   "The newer production deployment of ${failed_commit} failed, so it never went live",
   "it supersedes the unmerged PR",
+  # True remarks about the reviewer who commented without approving, in the forms a
+  # list of the pull request's reviews takes.
   "${commenter} only left a comment",
+  "${commenter} left a comment",
+  "${commenter} left a review comment",
+  "${commenter} only commented",
+  "${commenter} commented",
+  "${commenter}: commented",
+  "${commenter} (commented)",
+  "${commenter} (comment only)",
+  "${commenter} (comment)",
 ]
 
 [expect.answer.record_facts.selector]

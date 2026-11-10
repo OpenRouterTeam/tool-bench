@@ -18,7 +18,6 @@
     {
       "style": "plain_wording",
       "expect": "pass",
-      "known": "unresolved",
       "answer": "Production is on c3a9f12 (Fix tax rounding for EU orders). The newest preview went over the function size limit."
     }
   ],

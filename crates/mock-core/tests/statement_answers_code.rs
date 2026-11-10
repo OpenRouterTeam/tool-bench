@@ -19,6 +19,13 @@ fn argocd_degraded_app_binds_the_app_to_its_pods_image_tag_and_reason() {
         // Other authored records named beside or after the answer are context.
         "checkout-web (2.14.0-rc3, ImagePullBackOff) is Degraded; checkout-web-staging is Degraded too.",
         "checkout-web is Degraded: the 2.14.0-rc3 pod is in ImagePullBackOff while the 2.13.4 pods keep serving.",
+        // The root cause the pod's events give, without the Kubernetes status word: the
+        // registry does not have the tag.
+        "checkout-web is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry.",
+        "Application: checkout-web. Failing resource: Deployment checkout-web. Root cause: image tag 2.14.0-rc3 was not found in ghcr.io (NotFound).",
+        "The Degraded production app is checkout-web: its Deployment was pointed at ghcr.io/lumen-retail/checkout-web:2.14.0-rc3, a tag that was never pushed.",
+        "App: checkout-web. Root cause: missing image tag - ghcr.io/lumen-retail/checkout-web:2.14.0-rc3 is not in the registry.",
+        "checkout-web: the Deployment checkout-web cannot roll out because the registry has no 2.14.0-rc3 tag.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -33,13 +40,30 @@ fn argocd_degraded_app_binds_the_app_to_its_pods_image_tag_and_reason() {
         "checkout-web is Degraded on production: its new pod cannot pull image tag 2.14.0-rc30 (ImagePullBackOff).",
         "checkout-web is Degraded on production: its new pod cannot pull image tag 2.14.0 (ImagePullBackOff).",
         "checkout-web is Degraded on production and runs tag 2.14.0-rc3.",
+        // The registry cause on the staging twin or on the twin's tag.
+        "checkout-web-staging is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry.",
+        "checkout-web is Degraded on production because the image tag 2.14.0-rc2 does not exist in the registry.",
+        // A cause the pod's events do not give.
+        "checkout-web is Degraded on production: the 2.14.0-rc3 pod crash-loops because the STRIPE_KEY environment variable is missing.",
+        "checkout-web is Degraded on production: the 2.14.0-rc3 pod is OOMKilled because its memory limit is too low.",
     ]);
     case.unresolved(&[
         // A cause in a wording nobody reviewed: it shares words with the pod's
         // own health message, so it is adjudicated rather than failed.
-        "checkout-web is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry.",
+        "checkout-web is Degraded on production: the registry rejected the kubelet's expired credentials for the 2.14.0-rc3 image.",
         "checkout-web is Degraded on production and runs image tag 2.14.0-rc3.",
     ]);
+    // The registry wordings are bound to the pod's waiting reason: once the pod waits for
+    // another reason they no longer state it.
+    let reason = "/services/argocd/resources/0d3df349-e40e-5789-bc1f-b9740a79c8a0/manifest/status/containerStatuses/0/state/waiting/reason";
+    assert_ne!(
+        case.outcome_after(
+            reason,
+            json!("CreateContainerConfigError"),
+            "checkout-web is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry."
+        ),
+        Outcome::Pass
+    );
     // The tag follows the failing pod's authored image.
     let image = "/services/argocd/resources/0d3df349-e40e-5789-bc1f-b9740a79c8a0/images/0";
     let edited = json!("ghcr.io/lumen-retail/checkout-web:2.14.0-rc4");
@@ -69,8 +93,21 @@ fn github_ci_failure_reads_the_failed_job_of_the_latest_run_of_the_pr_branch() {
         "Probably the unit-tests job: TestRetryBackoffCapsAtMaxDelay, expected delay 30s, got 32s.",
         // A true remark about another job, in a parenthesis, is context.
         "unit-tests failed (lint was green): TestRetryBackoffCapsAtMaxDelay - expected delay 30s, got 32s",
+        // The run's jobs with the conclusions the API reports, as bullets and on one line.
+        "CI run 9005:\n- lint: success\n- unit-tests: failure\n- integration-tests: success\n\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        "The run has three jobs: lint (success), unit-tests (failure), integration-tests (success).\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        "lint ✅  unit-tests ❌  integration-tests ✅\n\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        // The failed job in one clause with what passed: the other jobs, everything but
+        // it, or the job itself on the earlier run.
+        "All checks passed except unit-tests. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
+        "unit-tests failed and the other two jobs passed. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
+        "unit-tests passed on the previous run (9004) and fails on the latest (9005). Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
+        "The failing job is unit-tests - lint and integration-tests are both green. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
     ]);
     case.fails(&[
+        // The same wordings around a job that did not fail in this run.
+        "All checks passed except lint. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
+        "integration-tests failed and the other two jobs passed. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion message: expected delay 30s, got 32s",
         "It was not the unit-tests job; TestRetryBackoffCapsAtMaxDelay printed \"expected delay 30s, got 32s\".",
         "Rather than unit-tests, the integration-tests job failed: TestRetryBackoffCapsAtMaxDelay, expected delay 30s, got 32s.",
         // Jobs and tests of the other authored runs.
@@ -87,6 +124,11 @@ fn github_ci_failure_reads_the_failed_job_of_the_latest_run_of_the_pr_branch() {
         // ("passed" where the failed job is asked for): never an assertion.
         "unit-tests did not fail; TestRetryBackoffCapsAtMaxDelay: expected delay 30s, got 32s",
         "The unit-tests job passed. TestRetryBackoffCapsAtMaxDelay: expected delay 30s, got 32s",
+        "unit-tests is green. TestRetryBackoffCapsAtMaxDelay: expected delay 30s, got 32s.",
+        // The run's jobs with the conclusions swapped.
+        "CI run 9005:\n- lint: failure\n- unit-tests: success\n- integration-tests: success\n\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        "The run has three jobs: lint (failure), unit-tests (success), integration-tests (success).\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
+        "lint ❌  unit-tests ✅  integration-tests ✅\n\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion message: expected delay 30s, got 32s",
         // The message is a text fact: a paraphrase or a near-miss value shares
         // its words and is left to adjudication rather than failed.
         "unit-tests failed: TestRetryBackoffCapsAtMaxDelay expected a 30s delay but got 32s.",
@@ -186,6 +228,11 @@ fn vercel_github_lookup_binds_the_live_commit_to_its_pr_and_each_role() {
         "It appears to be c3a9f12 from PR #482, written by mateoalv, approved by ines-d and merged by riley-p.",
         // Other authored records named beside or after the answer are context.
         "Commit c3a9f12 (PR #482; the later #487 deploy failed), author mateoalv, approver ines-d, merger riley-p.",
+        // The reviewer who only commented, listed among the reviews before the approver
+        // or the merger is named.
+        "Commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9 is PR #482, written by mateoalv.\n\nReviews:\n- junpark: COMMENTED\n- ines-d: APPROVED\n\nMerged by riley-p.",
+        "Production serves commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9, which is PR #482. It was written by mateoalv, approved by ines-d (junpark only commented and did not approve), and merged by riley-p.",
+        "Commit: c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9\nPR: #482\nWritten by: mateoalv\nReviewed by: junpark (comment only), ines-d (approved)\nMerged by: riley-p",
     ]);
     case.fails(&[
         "The commit in production is not c3a9f12; PR #482 was written by mateoalv, approved by ines-d and merged by riley-p.",
@@ -198,6 +245,9 @@ fn vercel_github_lookup_binds_the_live_commit_to_its_pr_and_each_role() {
         "Commit c3a9f12, PR #482. Author: mateoalv. Approved by: riley-p. Merged by: ines-d.",
         "Commit c3a9f12, PR #482. ines-d wrote it, mateoalv approved it, riley-p merged it.",
         "Commit c3a9f12, PR #482. Author: mateoalv. Approved by: junpark. Merged by: riley-p.",
+        // A true remark about that reviewer does not hide a role the reply gives them.
+        "Commit c3a9f12, PR #482. Author: mateoalv. junpark commented. Approved by: junpark. Merged by: riley-p.",
+        "Commit c3a9f12, PR #482. Author: mateoalv. Approved by: ines-d (junpark only commented). Merged by: junpark.",
         // Near-miss identifiers and a hash that is too short to identify a commit.
         "Commit c3a9f13, PR #482, author mateoalv, approver ines-d, merger riley-p.",
         "Commit c3a9f1, PR #482, author mateoalv, approver ines-d, merger riley-p.",
@@ -210,6 +260,8 @@ fn vercel_github_lookup_binds_the_live_commit_to_its_pr_and_each_role() {
         "Production is not serving c3a9f12; PR #482 was written by mateoalv, approved by ines-d and merged by riley-p.",
         "Commit c3a9f12, PR #482. mateoalv did not write it. ines-d approved, riley-p merged.",
         "Commit c3a9f12, PR #482, written by Mateo, approved by Ines and merged by Riley.",
+        // The review list with the two reviewers' states swapped.
+        "Commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9 is PR #482, written by mateoalv.\n\nReviews:\n- junpark: APPROVED\n- ines-d: COMMENTED\n\nMerged by riley-p.",
     ]);
     // The served commit follows the authored deployment states.
     assert_eq!(
@@ -247,6 +299,10 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
         "Production seems to serve c3a9f12 (\"Fix tax rounding for EU orders\"); the preview hit the function size limit.",
         // Other authored records named beside or after the answer are context.
         "Production serves c3a9f12 (\"Fix tax rounding for EU orders\"), not the newer 7d41c9e build; the preview 4be1d07 failed with FUNCTION_SIZE_EXCEEDED.",
+        // The error message in a reply's own words: the function was over the limit.
+        "Production serves c3a9f12, \"Fix tax rounding for EU orders (#482)\". The latest preview failed because a function was over 250 MB.",
+        "Production serves c3a9f12, \"Fix tax rounding for EU orders (#482)\". The latest preview failed at build: its serverless function bundle was too large for Vercel.",
+        "Production is on c3a9f12 (Fix tax rounding for EU orders). The newest preview went over the function size limit.",
     ]);
     case.fails(&[
         "Production is not on c3a9f12 (\"Fix tax rounding for EU orders\"); the preview failed on function size.",
@@ -255,6 +311,8 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
         "Production serves 7d41c9e (\"Upgrade to Next.js 15.4 (#487)\"); the latest preview exceeded the function size limit.",
         "Production serves c3a9f12 (\"Upgrade to Next.js 15.4 (#487)\"); the latest preview exceeded the function size limit.",
         "Production serves c3a9f12 (\"Fix tax rounding for EU orders (#482)\"). The latest preview failed with BUILD_UTILS_SPAWN_1.",
+        "Production serves c3a9f12 (\"Fix tax rounding for EU orders (#482)\"). The latest preview failed because the build timed out.",
+        "Production serves 7d41c9e (\"Upgrade to Next.js 15.4 (#487)\"); the latest preview failed because a function was over 250 MB.",
         // Near-miss hash and a missing cause.
         "Production serves c3a9f13 (\"Fix tax rounding for EU orders (#482)\"); the preview hit the function size limit.",
         "Production serves c3a9f12 (\"Fix tax rounding for EU orders (#482)\").",
@@ -262,7 +320,6 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
     case.unresolved(&[
         "Production is not serving c3a9f12 (Fix tax rounding for EU orders); preview: FUNCTION_SIZE_EXCEEDED.",
         // Correct, but in wordings nobody reviewed.
-        "Production serves c3a9f12, \"Fix tax rounding for EU orders (#482)\". The latest preview failed because a function was over 250 MB.",
         "Production serves c3a9f12 (the EU tax rounding fix); the latest preview failed with FUNCTION_SIZE_EXCEEDED.",
     ]);
     // The served commit follows the authored deployment states.

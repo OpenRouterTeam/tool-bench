@@ -331,7 +331,7 @@ today.
 
 `from_unit_tests.json` in `natural_answers/` and in `wrong_answers/` holds
 replies that unit tests used to assert on and the reader misread: 7 correct
-replies, 5 of them still left unresolved, and 29 wrong replies that pass. They
+replies, 4 of them still left unresolved, and 29 wrong replies that pass. They
 were picked because the reader got them wrong, so they are not part of the
 rates above. `natural_answers/pilot_agent.json` holds 103 replies that pilot
 agents wrote to 54 lookup tasks without seeing the contracts. Earlier readers
@@ -340,7 +340,10 @@ left eight of them unresolved or failed; all pass now.
 **Correct replies left unresolved** state a bare answer and then name another
 authored record in wording the reader takes for a claim ("the September invoice
 was PO-47790", "The 12:05 highlights cut is https://…"), or state the answer in
-a clause that holds a dismissal word ("went over the function size limit").
+a clause that holds a dismissal word ("went over the limit"). Where a fact is
+naturally worded that way, its contract reviews the whole wording, dismissal
+word included: `code/vercel/storefront-production-status` lists "over the
+function size" among the wordings of its error code.
 
 The first 440 correct replies and their wrong counterparts were used to tune
 the cue lists, and the held-out half has since informed two more rules, so

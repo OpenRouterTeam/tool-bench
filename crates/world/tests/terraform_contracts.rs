@@ -273,6 +273,27 @@ async fn cancellation_then_speculative_verification_is_a_valid_recovery_alternat
 }
 
 #[tokio::test]
+async fn force_unlocking_and_canceling_the_crashed_run_together_are_one_recovery() {
+    // The force-unlock tool's description says to prefer canceling the run first, so an
+    // agent may do both: the second step finds nothing left to release or clears the run.
+    for cancel_first in [true, false] {
+        let trial = prepared(UNLOCK, |_| {});
+        let cancel = format!("/api/v2/runs/{ORDERS_RUN}/actions/cancel");
+        let force = format!("/api/v2/workspaces/{ORDERS}/actions/force-unlock");
+        if cancel_first {
+            trial.call("POST", &cancel, Value::Null).await;
+            let (status, _) = trial.request("POST", &force, Value::Null).await;
+            assert_eq!(status.as_u16(), 409);
+        } else {
+            trial.call("POST", &force, Value::Null).await;
+            trial.call("POST", &cancel, Value::Null).await;
+        }
+        create_run(&trial, ORDERS, json!({"plan-only":true})).await;
+        assert_outcome(&trial, Outcome::Pass);
+    }
+}
+
+#[tokio::test]
 async fn applied_state_download_preserves_the_resolved_eip_nat_and_route_relationships() {
     let trial = prepared(APPROVE, |_| {});
     approve(&trial, "Approved per CHG-2291").await;
