@@ -304,7 +304,10 @@ runtime = "pypi"
 package = "awslabs.aws-api-mcp-server"
 version = "1.6.0"
 command = "awslabs.aws-api-mcp-server"
-env = { AWS_ENDPOINT_URL = "{world}", AWS_ACCESS_KEY_ID = "AKIATOOLBENCH0000000", AWS_SECRET_ACCESS_KEY = "toolbench", AWS_REGION = "us-east-1", ENDPOINT_SUGGEST_AWS_COMMANDS = "{world}/suggest-aws-commands" }
+# AWS_DEFAULT_REGION is what botocore reads: the server's `--region *` expansion builds its
+# `account` client from a bare boto3 session and fails with "You must specify a region" on
+# AWS_REGION alone.
+env = { AWS_ENDPOINT_URL = "{world}", AWS_ACCESS_KEY_ID = "AKIATOOLBENCH0000000", AWS_SECRET_ACCESS_KEY = "toolbench", AWS_REGION = "us-east-1", AWS_DEFAULT_REGION = "us-east-1", ENDPOINT_SUGGEST_AWS_COMMANDS = "{world}/suggest-aws-commands" }
 [[service.endpoint]]
 id = "aws-cloudwatch"
 mcp_port = 7131
