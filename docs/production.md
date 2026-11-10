@@ -105,11 +105,11 @@ same tasks with a different registered set, from the same pinned tool definition
 | Variant | Registers |
 |---|---|
 | `relevant_only` | Only the tools the task's reference solution uses |
-| `context_feasible` | The relevant tools plus others up to `--exposure-token-budget` |
-| `organization_pack` | The endpoints of the task's organization |
+| `context_feasible` | The organization pack plus further endpoints while they fit in `--exposure-token-budget` |
+| `organization_pack` | Every endpoint of the applications the task's organization has connected |
 | `full_catalog` | Everything (the default) |
 | `randomized_order` | Everything, in a seeded order |
-| `confusing_distractors` | The relevant endpoints plus look-alike ones |
+| `confusing_distractors` | The organization pack plus endpoints of other applications whose tool names overlap it |
 
 To run a variant in production, generate it on a branch and pass that branch as
 `datasetRef`:
