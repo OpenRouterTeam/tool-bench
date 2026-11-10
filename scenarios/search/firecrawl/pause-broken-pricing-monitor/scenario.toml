@@ -41,9 +41,8 @@ source_field = "/id"
 target = { collection = "/services/firecrawl/monitors", matching = { id = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" } }
 target_field = "/lastCheckId"
 
-[[expect.ordering]]
-prerequisite = { selector = { collection = "/services/firecrawl/monitors", matching = { id = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11" } }, field = "/status", equals = "paused" }
-action = { selector = { collection = "/services/firecrawl/monitor_checks", created = true, matching = { monitorId = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12" } }, field = "/trigger", equals = "manual" }
+# The pause and the manual check act on different monitors and neither depends on the other,
+# so they may commit in either order (two tool calls issued together can land either way).
 
 [expect.preservation]
 allow = [
