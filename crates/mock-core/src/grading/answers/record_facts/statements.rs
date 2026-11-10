@@ -1587,7 +1587,8 @@ mod tests {
             fold("**Northwind**  –\n `Fleet`", false),
             "northwind - fleet"
         );
-        assert_eq!(fold("A | B\n\n- C", true), "a\nb\n- c");
+        // A table cell boundary reads as a label boundary.
+        assert_eq!(fold("A | B\n\n- C", true), "a : b\n- c");
     }
 
     #[test]

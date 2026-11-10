@@ -368,7 +368,11 @@ const ONE_AS_PRONOUN: &[&str] = &[
     "it", "i", "we", "they", "you",
 ];
 
+/// Words that make a spelled number larger than this reader totals.
+const SCALE_WORDS: &[&str] = &["hundred", "thousand", "million", "billion", "trillion"];
+
 /// Counts written as words from zero to ninety-nine ("six attempts", "twenty-one").
+/// A word inside a longer spelled number ("one hundred seventy-nine") is not a count.
 fn cardinal_words(text: &str) -> Vec<NumberToken> {
     let mut words: Vec<(usize, usize, &str)> = Vec::new();
     let mut start = None;
@@ -387,9 +391,23 @@ fn cardinal_words(text: &str) -> Vec<NumberToken> {
             character.is_alphanumeric() || matches!(character, '_' | '-' | '/')
         })
     };
+    // The word before `index`, when only a space or hyphen separates them.
+    let previous = |index: usize| {
+        let (begin, _, _) = words[index];
+        index
+            .checked_sub(1)
+            .map(|before| words[before])
+            .filter(|(_, end, _)| {
+                text[*end..begin]
+                    .chars()
+                    .all(|gap| matches!(gap, ' ' | '-'))
+            })
+            .map(|(_, _, word)| word)
+    };
     let mut found = Vec::new();
     let mut position = 0;
     while position < words.len() {
+        let current = position;
         let (begin, mut end, word) = words[position];
         let mut next = position + 1;
         let value = if let Some(tens) = TENS.iter().position(|name| *name == word) {
@@ -421,7 +439,18 @@ fn cardinal_words(text: &str) -> Vec<NumberToken> {
             .is_some_and(|character| character.is_alphanumeric() || matches!(character, '_' | '-'));
         position = next;
         let Some(value) = value else { continue };
-        if attached(begin) || joined_after || (word == "one" && ONE_AS_PRONOUN.contains(&following))
+        let in_longer_number = SCALE_WORDS.contains(&following)
+            || match previous(current) {
+                Some("and") => {
+                    previous(current - 1).is_some_and(|word| SCALE_WORDS.contains(&word))
+                }
+                Some(word) => SCALE_WORDS.contains(&word),
+                None => false,
+            };
+        if attached(begin)
+            || joined_after
+            || in_longer_number
+            || (word == "one" && ONE_AS_PRONOUN.contains(&following))
         {
             continue;
         }
@@ -728,6 +757,14 @@ mod tests {
             .into_iter()
             .map(|token| token.value.text())
             .collect()
+    }
+
+    #[test]
+    fn words_inside_a_longer_spelled_number_are_not_counts() {
+        assert_eq!(values("six attempts and twenty-one retries"), ["6", "21"]);
+        assert!(values("one hundred seventy-nine errors").is_empty());
+        assert!(values("one hundred and seventy-nine errors").is_empty());
+        assert!(values("two million rows").is_empty());
     }
 
     #[test]
