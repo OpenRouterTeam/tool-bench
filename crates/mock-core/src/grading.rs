@@ -30,7 +30,7 @@ use crate::{
     startup::{StartupCall, without_startup},
 };
 
-pub const EVALUATOR_VERSION: u32 = 45;
+pub const EVALUATOR_VERSION: u32 = 46;
 
 /// What a scenario expects (generated from `scenario.toml` into the task's `tests/expect.json`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
