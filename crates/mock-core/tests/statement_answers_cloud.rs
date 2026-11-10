@@ -228,11 +228,20 @@ fn mongodb_order_tracking_is_read_from_the_requesters_production_order() {
         "I think it's order 10601: shipped, UPS, tracking 1Z4X97W80391827364.",
         // Her other open order, named after the answer, is context.
         "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. Her other order 10605 is still processing.",
+        // Saying that the other open order has not shipped does not deny this order's status.
+        "Order number: 10601\nStatus: shipped\nCarrier: UPS\nTracking number: 1Z4X97W80391827364\n\nHer newer order 10605 is still processing and has not shipped.",
+        "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. Order 10605 hasn't shipped yet.",
+        "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. She also has order 10605 (processing, not yet shipped) and 10598 (delivered via USPS).",
+        "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364. Order 10605 has not been shipped yet, so it has no tracking number.",
     ]);
     case.fails(&[
         "Order 10601 has not shipped; carrier UPS, tracking 1Z4X97W80391827364.",
         "Order 10601 hasn't shipped yet; carrier UPS, tracking 1Z4X97W80391827364.",
         "Order 10601 has not yet shipped; carrier UPS, tracking 1Z4X97W80391827364.",
+        // The aside is no status: it cannot stand in for one, nor hide the other order's.
+        "Order number: 10601\nStatus: not shipped\nCarrier: UPS\nTracking number: 1Z4X97W80391827364",
+        "Order number: 10601\nStatus: processing (not yet shipped)\nCarrier: UPS\nTracking number: 1Z4X97W80391827364",
+        "Order 10605: processing, has not shipped, no carrier or tracking number yet.",
         "It is not order 10601 (shipped, UPS, 1Z4X97W80391827364).",
         "Order 10601 won't be shipped by UPS; tracking 1Z4X97W80391827364.",
         "Order 10601 shipped, not via UPS; tracking 1Z4X97W80391827364.",

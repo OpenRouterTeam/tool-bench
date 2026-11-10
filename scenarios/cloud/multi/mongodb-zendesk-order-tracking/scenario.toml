@@ -24,7 +24,8 @@ audit_history = true
 
 # The order is the production shop.orders document created on October 21, 2026 (the order
 # date the ticket body gives) whose customer email is that of the Zendesk user Hana Sato.
-# "not yet delivered" is a true aside about a shipped order.
+# "not yet delivered" is a true aside about a shipped order. "has not shipped" is a true aside
+# about her other open order (10605, processing), not a denial of this order's status.
 [expect.answer.record_facts]
 requirement = "State the order number, current status, carrier and tracking number of the production shop.orders order that Zendesk requester Hana Sato placed on October 21, 2026."
 mode = "statements"
@@ -40,6 +41,15 @@ context = [
   "on 2026-10-23",
   "ETA Oct 31",
   "estimated delivery 2026-10-31",
+  "not yet been shipped",
+  "hasn't yet been shipped",
+  "not been shipped",
+  "hasn't been shipped",
+  "not yet shipped",
+  "hasn't yet shipped",
+  "hasn't shipped",
+  "isn't shipped",
+  "not shipped",
 ]
 
 [expect.answer.record_facts.selector]
