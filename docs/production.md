@@ -2,13 +2,14 @@
 
 tool-bench measures how well an agent completes ordinary business tasks when it is
 handed a very large tool set: 32 MCP endpoints, 1,595 tool definitions, about 727,000
-tokens of tool schemas (`docs/research/tool-payload.md`). It is built to compare ways of
+tokens of tool schemas ([measured](research/tool-payload.md)). It is built to compare ways of
 serving that tool set (send everything, client-side tool search, router-side deferral)
 on the same 150 tasks.
 
 This page is the path from "merged to `main`" to "a comparison you can read". The
 grading rules are in [contracts.md](contracts.md) and
-[answer-fact-contracts.md](answer-fact-contracts.md).
+[answer-fact-contracts.md](answer-fact-contracts.md); building and changing the
+benchmark is in [runbook.md](runbook.md).
 
 ## How a trial runs
 
@@ -18,12 +19,15 @@ Nothing in this repository has to be installed on the worker.
 
 | Step | What happens |
 |---|---|
-| Start | Compose starts three services: `main` (the agent), `tools` (every MCP server) and `world` (the mock APIs). The worker's per-trial `HARBOR_TRIAL_ADMIN_TOKEN` reaches only `world`. |
-| Agent | The harness registers the task's MCP servers and gets `instruction.md`. Lookup tasks ask for the reply in `/app/answer.md`. |
-| Collect | Harbor runs the task's collect hook inside `world`, which closes the world to new requests and exports its sealed evidence. Harbor then collects that file and the answer file. |
-| Verify | Harbor stops the agent, builds the separate verifier from `tests/`, and runs `bench-verify` offline on the contract, the evidence and the answer. |
+| Start | Compose starts three services: `main` (the agent), `tools` (every MCP server) and `world` (the mock APIs). The task's compose file passes the worker's per-trial `HARBOR_TRIAL_ADMIN_TOKEN` only to `world`. |
+| Agent | The harness registers the task's MCP servers and gets `instruction.md`. Tasks that expect a reply ask for it in `/app/answer.md`. |
+| Collect | Harbor copies the answer file out of `main` and stops `main`. It then runs the task's collect hook inside `world`, which closes the world to new requests and exports its sealed evidence, and collects that file. |
+| Verify | Harbor builds the separate verifier from `tests/` and runs `tests/test.sh`: `bench-verify --allow-unattested-runner --withhold-invalid-reward` on the contract, the evidence and the answer. |
 
-The verifier has no network access, no credentials and no agent process beside it.
+The verifier container has no network and no agent process beside it, and
+`bench-verify` uses no credentials. `test.sh` has those two flags because `taskgen`
+generates tasks with `--runner-admission optional` unless told otherwise; see
+[Assurance](#assurance).
 
 ## Reading one trial
 
@@ -34,7 +38,7 @@ passed.
 |---|---|---|
 | 0 | Pass | |
 | 1 | Fail: a required outcome is missing or wrong, or something else was changed | Yes |
-| 2 | Context overflow | Yes, it is what the arm under test produced |
+| 2 | Context overflow. Production trials never carry this code; see below | Yes, it is what the arm under test produced |
 | 3 | Integrity violation: the world was reached other than through the MCP servers | Yes |
 | 6 | Unresolved: the reply could not be read either way | Reward 0; see below |
 
@@ -53,10 +57,11 @@ Two cases are deliberately **not** scored:
 
 ### Context overflow
 
-The offline verifier cannot see the model's requests. A provider rejection for prompt
-length is detected by Harbor's agent wrapper, which raises
-`ContextWindowExceededError`; the production pipeline already treats that as a scored
-trial, and `bench-report` counts it as a context overflow.
+The offline verifier cannot see the model's requests, so it never writes
+`outcome_code` 2 for a production trial. A provider rejection for prompt length is
+detected by Harbor's agent wrapper, which raises `ContextWindowExceededError`. The
+production pipeline treats that as a scored trial, not a skipped one, and
+`bench-report` counts it as a context overflow unless the trial passed anyway.
 
 ### Unresolved
 
@@ -64,6 +69,10 @@ A reply is unresolved when it states the right facts but the reader cannot tell 
 record it presents as the answer, for example a bare list of every candidate. It
 earns no reward. On 500 correct replies written in ordinary prose, 493 pass; the
 measured limits are in [answer-fact-contracts.md](answer-fact-contracts.md).
+
+The two consumers treat it differently. The production pipeline sees reward 0 and
+counts the trial as incorrect. `bench-report` lists unresolved trials beside the pass
+rate and leaves them out of it.
 
 ## Comparing arms
 
@@ -76,26 +85,33 @@ version, same `datasetRef`, at least three attempts per task.
 | `agent.name`, `agent.modelName`, `agent.kwargs.version` | Harness, model, harness pin |
 | `attempts` | Repeats per task |
 | `tasks.include` / `tasks.exclude` | Globs over `<group>__<service>__<slug>`, such as `ops__*` or `*__multi__*` |
-| `experimentIds`, `requestOverlay.extra_body` | The router treatment for this arm |
+| `clientToolSearch` | `on` or `off`: the harness's own tool search (Claude Code, Codex, pi) |
+| `deferredTools` | Router-side deferral; sent as `deferred_tools` on every request |
+| `experimentIds`, `requestOverlay.extra_body` | Any other router treatment for this arm |
+| `arm` | A label for the results; it changes no request |
 | `datasetRef` | A branch or tag of this repository, to run a different tool exposure (below) |
 
-Download each run's artifacts and compare them:
+Download each run's whole trial directories, one directory per arm, and compare them:
 
 ```bash
 cargo run -p report --bin bench-report -- runs/arm-a runs/arm-b          # Markdown
 cargo run -p report --bin bench-report -- runs/arm-a runs/arm-b --json
+cargo run -p report --bin bench-report -- runs/arm-a runs/arm-b --explain <task>
 ```
 
 For each arm the report gives the pass rate over assessed trials with an interval, the
 outcome breakdown, pass rates by task group and for single- versus multi-service
 tasks, API calls per trial, and the checks that failed most. With two or more arms it
 adds a paired comparison on the tasks both attempted and warns when the arms differ in
-evaluator version, task set or contracts. Trials without an assessment are listed and
-left out of the pass rate.
+evaluator version, task set or contracts. Unresolved trials and trials without an
+assessment are listed and left out of the pass rate. `--explain` prints the failed
+checks of each of one task's trials.
 
 Per trial, the report re-runs the assessment from the collected evidence, contract and
-answer and requires it to match what the verifier saved. Token and cost figures are
-whatever Harbor recorded for the harness.
+answer and requires it to match what the verifier saved. Build it from the revision
+that graded the run: a trial graded by another evaluator version, or downloaded
+without its artifacts, is reported as recorded only, with the verifier's numbers
+unchecked. Token and cost figures are whatever Harbor recorded for the harness.
 
 ## Changing the size of the tool set
 
@@ -105,10 +121,10 @@ same tasks with a different registered set, from the same pinned tool definition
 | Variant | Registers |
 |---|---|
 | `relevant_only` | Only the tools the task's reference solution uses |
-| `context_feasible` | The organization pack plus further endpoints while they fit in `--exposure-token-budget` |
-| `organization_pack` | Every endpoint of the applications the task's organization has connected |
+| `context_feasible` | The organization pack plus further endpoints while they fit in `--exposure-token-budget` (required for this variant) |
+| `organization_pack` | Every endpoint of the services the task's scenario lists in `services`, which stand for the applications its organization has connected |
 | `full_catalog` | Everything (the default) |
-| `randomized_order` | Everything, in a seeded order |
+| `randomized_order` | Everything, in an order seeded by `--exposure-seed` |
 | `confusing_distractors` | The organization pack plus endpoints of other applications whose tool names overlap it |
 
 To run a variant in production, generate it on a branch and pass that branch as
@@ -117,11 +133,13 @@ To run a variant in production, generate it on a branch and pass that branch as
 ```bash
 git switch -c exposure/relevant-only
 cargo run --locked -p scenario --bin taskgen -- --exposure relevant_only
-git commit -am "tasks: relevant-only exposure" && git push -u origin exposure/relevant-only
+git add tasks && git commit -m "tasks: relevant-only exposure" && git push -u origin exposure/relevant-only
 ```
 
 The images are the same; only the registration differs. The variant, seed and realized
-tool list are recorded in each task's `tests/exposure.json`.
+tool list are recorded in each task's `tests/exposure.json`, a new file that
+`git commit -a` would leave out. The contract in `tests/expect.json` is identical
+under every variant.
 
 ## Releasing a change
 
@@ -139,8 +157,12 @@ servers or the catalog needs regenerated tasks and new images.
    cargo clippy --workspace --all-targets --locked -- -D warnings
    deploy/stock-campaign.sh        # oracle scores 1 and no-op scores 0 on all 150 tasks, through stock Harbor
    ```
-3. Merge to `main`. `.github/workflows/tool-bench-images.yml` builds and pushes any image
-   tag that is not published yet. Production picks up the new tasks on its next clone.
+   The campaign builds the world image itself and needs a `tool-bench-tools:dev`
+   image; see [runbook.md](runbook.md#images).
+3. Merge to `main`. CI (`.github/workflows/tool-bench.yml`) fails if `tasks/` or the
+   inventory is not what `taskgen` generates. `.github/workflows/tool-bench-images.yml`
+   builds and pushes any image tag that is not published yet. Production picks up the
+   new tasks on its next clone.
 
 Bump `EVALUATOR_VERSION` (`crates/mock-core/src/grading.rs`) whenever grading changes,
 and do not pool results across evaluator versions.
@@ -152,11 +174,12 @@ evidence and the answer from this trial's containers. What it checks itself is t
 evidence is sealed by the world, belongs to this scenario, and matches the task's
 contract and dataset hashes.
 
-`deploy/run-trial.sh` runs a trial under a stricter local controller that stops the
-agent container before collection and publishes a receipt binding the evidence, the
-answer and the realized configuration. Tasks generated with
-`taskgen --runner-admission required` accept only such trials. That mode is for
-auditing the benchmark itself (`deploy/test-*.sh`); it is not needed to run it.
+`deploy/run-trial.sh` runs a trial under a stricter local controller. It stops the
+agent container before anything is collected, checks that it stopped, and publishes a
+receipt binding the evidence, the answer and the realized configuration. Tasks
+generated with `taskgen --runner-admission required` accept only such trials. That
+mode is for auditing the benchmark itself (`deploy/test-*.sh`); it is not needed to
+run it. See [runner-admission.md](runner-admission.md).
 
 ## Checking the benchmark without a model
 

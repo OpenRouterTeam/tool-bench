@@ -1,5 +1,10 @@
 # Agent-visible surfaces and account origins
 
+The connection origins below apply to every trial. The host observation of the tools
+container and the surface audit run only under the strict controller
+(`deploy/run-trial.sh`); stock Harbor trials, including production, are not audited
+this way.
+
 Status: source/local, both-account MCP surface, regression and retained-evidence
 checks pass on the declared condition. This is an exposure audit,
 not a behavioral model-awareness experiment or certified blinding.

@@ -2,8 +2,7 @@
 
 This is **scripted reference execution**, not a rule that any recoverable tool
 error invalidates a model trial. Task outcome, preservation and safety remain in
-the declared evaluator contract. Native/provider completion admission is still a
-separate open gate.
+the declared evaluator contract.
 
 ## Two separate checks
 
@@ -64,7 +63,7 @@ These are reference-admission limits, not statements that AWS lacks those
 capabilities or that a native model using them failed its task.
 
 The pinned implementation and primary-source qualifications are recorded in
-[the result-contract research](research/2026-11-06-aws-cli-result-contract.md).
+[the result-contract research](history/research/2026-11-06-aws-cli-result-contract.md).
 Other vendors' nested result conventions, full output-schema validation and
 trusted MCP/inference correlation remain open.
 
@@ -72,7 +71,7 @@ trusted MCP/inference correlation remain open.
 
 `pagerduty_api_v1` is deliberately limited to `manage_incidents`,
 `add_note_to_incident` and `create_schedule_override`. The pin is documented in
-the [operation contract](research/2026-11-07-pagerduty-operation-contract.md).
+the [operation contract](history/research/2026-11-07-pagerduty-operation-contract.md).
 The three names cover nine current reference calls; unrelated reads and writes
 remain on their explicitly weaker generic envelope contract.
 

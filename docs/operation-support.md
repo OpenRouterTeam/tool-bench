@@ -1,5 +1,11 @@
 # Reviewed operation support
 
+The sections below are dated review records. Their counts and revision numbers are
+those of their date; the current inventory is `docs/coverage/scenario-inventory.json`.
+Where a section says wording "requires adjudication", the trial is recorded as
+unresolved with reward 0 and nothing waits on a reviewer. Current grading rules are in
+[contracts.md](contracts.md) and [answer-fact-contracts.md](answer-fact-contracts.md).
+
 This is a **partial inventory**, not certification of every operation accepted by
 the mock schemas. Task success requires the real business outcome, not merely an
 HTTP success, a matching mutation name, or an oracle that appears to pass.
@@ -43,7 +49,7 @@ separate statuses in the index.
 ## Cross-system remediation source — revision 43
 
 Current inventory is **134 v2 / 16 legacy**. The
-[source checkpoint](checkpoints/evaluator-43-ops-remediation.md) migrates checkout
+[source checkpoint](history/checkpoints/evaluator-43-ops-remediation.md) migrates checkout
 scaling/resolution and OOM-limit/Sentry resolution. Readiness is checked against
 actual owned modeled pods; memory uses exact quantity equivalence before plain
 resolution. Committed history protects unrelated records and restored collateral
@@ -58,7 +64,7 @@ Firecrawl42B remains the latest admitted bounded scripted native-client conditio
 ## Firecrawl scripted native-client checkpoint — condition 42B
 
 That condition retains 132 v2 / 18 legacy. The
-[revision-42 record](checkpoints/evaluator-42-firecrawl.md) reproduces two valid
+[revision-42 record](history/checkpoints/evaluator-42-firecrawl.md) reproduces two valid
 staged-clock plans rejected by revision 41. The correction grants only the new
 monitor's requested schedule and derived timing updates; preexisting monitors
 and active non-daily history remain protected.
@@ -80,12 +86,12 @@ failures. The source gate passes 2,031 Rust tests, 327 host checks and 61 runner
 checks. Complete retained attempts and scoped cleanup verify. A remains
 unadmitted after its real default-port URI fixture-lookup bug; only B is qualified.
 This is still not hosted delivery, native-model, human/awareness or full-release
-admission. The [42B record](checkpoints/evaluator-42-firecrawl.md) states exact limits.
+admission. The [42B record](history/checkpoints/evaluator-42-firecrawl.md) states exact limits.
 
 ## Prior Firecrawl source checkpoint — revision 41
 
 That source checkpoint has 132 v2 / 18 legacy. The
-[Firecrawl source record](checkpoints/evaluator-41-firecrawl.md) separates exact
+[Firecrawl source record](history/checkpoints/evaluator-41-firecrawl.md) separates exact
 API-section scope, daily monitor configuration and pause-before-run child
 admission from completion, notification delivery and hosted operation guarantees.
 Created identities, committed-history preservation and valid alternative plans
@@ -109,7 +115,7 @@ admitted scripted task condition. The separate 42B condition above supersedes it
 ## Google scripted selected-replica MCP checkpoint — condition 40B
 
 That frozen condition retains business evaluator 40 and 129 v2 / 21 legacy.
-The [40B condition record](checkpoints/google-40b-results.md) adds an explicitly
+The [40B condition record](history/checkpoints/google-40b-results.md) adds an explicitly
 selected-replica text-result profile for five reviewed tools, without pretending
 that human confirmations are Google SDK JSON. Four reference calls declare it.
 The separate jq module rejects conflicting envelopes, unbound acknowledgments,
@@ -139,8 +145,8 @@ support. Original 40 and 38 capsules remain unchanged and distinct.
 
 All three single-service Google writes now have audited v2 source contracts:
 **129 v2 / 21 legacy** at that source checkpoint. At this original source checkpoint,
-revision 38 remained the last admitted scripted native-client condition. The [original source record](checkpoints/evaluator-40-google.md)
-extends the [revision-39 Drive slice](checkpoints/evaluator-39-google.md).
+revision 38 remained the last admitted scripted native-client condition. The [original source record](history/checkpoints/evaluator-40-google.md)
+extends the [revision-39 Drive slice](history/checkpoints/evaluator-39-google.md).
 
 Sheets supports exact serial/ISO/reviewed locale dates, bounded constant
 `DATE`/`DATEVALUE` expressions, staged target-cell updates and identity-selected
@@ -163,7 +169,7 @@ Notification modes are not an all-only completion gate. `externalOnly` does not
 mean guests outside the email domain, and notification requests do not establish
 delivery, receipt, acceptance or guest-side visibility. A silent update may add
 Meet after creation without resending the final URI. See the
-[independent primary-source review](research/2026-11-07-google-invitation-notification-contract.md).
+[independent primary-source review](history/research/2026-11-07-google-invitation-notification-contract.md).
 The rejected stricter candidate is retained separately.
 
 Drive supports scoped permission append/direct-role correction, existing safe
@@ -199,7 +205,7 @@ source-bound prior HTTP log evidence and exact host/deadline relationships;
 scheduling uses actual created identity, one-time coverage and complete
 conjunctive scope semantics instead of predicted IDs or substring matches.
 
-The [checkpoint record](checkpoints/evaluator-38-datadog.md) documents the thirteen
+The [checkpoint record](history/checkpoints/evaluator-38-datadog.md) documents the thirteen
 reproduced legacy defects, the separately repaired ticket-link false failure,
 typed native result profiles, source/capture limitations and distinct immutable
 build inputs. Candidate A remains unadmitted; qualification admits only B.
@@ -231,7 +237,7 @@ stage; the separate corrected Google40B condition is now the latest.**
 Revision 36 remains frozen and **unadmitted**. Qualification exposed a real
 interface mismatch: the installed native `Override` model truncates input
 fractions to six digits, while the simulator rejected all nonzero fractions.
-The [pinned normalization research](research/2026-11-07-pagerduty-time-normalization.md)
+The [pinned normalization research](history/research/2026-11-07-pagerduty-time-normalization.md)
 distinguishes observed model behavior, published source and unverified hosted
 semantics. The repair uses a distinct source/image condition.
 
@@ -278,7 +284,7 @@ The source passes 1,800 Rust tests, strict clippy, formatting and freshness;
 Qualification retention byte-verifies 4,171 files and 2,551 archived attempt
 payloads. Ownership covers 201 trial/probe IDs, three supplemental probe/copy IDs
 and 137 explicit project namespaces, with zero owned survivors. The
-[progress ledger](implementation-progress.md#verified-pagerduty-native-client-checkpoint)
+[progress ledger](history/implementation-progress.md#verified-pagerduty-native-client-checkpoint)
 records the exact source and qualification capsules. Revision 36 remains frozen
 and unadmitted; its six historical preflights are not pooled into revision 37.
 Source inventory remains **123 v2 / 27 legacy**. No hosted, native-model, human,
@@ -288,7 +294,7 @@ awareness or full-release admission is implied.
 
 The three single-service PagerDuty writes now declare audited v2 contracts:
 **123 v2 / 27 legacy** source contracts. The
-[operation research](research/2026-11-07-pagerduty-operation-contract.md) separates
+[operation research](history/research/2026-11-07-pagerduty-operation-contract.md) separates
 published documentation, exact pinned packages, fixture conventions and
 uncertainties. This section is **source support**, not an admitted runtime
 checkpoint. At that historical preflight, the last retained scripted native-client
@@ -354,7 +360,7 @@ controls cover the declared source repairs. The distinct native candidates pass
 three references and three no-op controls; all six raw assessments reproduce.
 Eighteen observed container IDs and six project/trial namespaces have zero owned
 survivors. Source/preflight evidence is retained in the
-[progress ledger](implementation-progress.md#verified-source-gate-and-initial-pagerduty-native-preflight).
+[progress ledger](history/implementation-progress.md#verified-source-gate-and-initial-pagerduty-native-preflight).
 This remains a preflight, not the complete native family campaign.
 
 Native valid-alternative/near-miss, partial-error, source/completion/admission/
@@ -369,12 +375,12 @@ native-model, human, awareness or full-release qualification is claimed.
 The three single-service Grafana writes now use v2 contracts. Current source
 inventory at revision 35 is **120 v2 / 30 legacy**, with **454 reference calls**, 438 static
 argument checks and sixteen deferred captured-argument checks. The bounded
-[scripted native-client checkpoint](implementation-progress.md#verified-grafana-native-client-checkpoint)
+[scripted native-client checkpoint](history/implementation-progress.md#verified-grafana-native-client-checkpoint)
 is retained separately from its initial source/preflight capsule. This is not
 hosted conformance, native-model admission or full-overhaul completion.
 Governing primary-source notes are the
-[operation contract](research/2026-11-07-grafana-operation-contract.md) and the
-[independent regex review](research/2026-11-07-grafana-label-regex-compatibility.md).
+[operation contract](history/research/2026-11-07-grafana-operation-contract.md) and the
+[independent regex review](history/research/2026-11-07-grafana-label-regex-compatibility.md).
 
 - Acknowledgment targets the actual production group/team relationship and
   preserves unrelated groups, datasource configuration and the unresolved state.
@@ -471,11 +477,11 @@ production trust-path validation and the broader release gates remain open.
 
 The three single-service Terraform writes now use v2 contracts, bringing the
 source inventory at that checkpoint to **117 v2 / 33 legacy**. The bounded condition has a
-[retained, audited scripted native-client checkpoint](implementation-progress.md#verified-terraform-native-client-checkpoint).
+[retained, audited scripted native-client checkpoint](history/implementation-progress.md#verified-terraform-native-client-checkpoint).
 This is not hosted/provider certification, native-model admission or completion
 of the full overhaul. The governing research is
-[operation contracts](research/2026-11-07-terraform-operation-contract.md) and
-[state representations](research/2026-11-07-terraform-state-contract.md).
+[operation contracts](history/research/2026-11-07-terraform-operation-contract.md) and
+[state representations](history/research/2026-11-07-terraform-state-contract.md).
 
 - NAT approval requires the exact requested comment and terminal modeled apply,
   a new state snapshot bound to the actual run/apply/workspace, resolved EIP
@@ -540,9 +546,9 @@ the post-freeze test-expectation-only delta, are recorded separately in the ledg
 
 Revision 33 migrates the three single-service Okta write source contracts,
 bringing the source inventory to 114 v2 contracts and 36 legacy writes. This is
-a [retained, audited scripted native-client checkpoint](implementation-progress.md#verified-okta-native-client-checkpoint),
+a [retained, audited scripted native-client checkpoint](history/implementation-progress.md#verified-okta-native-client-checkpoint),
 not hosted Okta qualification or native-model admission. The
-[operation research](research/2026-11-07-okta-operation-contract.md) separates
+[operation research](history/research/2026-11-07-okta-operation-contract.md) separates
 official documentation, pinned package/SDK source, fixture facts and uncertainties.
 
 - The exact contractor account remains present and terminally deprovisioned;
@@ -617,10 +623,10 @@ data deprovisioning, human adjudication, model performance or model unawareness.
 
 Revision 32 migrates the three single-service Argo write contracts. Its frozen
 source inventory has 111 v2 contracts and 39 legacy writes. Its bounded, scripted
-native-client condition is [retained and audited](implementation-progress.md#verified-argo-native-client-checkpoint).
+native-client condition is [retained and audited](history/implementation-progress.md#verified-argo-native-client-checkpoint).
 This is not native-model admission or general Argo CD/Kubernetes conformance.
 
-The [primary-source operation review](research/2026-11-07-argocd-operation-contract.md)
+The [primary-source operation review](history/research/2026-11-07-argocd-operation-contract.md)
 separates native `argocd-mcp` 0.9.0 from the Rust backend and the deliberately
 selected Argo CD 3.2.5 semantic comparison baseline.
 
@@ -710,7 +716,7 @@ qualification, model performance or model-unawareness evidence.
 Revision 31 migrates three Vercel write contracts. This is the local **replica
 connector**, with the captured fifteen-tool community surface, not official
 remote Vercel MCP or production Vercel certification. The
-[operation review](research/2026-11-07-vercel-operation-contract.md) distinguishes
+[operation review](history/research/2026-11-07-vercel-operation-contract.md) distinguishes
 documented behavior, examined community code and unresolved vendor guarantees.
 
 - Environment identity is project plus record ID. Authoritative
@@ -768,7 +774,7 @@ hosted build duration or a promise of byte-identical compiled artifacts.
 Deployment environment inheritance remains unqualified.
 
 The declared
-[replica checkpoint](implementation-progress.md#verified-vercel-replica-checkpoint)
+[replica checkpoint](history/implementation-progress.md#verified-vercel-replica-checkpoint)
 now completes all 22 distinct controls and 36 reproduced primary assessments.
 A separate raw business/history checker agrees on all 22 controls. Four invalid
 admission cases are excluded and nine failed programs remain unscored; no owned
@@ -779,11 +785,11 @@ result or full-overhaul closure.
 ## Supabase cancellation, tracked RLS and lifecycle state
 
 Revision 29's source contracts leave all three instructions and dataset files
-unchanged. The [independent operation review](research/2026-11-06-supabase-operation-contract.md)
+unchanged. The [independent operation review](history/research/2026-11-06-supabase-operation-contract.md)
 separates pinned native MCP `@supabase/mcp-server-supabase 0.15.0` from the world's
 in-memory SQL subset. A native MCP client is not a native PostgreSQL engine.
 The declared revision-29 world/tools condition now has a
-[verified bounded native-MCP checkpoint](implementation-progress.md#verified-native-mcp-condition-checkpoint).
+[verified bounded native-MCP checkpoint](history/implementation-progress.md#verified-native-mcp-condition-checkpoint).
 That is not full PostgreSQL or hosted Supabase conformance.
 
 - Cancellation derives the customer from its exact email and joins its actual
@@ -805,7 +811,7 @@ That is not full PostgreSQL or hosted Supabase conformance.
   Accepted/transitional state is not completed success. The reference observes
   the project after pausing. Full state/history protect every other project,
   including one not enumerated among the authored sentinels.
-  The [manual-pause policy review](research/2026-11-07-supabase-pause-plan-contract.md)
+  The [manual-pause policy review](history/research/2026-11-07-supabase-pause-plan-contract.md)
   supports Free-only eligibility at the owning organization. Known paid tiers
   reject without mutation; absent/unknown tier evidence becomes an authenticated
   environment fault, not assumed Free eligibility. The local rejection's HTTP
@@ -863,7 +869,7 @@ admission remain open.
 
 ## Sentry project creation and issue resolution — revision 30 bounded checkpoint
 
-The [independent contract review](research/2026-11-07-sentry-operation-contract.md)
+The [independent contract review](history/research/2026-11-07-sentry-operation-contract.md)
 is complete. All three contracts now use audited version 2. The original five
 legacy counterexamples remain retained; all now pass regressions:
 
@@ -936,7 +942,7 @@ completion, production integration, or proof of model unawareness.
 
 Revision 28 migrates all three MongoDB write contracts without changing the user
 instructions or fixture files. The
-[operation review](research/2026-11-06-mongodb-operation-contract.md)
+[operation review](history/research/2026-11-06-mongodb-operation-contract.md)
 distinguishes the captured `mongodb-mcp-server 3.2.2` surface, inspected published
 source, fixture-advertised engine version and this catalog's **replica** runtime.
 Transport controls here are not upstream MCP, MongoDB engine or live Atlas tests.
@@ -997,7 +1003,7 @@ an admitted frozen runtime checkpoint; see the separately qualified progress log
 ## Kubernetes memory, desired scaling and Helm cleanup
 
 Revision 27's source migration leaves all three user instructions unchanged.
-The [primary-source review](research/2026-11-06-kubernetes-operation-contract.md)
+The [primary-source review](history/research/2026-11-06-kubernetes-operation-contract.md)
 distinguishes advertised server `v1.33.4`, published MCP `0.1.1`, its inspected
 embedded client modules and production uncertainty.
 
@@ -1015,7 +1021,7 @@ embedded client modules and production uncertainty.
   before Helm payload identity checks; a conflicting namespace still rejects.
   Native protobuf Secret updates and JSON create/update/patch/Apply controls
   cover this ordering. Empty UID/resourceVersion are not treated as stale.
-  The [narrow API review](research/2026-11-06-kubernetes-namespace-contract.md)
+  The [narrow API review](history/research/2026-11-06-kubernetes-namespace-contract.md)
   also explains why Helm can report successful purge after an intermediate
   storage-update error: the tool's success text alone is not write-path evidence.
 - Controller-effect permissions are tied to the parent write, correctly scoped
@@ -1066,7 +1072,7 @@ production Kubernetes tests and a completed full-overhaul release.
 
 Revision 26 migrates all three AWS writes without changing their instructions or
 fixture files. The reviewed contracts and explicit uncertainties are in
-[the AWS operation note](research/2026-11-06-aws-operation-contract.md).
+[the AWS operation note](history/research/2026-11-06-aws-operation-contract.md).
 
 - IAM requires the actual external auditor's direct AWS-managed SecurityAudit
   attachment and `auditors` membership. Relationships are additive, independent
@@ -1130,7 +1136,7 @@ from the revision-26 checkpoint, not retroactive reinterpretations of its data.
 
 Revision 25 adds scoped contracts for DNS-only status CNAME creation, production
 KV flag rollout and Worker v2 routing. The authoritative API review is
-[the operation-contract note](research/2026-11-06-cloudflare-operation-contract.md).
+[the operation-contract note](history/research/2026-11-06-cloudflare-operation-contract.md).
 The user instructions and fixture data are unchanged.
 
 - DNS checks the actual new record, zone, CNAME target and DNS-only status.
@@ -1490,7 +1496,7 @@ outcomes and exact conditions are recorded separately in the progress log.
 ## GitLab reviewed subset
 
 The client remains `@zereight/mcp-gitlab` 2.3.16; the fixtures identify the modeled
-GitLab release as 18.4.1. The [pinned primary-source review](research/2026-11-06-gitlab-operation-contract.md)
+GitLab release as 18.4.1. The [pinned primary-source review](history/research/2026-11-06-gitlab-operation-contract.md)
 distinguishes documented behavior, source-verified behavior and local simplifications.
 No tool definitions or client package pins were changed.
 
@@ -1548,7 +1554,7 @@ records frozen transport evidence and unresolved full-overhaul gates.
 The local client is `@notionhq/notion-mcp-server` **2.6.1**, not the current hosted
 Notion MCP product. Ordinary operations select API `2025-09-03`; Markdown selects
 `2026-03-11`, unless explicitly configured headers override them. The
-[primary-source contract note](research/2026-11-06-notion-operation-contract.md)
+[primary-source contract note](history/research/2026-11-06-notion-operation-contract.md)
 distinguishes the published package/source, REST versions and unresolved gaps.
 
 | Workflow | Modeled operations | Reviewed contract |

@@ -77,7 +77,10 @@ There are 4 per service, at `scenarios/<group>/<service>/<slug>/`:
 
 Mix per service:
 
-- **1 lookup:** the answer is checked with `[expect.answer]`, using `contains` or `regex`.
+- **1 lookup:** the reply is graded against facts derived from the dataset, declared with
+  `[expect.answer.record_facts]` ([answer-fact-contracts.md](answer-fact-contracts.md)),
+  and is read as ordinary prose. `contains` and `regex` checks on a reply remain only in
+  one unscored example; a test (`statement_answers_inventory.rs`) lists every exception.
 - **2 mutations:** checked with `[[expect.state]]` plus `[[expect.required_calls]]`, with
   `[[expect.forbidden_calls]]` guarding destructive mistakes.
 - **1 multi-step or disambiguation task:** for example, finding the right record among
@@ -115,11 +118,12 @@ create itself, without over-specifying query parameters.
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
-cargo run -q -p scenario --bin taskgen          # validates every scenario, regenerates tasks/
-deploy/oracle.sh <every scenario id you added>  # oracle reward 1 and nop reward 0 for each
+cargo run -q -p scenario --bin taskgen -- --inventory docs/coverage/scenario-inventory.json  # validates every scenario, regenerates tasks/ and the inventory
+deploy/stock-campaign.sh --only '<group>__<service>__*'  # oracle reward 1 and nop reward 0 through stock Harbor, as production runs them
+deploy/oracle.sh <every scenario id you added>  # the same pair under the strict controller (runbook.md)
 ```
 
-Commit `tasks/` with your scenarios; it is generated, so never edit it by hand. Commit with
+Commit `tasks/` and the inventory with your scenarios; both are generated, so never edit them by hand. Commit with
 clear messages on your branch. Your final report should list:
 
 - the endpoints implemented per service
