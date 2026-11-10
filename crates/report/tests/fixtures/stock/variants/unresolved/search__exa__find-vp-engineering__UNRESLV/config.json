@@ -1,0 +1,12 @@
+{
+    "task": {
+        "path": "/tmp/tb-stock/tasks/search__exa__find-vp-engineering-profile"
+    },
+    "trial_name": "search__exa__find-vp-engineering__UNRESLV",
+    "trials_dir": "/tmp/tb-stock/jobs/variants/unresolved",
+    "job_id": "aa94e77f-811f-4be3-828e-51451df1769d",
+    "agent": {
+        "name": "claude-code",
+        "model_name": "anthropic/claude-sonnet-5"
+    }
+}

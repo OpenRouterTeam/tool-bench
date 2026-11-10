@@ -44,6 +44,7 @@ fn empty_or_disjoint_runs_cannot_emit_a_zero_effect_comparison() {
             write_trial(second.path(), "second", "ops__pagerduty__b", 1.0, 0.0);
         }
         let output = std::process::Command::new(env!("CARGO_BIN_EXE_bench-report"))
+            .arg("--require-attested")
             .arg(first.path())
             .arg(second.path())
             .arg("--json")
@@ -75,6 +76,7 @@ fn unresolved_assessments_are_visible_and_cannot_be_published_as_final_paired_sc
         json!("unresolved")
     );
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_bench-report"))
+        .arg("--require-attested")
         .arg(first.path())
         .arg(second.path())
         .arg("--json")
@@ -97,6 +99,7 @@ fn checked_unresolved_results_are_reproduced_before_the_comparison_refusal() {
     assert_eq!(trials[0].outcome, report::Outcome::Unresolved);
     assert!(trials[0].provenance.is_some());
     let output = std::process::Command::new(env!("CARGO_BIN_EXE_bench-report"))
+        .arg("--require-attested")
         .arg(directory.path())
         .arg(directory.path())
         .arg("--json")

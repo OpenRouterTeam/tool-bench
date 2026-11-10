@@ -1,0 +1,34 @@
+{
+  "evaluator_version": 45,
+  "contract_version": 2,
+  "reward": 0.0,
+  "outcome": "environment_error",
+  "state_ok": true,
+  "records_ok": true,
+  "relations_ok": true,
+  "ordering_ok": true,
+  "history_ok": true,
+  "history_checked": true,
+  "required_calls_ok": true,
+  "forbidden_calls_ok": true,
+  "answer_ok": true,
+  "integrity_ok": true,
+  "preservation_ok": true,
+  "preservation_checked": true,
+  "contract_ok": true,
+  "environment_ok": false,
+  "runner_admission_checked": false,
+  "runner_admission_ok": true,
+  "adjudication_needed": false,
+  "failures": [
+    {
+      "check": "environment",
+      "disposition": "failed",
+      "location": "evidence/task-source",
+      "reason": "world scenario/data/contract sources do not match the materialized task",
+      "evidence": []
+    }
+  ],
+  "api_calls": 1,
+  "mcp_bypass": 0
+}

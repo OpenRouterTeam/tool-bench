@@ -135,16 +135,20 @@ alone, or average provisional rewards across environment/unresolved outcomes.
   proof, pre-dispatch request receipts, and declared clock policy. Historical results retain their original
   evaluator and image labels.
 - `runner_admission_checked` and `runner_admission_ok` distinguish a validated
-  runner from world-only diagnostics; both must be 1 for admitted scored tasks.
+  runner from world-only diagnostics; both must be 1 for the attested tier. Stock
+  Harbor publishes no runner receipt, so production trials have
+  `runner_admission_checked: 0` and `"runner_attested": false` in
+  `verification.json`. That is the unattested tier `bench-report` reads by default.
 - `business/shopify/relaunch-tote` requires the composed publication-capable client.
   `ACTIVE` is not channel publication. Revision 14 checks actual online-store
   membership and price-before-visibility history; the upstream-only client is
   not an equivalent condition. See [operation support](operation-support.md).
 - `adjudication_needed` records undecided checks. An unresolved-only result has
   outcome code 6 and a provisional compatibility reward of zero, not a proven
-  model failure. By default, `bench-report` rejects unresolved or empty comparisons rather
-  than emitting an apparently final score. Production consumers must implement
-  the same distinction before admitting this revision.
+  model failure. `bench-report` counts unresolved trials beside the pass rate, never
+  inside it; with `--require-attested` it rejects a comparison that contains one.
+  Production consumers must implement the same distinction before admitting this
+  revision.
 - The optional [source-bound content-review path](content-review.md) requires an
   exact policy declared before execution, every required reviewer's signed
   decisions, an external store and explicit report options. Raw/effective results
@@ -152,9 +156,14 @@ alone, or average provisional rewards across environment/unresolved outcomes.
   comparison. Agent-written approvals and cached summaries are not authority.
   Local scripted controls do not establish human semantic accuracy or admit
   native model runs.
-- Final comparisons also reject environment/contract errors, missing/unknown
-  assessments, reported trial exceptions, and inconsistent binary metrics.
-  Retain those attempts and apply only the prespecified repair/replacement policy.
+- A trial that could not be assessed (invalid contract or environment error) has
+  `verifier/reward.invalid.json` instead of `reward.json`, and Harbor records a
+  `RewardFileNotFoundError` in the trial's `result.json`. That is an infrastructure
+  error, not a model failure. `bench-report` counts withheld rewards, verifier
+  errors, agent or environment exceptions and unfinished trials separately from
+  the pass rate; `--require-attested` comparisons reject them, and reject
+  inconsistent binary metrics. Retain those attempts and apply only the
+  prespecified repair/replacement policy.
 - With a trial credential, the world's bootstrap port (`world-bootstrap:9000`)
   serves only health and CA data on a separate tools/world network, not the API
   backend. `BENCH_BOOTSTRAP_BIND_HOST` resolves the world's own private network
@@ -174,22 +183,51 @@ alone, or average provisional rewards across environment/unresolved outcomes.
   The offline Harbor path does not classify context
   overflow by grepping agent-writable text. Structured inference rejection evidence
   is still required before restoring that diagnostic there.
-- To compare arms, download both runs' artifacts
-  (the run's artifact bucket) and run:
+- To report on production runs, download each run's artifacts (the run's artifact
+  bucket), one directory per arm, and run:
 
   ```bash
-  cargo run -p report --bin bench-report -- runs/arm-a runs/arm-b          # markdown
+  cargo run -p report --bin bench-report -- runs/arm-a                          # one arm, markdown
+  cargo run -p report --bin bench-report -- runs/arm-a runs/arm-b               # arms and paired comparison
   cargo run -p report --bin bench-report -- runs/arm-a runs/arm-b --json
+  cargo run -p report --bin bench-report -- runs/arm-a runs/arm-b --explain <task>
   ```
 
-  Retain exact collected world/answer inputs and the verifier's provenance copies,
-  not just scalar `result.json` rewards. Current admitted comparisons are explicitly
-  `source_bound_scripted_only`; native/model runtime comparisons remain unsupported
-  until trusted producers and isolated product runners are implemented. The only
-  declared difference currently supported is `--allow-agent-difference`, recorded
-  in the output; it does not permit changed worlds, tools, graders, task sets,
-  repeat counts or budgets. It is not proof of preregistration.
-  See [execution provenance](execution-provenance.md).
+  Trials are found at any depth as a `result.json` beside a `verifier/` directory.
+  Per arm the report gives trials and distinct tasks, the pass rate with a 95%
+  Wilson interval, the outcome breakdown, pass rates by task group and for
+  single-service and `__multi__` tasks, mean and median `api_calls`, and the checks
+  that failed most often. The pass rate is passes over assessed trials (pass, fail,
+  context overflow, integrity violation); unresolved trials and trials without an
+  assessment are counted beside it and listed with their reasons. With two or more
+  directories it pairs the arms on the tasks both attempted (per-task pass rates,
+  wins, losses, ties and the tasks that flip) and warns when the arms differ in
+  evaluator version, task set or contract hashes, because then the numbers are not
+  comparable. `--explain <task>` prints the typed failed checks of each of that
+  task's trials.
+
+  Download whole trial directories, not just `result.json`. For each trial the
+  tool checks that the contract, world evidence, answer, task source and task
+  context still match the hashes in `verification.json`, re-runs the assessment
+  from them, and requires the saved `assessment.json` and the reward in
+  `result.json` to equal the re-run. Such a trial is `reproduced`. A trial graded
+  by another evaluator revision than the checkout the tool is built from, or
+  downloaded without its artifacts, is `recorded only`: its numbers are the
+  verifier's, unchecked. Build the tool from the revision that graded the run. A
+  result that contradicts its artifacts is excluded from every rate and listed.
+
+  This is the unattested tier, and the report says so. Stock Harbor publishes no
+  runner receipt or realized manifest, so nothing shows that the evidence and
+  answer files came from that trial's world and agent, which agent, model and
+  images ran, or what the model was shown. Token, cost and timing figures are
+  whatever the harness wrote to `result.json`; the verifier does not see them.
+
+  `--require-attested <run-a> <run-b>` keeps the strict paired comparison for
+  trials from the strict local controller (`deploy/run-trial.sh`). It refuses
+  anything without a verified receipt, labels admitted comparisons
+  `source_bound_scripted_only`, and is the only mode that takes
+  `--allow-agent-difference`, `--release`, `--information-treatment` and the review
+  options. See [execution provenance](execution-provenance.md).
 
 ## 5. Verify determinism of any trial
 

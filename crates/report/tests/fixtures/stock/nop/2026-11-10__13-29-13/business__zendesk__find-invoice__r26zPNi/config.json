@@ -1,0 +1,11 @@
+{
+    "task": {
+        "path": "/tmp/tb-stock/tasks/business__zendesk__find-invoice-attachment"
+    },
+    "trial_name": "business__zendesk__find-invoice__r26zPNi",
+    "trials_dir": "/tmp/tb-stock/jobs/business__zendesk__find-invoice-attachment-nop/2026-11-10__13-29-13",
+    "agent": {
+        "name": "nop"
+    },
+    "job_id": "c15b55cc-f60c-4234-a5c2-a94c35552faa"
+}

@@ -12,6 +12,7 @@ use anyhow::{Context, bail};
 use serde::Serialize;
 use serde_json::Value;
 
+pub mod arms;
 pub mod conditions;
 pub mod explain;
 mod provenance;

@@ -1,0 +1,137 @@
+{
+    "id": "6c81e902-58dd-41fb-9816-e7addf88b4ca",
+    "task_name": "openrouter/tool-bench__business__zendesk__find-invoice-attachment",
+    "trial_name": "business__zendesk__find-invoice__gLH42GH",
+    "trial_uri": "file:///private/tmp/tb-stock/jobs/business__zendesk__find-invoice-attachment-oracle/2026-11-10__12-39-25/business__zendesk__find-invoice__gLH42GH",
+    "task_id": {
+        "path": "/tmp/tb-stock/tasks/business__zendesk__find-invoice-attachment"
+    },
+    "source": null,
+    "task_checksum": "5fabff7761770d2e797112a682e5b77af20930a4bf1190b98dda9a4c85159ab8",
+    "config": {
+        "task": {
+            "path": "/tmp/tb-stock/tasks/business__zendesk__find-invoice-attachment",
+            "git_url": null,
+            "git_commit_id": null,
+            "name": null,
+            "ref": null,
+            "overwrite": false,
+            "download_dir": null,
+            "source": null
+        },
+        "trial_name": "business__zendesk__find-invoice__gLH42GH",
+        "trials_dir": "/tmp/tb-stock/jobs/business__zendesk__find-invoice-attachment-oracle/2026-11-10__12-39-25",
+        "install_only": false,
+        "timeout_multiplier": 1.0,
+        "agent_timeout_multiplier": null,
+        "verifier_timeout_multiplier": null,
+        "agent_setup_timeout_multiplier": null,
+        "environment_build_timeout_multiplier": null,
+        "agent": {
+            "name": "oracle",
+            "import_path": null,
+            "model_name": null,
+            "n_concurrent": null,
+            "concurrency_group": null,
+            "skills": [],
+            "override_timeout_sec": null,
+            "override_setup_timeout_sec": null,
+            "max_timeout_sec": null,
+            "resume_trajectory": false,
+            "load_trajectory": null,
+            "extra_allowed_hosts": [],
+            "kwargs": {},
+            "mcp_servers": []
+        },
+        "user_agent": null,
+        "environment": {
+            "type": "docker",
+            "import_path": null,
+            "force_build": false,
+            "delete": true,
+            "cpu_enforcement_policy": "auto",
+            "memory_enforcement_policy": "auto",
+            "override_cpus": null,
+            "override_memory_mb": null,
+            "override_storage_mb": null,
+            "override_gpus": null,
+            "override_tpu": null,
+            "mounts": null,
+            "extra_docker_compose": [],
+            "kwargs": {},
+            "extra_allowed_hosts": []
+        },
+        "verifier": {
+            "override_timeout_sec": null,
+            "max_timeout_sec": null,
+            "disable": false
+        },
+        "artifacts": [],
+        "extra_instruction_paths": [],
+        "extra_instructions": [],
+        "job_id": "40a8d3cb-ae2c-47bb-be9c-e686ad03222a",
+        "source_trial": null
+    },
+    "agent_info": {
+        "name": "oracle",
+        "version": "1.0.0",
+        "model_info": null
+    },
+    "agent_result": {
+        "n_input_tokens": null,
+        "n_cache_tokens": null,
+        "n_output_tokens": null,
+        "cost_usd": null,
+        "model_usage": null,
+        "rollout_details": null,
+        "metadata": null
+    },
+    "verifier_result": {
+        "rewards": {
+            "adjudication_needed": 0.0,
+            "answer_ok": 1.0,
+            "api_calls": 2.0,
+            "contract_ok": 1.0,
+            "contract_version": 2.0,
+            "environment_ok": 1.0,
+            "evaluator_version": 45.0,
+            "forbidden_calls_ok": 1.0,
+            "history_checked": 1.0,
+            "history_ok": 1.0,
+            "integrity_ok": 1.0,
+            "mcp_bypass": 0.0,
+            "ordering_ok": 1.0,
+            "outcome_code": 0.0,
+            "preservation_checked": 1.0,
+            "preservation_ok": 1.0,
+            "records_ok": 1.0,
+            "relations_ok": 1.0,
+            "required_calls_ok": 1.0,
+            "reward": 1.0,
+            "runner_admission_checked": 0.0,
+            "runner_admission_ok": 1.0,
+            "state_ok": 1.0
+        }
+    },
+    "verifier_environment_mode": "separate",
+    "exception_info": null,
+    "started_at": "2026-11-10T18:39:26.007491Z",
+    "finished_at": "2026-11-10T18:40:29.986299Z",
+    "environment_setup": {
+        "started_at": "2026-11-10T18:39:26.071234Z",
+        "finished_at": "2026-11-10T18:39:34.072308Z"
+    },
+    "agent_setup": {
+        "started_at": "2026-11-10T18:39:34.072402Z",
+        "finished_at": "2026-11-10T18:39:34.072488Z"
+    },
+    "agent_execution": {
+        "started_at": "2026-11-10T18:39:34.072561Z",
+        "finished_at": "2026-11-10T18:39:34.833722Z"
+    },
+    "verifier": {
+        "started_at": "2026-11-10T18:40:09.503649Z",
+        "finished_at": "2026-11-10T18:40:29.986275Z"
+    },
+    "step_results": null
+}
