@@ -371,8 +371,9 @@ const ONE_AS_PRONOUN: &[&str] = &[
 /// Words that make a spelled number larger than this reader totals.
 const SCALE_WORDS: &[&str] = &["hundred", "thousand", "million", "billion", "trillion"];
 
-/// Counts written as words from zero to ninety-nine ("six attempts", "twenty-one").
-/// A word inside a longer spelled number ("one hundred seventy-nine") is not a count.
+/// Counts written as words from zero to ninety-nine ("six attempts", "twenty-one"),
+/// which a scale word may follow ("forty-five million"). A word inside a longer spelled
+/// number ("one hundred seventy-nine") is not a count.
 fn cardinal_words(text: &str) -> Vec<NumberToken> {
     let mut words: Vec<(usize, usize, &str)> = Vec::new();
     let mut start = None;
@@ -439,7 +440,15 @@ fn cardinal_words(text: &str) -> Vec<NumberToken> {
             .is_some_and(|character| character.is_alphanumeric() || matches!(character, '_' | '-'));
         position = next;
         let Some(value) = value else { continue };
-        let in_longer_number = SCALE_WORDS.contains(&following)
+        // "forty-five million" is a count with a scale, read as such. "one hundred ten",
+        // "three thousand five hundred" and "... hundred and five" are longer numbers.
+        let continues = |index: usize| {
+            words.get(index).is_some_and(|(_, _, word)| {
+                *word == "and" || TENS.contains(word) || UNITS.contains(word)
+            })
+        };
+        let in_longer_number = following == "hundred"
+            || (SCALE_WORDS.contains(&following) && continues(next + 1))
             || match previous(current) {
                 Some("and") => {
                     previous(current - 1).is_some_and(|word| SCALE_WORDS.contains(&word))
@@ -764,7 +773,9 @@ mod tests {
         assert_eq!(values("six attempts and twenty-one retries"), ["6", "21"]);
         assert!(values("one hundred seventy-nine errors").is_empty());
         assert!(values("one hundred and seventy-nine errors").is_empty());
-        assert!(values("two million rows").is_empty());
+        assert!(values("three thousand five hundred rows").is_empty());
+        // A count with a scale word is one number.
+        assert_eq!(values("forty-five million dollars").len(), 1);
     }
 
     #[test]

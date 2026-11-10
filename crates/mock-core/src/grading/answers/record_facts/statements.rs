@@ -157,8 +157,14 @@ fn asserted(text: &str, start: usize, end: usize) -> bool {
         return true;
     };
     let (before, after) = (&line[..start - from], &line[end - from..]);
-    let asked = ASKED.is_match(after) || text[from + line.len()..].trim_start().starts_with('?');
+    let rest = text[from + line.len()..].trim_start();
+    let asked = ASKED.is_match(after) || rest.starts_with('?');
+    // The next sentence opens by calling this one wrong: "...; that is wrong."
+    let dismissed = sentences(rest)
+        .first()
+        .is_some_and(|next| TAKES_BACK.is_match(next) || CALLED_WRONG.is_match(next));
     !(asked
+        || dismissed
         || leading(before).is_some()
         || TRAILING_DENIAL.is_match(after)
         || LATER_DENIAL.is_match(after)
@@ -448,8 +454,19 @@ static RETRACTION: LazyLock<Regex> = LazyLock::new(|| {
 });
 /// Wording that reports a claim as hearsay rather than making it.
 static HEARSAY: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\b(?:rumou?r\w*|speculat\w*|hearsay|gossip|unconfirmed|unfounded)\b")
-        .expect("hearsay pattern")
+    Regex::new(concat!(
+        r"\b(?:rumou?r\w*|speculat\w*|hearsay|gossip|unconfirmed|unfounded|heard|reportedly|allegedly",
+        r"|supposedly|(?:was|were|been) saying)\b",
+    ))
+    .expect("hearsay pattern")
+});
+/// A sentence that opens by calling the one before it wrong.
+static CALLED_WRONG: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"^\s*(?:but |however,? |yet )?(?:that|this|it)(?:'s| is| was) ",
+        r"(?:wrong|incorrect|false|untrue|mistaken|(?:just |only )?(?:a )?(?:rumou?r|speculation|hearsay|gossip))\b",
+    ))
+    .expect("called-wrong pattern")
 });
 /// Closing quotes and brackets, then a question mark: the text before is asked, not said.
 static ASKED: LazyLock<Regex> =
