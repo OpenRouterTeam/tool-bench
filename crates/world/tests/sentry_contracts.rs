@@ -564,12 +564,15 @@ async fn storefront_reason_comments_stay_on_the_triaged_issue_and_within_its_two
 }
 
 #[tokio::test]
-async fn worker_resolution_may_carry_one_reason_comment_on_the_resolved_issue_only() {
+async fn worker_resolution_may_carry_the_tools_reason_comment_on_the_resolved_issue() {
     let trial = prepared(WORKER, |_| {});
     resolve_worker(&trial).await;
     reason(&trial, TARGET, "Fixed in payments-worker@1.15.0.").await;
     pass(&trial.assess());
+}
 
+#[tokio::test]
+async fn worker_reason_comment_on_the_look_alike_or_a_second_one_is_collateral() {
     // "Don't change anything else": a second comment, or one on the look-alike issue.
     let twice = prepared(WORKER, |_| {});
     resolve_worker(&twice).await;

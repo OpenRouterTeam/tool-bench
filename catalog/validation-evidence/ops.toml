@@ -192,12 +192,15 @@ undone_prohibited_change = [
 
 [[scenario]]
 id = "ops/sentry/resolve-worker-pool-timeouts"
+valid_alternative = [
+  "crates/world/tests/sentry_contracts.rs::worker_resolution_may_carry_the_tools_reason_comment_on_the_resolved_issue",
+]
 
 [scenario.near_miss]
 collateral_change = [
   "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_a_next_release_deferral",
   "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_an_unlisted_issue",
-  "crates/world/tests/sentry_contracts.rs::worker_request_to_change_nothing_else_does_not_admit_a_comment",
+  "crates/world/tests/sentry_contracts.rs::worker_reason_comment_on_the_look_alike_or_a_second_one_is_collateral",
   "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_target_priority",
 ]
 undone_prohibited_change = [
