@@ -312,7 +312,6 @@
     {
       "style": "reasoned",
       "expect": "pass",
-      "known": "unresolved",
       "answer": "Hana Sato's open ticket (4222) says she ordered the Studio X2 headphones on October 21 and they haven't arrived. In the production shop database she has several orders under hana.sato@example.org. 10598 is a cable pack that was delivered by USPS on October 6, which belongs to her older, solved ticket. 10605 is a knife and is still processing. Another headphones order from that day, 10603, is Diego Alvarez's. The one that matches is the Studio X2 order created on October 21: order 10601, status shipped, carrier UPS, tracking number 1Z4X97W80391827364."
     },
     {
@@ -481,7 +480,6 @@
     {
       "style": "reasoned",
       "expect": "pass",
-      "known": "unresolved",
       "answer": "In the storefront-prod project I summed orders created in March 2026 UTC with status paid or shipped, grouped by customer. Ben Okafor's $1,300.00 order is still pending, so it doesn't count. Felix Wagner has $1,100.00; his $600.00 order was refunded and his $500.00 order was placed at 00:10 UTC on April 1, just outside the month. Chloe Martin is third with $640.25. That puts one customer on top: Grace Kim, grace.kim@example.kr, with a March total of $1,234.50."
     },
     {

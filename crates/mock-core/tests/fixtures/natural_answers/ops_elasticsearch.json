@@ -23,7 +23,6 @@
     {
       "style": "context",
       "expect": "pass",
-      "known": "unresolved",
       "answer": "Priya Raman (Senior Payments Engineer, priya.raman@tidewater.io) is the level 1 on-call for the Payments policy (PEPPAY1). She is covering through an override on the Payments Primary schedule that runs until 06:00 UTC on 31 October; the regularly scheduled person this week is Riya Patel.\n\nIf Priya doesn't acknowledge within 10 minutes, the policy escalates to level 2: Marcus Chen, Engineering Manager, Payments (marcus.chen@tidewater.io).\n\nPriya is also already assigned incident #4814, \"Card decline rate above 8% on payments-api\", triggered at 13:48 UTC."
     },
     {

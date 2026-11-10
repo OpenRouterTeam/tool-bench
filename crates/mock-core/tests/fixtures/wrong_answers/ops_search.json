@@ -42,13 +42,11 @@
   {
    "style": "number words",
    "expect": "reject",
-   "known": "pass",
    "answer": "one hundred seventy-nine dollars per month with twelve seats."
   },
   {
    "style": "number words",
    "expect": "reject",
-   "known": "pass",
    "answer": "$79/month with one hundred twelve seats."
   },
   {
@@ -82,7 +80,6 @@
   {
    "style": "number words",
    "expect": "reject",
-   "known": "pass",
    "answer": "timeout_seconds, default one hundred thirty seconds"
   },
   {
@@ -95,7 +92,6 @@
   {
    "style": "number words",
    "expect": "reject",
-   "known": "pass",
    "answer": "Uptime is 99.95%; the credit is one hundred ten percent."
   },
   {
