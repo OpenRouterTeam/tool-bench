@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/jira/blocked-sprint-item",
-  "scenario_sha256": "sha256:e63ee18dd087435eb6df8825ddb165bc6dc569d253ec92e120633446ae79e879",
+  "scenario_sha256": "sha256:4c95b6cc2395cae36f8f75c98fe03108ed117865bb0b1896ee53f2b3757eb8fc",
   "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
-  "contract_sha256": "sha256:b23a73ff32c9b07f594dc3cdefc01efe7092443ed6d562bda3d6034875dc7686"
+  "contract_sha256": "sha256:92990fc82e7814ec3b9413cc914a770e391b0a258d2478cbd079a6ded25ec439"
 }

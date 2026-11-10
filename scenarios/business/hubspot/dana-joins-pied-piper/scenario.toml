@@ -7,6 +7,13 @@ services = ["hubspot"]
 tags = ["single-service", "write", "hubspot", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Contacts 512001 (Hooli) and 512002 (Vandelay) are both Dana Whitfield, plus Dana Whitman 512003; companies 18234004 Pied Piper and 18234005 Pied Piper Pizza; contract pins 512001 and 18234004."
+
 # Two contacts are named Dana Whitfield (512001 at Hooli, 512002 at Vandelay) and a Dana
 # Whitman (512003) already works at Pied Piper. Two companies match "Pied Piper": the
 # startup 18234004 (piedpiper.com) and Pied Piper Pizza 18234005.

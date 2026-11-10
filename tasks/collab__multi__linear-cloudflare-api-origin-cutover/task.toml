@@ -20,6 +20,11 @@ source = "/exports/realized-manifest.json"
 destination = "world/realized-manifest.json"
 service = "world"
 
+[[artifacts]]
+source = "/exports/inference-evidence.json"
+destination = "world/inference-evidence.json"
+service = "world"
+
 [task]
 name = "openrouter/tool-bench__collab__multi__linear-cloudflare-api-origin-cutover"
 description = "Make the DNS change requested in a Linear ticket in Cloudflare, then close the ticket"
@@ -57,7 +62,7 @@ storage_mb = 2048
 
 [[verifier.collect]]
 service = "world"
-command = "mkdir -p /exports && curl -fsS -X POST -H \"authorization: Bearer $BENCH_ADMIN_TOKEN\" http://localhost:9000/_bench/finalize -o /exports/evidence.json.tmp && mv /exports/evidence.json.tmp /exports/evidence.json"
+command = "mkdir -p /exports && curl -fsS -X POST -H \"authorization: Bearer $BENCH_ADMIN_TOKEN\" http://localhost:9001/_bench/finalize -o /exports/evidence.json.tmp && mv /exports/evidence.json.tmp /exports/evidence.json"
 timeout_sec = 30.0
 
 [environment]

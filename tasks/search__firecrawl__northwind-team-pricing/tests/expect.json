@@ -9,7 +9,67 @@
   "forbidden_calls": [],
   "answer": {
     "contains": [],
-    "regex": "(?is)(\\$\\s?79\\b.*\\b12\\b|\\b12\\b.*\\$\\s?79\\b)"
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the monthly price in US dollars of Northwind Analytics' Team plan when billed annually, and the number of seats that plan includes, according to the company's own current pricing page.",
+      "selector": {
+        "collection": "/services/firecrawl/pages",
+        "matching": {},
+        "field_patterns": {
+          "/title": "^Pricing \\| Northwind Analytics$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "price": {
+          "field": "/markdown",
+          "kind": "money",
+          "capture": "Team(?:\\n\\n|\\*\\* plan is| \\|) ?(?:\\*\\*)?\\$(\\d+)(?:/| per )month",
+          "units": [
+            "usd",
+            "dollars"
+          ],
+          "require_unit": true
+        },
+        "seats": {
+          "field": "/markdown",
+          "kind": "number",
+          "capture": "Team[^#]*?(\\d+) (?:seats|users)",
+          "units": [
+            "seats",
+            "seat",
+            "users",
+            "user"
+          ],
+          "require_unit": true
+        },
+        "source_url": {
+          "field": "/_key",
+          "kind": "identifier",
+          "optional": true
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "(Source: ${source_url})",
+        "Northwind Analytics"
+      ],
+      "assertions": [
+        "Team plan: ${price}/month billed annually, ${seats} included.",
+        "Price: ${price} per month (annual billing) Seats: ${seats}",
+        "| Price | ${price} | | Seats included | ${seats} seats |",
+        "| Price | ${price} | | Seats included | ${seats} |",
+        "${price}/month, ${seats}",
+        "${price}/month, ${seats} users",
+        "${price} per month billed annually, ${seats} seats",
+        "${price} per month billed annually ($99 billed monthly), ${seats} seats, extra seats $8/seat/month.",
+        "${price}/month billed annually, ${seats} seats",
+        "${price}/month billed annually, ${seats}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

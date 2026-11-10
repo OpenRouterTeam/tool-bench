@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/okta/contractor-self-service-reset",
-  "scenario_sha256": "sha256:49974d176476be330a4b04b776ef49445aa3ce922d7789451f1a6b33e86a047d",
+  "scenario_sha256": "sha256:2c016d0bd1118e405440c556e4b9f7f5022bce4d7dee83ab513a7fa76aeae4b4",
   "dataset_sha256": "sha256:cf05a4c735b64d4ea0774342dd8b5431a3c2733525ba98b01866177117eeb54c",
   "contract_sha256": "sha256:6a48f0cf4b6a9d38d4f17179ffe8464ccf56f6c53064141fa1ad319a95f3d036"
 }

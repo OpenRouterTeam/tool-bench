@@ -7,12 +7,66 @@ services = ["gitlab"]
 tags = ["single-service", "lookup", "gitlab"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 3
+rationale = "Failed pipelines: 5520 and older 5511 on main, newer 5523 on fix/rounding, 6102 and 7301 in other projects; integration-tests failed twice (88404 retried, 88409); answer needs 5520 and refund_reason."
+
 [expect]
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["5520", "integration-tests", "refund_reason"]
+# The most recent failed pipeline on main of checkout-api (pipeline IDs grow with time)
+# -> its failed job (the latest attempt; the job was retried) -> the column that job's log
+# reports as undefined.
+[expect.answer.record_facts]
+requirement = "State the ID of the most recent failed pipeline on main of northwind/payments/checkout-api, the name of the job that failed in it, and the database column that job's log reports as missing."
+mode = "statements"
+selection = { largest = { field = "/id" } }
+assertions = [
+  "Pipeline ${pipeline}",
+  "Pipeline #${pipeline}",
+  "${job}",
+  "job ${job}",
+  "${job} broke pipeline ${pipeline}",
+  "${job} failed",
+  "column ${column}",
+  "| Pipeline | ${pipeline} |",
+  "| Job | ${job} |",
+  "| Column | ${column} |",
+  "the column ${column} does not exist",
+  'column "${column}" of relation "refunds" does not exist',
+  "Pipeline ${pipeline} failed in ${job}",
+  "Pipeline #${pipeline} failed in ${job}",
+  "Pipeline ${pipeline}, job ${job}, column ${column}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/gitlab/pipelines"
+matching = { project = "northwind/payments/checkout-api", ref = "main", status = "failed" }
+
+[expect.answer.record_facts.related.job]
+collection = "/services/gitlab/jobs"
+filter = { matching = { "/status" = "failed" } }
+on = { "/pipeline_id" = "/id" }
+pick = { largest = "/id" }
+
+[expect.answer.record_facts.facts.pipeline]
+field = "/id"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.job]
+record = "job"
+field = "/name"
+kind = "text"
+
+[expect.answer.record_facts.facts.column]
+record = "job"
+field = "/trace"
+capture = 'column "([^"]+)" of relation "[^"]+" does not exist'
+kind = "identifier"
 
 [[expect.forbidden_calls]]
 service = "gitlab"
@@ -43,4 +97,4 @@ tool = "get_pipeline_job_output"
 arguments = { project_id = "northwind/payments/checkout-api", job_id = "88409", pattern = "FAILED" }
 
 [solution]
-answer = "Pipeline 5520 (main, commit 'Record refund reason on partial refunds') failed in the integration-tests job (also failed on retry): test_partial_refund_records_reason hit psycopg.errors.UndefinedColumn because column \"refund_reason\" of relation \"refunds\" does not exist; the code writes refund_reason but no migration adds that column."
+answer = "Pipeline 5520 failed in integration-tests: column \"refund_reason\" of relation \"refunds\" does not exist."

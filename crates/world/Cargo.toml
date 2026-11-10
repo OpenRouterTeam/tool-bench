@@ -48,3 +48,4 @@ tokio.workspace = true
 
 [dev-dependencies]
 scenario = { path = "../scenario" }
+tempfile.workspace = true

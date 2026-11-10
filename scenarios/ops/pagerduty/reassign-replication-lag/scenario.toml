@@ -7,6 +7,13 @@ services = ["pagerduty"]
 tags = ["write", "single-service", "pagerduty"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Four Replication lag above 300s incidents: 4812 orders-db-replica-2 (target), 4813 inventory-db-replica-1 (also mine), resolved 4761 and staging 4806; DBRE Primary daily rotation gives Dana Nguyen on 2026-10-30."
+
 [expect]
 version = 2
 audit_history = true

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/grafana/silence-replica-maintenance",
-  "scenario_sha256": "sha256:0601d057d6e61d330c79c493d9d7b2b567e8c2243ce76af679b8ddd1b1cb009c",
+  "scenario_sha256": "sha256:2368115d96d9d901285a32a967e342e8b06fb53e4a343ab37639173f96b3c776",
   "dataset_sha256": "sha256:691ad92570f95bd07250cc56996b624f24704f67f9be2a8bf5f245847c97bcf2",
   "contract_sha256": "sha256:46758b760b917234d0f64a362533b074b5843fc1f0dae0375a61c7b7ab3a9616"
 }

@@ -364,6 +364,30 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
         })();
         assessment.admit_runner(admission);
     }
+    // Reported beside the grade, never part of it: neither can change reward or outcome.
+    let surface_audit = mock_core::surface_audit::status_from_receipt(
+        runner_admission_bytes
+            .as_ref()
+            .ok()
+            .and_then(|bytes| bytes.as_deref()),
+        assessment.runner_admission_checked && assessment.runner_admission_ok,
+    );
+    let conditions = (|| {
+        let bytes = task_context_bytes
+            .as_ref()
+            .map_err(ToString::to_string)?
+            .as_ref()
+            .ok_or("no task context")?;
+        let context: TaskContext =
+            serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
+        let root = options
+            .task_context
+            .as_deref()
+            .and_then(Path::parent)
+            .filter(|path| !path.as_os_str().is_empty())
+            .unwrap_or(Path::new("."));
+        mock_core::conditions::load_bound(root, &context)
+    })();
     match &evidence {
         Ok(evidence) => {
             if evidence.scenario != options.scenario {
@@ -418,11 +442,14 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
             "graded_answer_sha256": graded_answer.map(|text| digest(text.as_bytes())),
             "inference_evidence_sha256": inference_bytes.as_ref().ok().and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
             "inference_classification": inference.as_ref().ok().and_then(Option::as_ref).map(|value| value.classification),
+            "failure_class": mock_core::failure::classify(&assessment, inference.as_ref().ok().and_then(Option::as_ref)),
             "context_overflow": context_overflow,
             "runner_admission_checked": assessment.runner_admission_checked,
             "runner_admission_ok": assessment.runner_admission_ok,
             "runner_policy_sha256": runner_policy_bytes.as_ref().ok().and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes)),
-            "runner_admission_sha256": runner_admission_bytes.as_ref().ok().and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes))
+            "runner_admission_sha256": runner_admission_bytes.as_ref().ok().and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes)),
+            "surface_audit": surface_audit,
+            "information_condition": conditions.as_ref().ok().map(|bound| &bound.record)
         }),
     )?;
     for (name, bytes) in [
@@ -471,6 +498,11 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
         ),
     ] {
         if let Some(bytes) = bytes {
+            fs::write(options.output.join(name), bytes)?;
+        }
+    }
+    if let Ok(bound) = &conditions {
+        for (name, bytes) in &bound.files {
             fs::write(options.output.join(name), bytes)?;
         }
     }

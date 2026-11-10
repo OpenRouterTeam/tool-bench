@@ -7,6 +7,13 @@ services = ["terraform"]
 tags = ["single-service", "write", "terraform", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["tool_ambiguity", "permission_refusal"]
+dependency_depth = 3
+rationale = "orders-api-prod (Commerce, locked by run-jCcDubzV) vs orders-api-prod-legacy (Legacy, lock reason says do not unlock) vs orders-api-prod in acme-sandbox; run lock needs force-unlock; only ws-gOHPQz7D may change."
+
 [expect]
 version = 2
 audit_history = true
@@ -112,7 +119,7 @@ arguments = { workspace_id = "ws-gOHPQz7D1ZRgqBJq" }
 endpoint = "terraform"
 tool = "create_run"
 arguments = { terraform_org_name = "acme-platform", workspace_name = "orders-api-prod", run_type = "plan_only", message = "Verify orders-api-prod after clearing stuck lock" }
-capture = [{ name = "verification_run", pointer = "/content/0/text", json_pointer = "/data/id" }]
+capture = [{ name = "verification_run", pointer = "/content/0/text", json_pointer = "/data/id", constraint = { type = "string", pattern = "^run-[A-Za-z0-9]+$" } }]
 
 [[solution.call]]
 endpoint = "terraform"

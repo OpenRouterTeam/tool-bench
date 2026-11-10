@@ -7,6 +7,13 @@ services = ["supabase"]
 tags = ["write", "single-service", "supabase"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "tool_ambiguity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "The RLS change on prod public.invoices is only allowed when caused by POST database/migrations and a migration row must be created, so execute_sql fails; staging invoices also has RLS off."
+
 [expect]
 version = 2
 audit_history = true

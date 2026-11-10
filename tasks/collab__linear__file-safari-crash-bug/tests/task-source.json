@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/linear/file-safari-crash-bug",
-  "scenario_sha256": "sha256:d74dc31a2525423f9d50269fa7e0406637431ebeecd8333cea72544b0c9ae7ea",
+  "scenario_sha256": "sha256:8ba86f3096911acaff6c60efabc3ffcb0656cf560af37c951a614548b53ea3f8",
   "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
   "contract_sha256": "sha256:626fdb91ea8f6624b4c580314eaf68a9094b50dac19a9f3084c884517466d096"
 }

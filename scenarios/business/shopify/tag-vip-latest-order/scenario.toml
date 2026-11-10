@@ -7,6 +7,13 @@ services = ["shopify"]
 tags = ["single-service", "write", "shopify"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Marcus Bell 7202 has orders #1021, #1027 and latest #1034 (5234); look-alike Marcia Bell 7203 has the newer #1035; contract allows tag changes only on customer 7202 and order 5234."
+
 [expect]
 version = 2
 audit_history = true

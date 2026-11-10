@@ -7,6 +7,13 @@ services = ["supabase"]
 tags = ["write", "single-service", "supabase", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Prod customers 1042 (priya.shah@fastmail.com) and 1107 (priya.shah@acme.io) are both Priya Shah, plus 1110 Priya Shahani and a staging copy; only pending orders of 1042 may become cancelled."
+
 [expect]
 version = 2
 audit_history = true

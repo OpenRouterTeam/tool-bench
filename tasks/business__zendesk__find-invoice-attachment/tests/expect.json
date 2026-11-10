@@ -51,11 +51,82 @@
     }
   ],
   "answer": {
-    "contains": [
-      "3108",
-      "Lumen-Invoice-INV-20931.pdf"
-    ],
-    "regex": null
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the number of the Zendesk ticket on which Priya Raman of Lumen Analytics posted a comment with an invoice attachment, and that attachment's file name.",
+      "selector": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "field_patterns": {
+          "/attachments/0/file_name": "(?i)invoice"
+        },
+        "references": [
+          {
+            "source_field": "/author_id",
+            "target": {
+              "collection": "/services/zendesk/users",
+              "matching": {
+                "name": "Priya Raman"
+              },
+              "references": [
+                {
+                  "source_field": "/organization_id",
+                  "target": {
+                    "collection": "/services/zendesk/organizations",
+                    "matching": {
+                      "name": "Lumen Analytics"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/id"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "file": {
+          "field": "/attachments/0/file_name",
+          "kind": "identifier"
+        },
+        "ticket": {
+          "field": "/id",
+          "kind": "identifier",
+          "record": "ticket"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "ticket": {
+          "collection": "/services/zendesk/tickets",
+          "on": {
+            "/id": "/_key"
+          },
+          "capture_from": {
+            "/_key": "^(\\d+)/"
+          }
+        }
+      },
+      "assertions": [
+        "Ticket: ${ticket}\nFile: ${file}",
+        "It's on ticket ${ticket}; the attachment is ${file}.",
+        "Ticket ${ticket}, file ${file}.",
+        "Priya Raman's invoice is on ticket ${ticket}; the file is ${file}.",
+        "The invoice attachment is on ticket ${ticket}: ${file}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

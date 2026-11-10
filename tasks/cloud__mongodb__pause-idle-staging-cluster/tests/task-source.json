@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/mongodb/pause-idle-staging-cluster",
-  "scenario_sha256": "sha256:a587244421b76d8bc23317796bf4e7b285f2d2c466b5ff7b769c7741ca60015c",
+  "scenario_sha256": "sha256:7ed26cf16df05fb04b7372ca5cf72d185ea13225693c67aa538fb662a8c979c6",
   "dataset_sha256": "sha256:5bdaa847b02652680e0f4ab25d178c82f4a289e8a4ef49d8ee2eeec169ae5908",
   "contract_sha256": "sha256:dcec019467a1f53dc93b0223b741f462f3b2ecbe6208225e281aecbaa6fcdeb9"
 }

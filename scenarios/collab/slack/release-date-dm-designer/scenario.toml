@@ -7,6 +7,13 @@ services = ["slack"]
 tags = ["write", "single-service", "slack", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Two Alexes with existing DMs: Alex Kim (Senior Product Designer) and Alex Rivera (Engineering Manager, Platform); the DM must reach Kim; #release also holds the original 2026-11-03 date replaced by 2026-11-10."
+
 [expect]
 version = 2
 audit_history = true

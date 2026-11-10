@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/stripe/cancel-at-period-end",
-  "scenario_sha256": "sha256:a81c5f90f4ff31c563a4bac80dd46ee782902a0de35c72b767bef58f943afcfa",
+  "scenario_sha256": "sha256:a02b5589fd5deae08f5a8cfa002fe86fa3ef270fe303f1af53059e1a98e869e3",
   "dataset_sha256": "sha256:56f7199b0ffb442c035e0c212174a6fdea12b51c9b6d72135e657b4b707b9ba1",
   "contract_sha256": "sha256:1e358035330f1a110028f65ad9ef771b4b1f0d1090e9f53b6f343b8c084ee01a"
 }

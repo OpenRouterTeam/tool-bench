@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/aws/grant-auditor-access",
-  "scenario_sha256": "sha256:36ad578d82a05a808ea05bba707a8fe70f220393566323443ee68a5a3d479025",
+  "scenario_sha256": "sha256:82237a7be3ef730d6960d037dc708d2d8ece1f416468364acab5e2c6e3ab98f2",
   "dataset_sha256": "sha256:ae073640ac944623d0d3fa9ad77a7898e90f74087cd161b820c7e6975883522a",
   "contract_sha256": "sha256:ac6fd43b30d7e2aa3f52564d2cf47143b9db84b7f73d1bbc8a42343b63cd0d03"
 }

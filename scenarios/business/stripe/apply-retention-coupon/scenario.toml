@@ -7,6 +7,13 @@ services = ["stripe"]
 tags = ["write", "single-service", "stripe", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Two customers named Maya Chen each hold a Team plan (cus_pSUd Brightline Studio vs cus_SnEf Freelance); coupon RETAIN20-3M sits beside RETAIN20-12M and expired RETAIN25-3M; other subs must keep no discounts."
+
 # Two customers are named Maya Chen: cus_pSUd… (maya@brightline.studio, description
 # "Brightline Studio") and cus_SnEf… (gmail, freelance), and both have a Team plan.
 # Brightline Maya's Team plan is sub_7fWx…; her storage add-on is sub_rgXM….

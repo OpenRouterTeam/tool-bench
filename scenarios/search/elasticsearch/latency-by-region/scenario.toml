@@ -7,6 +7,13 @@ services = ["elasticsearch"]
 tags = ["lookup", "single-service", "elasticsearch"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "eu-west-1 averages 412.5 ms only on successful submit requests today; us-east-1 has three 504s near 30000 ms, ap-southeast-2 has 900-1000 ms requests yesterday and 1200-1300 ms on another endpoint."
+
 # Successful /checkout/submit today: eu-west-1 412.5, ap-southeast-2 305, us-east-1 210.
 # Distractors: us-east-1 504 timeouts (~30s), ap-southeast-2's slow requests yesterday and on
 # another endpoint, and a September index.
@@ -14,9 +21,49 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["eu-west-1"]
-regex = '412[.,]5'
+[expect.answer.record_facts]
+requirement = "Name the region with the largest average duration_ms over /checkout/submit requests on 2026-10-30 UTC whose status code is not an error (200-399), and state that average in milliseconds."
+mode = "statements"
+# Words that say the opposite of slowest.
+contradictions = ["fastest", "quickest", "lowest"]
+context = ["(ap-southeast-2: 305 ms, us-east-1: 210 ms)"]
+assertions = [
+  "Slowest region: ${region}, average ${average} for successful /checkout/submit requests on 2026-10-30",
+  "Slowest region: ${region}",
+  "Average duration: ${average}",
+  "${region} is the slowest, averaging ${average}",
+  "${region} is the slowest, averaging ${average} (${average}) per successful request",
+  "The region with the largest average latency is ${region} at ${average}",
+  "${region} averages ${average} for successful /checkout/submit requests",
+  "${region} averages ${average}",
+  "${region}: ${average}",
+  '| Region | Average duration | | ${region} | ${average} |',
+  '| Region | Average duration | |---|---| | ${region} | ${average} |',
+  '{"region":"${region}","average":"${average}"}',
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/elasticsearch/docs"
+matching = { endpoint = "/checkout/submit" }
+field_patterns = { "/@timestamp" = "^2026-10-30T" }
+
+[expect.answer.record_facts.filter]
+ranges = { "/status_code" = { min = "200", max = "399" } }
+
+[expect.answer.record_facts.selection.group]
+by = "/region"
+measure = { average = "/duration_ms" }
+pick = "largest"
+
+[expect.answer.record_facts.facts.region]
+field = "/key"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.average]
+field = "/value"
+kind = "number"
+units = ["ms", "milliseconds", "millisecond", "msec"]
+require_unit = true
 
 [[expect.required_calls]]
 service = "elasticsearch"

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/gitlab/answer-changelog-review-thread",
-  "scenario_sha256": "sha256:5b8d6a157b3e4ab34658dd1b48219ff782edef555b8f85e46f9bb95635d77351",
+  "scenario_sha256": "sha256:de9e4a956f13b991529c69d6bdab457acb8d5c633a39d863f831fbac734a9dfe",
   "dataset_sha256": "sha256:4238b6d83e53b747e6e1ee0a257c600afda3aa9906113e095d78a1f13f4eae99",
   "contract_sha256": "sha256:3847ceeadfe6641e12f9dad2f6f541f4056377db401049ea1d2b57688c375672"
 }

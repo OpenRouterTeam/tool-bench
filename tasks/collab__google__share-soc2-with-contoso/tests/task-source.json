@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/google/share-soc2-with-contoso",
-  "scenario_sha256": "sha256:368ce97d26612dccff0ad49a8b5b2755ea59f09486aed0d7a0a9ad623311b6f5",
+  "scenario_sha256": "sha256:e8fe0ffe3c741650ba8ea63caa3ecfa0e56284532214481ff8f8145dc68a9c0e",
   "dataset_sha256": "sha256:73b4fef1b385270d496c465e92edb5e73b43ced1bbdd1873d34521c5cfdd2852",
   "contract_sha256": "sha256:2df52e9350eb08c557183f78a84eb03df4c89da3314d1cdee1e9d9999efab6f4"
 }

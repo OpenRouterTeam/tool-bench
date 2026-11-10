@@ -7,6 +7,13 @@ services = ["pagerduty", "sentry", "github"]
 tags = ["write", "multi-service", "pagerduty", "sentry", "github", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity"]
+dependency_depth = 3
+rationale = "Incident 4810 has staging twin 4811 with the same title; Sentry CHECKOUT-API-3F shares its pool-timeout title with PAYMENTS-WORKER-1K; issue title must bind to the checkout-api create_order issue and body to 4810."
+
 # PagerDuty: #4810 (Q7CHKAP15PCT1D, checkout-api, production) "Checkout error rate above 5%"
 # on POST /api/orders/; #4811 (Q8CHKSTG5PCT2F) is its staging twin. Sentry: the production
 # error on that endpoint is CHECKOUT-API-3F (OperationalError: could not obtain connection from
@@ -188,6 +195,7 @@ name = "issue_number"
 pointer = "/content/0/text"
 json_pointer = "/issues"
 select = { matching = { title = "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s" }, pointer = "/number" }
+constraint = { type = "integer", minimum = 1 }
 
 [[solution.call]]
 endpoint = "pagerduty"

@@ -7,6 +7,13 @@ services = ["hubspot", "salesforce"]
 tags = ["lookup", "multi-service", "hubspot", "salesforce", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "cross_system_identity"
+secondary = ["entity_ambiguity", "stale_state"]
+dependency_depth = 3
+rationale = "HubSpot company Northwind Logistics (deal 9100106) must be matched by name to the Salesforce account owned by Daniel Okafor, not Northwind Traders or Northwind Freight Brokers; HubSpot deal owner is Elena Sokolova."
+
 # HubSpot: the largest open deal is "Northwind Logistics – Fleet Telemetry" (412,000,
 # contractsent). Distractors there: Northwind Traders (530,000, closed won), Vandelay
 # (640,000, closed lost), an archived 900,000 duplicate, Hooli (three open deals, 450,000 total).
@@ -18,8 +25,82 @@ timeout_sec = 1200
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["Northwind Logistics", "Daniel Okafor", "00002107", "00002113"]
+[expect.answer.record_facts]
+requirement = "Name the company associated with the largest non-archived HubSpot deal that is neither closed won nor closed lost, the Salesforce user who owns the account of that name, and the case number of every open (not closed) Salesforce case on that account."
+mode = "statements"
+# The account has open cases and the listed ones are open, so an answer that says there
+# are none, or calls a listed case closed, is wrong whatever else it names.
+rejected = ["has no open cases", "${cases} is closed", "${cases} are closed"]
+
+context = [
+  "(Escalated)",
+  "(Working)",
+  "(New)",
+  "(Closed)",
+  "(High)",
+  "(Medium)",
+  "(Low)",
+]
+assertions = [
+  "Company: ${company}\nAccount owner: ${owner}\nOpen cases: ${cases}",
+  "The largest open deal is with ${company}. Its Salesforce account is owned by ${owner} and has open cases: ${cases}.",
+  "The largest open deal is with ${company}. Its Salesforce account is owned by ${owner} and has two open cases: ${cases}.",
+  "${company}; account owner ${owner}; open cases ${cases}.",
+  "${company}; account owner ${owner}; open cases ${cases} and ${cases}.",
+  "${company}; account owner ${owner}; one open case, ${cases}.",
+  "${company}; account owner ${owner}; open case, ${cases}.",
+  "Largest open deal: ${company}. Salesforce owner: ${owner}. Open cases: ${cases}.",
+]
+selection = { largest = { field = "/properties/amount" } }
+
+[expect.answer.record_facts.selector]
+collection = "/services/hubspot/deals"
+matching = { archived = false }
+
+[expect.answer.record_facts.filter]
+excluding = [{ "/properties/dealstage" = "closedwon" }, { "/properties/dealstage" = "closedlost" }]
+
+[expect.answer.record_facts.related.link]
+collection = "/services/hubspot/associations"
+filter = { matching = { "/fromObjectType" = "companies", "/toObjectType" = "deals" } }
+on = { "/toObjectId" = "/id" }
+
+[expect.answer.record_facts.related.company]
+from = "link"
+collection = "/services/hubspot/companies"
+on = { "/id" = "/fromObjectId" }
+
+[expect.answer.record_facts.related.account]
+from = "company"
+collection = "/services/salesforce/Account"
+on = { "/Name" = "/properties/name" }
+
+[expect.answer.record_facts.related.owner]
+from = "account"
+collection = "/services/salesforce/User"
+on = { "/Id" = "/OwnerId" }
+
+[expect.answer.record_facts.related.cases]
+from = "account"
+collection = "/services/salesforce/Case"
+filter = { matching = { "/IsClosed" = false } }
+on = { "/AccountId" = "/Id" }
+pick = "all"
+
+[expect.answer.record_facts.facts.company]
+record = "company"
+field = "/properties/name"
+kind = "text"
+
+[expect.answer.record_facts.facts.owner]
+record = "owner"
+field = "/Name"
+kind = "text"
+
+[expect.answer.record_facts.facts.cases]
+record = "cases"
+field = "/CaseNumber"
+kind = "identifier"
 
 [[expect.forbidden_calls]]
 service = "hubspot"
@@ -59,12 +140,4 @@ tool = "salesforce_query_records"
 arguments = { objectName = "Case", fields = ["CaseNumber", "Subject", "Status", "Priority"], whereClause = "Account.Name = 'Northwind Logistics' AND IsClosed = false" }
 
 [solution]
-answer = """
-Largest open deal in HubSpot: "Northwind Logistics – Fleet Telemetry", $412,000 (Contract Sent), company Northwind Logistics.
-
-In Salesforce the Northwind Logistics account is owned by Daniel Okafor.
-
-Open support cases on the account:
-- 00002107 – Driver app shows stale ETAs after route change (Working, High)
-- 00002113 – SSO login fails for depot supervisors (Escalated, Medium)
-"""
+answer = "Northwind Logistics; account owner Daniel Okafor; open cases 00002107 and 00002113."

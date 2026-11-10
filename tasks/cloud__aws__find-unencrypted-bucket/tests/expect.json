@@ -78,7 +78,44 @@
   ],
   "answer": {
     "contains": [],
-    "regex": "^\\W*northwind-legacy-exports\\W*$"
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the S3 bucket whose default encryption is SSE-S3 (SSEAlgorithm AES256) instead of SSE-KMS, and no other bucket.",
+      "selector": {
+        "collection": "/services/aws/buckets",
+        "matching": {
+          "Encryption": {
+            "SSEAlgorithm": "AES256"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "bucket": {
+          "field": "/Name",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "(default encryption SSE-S3, AES256)",
+        "(AES256)"
+      ],
+      "contradictions": [
+        "uses kms",
+        "uses sse-kms",
+        "uses aws:kms"
+      ],
+      "assertions": [
+        "${bucket}",
+        "The bucket is ${bucket}.",
+        "${bucket} defaults to SSE-S3 instead of the required SSE-KMS.",
+        "${bucket} defaults to SSE-S3 instead of SSE-KMS."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

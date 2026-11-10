@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/mongodb/top-category-revenue",
-  "scenario_sha256": "sha256:4d24ad69b060cdf0b28344656fe3826168e90dd7f6423f810d12b289a01138f2",
+  "scenario_sha256": "sha256:2c7176c62639915aab386c736a31b6f2eddf1e41afc26813736a2a5c1ca6a972",
   "dataset_sha256": "sha256:17cc233ada17c9dca2e7f1557a0edd8ea0bd7de391d6311901f659b83bc617c3",
-  "contract_sha256": "sha256:c3202419ca009745ac1d6507cdd8deb2d9401601afd637624f1051e4caa6a2d1"
+  "contract_sha256": "sha256:6d3ddfe0d6148efc4d5db57f905829cb25dc332275b082f1ef8de6fb86647119"
 }

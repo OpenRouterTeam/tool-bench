@@ -7,6 +7,13 @@ services = ["terraform"]
 tags = ["single-service", "lookup", "terraform"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "payments-api-prod has two errored runs: run-nAAGvVVu (2026-10-24, failed at plan) and the latest run-Gy4tBHGg (2026-10-28, failed at apply); staging run-YF4vEQXa errored differently; answer must use the latest."
+
 # The latest prod run errored during apply (not plan): the error is only in the apply log.
 # Distractors: an older prod run that errored at plan time, and a staging run that errored
 # with a different RDS error.
@@ -14,13 +21,87 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = [
-  "run-Gy4tBHGggKx49nbH",
-  "aws_db_instance.payments",
-  "InvalidParameterCombination",
-  "1 to add, 1 to change, 0 to destroy",
+# The payments-api-prod workspace -> its latest run -> that run's plan and apply. The
+# resource address and the AWS error code are read from the apply log; the three plan
+# counts carry Terraform's own labels, so they cannot stand in for each other.
+[expect.answer.record_facts]
+requirement = "Give the ID of the latest run of the payments-api-prod workspace, the resource address and the AWS error code its apply log reports, and how many resources that run's plan said it would add, change and destroy, in Terraform's format."
+mode = "statements"
+# The text of the AWS error, not a denial of the error code.
+predicates = ["Cannot upgrade postgres"]
+assertions = [
+  "Run: ${run}",
+  "${run}",
+  "${run} errored",
+  "${run} failed",
+  "Failed resource: ${resource}",
+  "${resource}",
+  "${error_code}",
+  "Plan: ${to_add} to add, ${to_change} to change, ${to_destroy} to destroy",
+  "${to_add} to add, ${to_change} to change, ${to_destroy} to destroy",
+  "${run} errored while applying ${resource}: ${error_code}",
+  "${run} failed applying ${resource} with ${error_code}",
 ]
+context = [
+  "the apply got as far as 1 added, 0 changed, 0 destroyed",
+  "Its plan was",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/terraform/workspaces"
+matching = { name = "payments-api-prod", organization = "acme-platform" }
+
+[expect.answer.record_facts.related.run]
+collection = "/services/terraform/runs"
+on = { "/id" = "/latest-run" }
+
+[expect.answer.record_facts.related.plan]
+from = "run"
+collection = "/services/terraform/plans"
+on = { "/id" = "/plan" }
+
+[expect.answer.record_facts.related.apply]
+from = "run"
+collection = "/services/terraform/applies"
+on = { "/id" = "/apply" }
+
+[expect.answer.record_facts.facts.run]
+record = "run"
+field = "/id"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.resource]
+record = "apply"
+field = "/log"
+capture = '(?m)^\s+with ([^,\s]+),$'
+kind = "identifier"
+
+[expect.answer.record_facts.facts.error_code]
+record = "apply"
+field = "/log"
+capture = 'api error (\w+):'
+kind = "identifier"
+
+[expect.answer.record_facts.facts.to_add]
+record = "plan"
+field = "/resource-additions"
+kind = "number"
+units = ["to add"]
+require_unit = true
+
+[expect.answer.record_facts.facts.to_change]
+record = "plan"
+field = "/resource-changes"
+kind = "number"
+units = ["to change"]
+require_unit = true
+
+[expect.answer.record_facts.facts.to_destroy]
+record = "plan"
+field = "/resource-destructions"
+kind = "number"
+units = ["to destroy"]
+require_unit = true
 
 [[expect.forbidden_calls]]
 service = "terraform"
@@ -56,11 +137,5 @@ arguments = { plan_id = "plan-W6mMDz8dMca2TBnD" }
 
 [solution]
 answer = """
-Latest run on payments-api-prod: run-Gy4tBHGggKx49nbH ("Upgrade payments DB to Postgres 16"), status errored.
-
-The plan succeeded (Plan: 1 to add, 1 to change, 0 to destroy); the apply failed on aws_db_instance.payments
-after creating aws_db_parameter_group.payments_pg16:
-
-  api error InvalidParameterCombination: Cannot upgrade postgres from 14.12 to 16.4. You must set
-  AllowMajorVersionUpgrade to true when upgrading to a new major version.
+Run: run-Gy4tBHGggKx49nbH. Failed resource: aws_db_instance.payments (InvalidParameterCombination). Plan: 1 to add, 1 to change, 0 to destroy.
 """

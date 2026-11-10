@@ -7,6 +7,13 @@ services = ["jira"]
 tags = ["write", "multi-step", "single-service", "jira", "confluence", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = []
+dependency_depth = 2
+rationale = "Current ENG page 100002 names Lena Fischer as go/no-go criteria owner while archived page 200002 (2025 draft, replaced) names Marcus Webb; contract requires PAY-124 assignee lena.fischer."
+
 [expect]
 version = 2
 audit_history = true

@@ -7,6 +7,13 @@ services = ["argocd"]
 tags = ["single-service", "write", "argocd", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Two apps are both named payments-api: namespace payments (prod-use1) and payments-staging (staging-use1), both OutOfSync with the legacy-webhooks ConfigMap; contract forbids sync with appNamespace payments-staging."
+
 [expect]
 version = 2
 audit_history = true

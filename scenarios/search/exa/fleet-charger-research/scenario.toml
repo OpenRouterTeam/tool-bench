@@ -7,6 +7,13 @@ services = ["exa"]
 tags = ["write", "single-service", "exa"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 2
+rationale = "The request states the pro research model (not fast or standard) and asks for one depot V2G report; the forbidden fast and standard calls only check that stated constraint."
+
 [expect]
 version = 2
 audit_history = true

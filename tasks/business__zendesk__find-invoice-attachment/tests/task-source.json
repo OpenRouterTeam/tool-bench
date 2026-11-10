@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/zendesk/find-invoice-attachment",
-  "scenario_sha256": "sha256:b3db9332dbae5122f4b38f7a038349d93ec313fe1b86443400baed10e36ecfcb",
+  "scenario_sha256": "sha256:4d27a58d8b02b7a873dcf5c9d58c3e5186f36f5474bf70337631733b6b653158",
   "dataset_sha256": "sha256:9b175f65fc78cd4f84bff0455fb891f1aeab6bcaa553a8fd7072db01f493033b",
-  "contract_sha256": "sha256:78f1841d2a705e4f09d15585e419b578e8230bc07819040a5b7aecb62ca5eb6f"
+  "contract_sha256": "sha256:36e3495224ac10e69cdf929fe1ff96edc8537304b31e1198cb980834d5e1be02"
 }

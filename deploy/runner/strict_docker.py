@@ -27,6 +27,7 @@ from deploy.runner.admission import (
 from deploy.runner.snapshot import MAX_BYTES, extract_snapshot, fingerprint, snapshot_tree
 from deploy.runner.manifest import digest, execution_context, image_fingerprints
 from deploy.runner.inference import InferenceEvidence, admit_evidence
+from deploy.runner.surface_audit import SurfaceAudit, capture_pre_agent, seal_post_stop
 
 
 class StrictDockerEnvironment(DockerEnvironment):
@@ -127,6 +128,8 @@ class StrictDockerEnvironment(DockerEnvironment):
         self._manifest_sha256 = None
         self._inference_evidence_sha256 = None
         self._observed_agent = None
+        self._surface_audit = SurfaceAudit.create(task_root, self._scenario, self._trial_admin_token)
+        self._surface_audit_sealed = None
         self._write_receipt()
 
     def _requires_egress_control(self, *, startup_network_policy, phase_network_policies):
@@ -324,6 +327,8 @@ class StrictDockerEnvironment(DockerEnvironment):
         path.write_text(json.dumps(self._execution_manifest, indent=2) + "\n")
         self._manifest_sha256 = digest(path.read_bytes())
         self._write_receipt()
+        if getattr(self, "_surface_audit", None) is not None:
+            await capture_pre_agent(self, trial)
 
     async def _publish_manifest(self) -> None:
         if self._execution_manifest is None:
@@ -414,7 +419,8 @@ class StrictDockerEnvironment(DockerEnvironment):
             raise AdmissionError("inference capture belongs to a different trial")
         if not evidence.scripted:
             from deploy.runner.computer1_capture import Computer1HostCapture
-            if type(host_capture) is not Computer1HostCapture:
+            from deploy.runner.proxy_capture import ProviderProxyCapture
+            if type(host_capture) not in (Computer1HostCapture, ProviderProxyCapture):
                 raise AdmissionError("native evidence has no host capture authority")
             observed_agent = getattr(self, "_observed_agent", None)
             if observed_agent is None:
@@ -444,6 +450,8 @@ class StrictDockerEnvironment(DockerEnvironment):
                 "inference_evidence_sha256": self._inference_evidence_sha256,
             }
         )
+        if getattr(self, "_surface_audit_sealed", None) is not None:
+            receipt["surface_audit"] = self._surface_audit_sealed
         temporary = self._receipt_path.with_suffix(".json.tmp")
         temporary.write_text(json.dumps(receipt, indent=2) + "\n")
         temporary.replace(self._receipt_path)
@@ -466,6 +474,7 @@ class StrictDockerEnvironment(DockerEnvironment):
         ):
             raise AdmissionError("cannot bind runner admission to collected world evidence")
         self._evidence_sha256 = f"sha256:{fields[0]}"
+        await seal_post_stop(self)
         self._write_receipt()
         receipt = self._receipt_path.read_text()
         command = (

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/okta/offboard-contractor",
-  "scenario_sha256": "sha256:42cae9fdcd70e0b29a4421f9b07f613a9caaff6448897d7026337c4fa702be3e",
+  "scenario_sha256": "sha256:99f4c3fb13f1a31712a00c4e8c1cf919bb8be91b59bab8f2dd9b6929be97682b",
   "dataset_sha256": "sha256:cf05a4c735b64d4ea0774342dd8b5431a3c2733525ba98b01866177117eeb54c",
   "contract_sha256": "sha256:0ebbcc9307314764c9170b7a3d8f6eb1ea04de7f1e58da2d4b1d69fde44a504f"
 }

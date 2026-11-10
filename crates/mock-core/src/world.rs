@@ -52,6 +52,7 @@ pub struct WorldState {
     fault_schedule: Option<FaultSchedule>,
     initial_fault_schedule: Option<FaultSchedule>,
     fault_records: Vec<FaultRecord>,
+    user: Option<crate::scripted_user::UserState>,
 }
 
 #[derive(Debug, Clone)]
@@ -173,6 +174,23 @@ impl SharedWorld {
         world.check_fault(service, operation_id, resource)
     }
 
+    /// One turn of the scripted user, recorded under the active operation.
+    /// `None` when the task has no scripted user.
+    pub fn user_exchange(
+        &self,
+        message: &str,
+    ) -> Option<(crate::scripted_user::UserExchange, u32)> {
+        let mut world = self.0.state.lock().expect("world lock");
+        let user = world.user.as_mut()?;
+        let record = user.respond(message);
+        let remaining = user.script().max_turns.saturating_sub(user.turns());
+        if let Some(operation) = events::current() {
+            let time = world.clock.now_rfc3339();
+            world.events.user_exchange(operation, time, record.clone());
+        }
+        Some((record, remaining))
+    }
+
     pub(crate) fn record_response(&self, operation: &OperationContext, record: ResponseRecord) {
         let mut world = self.0.state.lock().expect("world lock");
         let Some((head, body)) = world.events.request(operation.id) else {
@@ -288,6 +306,9 @@ impl WorldState {
             fault_schedule: dataset.fault_schedule.clone(),
             initial_fault_schedule: dataset.fault_schedule,
             fault_records: Vec::new(),
+            user: dataset
+                .scripted_user
+                .map(crate::scripted_user::UserScript::start),
         })
     }
 
@@ -333,6 +354,7 @@ impl WorldState {
         self.epoch += 1;
         self.fault_schedule = self.initial_fault_schedule.clone();
         self.fault_records.clear();
+        self.user = self.user.take().map(|user| user.script().clone().start());
         Ok(())
     }
 
@@ -352,6 +374,10 @@ impl WorldState {
             snapshot["fault_schedule"] =
                 serde_json::to_value(schedule).expect("valid fault schedule");
         }
+        if let Some(user) = &self.user {
+            snapshot["scripted_user"] =
+                serde_json::to_value(user.script()).expect("valid scripted user");
+        }
         snapshot
     }
 
@@ -370,6 +396,10 @@ impl WorldState {
         if let Some(schedule) = &self.initial_fault_schedule {
             snapshot["fault_schedule"] =
                 serde_json::to_value(schedule).expect("valid fault schedule");
+        }
+        if let Some(user) = &self.user {
+            snapshot["scripted_user"] =
+                serde_json::to_value(user.script()).expect("valid scripted user");
         }
         snapshot
     }

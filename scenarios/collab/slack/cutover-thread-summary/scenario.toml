@@ -7,6 +7,13 @@ services = ["slack"]
 tags = ["write", "single-service", "slack"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = []
+dependency_depth = 2
+rationale = "The #db-migration thread opens with a proposal for Fri 2026-11-06 20:00-23:00 CT that is replaced by the agreed Sat 2026-11-07 22:00-01:00 CT led by Sam; the reply must not present the superseded proposal."
+
 [expect]
 version = 2
 audit_history = true

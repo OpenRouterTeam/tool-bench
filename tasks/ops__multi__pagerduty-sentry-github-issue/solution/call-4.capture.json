@@ -1,1 +1,1 @@
-[{"name":"issue_number","pointer":"/content/0/text","json_pointer":"/issues","select":{"matching":{"title":"CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s"},"pointer":"/number"}}]
+[{"name":"issue_number","pointer":"/content/0/text","json_pointer":"/issues","select":{"matching":{"title":"CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s"},"pointer":"/number"},"constraint":{"minimum":1,"type":"integer"}}]

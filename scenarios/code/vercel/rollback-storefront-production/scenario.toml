@@ -7,6 +7,13 @@ services = ["vercel"]
 tags = ["write", "single-service", "vercel"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Before bad deploy e07a3c9 (#491) storefront has ERROR production build 2f6c8a1 (#488), preview 91b7e4c and READY production c3a9f12; contract requires a redeploy of dpl_8o704 (c3a9f12) only."
+
 [expect]
 version = 2
 audit_history = true
@@ -61,14 +68,14 @@ pointer = "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/updatedAt"
 endpoint = "vercel"
 tool = "vercel-find-project"
 arguments = { idOrName = "storefront" }
-capture = [{ name = "predecessor_id", pointer = "/content/1/text", json_pointer = "/lastAliasRequest/fromDeploymentId" }]
+capture = [{ name = "predecessor_id", pointer = "/content/1/text", json_pointer = "/lastAliasRequest/fromDeploymentId", constraint = { type = "string", pattern = "^dpl_[A-Za-z0-9]+$" } }]
 
 [[solution.call]]
 endpoint = "vercel"
 tool = "vercel-create-deployment"
 template = true
 arguments = { name = "storefront", deploymentId = "${predecessor_id}", target = "production" }
-capture = [{ name = "redeployment_id", pointer = "/content/1/text", json_pointer = "/id" }]
+capture = [{ name = "redeployment_id", pointer = "/content/1/text", json_pointer = "/id", constraint = { type = "string", pattern = "^dpl_[A-Za-z0-9]+$" } }]
 
 [[solution.call]]
 endpoint = "vercel"

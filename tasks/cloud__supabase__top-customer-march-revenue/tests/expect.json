@@ -33,11 +33,71 @@
     }
   ],
   "answer": {
-    "contains": [
-      "Grace Kim",
-      "grace.kim@example.kr"
-    ],
-    "regex": "1,?234\\.50?"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the customer of the production storefront project whose paid or shipped orders created in March 2026 UTC sum to the largest total, with that customer's email address and that total in US dollars.",
+      "selector": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders",
+        "matching": {},
+        "field_patterns": {
+          "/created_at": "^2026-03-",
+          "/status": "^(paid|shipped)$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "by": "/customer_id",
+          "measure": {
+            "sum": "/total"
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "email": {
+          "field": "/email",
+          "kind": "identifier",
+          "record": "customer"
+        },
+        "name": {
+          "field": "/full_name",
+          "kind": "text",
+          "record": "customer"
+        },
+        "total": {
+          "field": "/value",
+          "kind": "money"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "customer": {
+          "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+          "on": {
+            "/id": "/key"
+          }
+        }
+      },
+      "contradictions": [
+        "second",
+        "second-highest",
+        "second-largest",
+        "runner-up",
+        "the least",
+        "the lowest"
+      ],
+      "assertions": [
+        "${name} (${email}) brought in the most revenue: ${total}.",
+        "${name} (${email}): ${total}",
+        "Customer: ${name}\nEmail: ${email}\nMarch total: ${total}",
+        "${name} <${email}> leads March with ${total}.",
+        "${name} <${email}> leads with ${total}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

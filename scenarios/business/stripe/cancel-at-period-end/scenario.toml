@@ -7,6 +7,13 @@ services = ["stripe"]
 tags = ["write", "single-service", "stripe"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "tool_ambiguity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Growth sub sub_eAeI must get cancel_at 1776018000 and stay active; the DeleteSubscriptions operation (immediate cancel) is a forbidden call; Lumen Labs Growth sub and the Data Export add-on must stay untouched."
+
 # Lumen Analytics: Growth monthly (sub_eAeI…, period 2026-03-12 -> 2026-04-12T18:20:00Z,
 # unix 1776018000) is to end with the period; the Data Export add-on (sub_5092…) stays.
 # Look-alikes: Lumen Labs' own Growth plan, and Lumen Analytics' old canceled Starter plan.

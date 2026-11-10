@@ -7,6 +7,13 @@ services = ["kubernetes"]
 tags = ["write", "single-service", "kubernetes", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "analytics/report-builder pods are OOMKilled (6 and 7 restarts); report-scheduler restarted once with exit 1, report-api shares the 512Mi limit and analytics-staging has a same-named report-builder; only prod one changes."
+
 [expect]
 version = 2
 audit_history = true

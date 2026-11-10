@@ -8,7 +8,7 @@ pub mod tls;
 use std::{
     collections::BTreeMap,
     io,
-    net::{IpAddr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
 };
 
 use axum::{
@@ -29,7 +29,8 @@ use mock_core::{
 };
 use tokio::{net::TcpListener, task::JoinSet};
 
-pub const ADMIN_PORT: u16 = 9000;
+pub const ADMIN_PORT: u16 = 9001;
+pub const BOOTSTRAP_PORT: u16 = 9000;
 pub const TLS_PORT: u16 = 443;
 
 /// Every mock service compiled into the world.
@@ -80,10 +81,13 @@ pub enum PortChoice {
 pub struct AccessPolicy {
     pub admin_token: Option<String>,
     pub tools_host: Option<String>,
+    /// Concrete tools-only interface; required for protected fixed-port runs.
+    pub bootstrap_bind: Option<IpAddr>,
 }
 
 pub struct Running {
     pub admin: SocketAddr,
+    pub bootstrap: SocketAddr,
     /// HTTPS listener that dispatches by `Host` to the service owning that hostname.
     pub tls: SocketAddr,
     /// PEM of the CA that signed the TLS certificate (also served at `/_bench/ca.pem`).
@@ -102,7 +106,7 @@ impl Running {
     }
 }
 
-/// Admin routes the tools container and health checks reach without the admin token.
+/// Health and CA routes available without the admin token.
 const OPEN_ADMIN_PATHS: [&str; 2] = ["/_bench/health", "/_bench/ca.pem"];
 
 /// Binds the admin API and every service, then serves them in the background.
@@ -110,9 +114,9 @@ pub async fn spawn(world: SharedWorld, ip: IpAddr, ports: PortChoice) -> io::Res
     spawn_guarded(world, ip, ports, None).await
 }
 
-/// [`spawn`], with every admin route except [`OPEN_ADMIN_PATHS`] requiring
-/// `Authorization: Bearer <admin_token>` when a token is set. Trials set one so the agent,
-/// which shares the network with the world, cannot read the state or call the grader.
+/// [`spawn`], with protected control routes on loopback when a token is set.
+/// Tools receive only the separate health/CA bootstrap listener.
+/// Protected fixed-port runs use [`spawn_with_access`] with an explicit bootstrap interface.
 pub async fn spawn_guarded(
     world: SharedWorld,
     ip: IpAddr,
@@ -126,6 +130,7 @@ pub async fn spawn_guarded(
         AccessPolicy {
             admin_token,
             tools_host: None,
+            bootstrap_bind: None,
         },
     )
     .await
@@ -137,6 +142,17 @@ pub async fn spawn_with_access(
     ports: PortChoice,
     access: AccessPolicy,
 ) -> io::Result<Running> {
+    if access.admin_token.is_some() && ports == PortChoice::Fixed && access.bootstrap_bind.is_none()
+        || access
+            .bootstrap_bind
+            .is_some_and(|address| address.is_unspecified())
+        || access.bootstrap_bind.is_some() && access.admin_token.is_none()
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "protected fixed-port runs require a concrete bootstrap interface; explicit bootstrap binds require protected control",
+        ));
+    }
     world
         .configure_replay_headers(replay_headers::registry().map_err(io::Error::other)?)
         .map_err(io::Error::other)?;
@@ -153,11 +169,51 @@ pub async fn spawn_with_access(
     }
     let ca = tls::LocalCa::generate(&tls::all_hosts(&services)).map_err(io::Error::other)?;
 
-    let admin_listener = TcpListener::bind((ip, port(ADMIN_PORT))).await?;
+    let protected = access.admin_token.is_some();
+    let admin_ip = if protected {
+        match ip {
+            IpAddr::V4(_) => IpAddr::V4(Ipv4Addr::LOCALHOST),
+            IpAddr::V6(_) => IpAddr::V6(Ipv6Addr::LOCALHOST),
+        }
+    } else {
+        ip
+    };
+    let admin_listener = TcpListener::bind((
+        admin_ip,
+        port(if protected {
+            ADMIN_PORT
+        } else {
+            BOOTSTRAP_PORT
+        }),
+    ))
+    .await?;
     let admin = admin_listener.local_addr()?;
+    let bootstrap = if protected {
+        let listener =
+            TcpListener::bind((access.bootstrap_bind.unwrap_or(ip), port(BOOTSTRAP_PORT))).await?;
+        let address = listener.local_addr()?;
+        let certificate = ca.ca_pem.clone();
+        let app = Router::new()
+            .route(
+                "/_bench/health",
+                get(|| async { axum::Json(serde_json::json!({"status":"ok"})) }),
+            )
+            .route(
+                "/_bench/ca.pem",
+                get(move || {
+                    let certificate = certificate.clone();
+                    async move { certificate }
+                }),
+            );
+        tasks.spawn(serve(listener, app));
+        address
+    } else {
+        admin
+    };
     let ca_pem = ca.ca_pem.clone();
     let admin_routes = admin_app(world.clone())
         .merge(grade::routes(world.clone()))
+        .merge(mock_core::scripted_user::routes(world.clone()))
         .merge(Router::new().route(
             "/_bench/ca.pem",
             get(move || {
@@ -206,6 +262,7 @@ pub async fn spawn_with_access(
 
     Ok(Running {
         admin,
+        bootstrap,
         tls,
         ca_pem: ca.ca_pem,
         services: bound,

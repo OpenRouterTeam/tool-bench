@@ -14,6 +14,9 @@ pub struct RunnerPolicy {
     pub adapter_sha256: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inference_adapter: Option<crate::inference::AdapterIdentity>,
+    /// Approved host provider-proxy capture for container-side CLI agents.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub proxy_inference_adapter: Option<crate::inference::AdapterIdentity>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -33,6 +36,9 @@ pub struct RunnerAdmission {
     pub manifest_sha256: Option<String>,
     #[serde(default)]
     pub inference_evidence_sha256: Option<String>,
+    /// Sealed resolved-surface audit summary; never part of admission or reward.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub surface_audit: Option<crate::surface_audit::SealedSurfaceAudit>,
     pub phase: String,
     pub failure: Option<String>,
     pub main: Option<MainState>,

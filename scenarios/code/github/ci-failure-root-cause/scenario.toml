@@ -7,6 +7,13 @@ services = ["github"]
 tags = ["single-service", "lookup", "github"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Failed runs 9001 (main, TestGatewaySandboxCapture), 9003 (PR 41, lint) and 9005 (PR 42, unit-tests); PR 42 also has earlier green run 9004; answer must give TestRetryBackoffCapsAtMaxDelay and 32s."
+
 # PR #42's latest CI run (9005) failed in unit-tests: TestRetryBackoffCapsAtMaxDelay,
 # "expected delay 30s, got 32s". Distractors: a flaky integration failure on main (run 9001),
 # a lint failure on PR #41 (run 9003), and an earlier green run on PR #42 (run 9004).
@@ -14,8 +21,103 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["TestRetryBackoffCapsAtMaxDelay", "32s"]
+# Pull request #42 -> the latest CI run of its head branch -> the job of that run that
+# failed. The failing test and its assertion message are read from that job's log.
+[expect.answer.record_facts]
+requirement = "Name the job that failed in the latest CI run of pull request #42's branch, the test that failed in that job, and the exact assertion message its log prints for that test."
+mode = "statements"
+# The task asks for the job that failed: a sentence that names it next to one of these
+# words is not an assertion that it failed.
+contradictions = ["passed", "succeeded", "green"]
+# True remarks about the other two jobs of the same run, which passed.
+context = [
+  "Lint and integration tests passed",
+  "lint and integration-tests passed",
+  "lint and integration-tests jobs passed",
+  "lint and integration-tests both passed",
+  "lint and integration-tests succeeded",
+  "The lint and integration-tests jobs succeeded",
+  "lint and integration-tests jobs succeeded",
+  "lint and integration-tests both succeeded",
+  "lint and integration-tests were green",
+  "lint and integration-tests are green",
+  "at ${test_location}",
+  "in ${test_file}",
+  "run ${run_id}",
+  "Assertion",
+]
+assertions = [
+  "Job: ${job}",
+  "the ${job} job is red",
+  "the ${job} job",
+  "${job}",
+  "Failing test: ${test}",
+  "${test}",
+  "Assertion: ${assertion}",
+  '"${assertion}"',
+  "${assertion}",
+  '${test} reports "${assertion}"',
+  "${job} failed: ${test}",
+  "${job} failed",
+  "${test} (${test_location}) reports ${assertion}",
+  '${test} (${test_location}) reports "${assertion}"',
+  "${test_location}",
+  "Assertion: ${test_location}: ${assertion}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/github/pulls"
+key_prefix = "octo-org/payments-api#"
+matching = { number = 42 }
+
+[expect.answer.record_facts.related.run]
+collection = "/services/github/workflow_runs"
+filter = { matching = { "/repo" = "octo-org/payments-api" } }
+on = { "/head_branch" = "/head" }
+pick = { largest = "/run_number" }
+
+[expect.answer.record_facts.related.job]
+from = "run"
+collection = "/services/github/workflow_jobs"
+filter = { matching = { "/conclusion" = "failure" } }
+on = { "/run_id" = "/id" }
+
+[expect.answer.record_facts.facts.job]
+record = "job"
+field = "/name"
+kind = "text"
+
+[expect.answer.record_facts.facts.test]
+record = "job"
+field = "/log"
+capture = '--- FAIL: (\S+)'
+kind = "identifier"
+
+[expect.answer.record_facts.facts.assertion]
+record = "job"
+field = "/log"
+capture = '_test\.go:\d+: (.+)'
+kind = "text"
+
+[expect.answer.record_facts.facts.run_id]
+record = "run"
+field = "/id"
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.test_location]
+record = "job"
+field = "/log"
+capture = '(\S+_test\.go:\d+):'
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.test_file]
+record = "job"
+field = "/log"
+capture = '(\S+_test\.go):\d+:'
+kind = "identifier"
+optional = true
 
 [[solution.call]]
 endpoint = "github"
@@ -28,4 +130,4 @@ tool = "get_job_logs"
 arguments = { owner = "octo-org", repo = "payments-api", run_id = 9005, failed_only = true, return_content = true, tail_lines = 50 }
 
 [solution]
-answer = "PR #42's latest CI run (CI #61, run 9005) failed in the `unit-tests` job. The failing test is `TestRetryBackoffCapsAtMaxDelay` in internal/webhook (backoff_test.go:17): \"expected delay 30s, got 32s\" - the new cap in Backoff() only applies above maxDelay+2s, so attempt 6 returns 32s instead of 30s. Lint and integration tests passed."
+answer = "Job: unit-tests. Failing test: TestRetryBackoffCapsAtMaxDelay. Assertion: expected delay 30s, got 32s. Lint and integration tests passed."

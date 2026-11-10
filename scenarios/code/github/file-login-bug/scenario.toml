@@ -7,6 +7,13 @@ services = ["github"]
 tags = ["single-service", "write", "github"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 0
+rationale = "Repo octo-org/app, the exact title and deploy 412 are all in the instruction; one issue create call; existing issues #1-#3 (incl. Flaky login test) are different topics and are not selected among."
+
 [expect]
 version = 2
 audit_history = true

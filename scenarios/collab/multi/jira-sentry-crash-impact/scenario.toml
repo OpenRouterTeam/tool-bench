@@ -7,6 +7,13 @@ services = ["jira", "sentry"]
 tags = ["lookup", "multi-service", "jira", "sentry", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "cross_system_identity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Jira WEB-56 description links Sentry issue 6184421045 (STOREFRONT-WEB-8D); STOREFRONT-WEB-7Q (linked from Done WEB-49) and ADMIN-DASHBOARD-2M share its TypeError title; contract requires a Jira GET and 8D counts."
+
 # WEB-56 (open) links https://lumen-labs.sentry.io/issues/6184421045/ = STOREFRONT-WEB-8D:
 # 2172 events, 1318 users, first release storefront@5.3.0. Look-alikes with the same
 # TypeError title: STOREFRONT-WEB-7Q (CartDrawer, 2600 events / 1904 users, linked from the
@@ -15,9 +22,80 @@ timeout_sec = 1200
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["STOREFRONT-WEB-8D", "5.3.0"]
-regex = '1,?318[\s\S]*2,?172|2,?172[\s\S]*1,?318'
+# The unresolved WEB bug whose summary is about the product grid -> the Sentry issue whose
+# ID is in the URL of that bug's description. The counts carry their units, so the two
+# numbers cannot stand in for each other.
+[expect.answer.record_facts]
+requirement = "For the Sentry issue linked from the open WEB bug about the product grid, give its short ID, its number of events, its number of affected users, and the release in which it first appeared."
+mode = "statements"
+# The title of the Sentry issue, not a denial of it.
+predicates = ["Cannot read properties of undefined"]
+assertions = [
+  "Sentry issue: ${issue}",
+  "${issue}",
+  "Events: ${events}",
+  "${events} events",
+  "Affected users: ${users}",
+  "${users} users",
+  "${users} affected users",
+  "First release: storefront@${release}",
+  "first release storefront@${release}",
+  "first seen in ${release}",
+  "storefront@${release}",
+  "${issue}: ${events} events, ${users} users, first seen in ${release}",
+  "${issue} has ${events} events affecting ${users} users",
+  "${issue} (${events} events, ${users} users, first seen in ${release})",
+  "${events} events and ${users} users, first seen in ${release}",
+]
+context = [
+  "last seen in storefront@${last_release}",
+  "unlike STOREFRONT-WEB-7Q with 2,600 events",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/jira/issues"
+matching = { fields = { project = "WEB", issuetype = "Bug" } }
+field_patterns = { "/fields/summary" = "(?i)^product grid\\b" }
+
+[expect.answer.record_facts.filter]
+absent = ["/fields/resolution"]
+
+[expect.answer.record_facts.related.sentry]
+collection = "/services/sentry/issues"
+on = { "/id" = "/fields/description" }
+capture_from = { "/fields/description" = 'sentry\.io/issues/(\d+)' }
+
+[expect.answer.record_facts.facts.issue]
+record = "sentry"
+field = "/shortId"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.events]
+record = "sentry"
+field = "/count"
+kind = "number"
+units = ["events"]
+require_unit = true
+
+[expect.answer.record_facts.facts.users]
+record = "sentry"
+field = "/userCount"
+kind = "number"
+units = ["users", "affected users"]
+require_unit = true
+
+[expect.answer.record_facts.facts.release]
+record = "sentry"
+field = "/firstRelease"
+capture = '@(.+)$'
+kind = "identifier"
+
+[expect.answer.record_facts.facts.last_release]
+record = "sentry"
+field = "/lastRelease"
+capture = '@(.+)$'
+kind = "identifier"
+optional = true
 
 [[expect.required_calls]]
 service = "jira"
@@ -57,4 +135,4 @@ tool = "get_sentry_resource"
 arguments = { resourceType = "issue", resourceId = "6184421045", organizationSlug = "lumen-labs" }
 
 [solution]
-answer = "The product grid bug WEB-56 links Sentry issue STOREFRONT-WEB-8D (TypeError: Cannot read properties of undefined (reading 'map') in ProductGrid). It has 2,172 events and 1,318 affected users, and was first seen in release storefront@5.3.0.\n"
+answer = "Sentry issue: STOREFRONT-WEB-8D. Events: 2,172. Affected users: 1,318. First release: storefront@5.3.0."

@@ -1,0 +1,1 @@
+Someone from River phoned about being charged twice for an order earlier this month. Please refund the duplicate charge (the second one that went through) in full in Stripe and record the reason as a duplicate. Check with me if anything about the request is unclear before you change anything.

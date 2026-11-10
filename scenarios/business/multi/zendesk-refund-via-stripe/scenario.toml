@@ -7,6 +7,13 @@ services = ["zendesk", "stripe"]
 tags = ["write", "multi-service", "zendesk", "stripe", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity"]
+dependency_depth = 4
+rationale = "Two 48000 charges for order #1077 (ch_ITHH original 17:14, ch_r1lx duplicate 17:16) plus #1080 and Northwind Traders 48000 charges; contract forbids refunding ch_ITHH and touching tickets 5104 and 5109."
+
 # Zendesk ticket 5102 (Hannah Okafor, owner@northwindbakery.com) reports order #1077 charged
 # twice on 2026-03-10. In Stripe, customer Northwind Bakery has two $480.00 charges for #1077:
 # ch_ITHH… (17:14 UTC, original) and ch_r1lx… (17:16 UTC, duplicate). Look-alikes: order #1080
@@ -273,6 +280,7 @@ arguments = { stripe_api_operation_id = "PostRefunds", parameters = { charge = "
 name = "refund_id"
 pointer = "/content/0/text"
 json_pointer = "/id"
+constraint = { type = "string", pattern = "^re_[A-Za-z0-9_]+$" }
 
 [[solution.call]]
 endpoint = "zendesk"

@@ -762,7 +762,7 @@ def _audit_trial(verifier, family, *, direct=False, source_directory=None):
         require(evidence_file.is_file(), "runtime audit requires sealed authoritative world evidence")
     if evidence_file.is_file():
         evidence = read(evidence_file)
-        require(isinstance(evidence, dict) and evidence.get("schema_version") in (5, 6)
+        require(isinstance(evidence, dict) and evidence.get("schema_version") in (5, 6, 7)
                 and evidence.get("scenario") == scenario,
                 "unqualified world evidence schema/scenario")
         require(not evidence.get("fault_records") and "fault_schedule" not in initial

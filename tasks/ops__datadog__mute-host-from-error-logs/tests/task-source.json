@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/datadog/mute-host-from-error-logs",
-  "scenario_sha256": "sha256:4ca78b4f937732aa7f25d2d79cabae8432f53261705cca106134a76fdb3afd07",
+  "scenario_sha256": "sha256:3a9d93d601e81ab160e674e3c8310bb12900e077aa76464c3ce9663d8c63bd57",
   "dataset_sha256": "sha256:3c01559ef4d283e9f948ab5920348e7e7df6c76563e2cff081d45141df52db64",
   "contract_sha256": "sha256:51e1496f56c29c4b1a4e8005689dc9fa84bf23226d742c71505b1072d8201a02"
 }

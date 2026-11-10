@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/salesforce/log-call-on-contact",
-  "scenario_sha256": "sha256:fb868408591d8385aa89e2225e1653fc02f78d84e17de0a05b9bce93f2bfa9ce",
+  "scenario_sha256": "sha256:e5ccd6d8fc658f44a3a35aea71cc3e5e86202b7817f325fec8233131b5451383",
   "dataset_sha256": "sha256:8b89dfece0df4ec0490e9aac11bee920fedf4de76719c0168d57bc4bfc185752",
   "contract_sha256": "sha256:49ad157013f235d89198bbc7eca1c2c1cbdb5c1f4e7ba0793071034c9402950d"
 }

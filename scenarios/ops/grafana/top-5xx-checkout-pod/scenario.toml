@@ -7,12 +7,49 @@ services = ["grafana"]
 tags = ["lookup", "single-service", "grafana", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "prom-staging pod checkout-5f6d7c8b9-zq4wd has the highest 5xx rate (4.5/s) but prom-prod pod checkout-7b9d6c5f4-xk2lp (3.5/s) is the answer; contract requires a query on datasource prom-prod."
+
 [expect]
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["checkout-7b9d6c5f4-xk2lp"]
+[expect.answer.record_facts]
+requirement = "Name the checkout pod with the highest total 5xx request rate in the production Prometheus datasource (the sum of its http_requests_total rates with a 5xx status). A rough rate may accompany it."
+mode = "statements"
+contradictions = ["fewest", "the least", "the lowest"]
+context = [
+  "(~${five_xx_rate} 5xx/s, roughly 8% of its requests)",
+]
+assertions = [
+  "${pod}",
+  "Pod to cordon: ${pod}",
+  "The checkout pod with the highest 5xx rate is ${pod}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/grafana/prom_series"
+matching = { labels = { __name__ = "http_requests_total", service = "checkout" } }
+field_patterns = { "/labels/status" = "^5[0-9][0-9]$" }
+references = [{ source_field = "/datasource", target = { collection = "/services/grafana/datasources", matching = { type = "prometheus" }, field_patterns = { "/name" = '(?i)\bprod\b' } }, target_field = "/uid" }]
+
+[expect.answer.record_facts.selection.group]
+by = "/labels/pod"
+measure = { sum = "/rate" }
+pick = "largest"
+
+[expect.answer.record_facts.facts.pod]
+field = "/key"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.five_xx_rate]
+field = "/value"
+kind = "number"
+optional = true
 
 [[expect.required_calls]]
 service = "grafana"
@@ -33,8 +70,4 @@ tool = "query_prometheus"
 arguments = { datasourceUid = "prom-prod", expr = "sum by (pod) (rate(http_requests_total{namespace=\"shop-prod\", service=\"checkout\", status=~\"5..\"}[5m]))", queryType = "instant", endTime = "now" }
 
 [solution]
-answer = """
-In production (Prometheus (prod), namespace shop-prod) the checkout pod with the highest 5xx rate is
-**checkout-7b9d6c5f4-xk2lp** at about 3.5 errors/s (2.9/s HTTP 500 plus 0.6/s HTTP 502).
-The other two production pods are at roughly 0.22-0.26 errors/s.
-"""
+answer = "checkout-7b9d6c5f4-xk2lp"

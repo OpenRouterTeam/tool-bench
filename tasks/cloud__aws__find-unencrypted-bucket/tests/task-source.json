@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/aws/find-unencrypted-bucket",
-  "scenario_sha256": "sha256:70a015b1fafc06acd64952daf0a774f0973d3706e7c09c9241b6af8998c20930",
+  "scenario_sha256": "sha256:cc8254d39dc7b0d5cd5371bb8874313889142b726b7bad3e52635c962e25a8cd",
   "dataset_sha256": "sha256:193ea0840d1c00bd95061275182e62d943d925651637adfe3fc1a119cda5bfb2",
-  "contract_sha256": "sha256:76d2b0eb82ade0837168e45edbf4e2b302a9bfadee74eb6bde022e7bbbef6591"
+  "contract_sha256": "sha256:ed458d4094981a57cade41c9bafe500d1eb02c25669043d6843ef10534f7be62"
 }

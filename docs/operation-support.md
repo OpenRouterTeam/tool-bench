@@ -6,6 +6,40 @@ HTTP success, a matching mutation name, or an oracle that appears to pass.
 Expand this inventory before suite admission; do not infer unsupported fields work
 because their surrounding mutation accepts them.
 
+## Machine-readable index
+
+`catalog/operation-support/<service>.toml` indexes this document for the authoring
+gate. `taskgen` loads it, verifies each entry against the catalog, the locked tool
+snapshot and the section headings below, and reports every operation that a scored
+reference solution exercises without a declaration as the
+`unreviewed_reference_operation` inventory gap
+([admission rules](authoring-admission.md#reviewed-operation-admission)).
+
+| Status | Meaning |
+|---|---|
+| `reviewed` | Executable semantics reviewed for the operation as a whole. No entry currently claims this. |
+| `partial` | Reviewed for the workflows recorded in the named section, with stated limitations. |
+| absent | Not reviewed. A dispatching handler or a passing oracle is not a review. |
+
+The index was seeded conservatively and every current entry is `partial`:
+
+- Tools carrying a reviewed native result contract in
+  `crates/scenario/src/oracle_results.rs` (Terraform, Grafana, PagerDuty, Datadog,
+  Google Workspace, Firecrawl), under their checkpoint section.
+- Operations exercised by the reference solutions of a service's single-service
+  write scenarios, where a section below records the review of those write
+  contracts (the six services above plus Argo CD, AWS, Cloudflare, GitHub, GitLab,
+  Jira, Kubernetes, Linear, MongoDB, Notion, Okta, Sentry, Shopify, Slack,
+  Supabase, Vercel, Zendesk). Read-only steps of those write workflows are included
+  only as exercised there.
+
+Stripe, HubSpot, Salesforce, Elasticsearch and the search providers have no
+dedicated section here, so their operations are undeclared, as are read-only
+operations used only by lookup or cross-service scenarios. Add an entry only with
+the review that supports it; do not edit a handler or a declaration to clear the gap.
+Supported-but-empty data and unsupported environment capability are not yet
+separate statuses in the index.
+
 ## Cross-system remediation source — revision 43
 
 Current inventory is **134 v2 / 16 legacy**. The

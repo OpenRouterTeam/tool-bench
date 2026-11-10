@@ -39,7 +39,9 @@ for id in "$@"; do
       ${DISALLOWED:+--disallowedTools $DISALLOWED} \
       --permission-mode bypassPermissions < /dev/null > $OUT/$slug.stream.jsonl 2> $OUT/$slug.stderr)
   echo "agent exit=$? seconds=$(( $(date +%s) - start ))" > $OUT/$slug.meta
-  overflow=0; grep -qiE 'prompt is too long|context_length_exceeded|maximum context length|exceeds the context window|input is too long' $OUT/$slug.stream.jsonl $OUT/$slug.stderr && overflow=1
+  # No host proxy observes this path, so a context rejection is not classified here; transcript
+  # text is not evidence. Use deploy/smoke-arms.sh for a structured failure class.
+  overflow=0
   [ -f "$work/answer.md" ] && curl -s -X POST --data-binary @"$work/answer.md" http://127.0.0.1:19000/_bench/answer > /dev/null && cp "$work/answer.md" $OUT/$slug.answer.md
   curl -s http://127.0.0.1:19000/_bench/journal > $OUT/$slug.journal.json
   curl -s -X POST -H 'content-type: application/json' --data-binary @$M/scenarios/$id/../../../../tasks/$(echo "$id" | sed 's|/|__|g')/tests/expect.json "http://127.0.0.1:19000/_bench/grade?context_overflow=$overflow" > $OUT/$slug.reward.json

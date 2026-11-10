@@ -7,6 +7,13 @@ services = ["elasticsearch", "stripe"]
 tags = ["write", "multi-service", "elasticsearch", "stripe", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity"]
+dependency_depth = 2
+rationale = "Jordan Lee's pair ORD-109002 and ORD-109003 (86.40, 28 s apart) sits beside Jordan Leigh's 129.99 pair, J. Lee's 86.40 order and refunded ORD-109311; only charge ch_3Qb2Mj... of 109003 may be refunded."
+
 # The orders index has the Stripe charge id of every order. Jordan Lee's double charge is
 # ORD-109002 (original, ch_3Qb2Kj…) and ORD-109003 (duplicate, ch_3Qb2Mj…), 86.40 USD 28 s
 # apart. Look-alikes: Jordan Leigh's 129.99 pair, J. Lee's (j.lee@example.com) 86.40 order

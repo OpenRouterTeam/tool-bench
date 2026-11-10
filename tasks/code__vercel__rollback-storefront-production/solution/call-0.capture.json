@@ -1,1 +1,1 @@
-[{"name":"predecessor_id","pointer":"/content/1/text","json_pointer":"/lastAliasRequest/fromDeploymentId","select":null}]
+[{"name":"predecessor_id","pointer":"/content/1/text","json_pointer":"/lastAliasRequest/fromDeploymentId","select":null,"constraint":{"pattern":"^dpl_[A-Za-z0-9]+$","type":"string"}}]

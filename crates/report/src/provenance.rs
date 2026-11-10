@@ -20,6 +20,12 @@ pub struct Provenance {
     pub manifest: ExecutionManifest,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inference: Option<mock_core::inference::InferenceEvidence>,
+    /// Status of the host resolved-surface audit sealed in the admitted runner receipt.
+    #[serde(default)]
+    pub surface_audit: mock_core::surface_audit::SurfaceAuditStatus,
+    /// Information condition from the bound framing, profile and exposure manifests.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub condition: Option<mock_core::conditions::ConditionRecord>,
 }
 
 impl Provenance {
@@ -44,10 +50,23 @@ impl Provenance {
     }
 
     pub(crate) fn compatibility(&self, allow_agent_difference: bool) -> String {
+        self.compatibility_under(allow_agent_difference, None)
+    }
+
+    /// [`Self::compatibility`] with exactly the bindings a declared information treatment
+    /// changes left out. The treatment's own admission checks what those bindings carry.
+    pub(crate) fn compatibility_under(
+        &self,
+        allow_agent_difference: bool,
+        treatment: Option<mock_core::conditions::InformationAxis>,
+    ) -> String {
+        let (context, excluded_role) =
+            crate::conditions::treated_context(&self.manifest.context, treatment);
         let images: serde_json::Map<_, _> = self
             .manifest
             .images
             .iter()
+            .filter(|(role, _)| Some(role.as_str()) != excluded_role)
             .map(|(role, image)| {
                 let mut descriptor = json!({
                     "image_id": if role == "main" { None } else { Some(&image.image_id) },
@@ -55,8 +74,10 @@ impl Provenance {
                     "runtime_config_sha256": image.runtime_config_sha256,
                     "resource_limits": image.resource_limits
                 });
-                if !image.connector_env_sha256.is_empty() {
-                    descriptor["connector_env_sha256"] = json!(image.connector_env_sha256);
+                let connector_env =
+                    crate::conditions::treated_env(&image.connector_env_sha256, treatment);
+                if !connector_env.is_empty() {
+                    descriptor["connector_env_sha256"] = json!(connector_env);
                 }
                 (role.clone(), descriptor)
             })
@@ -68,7 +89,7 @@ impl Provenance {
             "python_version": self.manifest.python_version,
             "agent": if allow_agent_difference { Value::Null } else { json!(self.manifest.agent) },
             "inference_condition": if allow_agent_difference { Value::Null } else { json!(self.manifest.inference_identity) },
-            "context": self.manifest.context, "images": images,
+            "context": context, "images": images,
             "agent_timeout_sec": self.manifest.agent_timeout_sec,
             "verifier_timeout_sec": self.manifest.verifier_timeout_sec
         }))
@@ -290,6 +311,10 @@ pub(crate) fn load_verified(
     }
     let selected_answer = answer_text.map(str::to_owned);
     let materialization_bindings = context.materialization_files.clone();
+    let surface_audit = mock_core::surface_audit::status(admission.surface_audit.as_ref());
+    let condition = mock_core::conditions::load_bound(&verifier, &context)
+        .ok()
+        .map(|bound| bound.record);
     let provenance = Provenance {
         evaluator_version: evidence.evaluator_version,
         evidence_schema_version: evidence.schema_version,
@@ -298,6 +323,8 @@ pub(crate) fn load_verified(
         runner_adapter_sha256: policy.adapter_sha256,
         manifest,
         inference,
+        surface_audit,
+        condition,
     };
     let mut bindings: std::collections::BTreeMap<String, String> = [
         ("assessment", sha256(&saved_bytes)),

@@ -1,0 +1,1 @@
+{"type":"object","properties":{"applicationName":{"type":"string","minLength":1,"maxLength":253},"applicationNamespace":{"type":"string","minLength":1,"maxLength":63},"spec":{"type":"object","additionalProperties":true},"argocdBaseUrl":{"type":"string"}},"required":["applicationName","spec"],"additionalProperties":false}

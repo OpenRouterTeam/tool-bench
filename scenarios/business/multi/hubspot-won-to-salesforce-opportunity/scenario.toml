@@ -7,6 +7,13 @@ services = ["hubspot", "salesforce"]
 tags = ["write", "multi-service", "hubspot", "salesforce", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "reconciliation"
+secondary = ["cross_system_identity", "entity_ambiguity"]
+dependency_depth = 2
+rationale = "HubSpot deal 9100104 is closedwon at 176500 on 2026-10-28 while Salesforce opp 0065g00000IDWm1AAH still shows Negotiation at 184000; contract relates both amounts; Initrode opp also carries 176500."
+
 # HubSpot deal 9100104 "Initech – Data Warehouse Migration" moved to closedwon yesterday
 # (closedate 2026-10-28) with a final amount of 176,500 (down from 184,000). The matching
 # Salesforce opportunity is 0065g00000IDWm1AAH on the Initech account, still at

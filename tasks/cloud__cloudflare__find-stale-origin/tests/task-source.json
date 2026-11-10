@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/cloudflare/find-stale-origin",
-  "scenario_sha256": "sha256:efd5e0ab3634d4540a7c3ade72705dac296466a9f19c693a26d825a648b7e18e",
+  "scenario_sha256": "sha256:478fb10b6a033086cc479d88d78956f1ab54d42e205d2772b613e72af3053b06",
   "dataset_sha256": "sha256:11978f677a5fbd6d8f3acbf8d918f55bdacd18f5cc8f332ec1ade758da9a8d47",
-  "contract_sha256": "sha256:8870861690210b9ca67201ebd1bd0c6c758062aba80aa84df3fc1f3b409ce578"
+  "contract_sha256": "sha256:3008951f8396b4dd60d73eb669f43a97c5c9597b5ddac6d9ff7d44996ecf0060"
 }

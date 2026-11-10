@@ -7,6 +7,13 @@ services = ["supabase"]
 tags = ["write", "single-service", "supabase", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Projects marketing-site (bdnfrjsk..., created 2026-01) and marketing-site-legacy (wgtplxkq..., created 2024-06) are both ACTIVE_HEALTHY in northwind-marketing; only the legacy one may be paused."
+
 [expect]
 version = 2
 audit_history = true

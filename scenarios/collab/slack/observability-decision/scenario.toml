@@ -7,6 +7,13 @@ services = ["slack"]
 tags = ["lookup", "single-service", "slack", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "reconciliation"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Messages disagree on the vendor: an Aug note leaning Datadog, an Oct 28 #general Honeycomb rumour posted after the decision, and Dana's authoritative Oct 27 #infra Decision for Grafana Cloud starting 2026-11-15."
+
 # The final decision is a reply in the #infra evaluation thread. Distractors: an early
 # "leaning Datadog" note in #eng-leads, a Honeycomb rumour in #general, and quotes that
 # predate the decision.
@@ -14,9 +21,81 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["Grafana Cloud"]
-regex = "(?i)(2026-11-15|nov(ember)?\\.?\\s+15(th)?)"
+# The reply labelled "Decision:" in the thread that opened the vendor evaluation. The vendor
+# and the contract start date are read from that message. No other authored record states a
+# decision, so the speculated vendors are reviewed incorrect forms instead of alternatives.
+# The remaining incorrect forms are denials the reader does not recognize on its own (a verb
+# between the negation and the vendor) and the two dates of the message in swapped roles.
+[expect.answer.record_facts]
+requirement = "Name the observability vendor announced as the decision in the vendor evaluation thread, and the date on which the new contract starts."
+mode = "statements"
+rejected = [
+  "chose Datadog",
+  "picked Datadog",
+  "selected Datadog",
+  "went with Datadog",
+  "going with Datadog",
+  "chose Honeycomb",
+  "picked Honeycomb",
+  "selected Honeycomb",
+  "went with Honeycomb",
+  "going with Honeycomb",
+  "did not pick ${vendor}",
+  "didn't pick ${vendor}",
+  "did not choose ${vendor}",
+  "didn't choose ${vendor}",
+  "did not select ${vendor}",
+  "didn't select ${vendor}",
+  "did not go with ${vendor}",
+  "didn't go with ${vendor}",
+  "${vendor} was not chosen",
+  "${vendor} was not picked",
+  "${vendor} was not selected",
+  "${vendor} wasn't chosen",
+  "${vendor} wasn't picked",
+  "${vendor} wasn't selected",
+  "completes on ${start}",
+]
+assertions = [
+  "Vendor: ${vendor}",
+  "It is ${vendor}",
+  "We picked ${vendor}",
+  "We went with ${vendor}",
+  "We signed with ${vendor}",
+  "${vendor}",
+  "Contract start: ${start}",
+  "the contract starts on ${start}",
+  "the contract starts ${start}",
+  "the contract begins ${start}",
+  "the new contract begins ${start}",
+  "and the contract starts ${start}",
+  "${start}",
+]
+context = [
+  "a ${contract_term}",
+  "not Datadog or Honeycomb",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/slack/messages"
+field_patterns = { "/text" = "^Decision: " }
+references = [{ source_field = "/thread_ts", target = { collection = "/services/slack/messages", field_patterns = { "/text" = "^Observability vendor evaluation" } }, target_field = "/ts" }]
+
+[expect.answer.record_facts.facts.vendor]
+field = "/text"
+capture = "^Decision: we're going with ([^.]+)\\."
+kind = "text"
+
+[expect.answer.record_facts.facts.start]
+field = "/text"
+capture = 'it starts (\d{4}-\d{2}-\d{2})'
+kind = "date"
+
+[expect.answer.record_facts.facts.contract_term]
+field = "/text"
+capture = 'on a (\d+-year term)'
+kind = "text"
+optional = true
 
 [[expect.forbidden_calls]]
 service = "slack"
@@ -34,4 +113,4 @@ tool = "slack_read_thread"
 arguments = { channel_id = "C03INFRA9QX", message_ts = "1791990131.120442" }
 
 [solution]
-answer = "We went with Grafana Cloud. Dana confirmed the decision in the #infra evaluation thread on Oct 27: the contract starts on 2026-11-15 for a 3-year term (Datadog stays until the migration completes on 2027-01-31).\n"
+answer = "Vendor: Grafana Cloud. Contract start: November 15, 2026."

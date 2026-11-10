@@ -7,6 +7,13 @@ services = ["google"]
 tags = ["write", "multi-step", "single-service", "google", "gmail", "drive", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Drive holds SOC 2 Type II Report 2026.pdf, a newer 2026 - DRAFT copy, SOC 2 Bridge Letter 2026 and the 2025 report marked superseded; only file 150dluRb... may gain Dana Whitfield as reader."
+
 [expect]
 version = 2
 audit_history = true

@@ -7,6 +7,13 @@ services = ["google"]
 tags = ["write", "single-service", "google", "gmail", "sheets", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Vendor renewals 2025 sheet also has a Northwind Traders/Lena Fischer row (already Renewed) beside the current 2026 sheet, which also lists Northwood Logistics as Pending; only the 2026 Northwind row may change."
+
 [expect]
 version = 2
 audit_history = true

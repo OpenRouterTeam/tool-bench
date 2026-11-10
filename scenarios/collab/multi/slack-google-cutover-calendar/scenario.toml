@@ -7,6 +7,13 @@ services = ["slack", "google"]
 tags = ["write", "multi-service", "slack", "google", "calendar", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["cross_system_identity", "entity_ambiguity"]
+dependency_depth = 2
+rationale = "Thread first proposes Fri 2026-11-06 20:00-23:00 CT, then agrees Sat 2026-11-07 22:00-01:00 CT; event must use the agreed window with emails from Slack profiles; staging cutover event 7c1e... is forbidden."
+
 # The thread (C05DBMIG2RT, 1792600205.318801) first proposes Friday 2026-11-06 20:00-23:00 CT,
 # then agrees on Saturday 2026-11-07 22:00-01:00 CT. US daylight time ended on 2026-11-01, so
 # the agreed window is -06:00: 2026-11-08T04:00:00Z to 2026-11-08T07:00:00Z. The event goes

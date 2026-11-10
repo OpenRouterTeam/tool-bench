@@ -43,6 +43,50 @@ class VerifiedTallyTests(unittest.TestCase):
         self.assertEqual(result["attempts_with_known_host_cost"], 1)
         self.assertEqual(result["known_host_cost_usd"], 0.0)
 
+    def test_failure_classes_come_from_the_report_explanation_not_from_text(self):
+        def trial(label, domain, retries):
+            return {"provenance_checked": True, "inference": None, "explanation": {
+                "failure_class": {"label": label, "domain": domain},
+                "accounting": {"retry_attempts": retries}}}
+        payload = {"schema_version": 1, "format": "verified_trial_summary_v1", "trials": [
+            trial("first_turn_context_rejection", "agent", 0),
+            trial("unrecovered_rate_limit", "infrastructure", 2),
+            trial("task_failure", "agent", None),
+            {"provenance_checked": False, "inference": None,
+             "explanation": {"failure_class": None, "accounting": {"retry_attempts": None}}},
+        ]}
+        output = io.StringIO()
+        with patch.object(TALLY.subprocess, "run", return_value=SimpleNamespace(stdout=json.dumps(payload))):
+            with contextlib.redirect_stdout(output):
+                TALLY.verified_main(["--report-bin", "/approved/bench-report", "/runs/condition"])
+        result = json.loads(output.getvalue())
+        self.assertEqual(result["failure_classes"], {
+            "first_turn_context_rejection": 1, "unrecovered_rate_limit": 1,
+            "task_failure": 1, "unverified": 1})
+        self.assertEqual(result["fault_domains"]["infrastructure"], 1)
+        self.assertEqual(result["known_retry_attempts"], 2)
+        self.assertEqual(result["attempts_with_unknown_retries"], 2)
+
+    def test_local_tally_reads_the_sealed_capture_and_never_guesses_from_meta(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name, classification in (("a_off", "first_turn_context_rejection"), ("b_off", None)):
+                (root / f"{name}.reward.json").write_text('{"reward": 0.0}')
+                # Historical heuristics said "overflow"; without sealed evidence that is ignored.
+                (root / f"{name}.meta").write_text("agent exit=1 overflow=1 tool_uses=0\n")
+                (root / f"{name}.usage.jsonl").write_text("")
+                if classification:
+                    (root / f"{name}.inference.json").write_text(json.dumps(
+                        {"scripted": False, "transport": {}, "classification": classification}))
+            runs = {run["task"]: run for run in TALLY.collect(directory)}
+            self.assertTrue(runs["a"]["overflow"])
+            self.assertFalse(runs["b"]["overflow"])
+            self.assertIsNone(runs["b"]["classification"])
+            (root / "a_off.inference.json").write_text('{"scripted": true, "classification": "completed"}')
+            with self.assertRaises(ValueError):
+                TALLY.collect(directory)
+
     def test_all_unknown_costs_are_null_not_free(self):
         payload = {"schema_version": 1, "format": "verified_trial_summary_v1",
                    "trials": [{"provenance_checked": False, "inference": None}]}

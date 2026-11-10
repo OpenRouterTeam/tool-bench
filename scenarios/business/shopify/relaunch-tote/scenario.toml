@@ -7,6 +7,13 @@ services = ["shopify"]
 tags = ["single-service", "write", "shopify"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state", "tool_ambiguity"]
+dependency_depth = 2
+rationale = "Draft product 8201 Harbor Canvas Tote has look-alikes Tote Mini 8202, Backpack 8203 and archived Tote (2024) 8204, each with a Navy variant; contract needs status ACTIVE plus an Online Store publication."
+
 [expect]
 version = 2
 audit_history = true
@@ -80,6 +87,7 @@ name = "tote_id"
 pointer = "/content/0/text"
 json_pointer = "/products"
 select = { matching = { title = "Harbor Canvas Tote" }, pointer = "/id" }
+constraint = { type = "string", pattern = "^gid://shopify/Product/[0-9]+$" }
 
 [[solution.call]]
 endpoint = "shopify"
@@ -92,6 +100,7 @@ name = "navy_id"
 pointer = "/content/0/text"
 json_pointer = "/product/variants"
 select = { matching = { title = "Navy" }, pointer = "/id" }
+constraint = { type = "string", pattern = "^gid://shopify/ProductVariant/[0-9]+$" }
 
 [[solution.call]]
 endpoint = "shopify"
@@ -103,6 +112,7 @@ name = "online_publication"
 pointer = "/content/0/text"
 json_pointer = "/publications/nodes"
 select = { matching = { name = "Online Store" }, pointer = "/id" }
+constraint = { type = "string", pattern = "^gid://shopify/Publication/[0-9]+$" }
 
 [[solution.call]]
 endpoint = "shopify"

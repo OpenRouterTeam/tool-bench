@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/elasticsearch/deleted-api-key-audit",
-  "scenario_sha256": "sha256:28b52449a44aade6d3e46fdf3c26ab9453e88a0b652c32f744e73f6f3e6322ef",
+  "scenario_sha256": "sha256:8f61407679f1f1883f2473a7ae54688e2ea25fed03ae3245d7bcfb5d7eb0f1be",
   "dataset_sha256": "sha256:7aff93de0395ad052644ed11527d19a67d485208f533a4cf333d75965580d5d6",
-  "contract_sha256": "sha256:14e811bdac767ea9156398b9e4bc970ae99a793d1b70a6d6d3cf9c1ef1fd02a2"
+  "contract_sha256": "sha256:8952d125bf1e553b9369dd7ba57eb090bfa1062e5c2226ecf1198bddea4a39eb"
 }

@@ -7,6 +7,13 @@ services = ["okta"]
 tags = ["write", "single-service", "okta"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "dependency_depth"
+secondary = []
+dependency_depth = 3
+rationale = "Contractors Password Policy 00p4pwcntr2Uv9Wx0x7 is named exactly; the fix needs policy id, then rule 0pr5rule0tr2Uv9Wx0x7, then its current body, then a PUT keeping passwordChange ALLOW."
+
 [expect]
 version = 2
 audit_history = true
@@ -48,7 +55,7 @@ arguments = { policy_id = "00p4pwcntr2Uv9Wx0x7" }
 endpoint = "okta"
 tool = "get_policy_rule"
 arguments = { policy_id = "00p4pwcntr2Uv9Wx0x7", rule_id = "0pr5rule0tr2Uv9Wx0x7" }
-capture = [{ name = "contractor_rule", pointer = "/content/0/text", json_pointer = "" }]
+capture = [{ name = "contractor_rule", pointer = "/content/0/text", json_pointer = "", constraint = { type = "object", required = ["id", "actions"] } }]
 
 [[solution.call]]
 endpoint = "okta"

@@ -1,0 +1,91 @@
+{
+  "schema_version": 2,
+  "adapter": {
+    "name": "host-proxy-native-anthropic-messages-v1",
+    "code_sha256": "sha256:0467bcbe368adb088f2e099862d3e4b9ba720092fdb6bced55c333509dd1d7e5"
+  },
+  "classification": "resumed_session",
+  "turns": [
+    {
+      "turn": 0,
+      "kind": "final_response",
+      "input_tokens": 100,
+      "output_tokens": 7,
+      "retried": false,
+      "retry_count": 0,
+      "cost_usd": null,
+      "observed_model": "provider-model-1",
+      "response_id": "msg_9"
+    }
+  ],
+  "final_response": null,
+  "cost": {
+    "total_input_tokens": 100,
+    "total_output_tokens": 7,
+    "total_cost_usd": null,
+    "retry_input_tokens": 0,
+    "retry_output_tokens": 0,
+    "retry_cost_usd": 0.0,
+    "successful_turns": 1,
+    "retried_turns": 0,
+    "total_retry_attempts": 0
+  },
+  "identity": {
+    "configured_model": "anthropic/claude-fixture",
+    "configured_provider": "127.0.0.1",
+    "observed_model": "provider-model-1",
+    "observed_revision": null,
+    "sampling": {
+      "arm": "off",
+      "client_tool_search": false,
+      "proxy_universal_control": false
+    },
+    "budget": {
+      "max_turns": 8
+    }
+  },
+  "scripted": false,
+  "finalization": "no_response",
+  "scenario": "example/github/basic",
+  "session_id": "trial__env",
+  "transport": {
+    "seam": "host_provider_proxy",
+    "wire_format": "anthropic_messages",
+    "exchanges": [
+      {
+        "sequence": 1,
+        "role": "main",
+        "turn": 0,
+        "request_sha256": "sha256:a3b416fc3d8a8bfdf06d88b977bc62e30b0990cb99cc692e02a857761c933ca5",
+        "response_sha256": "sha256:92feb6ea1e60614d19b98559646525922f812b044993396c248b58a67a265bb9",
+        "status": 200,
+        "streamed": true,
+        "complete": true,
+        "latency_ms": 2,
+        "first_byte_ms": 2,
+        "response_id": "msg_9",
+        "observed_model": "provider-model-1",
+        "stop_reason": "end_turn",
+        "failure": null,
+        "input_tokens": 10,
+        "cache_read_input_tokens": 90,
+        "cache_creation_input_tokens": 0,
+        "output_tokens": 7,
+        "cost_usd": null
+      }
+    ],
+    "capture_faults": [],
+    "rejected_requests": 0,
+    "other_requests": 0,
+    "interrupted": false,
+    "resumed": true,
+    "wall_clock_ms": 4,
+    "exchanges_without_usage": 0,
+    "auxiliary": {
+      "requests": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0
+    }
+  }
+}

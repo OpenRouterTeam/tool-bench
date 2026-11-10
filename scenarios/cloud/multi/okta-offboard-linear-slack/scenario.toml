@@ -7,6 +7,13 @@ services = ["okta", "linear", "slack"]
 tags = ["write", "multi-service", "okta", "linear", "slack", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity", "tool_ambiguity"]
+dependency_depth = 3
+rationale = "Okta has Lena Fischer (Product, 00u1lnfschr3Ab4Cd5x7) and Lena Fisher (Sales, 00u1lnfshr07Ef8Gh9x7); lifecycle calls on Fisher and user DELETE are forbidden; Fischer is matched to Linear by email."
+
 # Okta has Lena Fischer (Product, 00u1lnfschr3Ab4Cd5x7) and the look-alike Lena Fisher
 # (Sales, 00u1lnfshr07Ef8Gh9x7). Fischer is deactivated, not deleted, and keeps her groups. In
 # Linear she is in Payments (c60777c7...) and Web App (b66a35a6...); every membership of hers goes

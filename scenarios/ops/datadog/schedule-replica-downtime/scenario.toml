@@ -7,6 +7,13 @@ services = ["datadog"]
 tags = ["write", "single-service", "datadog"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Monitors 7301 Postgres replication lag (env:prod), 7302 same name with (staging), 7304 MySQL replication lag and 7305 replica disk usage; contract requires monitor_id 7301 and forbids a downtime on 7302."
+
 [expect]
 version = 2
 audit_history = true

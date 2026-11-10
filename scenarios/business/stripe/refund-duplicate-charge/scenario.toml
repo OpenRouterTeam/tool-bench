@@ -7,6 +7,13 @@ services = ["stripe"]
 tags = ["write", "single-service", "stripe", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Order #1077 has two 48000 charges 2 min apart (ch_ITHH original, ch_r1lx duplicate) plus look-alike #1080 and a Northwind Traders 48000 charge the same day; refunding ch_ITHH is a forbidden call."
+
 # Northwind Bakery was charged $480.00 twice for order #1077 on 2026-03-10: at 17:14 UTC
 # (ch_ITHH…, the original) and at 17:16 UTC (ch_r1lx…, the duplicate). Look-alikes: order
 # #1080 for the same amount four days later, and Northwind Traders' $480.00 charge that day.

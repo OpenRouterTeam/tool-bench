@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/multi/hubspot-won-to-salesforce-opportunity",
-  "scenario_sha256": "sha256:c3fb8db745803f1a40ff6536e652d8e40cc6432a29184bb4f9690eede6546d3f",
+  "scenario_sha256": "sha256:a1d069772d8899599438ae1cf4ab883a9f703dd0722a23303ae56fd459773b47",
   "dataset_sha256": "sha256:e715f3c6f53873ec82a8b28860805d860cfd981fba9567552d1fe283378d8631",
   "contract_sha256": "sha256:30f420e04cb311d7ba041ddafa2d53c88b13cae4b15e26862fdc043d3d66ce9e"
 }

@@ -23,6 +23,9 @@ pub struct Capture {
     pub json_pointer: Option<String>,
     #[serde(default)]
     pub select: Option<CaptureSelection>,
+    /// Declared JSON Schema (shared subset, see `captured`) every captured value must satisfy.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub constraint: Option<Value>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -47,10 +50,20 @@ impl Capture {
             }
             mock_core::json_pointer::validate(&selection.pointer)?;
         }
+        if let Some(constraint) = &self.constraint {
+            crate::captured::validate_constraint(constraint)
+                .map_err(|error| format!("capture {}: {error}", self.name))?;
+        }
         Ok(())
     }
 
     fn read(&self, result: &Value) -> Result<Value, String> {
+        let value = self.read_unchecked(result)?;
+        self.check_constraint(&value)?;
+        Ok(value)
+    }
+
+    fn read_unchecked(&self, result: &Value) -> Result<Value, String> {
         self.validate()?;
         let value = result
             .pointer(&self.pointer)

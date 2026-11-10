@@ -7,6 +7,13 @@ services = ["salesforce"]
 tags = ["write", "single-service", "salesforce", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Dana Whitfield 0035g00000p3z7WAAQ at Northgate Analytics vs Dana Whitfield at Northgate Capital Partners and Dan Whitfield at the same account; contract requires WhoId 0035g00000p3z7WAAQ."
+
 [expect]
 version = 2
 audit_history = true

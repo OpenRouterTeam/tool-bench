@@ -7,6 +7,13 @@ services = ["aws", "pagerduty", "notion"]
 tags = ["write", "multi-service", "aws", "pagerduty", "notion", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity", "stale_state"]
+dependency_depth = 2
+rationale = "Alarm orders-db-replica-2-replica-lag (ALARM 13:11Z) sits beside replica-1 (OK, last week's #4761), inventory-db-replica-1 and orders-db-staging alarms (both ALARM); note and Notion text reject the look-alikes."
+
 # Incident #4812 = Q3K8ORDBLAG2RX. Its alarm is orders-db-replica-2-replica-lag (ALARM since
 # 2026-10-30T13:11:00Z). Look-alikes: orders-db-replica-1-replica-lag (OK, last week's
 # #4761), inventory-db-replica-1-replica-lag and orders-db-staging-replica-lag (both ALARM).

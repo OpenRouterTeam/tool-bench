@@ -58,7 +58,40 @@
   ],
   "answer": {
     "contains": [],
-    "regex": "(?i)^\\W*checkout\\.octo-shop\\.com\\W*$"
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the hostname of the proxied Cloudflare DNS record whose content is exactly 203.0.113.40, and no other hostname.",
+      "selector": {
+        "collection": "/services/cloudflare/dns_records",
+        "matching": {
+          "content": "203.0.113.40",
+          "proxied": true
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "hostname": {
+          "field": "/name",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "(A record, proxied, content 203.0.113.40)"
+      ],
+      "contradictions": [
+        "is fine",
+        "is okay"
+      ],
+      "assertions": [
+        "${hostname}",
+        "The hostname is ${hostname}.",
+        "Hostname: ${hostname}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

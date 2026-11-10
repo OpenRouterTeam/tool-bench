@@ -94,6 +94,7 @@ fn reference_evidence() -> InferenceEvidence {
         finalization: FinalizationStatus::Normal,
         scenario: None,
         session_id: None,
+        transport: None,
     }
 }
 

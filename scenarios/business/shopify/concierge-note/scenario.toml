@@ -7,6 +7,13 @@ services = ["shopify"]
 tags = ["single-service", "write", "shopify", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Customer 7301 sam.ortiz@fastmail.com has unfulfilled #1063 and fulfilled #1051; the other Sam Ortiz 7302 has unfulfilled #1060 and Samantha Ortiz-Reyes has #1064; only order 5563 may change."
+
 [expect]
 version = 2
 audit_history = true

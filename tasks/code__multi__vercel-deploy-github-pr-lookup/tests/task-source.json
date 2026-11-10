@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/multi/vercel-deploy-github-pr-lookup",
-  "scenario_sha256": "sha256:e54771da05d20325abfcddce90a8dd623807fd23504c85e37d6565246e049c71",
+  "scenario_sha256": "sha256:52c7644af5b3a2e9cb84c258ed402a15747f7a0a65125e696b09405347cb20c3",
   "dataset_sha256": "sha256:e7cb77d21b00bbf602258149b39e4becdc3aae2b5187a5ef8e479106e63bdd98",
-  "contract_sha256": "sha256:0a4722816aa75c186a2b70995f8aa03cd00044c89c883e32fdcc9ebf0fb1d46c"
+  "contract_sha256": "sha256:6da1b3426daa73609f68594a8d6ffc9611ef695c6159b8c572bba20a28c76c9f"
 }

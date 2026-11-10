@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/multi/slack-google-cutover-calendar",
-  "scenario_sha256": "sha256:8a6e4cc552a651ff24220a6aceb1d49cc25d47bac9fcc75c120edc70678329d7",
+  "scenario_sha256": "sha256:58ec1d8c2399fd90a68b6cad8bec785f33e0d0b85ac83e5bdf64bce689772c41",
   "dataset_sha256": "sha256:abaad80baea58329b3ec5702dc2bdaf5e5f504ad265dfc0074d4a642db8f3e95",
   "contract_sha256": "sha256:fce7cb81bdce6e9063209838078a3d91f0764ebee6061fd12ea1bc5c4c2c5272"
 }

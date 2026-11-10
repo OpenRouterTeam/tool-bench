@@ -7,6 +7,13 @@ services = ["mongodb"]
 tags = ["write", "single-service", "mongodb", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Cluster name analytics-staging exists in both octo-shop-staging (65c0ffee...0002) and octo-payments-staging (...0003); only the octo-shop-staging one may be paused."
+
 [expect]
 version = 2
 audit_history = true

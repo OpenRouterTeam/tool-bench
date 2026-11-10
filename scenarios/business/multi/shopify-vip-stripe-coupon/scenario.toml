@@ -7,6 +7,13 @@ services = ["shopify", "stripe"]
 tags = ["write", "multi-service", "shopify", "stripe", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "cross_system_identity"
+secondary = ["entity_ambiguity", "stale_state"]
+dependency_depth = 3
+rationale = "Shopify top spender 7101 priya.raman@outlook.com maps by email to Stripe cus_PrRmOutlk01Ab, not the other Priya Raman cus_PrRmDsgn001Ab; her gift sub and retired coupon VIP10-2025 are distractors."
+
 # Shopify: the top spender is Priya Raman (7101, priya.raman@outlook.com, 1,130.00 over three
 # orders). Distractors: Marcus Bell has the most orders, Elena Novak / Hannah Wright have big
 # refunded or voided orders, Tom Achebe is second at 1,050.00.

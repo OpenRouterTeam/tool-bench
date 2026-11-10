@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/jira/file-apple-pay-bug",
-  "scenario_sha256": "sha256:4ede99e921c8a197e40a41ed24b2fb23954727338e88dda21658db0c24f2828b",
+  "scenario_sha256": "sha256:e48eca4d0d3cc3f1593161d8d9ee46c47fbf19eddafa6b634929faae055f3b93",
   "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
   "contract_sha256": "sha256:41187c9e2083d923dac510ceeadd01c790aae53e00757071de80d3cfb760fde0"
 }

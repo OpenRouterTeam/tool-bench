@@ -7,99 +7,43 @@
 
 use serde::{Deserialize, Serialize};
 
-pub const FAMILY_SCHEMA: u32 = 1;
+pub use mock_core::family::{DifficultyFamily, FAMILY_SCHEMA, ScenarioFamily};
 
-/// The primary difficulty axis a task exercises.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum DifficultyFamily {
-    EntityAmbiguity,
-    ToolAmbiguity,
-    Pagination,
-    StaleState,
-    PermissionRefusal,
-    Clarification,
-    NoAction,
-    RetryIdempotency,
-    UntrustedRetrieval,
-    DependencyDepth,
-    Baseline,
+/// Groups whose scenarios are never part of the scored denominator.
+pub const UNSCORED_GROUPS: [&str; 2] = ["example", "diagnostic"];
+
+/// Whether a scenario identity belongs to the scored suite.
+pub fn scored(id: &str) -> bool {
+    !UNSCORED_GROUPS
+        .iter()
+        .any(|group| id.split('/').next() == Some(group))
 }
 
-impl DifficultyFamily {
-    pub fn all() -> &'static [DifficultyFamily] {
-        &[
-            Self::EntityAmbiguity,
-            Self::ToolAmbiguity,
-            Self::Pagination,
-            Self::StaleState,
-            Self::PermissionRefusal,
-            Self::Clarification,
-            Self::NoAction,
-            Self::RetryIdempotency,
-            Self::UntrustedRetrieval,
-            Self::DependencyDepth,
-            Self::Baseline,
-        ]
-    }
-
-    pub fn key(self) -> &'static str {
-        match self {
-            Self::EntityAmbiguity => "entity_ambiguity",
-            Self::ToolAmbiguity => "tool_ambiguity",
-            Self::Pagination => "pagination",
-            Self::StaleState => "stale_state",
-            Self::PermissionRefusal => "permission_refusal",
-            Self::Clarification => "clarification",
-            Self::NoAction => "no_action",
-            Self::RetryIdempotency => "retry_idempotency",
-            Self::UntrustedRetrieval => "untrusted_retrieval",
-            Self::DependencyDepth => "dependency_depth",
-            Self::Baseline => "baseline",
-        }
-    }
-}
-
-/// Metadata attached to a single task describing its difficulty characteristics.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct TaskFamilyMeta {
-    pub schema_version: u32,
-    pub family: DifficultyFamily,
-    /// Information/operation dependency depth (not reference call count).
-    /// 0 = single-step, 1 = one dependency, etc.
-    #[serde(default)]
-    pub dependency_depth: u32,
-    /// Whether a correct outcome may be "no action needed".
-    #[serde(default)]
-    pub no_action_valid: bool,
-    /// Whether a correct outcome may be a clarification request.
-    #[serde(default)]
-    pub clarification_valid: bool,
-    /// Secondary families also exercised (for diagnostics, not scoring splits).
-    #[serde(default)]
-    pub secondary_families: Vec<DifficultyFamily>,
-}
-
-impl TaskFamilyMeta {
-    pub fn validate(&self) -> Result<(), String> {
-        if self.schema_version != FAMILY_SCHEMA {
-            return Err(format!(
-                "unsupported family schema version {}",
-                self.schema_version
-            ));
-        }
-        if self.secondary_families.contains(&self.family) {
-            return Err("primary family must not appear in secondary_families".into());
-        }
-        let mut seen = std::collections::HashSet::new();
-        for f in &self.secondary_families {
-            if !seen.insert(f) {
-                return Err(format!("duplicate secondary family {:?}", f));
-            }
-        }
-        Ok(())
-    }
+/// Load-time check of a scenario's `[scenario.family]` table. Every scenario
+/// outside `example/` needs a valid reviewed assignment; conversational and
+/// no-action families are diagnostic tracks, never scored single-instruction tasks.
+pub fn check(meta: &crate::Meta) -> anyhow::Result<()> {
+    let Some(family) = &meta.family else {
+        anyhow::ensure!(
+            meta.id.split('/').next() == Some("example"),
+            "{}: a reviewed [scenario.family] table is required",
+            meta.id
+        );
+        return Ok(());
+    };
+    family
+        .validate()
+        .map_err(|reason| anyhow::anyhow!("{}: [scenario.family]: {reason}", meta.id))?;
+    anyhow::ensure!(
+        !(scored(&meta.id)
+            && matches!(
+                family.primary,
+                DifficultyFamily::Clarification | DifficultyFamily::NoAction
+            )),
+        "{}: clarification and no-action families are unscored diagnostic tracks",
+        meta.id
+    );
+    Ok(())
 }
 
 /// Versioned authoring admission requirements for a scored task.
@@ -108,7 +52,7 @@ impl TaskFamilyMeta {
 pub struct AuthoringAdmission {
     pub schema_version: u32,
     pub task_id: String,
-    pub family: TaskFamilyMeta,
+    pub family: ScenarioFamily,
     pub support_status: SupportStatus,
     pub evaluation_track: EvaluationTrack,
     /// At least one independently valid alternative solution description.
@@ -189,27 +133,22 @@ impl AuthoringAdmission {
 mod tests {
     use super::*;
 
-    #[test]
-    fn all_families_have_distinct_keys() {
-        let keys: Vec<_> = DifficultyFamily::all().iter().map(|f| f.key()).collect();
-        let unique: std::collections::HashSet<_> = keys.iter().collect();
-        assert_eq!(keys.len(), unique.len());
+    fn family(primary: DifficultyFamily) -> ScenarioFamily {
+        ScenarioFamily {
+            schema_version: FAMILY_SCHEMA,
+            primary,
+            secondary: Vec::new(),
+            dependency_depth: 1,
+            rationale: "A reviewed fixture rationale for this admission test.".into(),
+        }
     }
 
-    #[test]
-    fn valid_admission_passes() {
-        let admission = AuthoringAdmission {
+    fn admission(status: SupportStatus) -> AuthoringAdmission {
+        AuthoringAdmission {
             schema_version: 1,
             task_id: "test/task".into(),
-            family: TaskFamilyMeta {
-                schema_version: 1,
-                family: DifficultyFamily::EntityAmbiguity,
-                dependency_depth: 1,
-                no_action_valid: false,
-                clarification_valid: false,
-                secondary_families: vec![],
-            },
-            support_status: SupportStatus::Scored,
+            family: family(DifficultyFamily::EntityAmbiguity),
+            support_status: status,
             evaluation_track: EvaluationTrack::McpOnly,
             valid_alternatives: vec![AlternativeEvidence {
                 description: "Use customer email lookup instead of name".into(),
@@ -220,79 +159,36 @@ mod tests {
                 expected_failure_reason: "state check fails: wrong charge refunded".into(),
                 evidence_sha256: None,
             }],
-        };
-        assert!(admission.validate().is_ok());
+        }
     }
 
     #[test]
-    fn scored_without_alternatives_fails() {
-        let admission = AuthoringAdmission {
-            schema_version: 1,
-            task_id: "test/task".into(),
-            family: TaskFamilyMeta {
-                schema_version: 1,
-                family: DifficultyFamily::Baseline,
-                dependency_depth: 0,
-                no_action_valid: false,
-                clarification_valid: false,
-                secondary_families: vec![],
-            },
-            support_status: SupportStatus::Scored,
-            evaluation_track: EvaluationTrack::McpOnly,
-            valid_alternatives: vec![],
-            negative_validations: vec![NegativeEvidence {
-                description: "Wrong action".into(),
-                expected_failure_reason: "fails".into(),
-                evidence_sha256: None,
-            }],
-        };
-        assert!(admission.validate().is_err());
+    fn only_example_and_diagnostic_groups_are_unscored() {
+        assert!(scored("business/stripe/refund-duplicate-charge"));
+        assert!(!scored("example/github/basic"));
+        assert!(!scored("diagnostic/stripe/no-action-already-refunded"));
+        assert!(scored("diagnostics/stripe/x"));
     }
 
     #[test]
-    fn unscored_diagnostic_skips_evidence_requirements() {
-        let admission = AuthoringAdmission {
-            schema_version: 1,
-            task_id: "diagnostic/task".into(),
-            family: TaskFamilyMeta {
-                schema_version: 1,
-                family: DifficultyFamily::Clarification,
-                dependency_depth: 0,
-                no_action_valid: false,
-                clarification_valid: true,
-                secondary_families: vec![],
-            },
-            support_status: SupportStatus::UnscoredDiagnostic,
-            evaluation_track: EvaluationTrack::McpOnly,
-            valid_alternatives: vec![],
-            negative_validations: vec![],
-        };
-        assert!(admission.validate().is_ok());
+    fn scored_admission_requires_alternative_and_negative_evidence() {
+        admission(SupportStatus::Scored).validate().unwrap();
+        let mut missing = admission(SupportStatus::Scored);
+        missing.valid_alternatives.clear();
+        assert!(missing.validate().is_err());
+        let mut missing = admission(SupportStatus::Scored);
+        missing.negative_validations.clear();
+        assert!(missing.validate().is_err());
+        let mut diagnostic = admission(SupportStatus::UnscoredDiagnostic);
+        diagnostic.valid_alternatives.clear();
+        diagnostic.negative_validations.clear();
+        diagnostic.validate().unwrap();
     }
 
     #[test]
-    fn duplicate_secondary_family_rejected() {
-        let meta = TaskFamilyMeta {
-            schema_version: 1,
-            family: DifficultyFamily::Baseline,
-            dependency_depth: 0,
-            no_action_valid: false,
-            clarification_valid: false,
-            secondary_families: vec![DifficultyFamily::Pagination, DifficultyFamily::Pagination],
-        };
-        assert!(meta.validate().is_err());
-    }
-
-    #[test]
-    fn primary_in_secondary_rejected() {
-        let meta = TaskFamilyMeta {
-            schema_version: 1,
-            family: DifficultyFamily::Baseline,
-            dependency_depth: 0,
-            no_action_valid: false,
-            clarification_valid: false,
-            secondary_families: vec![DifficultyFamily::Baseline],
-        };
-        assert!(meta.validate().is_err());
+    fn admission_rejects_an_invalid_family() {
+        let mut invalid = admission(SupportStatus::Scored);
+        invalid.family.secondary = vec![DifficultyFamily::EntityAmbiguity];
+        assert!(invalid.validate().is_err());
     }
 }

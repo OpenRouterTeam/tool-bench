@@ -7,6 +7,13 @@ services = ["firecrawl"]
 tags = ["write", "single-service", "firecrawl"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 0
+rationale = "Name Fabrikam pricing, URL, daily schedule and recipient are all supplied; the task creates one new monitor and existing Contoso blog and Fabrikam careers monitors only need to stay unpatched."
+
 [expect]
 version = 2
 audit_history = true

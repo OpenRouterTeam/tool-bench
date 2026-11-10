@@ -9,6 +9,7 @@ use serde_json::Value;
 
 mod answers;
 mod information;
+mod interaction;
 mod validation;
 
 pub use answers::{
@@ -18,6 +19,7 @@ pub use information::{
     FieldFormat, InformationCheck, InformationField, InformationRead, InformationSeries,
     InformationWindow,
 };
+pub use interaction::{InteractionCheck, InteractionOutcome, classify as classify_interaction};
 
 use crate::{
     events::{self, HistoryError, HistoryFailureKind, OperationEvent, OrderingCheck},
@@ -28,7 +30,7 @@ use crate::{
     startup::{StartupCall, without_startup},
 };
 
-pub const EVALUATOR_VERSION: u32 = 44;
+pub const EVALUATOR_VERSION: u32 = 45;
 
 /// What a scenario expects (generated from `scenario.toml` into the task's `tests/expect.json`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -60,6 +62,8 @@ pub struct Expect {
     pub interfaces: InterfacePolicy,
     #[serde(default)]
     pub environment_faults: Vec<EnvironmentFault>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub interaction: Option<InteractionCheck>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -89,6 +93,7 @@ impl Default for Expect {
             preservation: None,
             interfaces: InterfacePolicy::default(),
             environment_faults: Vec::new(),
+            interaction: None,
         }
     }
 }
@@ -276,6 +281,7 @@ pub enum CheckKind {
     Preservation,
     Contract,
     Environment,
+    Interaction,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -385,9 +391,11 @@ impl Grade {
 }
 
 pub fn grade(input: &GradeInput) -> Grade {
+    // The scripted-user conversation channel is admin-plane evidence, not an agent API call.
     let (via_tools, bypass): (Vec<&JournalEntry>, Vec<&JournalEntry>) = input
         .journal
         .iter()
+        .filter(|e| e.service != crate::scripted_user::SERVICE)
         .partition(|e| input.tools_ips.contains(&e.source));
     let agent_calls = without_startup(&via_tools, input.startup);
     let completed_bypasses: BTreeSet<_> = bypass
@@ -402,6 +410,7 @@ pub fn grade(input: &GradeInput) -> Grade {
         .filter_map(|event| event.operation.as_ref())
         .filter(|operation| {
             operation.kind == events::OperationKind::Http
+                && operation.service != crate::scripted_user::SERVICE
                 && !input.tools_ips.contains(&operation.source)
         })
         .map(|operation| operation.id)
@@ -839,6 +848,9 @@ pub fn grade(input: &GradeInput) -> Grade {
     }
     if contract_ok && !input.expect.information.is_empty() {
         failures.extend(information::audit(input, &required_entries));
+    }
+    if contract_ok {
+        failures.extend(interaction::audit(input));
     }
     if !integrity_ok {
         failures.push(CheckFailure {

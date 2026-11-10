@@ -59,7 +59,9 @@ The network body fails instead of becoming a successful empty body.
 Information prerequisites do not treat this withheld response as delivered
 evidence. A failed write is not represented as a committed response loss.
 
-World evidence schema 6 adds causal selections and delivery-loss events. Fault
+World evidence schema 6 introduced causal selections and delivery-loss events.
+The unpublished evaluator 45 emits schema 7, which also carries scripted-user
+exchanges; older evidence must be assessed with its matching release. Fault
 records must replay the source-bound schedule, match captured requests, precede
 their effects and agree with delivery events. The shared evaluator release
 number and generated tasks still require central integration; this source

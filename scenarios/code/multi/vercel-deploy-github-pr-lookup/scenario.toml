@@ -7,6 +7,13 @@ services = ["vercel", "github"]
 tags = ["lookup", "multi-service", "vercel", "github", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "cross_system_identity"
+secondary = ["stale_state", "entity_ambiguity"]
+dependency_depth = 3
+rationale = "Vercel READY production deployment sha c3a9f12 equals merge_commit_sha of GitHub PR #482; newer production deploy 7d41c9e (#487) is ERROR; PR #478 has the same title but closed unmerged; junpark only commented."
+
 # Production still serves c3a9f12 ("Fix tax rounding for EU orders (#482)"): the newer
 # production deployment of 7d41c9e (Next.js 15.4, #487) failed. PR #482 was written by
 # mateoalv, approved by ines-d (junpark only commented) and merged by riley-p. Distractors:
@@ -15,8 +22,166 @@ timeout_sec = 1200
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["c3a9f12", "482", "mateoalv", "ines-d", "riley-p"]
+# The newest READY production deployment of storefront -> the pull request whose merge
+# commit it serves -> that pull request's author, its approving review and its merger.
+# Role swaps among the three people are reviewed incorrect forms.
+[expect.answer.record_facts]
+requirement = "State the commit SHA that the storefront project's current production deployment serves, the number of the pull request merged as that commit, and who wrote, who approved and who merged that pull request."
+mode = "statements"
+selection = { largest = { field = "/createdAt" } }
+rejected = [
+  "approved by ${author}",
+  "approved by: ${author}",
+  "approved by ${merger}",
+  "approved by: ${merger}",
+  "approver: ${author}",
+  "approver: ${merger}",
+  "merged by ${author}",
+  "merged by: ${author}",
+  "merged by ${approver}",
+  "merged by: ${approver}",
+  "merger: ${author}",
+  "merger: ${approver}",
+  "written by ${approver}",
+  "written by: ${approver}",
+  "written by ${merger}",
+  "written by: ${merger}",
+  "authored by ${approver}",
+  "authored by: ${approver}",
+  "authored by ${merger}",
+  "authored by: ${merger}",
+  "author: ${approver}",
+  "author: ${merger}",
+  "${approver} wrote it",
+  "${approver} wrote the",
+  "${approver} authored it",
+  "${approver} authored the",
+  "${merger} wrote it",
+  "${merger} wrote the",
+  "${merger} authored it",
+  "${merger} authored the",
+  "${author} approved it",
+  "${author} approved the",
+  "${merger} approved it",
+  "${merger} approved the",
+  "${author} merged it",
+  "${author} merged the",
+  "${approver} merged it",
+  "${approver} merged the",
+]
+context = [
+  "The newer production deployment of ${failed_commit} failed, so it never went live",
+  "it supersedes the unmerged PR",
+  "${commenter} only left a comment",
+]
+assertions = [
+  "Commit: ${commit}",
+  "Commit ${commit}",
+  "Production serves ${commit}",
+  "PR #${pr}",
+  "written by ${author}",
+  "author ${author}",
+  "Author: ${author}",
+  "${author} wrote it",
+  "approved by ${approver}",
+  "Approved by: ${approver}",
+  "approver ${approver}",
+  "${approver} approved it",
+  "merged by ${merger}",
+  "Merged by: ${merger}",
+  "merger ${merger}",
+  "${merger} merged it",
+  "Production serves ${commit} from PR #${pr}, written by ${author}, approved by ${approver} and merged by ${merger}",
+  "| Commit | ${commit} |",
+  "| PR | #${pr} |",
+  "| Author | ${author} |",
+  "| Approved by | ${approver} |",
+  "| Merged by | ${merger} |",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/vercel/deployments"
+matching = { name = "storefront", target = "production", readyState = "READY" }
+
+[expect.answer.record_facts.related.pull]
+collection = "/services/github/pulls"
+on = { "/merge_commit_sha" = "/meta/githubCommitSha" }
+
+[expect.answer.record_facts.related.approval]
+from = "pull"
+collection = "/services/github/reviews"
+filter = { matching = { "/state" = "APPROVED" } }
+on = { "/pull_number" = "/number" }
+
+[expect.answer.record_facts.related.author]
+from = "pull"
+collection = "/services/github/users"
+on = { "/login" = "/user" }
+
+[expect.answer.record_facts.related.approver]
+from = "approval"
+collection = "/services/github/users"
+on = { "/login" = "/user" }
+
+[expect.answer.record_facts.related.merger]
+from = "pull"
+collection = "/services/github/users"
+on = { "/login" = "/merged_by" }
+
+[expect.answer.record_facts.facts.commit]
+field = "/meta/githubCommitSha"
+kind = "identifier"
+min_prefix = 7
+
+[expect.answer.record_facts.facts.pr]
+record = "pull"
+field = "/number"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.author]
+record = "author"
+field = "/name"
+also = ["/login"]
+kind = "text"
+
+[expect.answer.record_facts.facts.approver]
+record = "approver"
+field = "/name"
+also = ["/login"]
+kind = "text"
+
+[expect.answer.record_facts.facts.merger]
+record = "merger"
+field = "/name"
+also = ["/login"]
+kind = "text"
+
+[expect.answer.record_facts.related.failed_deploy]
+allow_absence = true
+collection = "/services/vercel/deployments"
+filter = { matching = { "/readyState" = "ERROR", "/target" = "production" } }
+on = { "/projectId" = "/projectId" }
+pick = { largest = "/createdAt" }
+
+[expect.answer.record_facts.related.comment_review]
+allow_absence = true
+from = "pull"
+collection = "/services/github/reviews"
+filter = { matching = { "/state" = "COMMENTED" } }
+on = { "/pull_number" = "/number" }
+
+[expect.answer.record_facts.facts.failed_commit]
+record = "failed_deploy"
+field = "/meta/githubCommitSha"
+kind = "identifier"
+min_prefix = 7
+optional = true
+
+[expect.answer.record_facts.facts.commenter]
+record = "comment_review"
+field = "/user"
+kind = "text"
+optional = true
 
 [[expect.required_calls]]
 service = "github"
@@ -66,14 +231,5 @@ arguments = { method = "get_reviews", owner = "acme-shop", repo = "storefront", 
 
 [solution]
 answer = """
-Production for `storefront` on Vercel is served by deployment dpl_8o704GjcwumkLAaxPwjoxb4V6QDF, commit
-c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9 ("Fix tax rounding for EU orders (#482)"). The newer production
-deployment of 7d41c9e (Upgrade to Next.js 15.4, #487) failed, so it never went live.
-
-That commit is the squash merge of acme-shop/storefront PR #482 "Fix tax rounding for EU orders"
-(EU VAT rounded half-even per line item; it supersedes the unmerged #478):
-
-- Author: mateoalv (Mateo Alvarez)
-- Approved by: ines-d (Ines Duarte); junpark only left a comment
-- Merged by: riley-p (Riley Park) on 2026-10-24 09:38 UTC
+Commit c3a9f12, PR #482. Author: Mateo Alvarez. Approved by: Ines Duarte. Merged by: Riley Park.
 """

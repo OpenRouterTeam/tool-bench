@@ -3,6 +3,50 @@ use scenario::{coverage, discover, oracle_tools::OracleTools};
 use std::path::Path;
 
 #[test]
+fn source_binding_alone_does_not_claim_reviewed_answer_relationships() {
+    let root = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."));
+    let catalog = Catalog::load(&root.join("catalog/services.toml")).unwrap();
+    let tools = OracleTools::load(root, &catalog).unwrap();
+    let mut scenario =
+        scenario::Scenario::load(&root.join("scenarios/search/elasticsearch/latency-by-region"))
+            .unwrap();
+    let calls = scenario
+        .validate(&root.join("scenarios"), &catalog, &tools)
+        .unwrap();
+    let reviewed =
+        coverage::inventory(std::slice::from_ref(&scenario), vec![calls.clone()], &tools).unwrap();
+    assert_eq!(
+        reviewed.scenarios[0].answer_check,
+        "source_bound_record_facts_with_reviewed_claims",
+    );
+    assert!(
+        !reviewed.scenarios[0]
+            .source_gaps
+            .contains(&"answer_assertion_grammar_missing")
+    );
+    scenario
+        .expect
+        .answer
+        .as_mut()
+        .unwrap()
+        .record_facts
+        .as_mut()
+        .unwrap()
+        .assertions
+        .clear();
+    let incomplete =
+        coverage::inventory(std::slice::from_ref(&scenario), vec![calls], &tools).unwrap();
+    assert_eq!(
+        incomplete.scenarios[0].answer_check,
+        "source_bound_record_facts_without_affirmative_clauses",
+    );
+    assert_eq!(
+        incomplete.summary.scored_source_gaps["answer_assertion_grammar_missing"],
+        1,
+    );
+}
+
+#[test]
 fn summary_source_gaps_follow_answer_semantics_and_exclude_unscored_examples() {
     let root = Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."));
     let catalog = Catalog::load(&root.join("catalog/services.toml")).unwrap();
@@ -108,6 +152,8 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
     let inventory = coverage::inventory(&scenarios, validated, &tools).unwrap();
     assert_eq!(inventory.summary.scored_tasks, 150);
     assert_eq!(inventory.summary.unscored_examples, 2);
+    assert_eq!(inventory.summary.unscored_diagnostics, 2);
+    family_metadata_is_exported(&inventory);
     assert_eq!(inventory.summary.scored_version_two, 150);
     assert_eq!(inventory.summary.scored_legacy, 0);
     assert_eq!(inventory.summary.scored_declared_unscorable, 0);
@@ -159,7 +205,7 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
         inventory.summary.declared_result_contracts,
         std::collections::BTreeMap::from([
             (scenario::oracle_results::ResultContract::AwsApiV1, 11),
-            (scenario::oracle_results::ResultContract::McpEnvelopeV1, 356),
+            (scenario::oracle_results::ResultContract::McpEnvelopeV1, 359),
             (
                 scenario::oracle_results::ResultContract::FirecrawlNativeV1,
                 8
@@ -417,5 +463,42 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
             .snapshots
             .iter()
             .all(|snapshot| snapshot.sha256.starts_with("sha256:"))
+    );
+}
+
+/// Every scored row carries its reviewed family; diagnostics stay out of the
+/// scored denominator and are the only no-action/clarification rows.
+fn family_metadata_is_exported(inventory: &coverage::Inventory) {
+    let summary = &inventory.summary;
+    assert_eq!(summary.scored_families.values().sum::<usize>(), 150);
+    assert_eq!(
+        summary.scored_dependency_depths.values().sum::<usize>(),
+        150
+    );
+    assert!(summary.scored_families.len() >= 5, "{summary:?}");
+    assert!(!summary.scored_families.contains_key("no_action"));
+    assert!(!summary.scored_families.contains_key("clarification"));
+    for row in &inventory.scenarios {
+        let family = row.family.as_ref().map(|family| family.primary.key());
+        match row.id.split('/').next().unwrap() {
+            "example" => assert!(!row.scored && family.is_none(), "{}", row.id),
+            "diagnostic" => {
+                assert!(!row.scored, "{}", row.id);
+                assert!(matches!(family, Some("no_action" | "clarification")));
+                assert_eq!(row.scripted_user, family == Some("clarification"));
+                assert!(row.source.materialization.is_some(), "{}", row.id);
+            }
+            _ => {
+                assert!(row.scored && !row.scripted_user, "{}", row.id);
+                let family = row.family.as_ref().expect("scored family");
+                family.validate().unwrap();
+                assert!(summary.scored_families.contains_key(family.primary.key()));
+            }
+        }
+    }
+    let serialized = serde_json::to_value(inventory).unwrap();
+    assert_eq!(
+        serialized["scenarios"][0]["family"]["schema_version"],
+        scenario::family::FAMILY_SCHEMA
     );
 }

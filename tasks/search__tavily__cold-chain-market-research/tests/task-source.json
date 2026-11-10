@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/tavily/cold-chain-market-research",
-  "scenario_sha256": "sha256:a25e251b060d6b4c43bd90c750e978709ba18a17c8d45a723da134f9492849c6",
+  "scenario_sha256": "sha256:09f993df997674a9243f2b450b6f063053a0cae57e6cd9449effb7f7e8173577",
   "dataset_sha256": "sha256:c923bf91a6244ea6a5d3a45fae0bd6a986f56617bc131d963188afc1d1b6df51",
   "contract_sha256": "sha256:3ac1fb6557fdf33fb35fbb37092517a387ddb5d1fa7fee31ed84786e97ac9b76"
 }

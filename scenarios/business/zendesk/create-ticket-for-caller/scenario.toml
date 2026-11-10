@@ -7,6 +7,13 @@ services = ["zendesk"]
 tags = ["write", "single-service", "zendesk", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Elena Petrova of Fjord Outfitters (9010301) is uniquely named; the only neighbour, Elena Park (9010302, Parkside Clinics), has a different surname; the contract checks one created ticket with that requester."
+
 [expect]
 version = 2
 audit_history = true

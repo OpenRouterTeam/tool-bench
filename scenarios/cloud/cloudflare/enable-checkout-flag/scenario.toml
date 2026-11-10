@@ -7,6 +7,13 @@ services = ["cloudflare"]
 tags = ["write", "single-service", "cloudflare", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 3
+rationale = "KV namespace title storefront-flags exists in both Octo Corp and Octo Corp Staging accounts plus storefront-flags-preview, each with a checkout_v2 key; only namespace c8f1b5e9... may change."
+
 [expect]
 version = 2
 audit_history = true

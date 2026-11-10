@@ -7,6 +7,13 @@ services = ["notion"]
 tags = ["write", "single-service", "notion"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 2
+rationale = "Product launches has exactly one row titled Web 4.12 (afa8e804, Planned, 2026-11-03); the only neighbour is the differently named Done row Web 4.11; new status and date are given in the instruction."
+
 [expect]
 version = 2
 audit_history = true

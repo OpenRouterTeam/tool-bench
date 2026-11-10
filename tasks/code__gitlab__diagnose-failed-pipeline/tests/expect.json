@@ -45,12 +45,78 @@
     }
   ],
   "answer": {
-    "contains": [
-      "5520",
-      "integration-tests",
-      "refund_reason"
-    ],
-    "regex": null
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the ID of the most recent failed pipeline on main of northwind/payments/checkout-api, the name of the job that failed in it, and the database column that job's log reports as missing.",
+      "selector": {
+        "collection": "/services/gitlab/pipelines",
+        "matching": {
+          "project": "northwind/payments/checkout-api",
+          "ref": "main",
+          "status": "failed"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "largest": {
+          "field": "/id"
+        }
+      },
+      "facts": {
+        "column": {
+          "field": "/trace",
+          "kind": "identifier",
+          "record": "job",
+          "capture": "column \"([^\"]+)\" of relation \"[^\"]+\" does not exist"
+        },
+        "job": {
+          "field": "/name",
+          "kind": "text",
+          "record": "job"
+        },
+        "pipeline": {
+          "field": "/id",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "job": {
+          "collection": "/services/gitlab/jobs",
+          "filter": {
+            "matching": {
+              "/status": "failed"
+            }
+          },
+          "on": {
+            "/pipeline_id": "/id"
+          },
+          "pick": {
+            "largest": "/id"
+          }
+        }
+      },
+      "assertions": [
+        "Pipeline ${pipeline}",
+        "Pipeline #${pipeline}",
+        "${job}",
+        "job ${job}",
+        "${job} broke pipeline ${pipeline}",
+        "${job} failed",
+        "column ${column}",
+        "| Pipeline | ${pipeline} |",
+        "| Job | ${job} |",
+        "| Column | ${column} |",
+        "the column ${column} does not exist",
+        "column \"${column}\" of relation \"refunds\" does not exist",
+        "Pipeline ${pipeline} failed in ${job}",
+        "Pipeline #${pipeline} failed in ${job}",
+        "Pipeline ${pipeline}, job ${job}, column ${column}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

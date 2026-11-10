@@ -7,6 +7,13 @@ services = ["tavily"]
 tags = ["write", "single-service", "tavily"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "The request names the mini research model outright and the report has one clear leader row (FrostLink, 38 percent, EUR 4.20); the forbidden pro and auto calls only check that stated constraint."
+
 [expect]
 version = 2
 audit_history = true

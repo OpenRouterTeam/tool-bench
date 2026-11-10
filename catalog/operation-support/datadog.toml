@@ -1,0 +1,49 @@
+# Reviewed operation support for `datadog`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "datadog"
+tool = "cancel_downtime"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Datadog scripted native-client checkpoint — revision 38"
+
+[[operation]]
+endpoint = "datadog"
+tool = "get_logs"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Datadog scripted native-client checkpoint — revision 38"
+
+[[operation]]
+endpoint = "datadog"
+tool = "get_monitors"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Datadog scripted native-client checkpoint — revision 38"
+
+[[operation]]
+endpoint = "datadog"
+tool = "list_downtimes"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Datadog scripted native-client checkpoint — revision 38"
+
+[[operation]]
+endpoint = "datadog"
+tool = "mute_host"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Datadog scripted native-client checkpoint — revision 38"
+
+[[operation]]
+endpoint = "datadog"
+tool = "schedule_downtime"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Datadog scripted native-client checkpoint — revision 38"

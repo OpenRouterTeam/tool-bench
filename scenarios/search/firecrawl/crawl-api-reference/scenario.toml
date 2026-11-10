@@ -7,6 +7,13 @@ services = ["firecrawl"]
 tags = ["write", "single-service", "firecrawl"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Origin https://docs.lumenpay.dev and the /api/ prefix are given; the contract checks one created crawl scoped to that prefix, with no competing record to choose between."
+
 [expect]
 version = 2
 audit_history = true

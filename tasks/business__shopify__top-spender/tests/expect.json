@@ -21,11 +21,83 @@
     }
   ],
   "answer": {
-    "contains": [
-      "Priya Raman",
-      "priya.raman@outlook.com"
-    ],
-    "regex": "1,?130(\\.\\d+)?"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the Shopify customer whose orders sum to the largest total once refunded and cancelled orders are left out, with that customer's email address and that total in US dollars.",
+      "selector": {
+        "collection": "/services/shopify/orders",
+        "matching": {
+          "currencyCode": "USD"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "by": "/customerId",
+          "measure": {
+            "sum": "/totalPrice"
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "email": {
+          "field": "/email",
+          "kind": "identifier",
+          "record": "customer"
+        },
+        "name": {
+          "field": "/firstName",
+          "kind": "text",
+          "record": "customer",
+          "append": [
+            "/lastName"
+          ]
+        },
+        "total": {
+          "field": "/value",
+          "kind": "money"
+        }
+      },
+      "mode": "statements",
+      "filter": {
+        "absent": [
+          "/cancelledAt"
+        ],
+        "excluding": [
+          {
+            "/financialStatus": "REFUNDED"
+          }
+        ]
+      },
+      "related": {
+        "customer": {
+          "collection": "/services/shopify/customers",
+          "on": {
+            "/id": "/key"
+          }
+        }
+      },
+      "contradictions": [
+        "second",
+        "second-highest",
+        "second-largest",
+        "runner-up",
+        "the least",
+        "the lowest"
+      ],
+      "assertions": [
+        "${name} (${email}) has spent the most: ${total}.",
+        "${name} (${email}): ${total}",
+        "Name: ${name}\nEmail: ${email}\nTotal spent: ${total}",
+        "${name} <${email}> has spent ${total}.",
+        "${name} <${email}> has spent ${total} with us.",
+        "Top spender: ${name} (${email}), ${total}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

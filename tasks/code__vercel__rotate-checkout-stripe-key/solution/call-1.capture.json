@@ -1,1 +1,1 @@
-[{"name":"production_key_id","pointer":"/content/1/text","json_pointer":"","select":{"matching":{"key":"STRIPE_SECRET_KEY","type":"sensitive"},"pointer":"/id"}}]
+[{"name":"production_key_id","pointer":"/content/1/text","json_pointer":"","select":{"matching":{"key":"STRIPE_SECRET_KEY","type":"sensitive"},"pointer":"/id"},"constraint":{"minLength":1,"type":"string"}}]

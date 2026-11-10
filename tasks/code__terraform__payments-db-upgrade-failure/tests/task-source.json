@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/terraform/payments-db-upgrade-failure",
-  "scenario_sha256": "sha256:d4eb90463938f2db8e535186c3b684b07108c2810c5c2d619d0deab500c6b25c",
+  "scenario_sha256": "sha256:a89b5b7d6594481ab9a6818a764b20d6e2a8fa7e31dd7779c40c61ebc16ea740",
   "dataset_sha256": "sha256:76871493642ffc8744ee72d9741a6936b2927a176a60e7d0d514ca8f4bb9dd87",
-  "contract_sha256": "sha256:28fd367e71a6bd27c88078fdd6287fa605dda623b8e0bed48b248632ce5f2bc1"
+  "contract_sha256": "sha256:ee8accd37a96730f77635e01e4a49f752094bc2b819cf7ea044b1610656e959e"
 }

@@ -1,0 +1,70 @@
+# Reviewed operation support for `pagerduty`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "add_note_to_incident"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "create_schedule_override"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "get_user_data"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "list_incidents"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "list_oncalls"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "list_schedules"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "list_services"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "list_users"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"
+
+[[operation]]
+endpoint = "pagerduty"
+tool = "manage_incidents"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "PagerDuty scripted native-client checkpoint — revision 37"

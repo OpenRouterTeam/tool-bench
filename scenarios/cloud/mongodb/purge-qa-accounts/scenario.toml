@@ -7,6 +7,13 @@ services = ["mongodb"]
 tags = ["write", "single-service", "mongodb"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 0
+rationale = "crm.customers has 4 @qa.octoshop.test accounts plus near-misses qa.team@octoshop.com, ben@qa.octoshop.tech and lena.qa@gmail.com, and crm_staging repeats the QA rows; only exact-domain prod deletes are allowed."
+
 [expect]
 version = 2
 audit_history = true

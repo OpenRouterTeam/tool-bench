@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/multi/vendor-rate-limit-zendesk-reply",
-  "scenario_sha256": "sha256:06a3d0247bee32f2ec57861271672d72ceed1e0985ea67676a5327cf2e258d1e",
+  "scenario_sha256": "sha256:3422048470a3067a04416f46af0d05f97d2c5561227862cc68004fab45120737",
   "dataset_sha256": "sha256:f53cfb381e955cdac39298a04d9a5d9084eda34a7390f2259a695cbd015b9f58",
   "contract_sha256": "sha256:e11491b37d5f5986017d9f13ef5d8b612c785d6c519c551a3c733e8696f581da"
 }

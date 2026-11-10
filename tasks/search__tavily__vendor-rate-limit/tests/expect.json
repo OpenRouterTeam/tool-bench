@@ -22,7 +22,106 @@
   "forbidden_calls": [],
   "answer": {
     "contains": [],
-    "regex": "1[,. ]?200"
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the API rate limit of the Business plan in requests per minute according to Quillstream's own current rate-limit documentation, and cite that documentation page by its URL.",
+      "selector": {
+        "collection": "/services/tavily/pages",
+        "matching": {},
+        "field_patterns": {
+          "/title": "^Rate limits \\|",
+          "/url": "^https://docs\\.quillstream\\.io/"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "burst_limit": {
+          "field": "/raw_content",
+          "kind": "number",
+          "optional": true,
+          "capture": "\\| Business \\| [\\d,]+ \\| (\\d+) \\|"
+        },
+        "limit": {
+          "field": "/raw_content",
+          "kind": "number",
+          "capture": "\\| Business \\| ([\\d,]+) \\|",
+          "units": [
+            "requests",
+            "request",
+            "reqs",
+            "req",
+            "rpm",
+            "/min",
+            "/minute",
+            "per minute",
+            "per min",
+            "a minute"
+          ],
+          "require_unit": true
+        },
+        "source": {
+          "field": "/url",
+          "kind": "identifier"
+        },
+        "updated_date": {
+          "field": "/raw_content",
+          "kind": "date",
+          "optional": true,
+          "capture": "[Ll]ast updated:? ([A-Z][a-z]+ \\d{1,2},? \\d{4}|\\d{4}-\\d{2}-\\d{2})"
+        },
+        "v2_limit": {
+          "field": "/raw_content",
+          "kind": "number",
+          "optional": true,
+          "record": "v2_page",
+          "capture": "\\| Business \\| ([\\d,]+) \\|"
+        },
+        "v2_source": {
+          "field": "/url",
+          "kind": "identifier",
+          "optional": true,
+          "record": "v2_page"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "v2_page": {
+          "collection": "/services/tavily/pages",
+          "filter": {
+            "patterns": {
+              "/title": "(?i)v2.*deprecated|deprecated.*v2"
+            }
+          }
+        }
+      },
+      "context": [
+        "the deprecated v2 docs said ${v2_limit} requests per minute",
+        "The v2 page ${v2_source} is deprecated.",
+        "(burst ${burst_limit}), per workspace",
+        "(updated ${updated_date})",
+        "the ${v2_limit}/min figure is from the deprecated v2 docs",
+        "${v2_limit}/min figure is from the deprecated v2 docs",
+        "the deprecated v2 docs say ${v2_limit} requests per minute",
+        "the deprecated v2 docs list ${v2_limit} requests per minute"
+      ],
+      "assertions": [
+        "${limit}/min for Business, from ${source}",
+        "Business plan: ${limit}. Found at [Rate limits](${source}).",
+        "${limit}/min (${source})",
+        "${limit} per minute (${source})",
+        "${limit} a minute (${source})",
+        "${limit} req/min (${source})",
+        "${limit} requests/min for Business, from ${source}",
+        "Business plan: ${limit} rpm. Found at [Rate limits](${source}).",
+        "${limit} requests per minute (${source})",
+        "${limit} requests a minute (${source})",
+        "${limit} requests per minute, from ${source}",
+        "${limit}/min, from ${source}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

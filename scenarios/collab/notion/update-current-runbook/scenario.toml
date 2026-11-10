@@ -7,6 +7,13 @@ services = ["notion"]
 tags = ["write", "single-service", "notion", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = []
+dependency_depth = 2
+rationale = "Three On-call runbook pages: live 7c41530e, a trashed copy d96308fa with the identical Marcus Webb contact line, and archived On-call runbook (2024); only block d18edb31 on the live page may change."
+
 [expect]
 version = 2
 audit_history = true

@@ -383,7 +383,8 @@ pub(crate) fn audit_with_observer(
             EventKind::RequestHeadReceived { .. }
             | EventKind::RequestBodyReceived { .. }
             | EventKind::ResponseDeliveryLost
-            | EventKind::FaultSelected { .. } => {
+            | EventKind::FaultSelected { .. }
+            | EventKind::UserExchanged { .. } => {
                 known_operation(event, &operations)?;
             }
             EventKind::StateCommitted { records } => {

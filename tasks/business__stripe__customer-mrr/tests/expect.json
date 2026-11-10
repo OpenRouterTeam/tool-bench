@@ -24,7 +24,84 @@
   ],
   "answer": {
     "contains": [],
-    "regex": "(^|[^0-9,])439(\\.00)?([^0-9.]|\\.([^0-9]|$)|$)"
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the monthly recurring revenue of Harbor & Pine Coffee Co., counting only active subscriptions and converting yearly billing to monthly.",
+      "selector": {
+        "collection": "/services/stripe/subscriptions",
+        "matching": {
+          "customer": "cus_mxxxdqMeoA1GEc",
+          "status": "active"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "unnest": "/items/data",
+          "measure": {
+            "sum_product_normalized": {
+              "fields": [
+                "/item/quantity",
+                "/row_related/price/unit_amount"
+              ],
+              "divisor": {
+                "field": "/row_related/price/recurring/interval",
+                "values": {
+                  "month": "100",
+                  "year": "1200"
+                }
+              }
+            }
+          },
+          "pick": "only",
+          "row_related": {
+            "price": {
+              "collection": "/services/stripe/prices",
+              "on": {
+                "/id": "/item/price"
+              }
+            }
+          }
+        }
+      },
+      "facts": {
+        "customer": {
+          "field": "/name",
+          "kind": "text",
+          "optional": true,
+          "record": "cust"
+        },
+        "mrr": {
+          "field": "/value",
+          "kind": "money",
+          "units": [
+            "$",
+            "usd"
+          ]
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "cust": {
+          "collection": "/services/stripe/customers",
+          "filter": {
+            "matching": {
+              "/id": "cus_mxxxdqMeoA1GEc"
+            }
+          }
+        }
+      },
+      "assertions": [
+        "The MRR is ${mrr}.",
+        "MRR: ${mrr}",
+        "Monthly recurring revenue: ${mrr}.",
+        "MRR is ${mrr}.",
+        "${customer} has a monthly recurring revenue of ${mrr}.",
+        "${customer}: MRR ${mrr}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

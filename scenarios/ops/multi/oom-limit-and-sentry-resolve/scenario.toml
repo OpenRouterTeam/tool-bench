@@ -7,6 +7,13 @@ services = ["kubernetes", "sentry"]
 tags = ["write", "multi-service", "kubernetes", "sentry", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity"]
+dependency_depth = 2
+rationale = "analytics/report-builder pods are OOMKilled while analytics-staging/report-builder is healthy; Sentry REPORT-BUILDER-4T shares its WorkerLostError title with BILLING-EXPORTER-2D; only report-builder and 4T may change."
+
 [expect]
 version = 2
 audit_history = true

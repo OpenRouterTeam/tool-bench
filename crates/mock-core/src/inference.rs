@@ -232,6 +232,9 @@ pub struct InferenceEvidence {
     pub scenario: Option<String>,
     #[serde(default)]
     pub session_id: Option<String>,
+    /// Provider exchanges recorded by a host proxy, for container-side CLI agents.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub transport: Option<crate::transport::TransportEvidence>,
 }
 
 /// Current schema version for inference evidence.
@@ -493,6 +496,7 @@ impl InferenceEvidence {
             finalization: FinalizationStatus::NoResponse,
             scenario: None,
             session_id: None,
+            transport: None,
         }
     }
 }
@@ -503,7 +507,16 @@ pub fn load_bound(
     admission: &crate::runner::RunnerAdmission,
     manifest: &crate::provenance::ExecutionManifest,
 ) -> Result<Option<InferenceEvidence>, String> {
-    let Some(approved) = &policy.inference_adapter else {
+    // A container-side CLI agent is observed at the host provider proxy; every other
+    // producer keeps the host-agent capture policy.
+    let proxied = manifest.execution_kind == "native"
+        && manifest.agent.name == crate::transport::PROXY_AGENT_NAME;
+    let selected = if proxied {
+        &policy.proxy_inference_adapter
+    } else {
+        &policy.inference_adapter
+    };
+    let Some(approved) = selected else {
         return if bytes.is_none()
             && admission.inference_evidence_sha256.is_none()
             && manifest.execution_kind == "scripted"
@@ -513,9 +526,12 @@ pub fn load_bound(
             Err("inference evidence lacks an approved capture implementation".into())
         };
     };
-    if approved.name != COMPUTER1_ADAPTER_NAME
-        || !crate::provenance::digest_valid(&approved.code_sha256)
-    {
+    let expected_name = if proxied {
+        crate::transport::PROXY_ADAPTER_NAME
+    } else {
+        COMPUTER1_ADAPTER_NAME
+    };
+    if approved.name != expected_name || !crate::provenance::digest_valid(&approved.code_sha256) {
         return Err("unsupported inference capture policy".into());
     }
     let bytes = bytes.ok_or("protected inference evidence was not collected")?;
@@ -544,12 +560,17 @@ pub fn load_bound(
                 && evidence.turns.is_empty()
                 && evidence.final_response.is_none()
                 && evidence.identity.configured_model == "scripted"
-                && evidence.identity.configured_provider == "scripted" => {}
+                && evidence.identity.configured_provider == "scripted"
+                && evidence.transport.is_none() => {}
         "native"
             if !evidence.scripted
                 && evidence.adapter == *approved
-                && manifest.agent.name == "computer-1" =>
+                && (proxied || manifest.agent.name == "computer-1")
+                && evidence.transport.is_some() == proxied =>
         {
+            if proxied {
+                crate::transport::check(&evidence)?;
+            }
             let configured = manifest
                 .inference_identity
                 .as_ref()
@@ -682,6 +703,7 @@ mod tests {
             finalization: FinalizationStatus::Normal,
             scenario: None,
             session_id: None,
+            transport: None,
         }
     }
 

@@ -1,1 +1,1 @@
-[{"name":"order_id","pointer":"/structuredContent/documents/0/_id","json_pointer":null,"select":null},{"name":"order_total","pointer":"/structuredContent/documents/0/total","json_pointer":null,"select":null}]
+[{"name":"order_id","pointer":"/structuredContent/documents/0/_id","json_pointer":null,"select":null,"constraint":{"required":["$oid"],"type":"object"}},{"name":"order_total","pointer":"/structuredContent/documents/0/total","json_pointer":null,"select":null,"constraint":{"minimum":0,"type":"number"}}]

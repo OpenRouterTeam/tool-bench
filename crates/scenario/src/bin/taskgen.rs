@@ -1,11 +1,19 @@
 //! taskgen [--scenarios scenarios] [--catalog catalog/services.toml] [--out tasks]
 //!         [--world-image IMG] [--tools-image IMG] [--check] [--print-images] [--inventory PATH] [--include-examples]
+//!         [--exposure VARIANT [--exposure-seed N] [--exposure-token-budget N]]
+//!         [--awareness-condition CELL]
 //!
 //! Validates every scenario and regenerates its Harbor task. The images default to the
 //! published, content-tagged references (`scenario::images`). `--check` fails if `--out`
 //! differs from what would be generated (CI guard for hand edits and unpublished sources).
 //! `--print-images` prints the two references (the defaults unless overridden) and exits.
 //! Sources are hashed only for a reference that is not overridden.
+//!
+//! `--exposure` (relevant_only, context_feasible, organization_pack, full_catalog,
+//! randomized_order, confusing_distractors) controls which pinned MCP endpoints and tools
+//! each task registers; the default full catalog generates exactly the usual output.
+//! `--awareness-condition` (neutral_minimal, neutral_ordinary, evaluation_minimal,
+//! evaluation_ordinary) selects the matching framing and workspace profile together.
 
 use std::path::{Path, PathBuf};
 
@@ -17,7 +25,7 @@ use scenario::{
     images,
     oracle_tools::OracleTools,
     profile::WorkspaceProfile,
-    taskgen::{Conditions, Images, write_task_with_conditions},
+    taskgen::{Conditions, Images, Treatments, write_task_with_treatments},
 };
 
 fn main() -> anyhow::Result<()> {
@@ -34,6 +42,10 @@ fn main() -> anyhow::Result<()> {
     let mut workspace_profile = WorkspaceProfile::Minimal;
     let mut framing = Framing::Neutral;
     let mut review_policy_path = None;
+    let mut exposure_variant = scenario::exposure::ExposureVariant::FullCatalog;
+    let mut exposure_seed = 0u64;
+    let mut exposure_token_budget = None;
+    let mut awareness: Option<scenario::awareness::AwarenessCell> = None;
     while let Some(arg) = args.next() {
         let mut value = || args.next().with_context(|| format!("{arg} needs a value"));
         match arg.as_str() {
@@ -47,6 +59,12 @@ fn main() -> anyhow::Result<()> {
             "--workspace-profile" => workspace_profile = value()?.parse()?,
             "--framing" => framing = value()?.parse()?,
             "--review-policy" => review_policy_path = Some(PathBuf::from(value()?)),
+            "--exposure" => exposure_variant = value()?.parse().map_err(anyhow::Error::msg)?,
+            "--exposure-seed" => exposure_seed = value()?.parse()?,
+            "--exposure-token-budget" => exposure_token_budget = Some(value()?.parse()?),
+            "--awareness-condition" => {
+                awareness = Some(value()?.parse().map_err(anyhow::Error::msg)?)
+            }
             "--print-images" => print_images = true,
             "--inventory" => inventory_path = Some(PathBuf::from(value()?)),
             other => bail!("unexpected argument {other:?}"),
@@ -75,6 +93,20 @@ fn main() -> anyhow::Result<()> {
     catalog.validate()?;
     let all = discover(&scenarios)?;
     let tools = OracleTools::load(root, &catalog)?;
+    if let Some(cell) = awareness {
+        framing = scenario::awareness::framing(cell);
+        workspace_profile = scenario::awareness::workspace_profile(cell, workspace_profile)?;
+    }
+    let exposure = (exposure_variant != scenario::exposure::ExposureVariant::FullCatalog)
+        .then(|| {
+            Ok::<_, anyhow::Error>(scenario::exposure::Exposure {
+                variant: exposure_variant,
+                seed: exposure_seed,
+                token_budget: exposure_token_budget,
+                pinned: scenario::exposure::PinnedCatalog::load(root, &catalog)?,
+            })
+        })
+        .transpose()?;
     let validated = all
         .iter()
         .map(|scenario| scenario.validate(&scenarios, &catalog, &tools))
@@ -94,7 +126,7 @@ fn main() -> anyhow::Result<()> {
     // Example scenarios exercise the mocks but are not benchmark tasks.
     let tasks: Vec<_> = all
         .iter()
-        .filter(|s| include_examples || !s.meta.id.starts_with("example/"))
+        .filter(|s| include_examples || s.scored())
         .collect();
 
     let target = if check {
@@ -110,7 +142,7 @@ fn main() -> anyhow::Result<()> {
     }
     std::fs::create_dir_all(&target)?;
     for s in &tasks {
-        write_task_with_conditions(
+        write_task_with_treatments(
             s,
             &catalog,
             &images,
@@ -119,6 +151,11 @@ fn main() -> anyhow::Result<()> {
                 workspace_profile,
                 framing,
                 review_policy: review_policy.as_ref(),
+                locked_tools: Some(&tools),
+            },
+            Treatments {
+                exposure: exposure.as_ref(),
+                awareness,
             },
         )?;
     }

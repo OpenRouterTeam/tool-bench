@@ -7,6 +7,13 @@ services = ["datadog", "argocd"]
 tags = ["write", "multi-service", "datadog", "argocd", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "dependency_depth"
+secondary = ["entity_ambiguity", "cross_system_identity"]
+dependency_depth = 4
+rationale = "Chain: prod p95 series jumps at 09:05 -> v2.9.0 deployed 09:02 -> prior revision f4befdc -> tag v2.8.0; contract requires the Datadog query before the Argo CD PUT; v2.9.1, billing-worker and staging app are decoys."
+
 # Prod billing-api p95 jumps from ~180 ms to ~900 ms at 09:05, right after v2.9.0 was deployed
 # at 09:02 (v2.9.1 at 12:10 did not help; billing-worker's 10:44 deploy is unrelated; the
 # staging spike 11:00-11:30 is a load test). Correct rollback: pin prod to v2.8.0 (f4befdc).
@@ -138,7 +145,7 @@ arguments = { from = 1793253600, to = 1793282400, query = "avg:billing.api.laten
 endpoint = "argocd"
 tool = "get_application"
 arguments = { applicationName = "billing-api" }
-capture = [{ name = "billing_spec", pointer = "/content/0/text", json_pointer = "/spec" }]
+capture = [{ name = "billing_spec", pointer = "/content/0/text", json_pointer = "/spec", constraint = { type = "object", required = ["source"] } }]
 
 [[solution.call]]
 endpoint = "argocd"

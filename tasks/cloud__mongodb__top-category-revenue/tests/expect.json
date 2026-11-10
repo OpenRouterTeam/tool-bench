@@ -37,10 +37,61 @@
     }
   ],
   "answer": {
-    "contains": [
-      "outdoor"
-    ],
-    "regex": "1,?457\\.5"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the product category with the largest revenue (unit price times quantity over order lines) among delivered shop.orders created in February 2026 UTC, and state that revenue in US dollars.",
+      "selector": {
+        "collection": "/services/mongodb/db.shop.orders",
+        "matching": {
+          "status": "delivered"
+        },
+        "field_patterns": {
+          "/createdAt/$date": "^2026-02-"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "unnest": "/items",
+          "by": "/item/category",
+          "measure": {
+            "sum_product": [
+              "/item/price",
+              "/item/qty"
+            ]
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "category": {
+          "field": "/key",
+          "kind": "text"
+        },
+        "revenue": {
+          "field": "/value",
+          "kind": "money"
+        }
+      },
+      "mode": "statements",
+      "contradictions": [
+        "the least",
+        "the lowest",
+        "the smallest",
+        "least revenue",
+        "lowest revenue"
+      ],
+      "assertions": [
+        "Top category: ${category}, with ${revenue} in revenue.",
+        "Category: ${category}\nFebruary revenue: ${revenue}",
+        "The winner is ${category} at ${revenue}.",
+        "${category}: ${revenue}",
+        "${category}, ${revenue}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

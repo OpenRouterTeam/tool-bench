@@ -7,6 +7,13 @@ services = ["tavily", "zendesk"]
 tags = ["write", "multi-service", "tavily", "zendesk", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Quillstream v3 docs (2026-09-14) say Business 750 rpm; deprecated v2 docs and a 2025 review say 300, a forum post 500; Quillpad says 400; tickets 5287, 5298 and 5301 are look-alikes of 5302."
+
 # Quillstream's current v3 docs: Business = 750 requests/minute (burst 120), per workspace.
 # Stale numbers: deprecated v2 docs and a 2025 review (300), a forum post (500); Quillpad is a
 # different vendor (400). The right ticket is 5302 (Priya Shah, open). Look-alikes: her solved

@@ -49,11 +49,105 @@
     }
   ],
   "answer": {
-    "contains": [
-      "#1063",
-      "176"
-    ],
-    "regex": "(?i)(unfulfilled|not (yet )?(been )?(shipped|fulfilled)|has(n.t| not) (yet )?(shipped|been shipped|been fulfilled))"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the number of the Shopify order placed on May 10, 2026 by the customer who requested the Zendesk ticket Sam Ortiz opened on 2026-05-17, say that it has not shipped (fulfillment status UNFULFILLED), and state its total in US dollars.",
+      "selector": {
+        "collection": "/services/shopify/orders",
+        "matching": {},
+        "field_patterns": {
+          "/createdAt": "^2026-05-10T"
+        },
+        "references": [
+          {
+            "source_field": "/email",
+            "target": {
+              "collection": "/services/zendesk/users",
+              "matching": {
+                "name": "Sam Ortiz"
+              },
+              "references": [
+                {
+                  "source_field": "/id",
+                  "target": {
+                    "collection": "/services/zendesk/tickets",
+                    "matching": {},
+                    "field_patterns": {
+                      "/created_at": "^2026-05-17T"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/requester_id"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/email"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "order": {
+          "field": "/name",
+          "kind": "identifier",
+          "capture": "^#(\\d+)$"
+        },
+        "status": {
+          "field": "/fulfillmentStatus",
+          "kind": "text",
+          "wordings": {
+            "UNFULFILLED": [
+              "not shipped",
+              "not shipped yet",
+              "has not shipped yet",
+              "not yet shipped",
+              "not been shipped",
+              "not yet been shipped",
+              "hasn't shipped",
+              "hasn't yet shipped",
+              "hasn't been shipped",
+              "hasn't yet been shipped",
+              "not fulfilled",
+              "not yet fulfilled",
+              "not been fulfilled",
+              "not yet been fulfilled",
+              "hasn't been fulfilled",
+              "hasn't yet been fulfilled",
+              "awaiting fulfillment",
+              "unshipped"
+            ]
+          }
+        },
+        "total": {
+          "field": "/totalPrice",
+          "kind": "money"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "(Sam's other order, #1051 from March, was fulfilled; #1060 belongs to a different Sam Ortiz.)",
+        "Shipped: No",
+        "payment PAID"
+      ],
+      "assertions": [
+        "Order #${order} — total ${total} — ${status} (${status}).",
+        "Order #${order} — total ${total} — ${status}.",
+        "Order #${order}, ${status}, total ${total}.",
+        "- Order number: ${order}\n- Status: ${status}\n- Order total: ${total}",
+        "Order number: #${order}\n— fulfillment status is ${status}\nOrder total: ${total}",
+        "The order is #${order}, ${status}, total ${total}.",
+        "Order #${order} is ${status}; total ${total}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

@@ -1,4 +1,6 @@
 //! bench-report <run-a-dir> <run-b-dir> [--json] [--allow-agent-difference]
+//!              [--information-treatment framing|workspace|exposure]
+//!              [--release manifest.json]
 //!
 //! Each dir holds Harbor trial results (local `harbor run -o` output, or a run's artifacts
 //! downloaded from the run's artifact bucket).
@@ -6,7 +8,7 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, bail};
-use report::{compare_declared, load_trials};
+use report::load_trials;
 
 fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -14,10 +16,9 @@ fn main() -> anyhow::Result<()> {
         if args.len() != 3 || args[2] != "--json" {
             bail!("usage: bench-report --trials <run-dir> --json");
         }
-        let trials = load_trials(&PathBuf::from(&args[1]))?;
         println!(
             "{}",
-            serde_json::to_string_pretty(&report::trial_summary(&trials))?
+            serde_json::to_string_pretty(&report::explain::summary(&PathBuf::from(&args[1]))?)?
         );
         return Ok(());
     }
@@ -36,6 +37,8 @@ fn main() -> anyhow::Result<()> {
     let mut instructions_root = None;
     let mut json_output = false;
     let mut allow_agent_difference = false;
+    let mut information = None;
+    let mut release = None;
     while index < args.len() {
         let argument = &args[index];
         if !seen.insert(argument) {
@@ -44,6 +47,21 @@ fn main() -> anyhow::Result<()> {
         match argument.as_str() {
             "--json" => json_output = true,
             "--allow-agent-difference" => allow_agent_difference = true,
+            "--release" => {
+                index += 1;
+                release = Some(report::release::load(&PathBuf::from(
+                    args.get(index).context("--release needs a manifest path")?,
+                ))?);
+            }
+            "--information-treatment" => {
+                index += 1;
+                information = Some(
+                    args.get(index)
+                        .context("--information-treatment needs framing, workspace or exposure")?
+                        .parse()
+                        .map_err(anyhow::Error::msg)?,
+                );
+            }
             "--review-policy" | "--review-store" | "--instructions-root" => {
                 index += 1;
                 let value = PathBuf::from(
@@ -73,7 +91,21 @@ fn main() -> anyhow::Result<()> {
             "review reporting requires --review-policy, --review-store and --instructions-root together"
         ),
     };
-    let report = compare_declared(&left, &right, allow_agent_difference)?;
+    let report = match &release {
+        Some(release) => report::release::compare_treatment(
+            &left,
+            &right,
+            release,
+            allow_agent_difference,
+            information,
+        )?,
+        None => report::release::compare_unfrozen_treatment(
+            &left,
+            &right,
+            allow_agent_difference,
+            information,
+        )?,
+    };
     if json_output {
         println!("{}", serde_json::to_string_pretty(&report)?);
     } else {

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/notion/log-customer-escalation",
-  "scenario_sha256": "sha256:c6133215327df49628f29f17184c3c8962434ff1d45a37217e2a3e264aae5254",
+  "scenario_sha256": "sha256:76af8de45d9bdd3af432d113f4a7323b1898e069a3713c2c2e0ae7e79a3e3f01",
   "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
   "contract_sha256": "sha256:73bdda139267f921d1a2ed33229dbbf54904beef147fce1661d017797973dcc7"
 }

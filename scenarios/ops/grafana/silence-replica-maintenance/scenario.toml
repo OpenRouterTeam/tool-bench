@@ -7,6 +7,13 @@ services = ["grafana"]
 tags = ["write", "single-service", "grafana"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 0
+rationale = "Alertname PostgresReplicationLag, instance pg-replica-2, the window and CHG-7781 are all given; one silence create; the two existing silences (NodeDiskFillingUp, staging error rate) are unrelated."
+
 [expect]
 version = 2
 audit_history = true
@@ -39,7 +46,7 @@ arguments = { operation = "list" }
 endpoint = "grafana"
 tool = "alerting_silences_write"
 arguments = { operation = "create", matchers = [{ name = "alertname", value = "PostgresReplicationLag" }, { name = "instance", value = "pg-replica-2" }], starts_at = "2026-11-13T02:00:00Z", ends_at = "2026-11-13T04:00:00Z", comment = "CHG-7781 storage maintenance on pg-replica-2", created_by = "sre" }
-capture = [{ name = "created_silence", pointer = "/content/0/text", json_pointer = "/silenceID" }]
+capture = [{ name = "created_silence", pointer = "/content/0/text", json_pointer = "/silenceID", constraint = { type = "string", minLength = 1 } }]
 
 [[solution.call]]
 endpoint = "grafana"

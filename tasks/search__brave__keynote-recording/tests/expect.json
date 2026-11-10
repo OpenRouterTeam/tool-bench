@@ -21,12 +21,51 @@
   ],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "Lindqvist",
-      "47:12",
-      "Zt4mQeL1x9c"
-    ],
-    "regex": null
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "For the full recording of the keynote \"Scaling Postgres to 1M writes/s\" published by the PGConf Nordic channel, state the speaker, the video duration and the video URL.",
+      "selector": {
+        "collection": "/services/brave/videos",
+        "matching": {
+          "creator": "PGConf Nordic"
+        },
+        "field_patterns": {
+          "/description": "(?i)full recording",
+          "/title": "Scaling Postgres to 1M writes/s"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "duration": {
+          "field": "/duration",
+          "kind": "identifier"
+        },
+        "speaker": {
+          "field": "/title",
+          "kind": "text",
+          "capture": " - ([A-Z][a-z]+ [A-Z][a-z]+)(?: \\||$| \\()"
+        },
+        "url": {
+          "field": "/url",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "Full official recording (PGConf Nordic channel):"
+      ],
+      "assertions": [
+        "${speaker} gave the keynote; the video runs ${duration}: ${url}",
+        "- Speaker: ${speaker} - Length: ${duration} - Link: ${url}",
+        "- Speaker: ${speaker} - Length: ${duration} (mm:ss) - Link: [PGConf Nordic](${url})",
+        "Speaker: ${speaker}. Duration: ${duration}. Recording: ${url}",
+        "${speaker}, ${duration}, ${url}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

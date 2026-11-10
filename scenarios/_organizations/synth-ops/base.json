@@ -1,0 +1,647 @@
+{
+  "schema_version": 1,
+  "id": "synth-ops",
+  "revision": 1,
+  "description": "Calder Ridge Supply: a fictional shared billing organization for unscored diagnostic tasks. Two similarly named accounts were each charged twice for one order.",
+  "datasets": {
+    "stripe": {
+      "account": [
+        {
+          "id": "acct_1Qs7CrLm4XnT82Vd",
+          "business_profile": {
+            "mcc": "5065",
+            "name": "Calder Ridge Supply",
+            "support_email": "billing@calderridge.example",
+            "support_phone": null,
+            "support_address": null,
+            "url": "https://calderridge.example"
+          },
+          "created": 1740787200,
+          "email": "ops@calderridge.example",
+          "livemode": false,
+          "settings": {
+            "dashboard": {
+              "display_name": "Calder Ridge Supply",
+              "timezone": "America/Chicago"
+            }
+          }
+        }
+      ],
+      "customers": [
+        {
+          "id": "cus_dJZayTexJlACKB",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1756742400,
+          "currency": "usd",
+          "description": null,
+          "email": "accounts@river-electronics.example",
+          "invoice_prefix": "RVE4C21A",
+          "metadata": {},
+          "name": "River Electronics",
+          "next_invoice_sequence": 4,
+          "phone": null
+        },
+        {
+          "id": "cus_S60SWccf6YSucm",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1756742400,
+          "currency": "usd",
+          "description": null,
+          "email": "billing@river-electricals.example",
+          "invoice_prefix": "RVL9D03B",
+          "metadata": {},
+          "name": "River Electricals",
+          "next_invoice_sequence": 4,
+          "phone": null
+        },
+        {
+          "id": "cus_oHVyNEkFGMpbRT",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1756742400,
+          "currency": "usd",
+          "description": null,
+          "email": "hello@harborlane.example",
+          "invoice_prefix": "HLS17F6C",
+          "metadata": {},
+          "name": "Harbor Lane Studio",
+          "next_invoice_sequence": 4,
+          "phone": null
+        }
+      ],
+      "payment_methods": [
+        {
+          "id": "pm_dJZayTexJlACKB58vsk3ayCx",
+          "object": "payment_method",
+          "billing_details": {
+            "address": {
+              "city": null,
+              "country": "US",
+              "line1": null,
+              "line2": null,
+              "postal_code": null,
+              "state": null
+            },
+            "email": "accounts@river-electronics.example",
+            "name": "River Electronics",
+            "phone": null,
+            "tax_id": null
+          },
+          "card": {
+            "brand": "visa",
+            "checks": {
+              "address_line1_check": null,
+              "address_postal_code_check": "pass",
+              "cvc_check": "pass"
+            },
+            "country": "US",
+            "exp_month": 8,
+            "exp_year": 2028,
+            "fingerprint": "FonRmbSTfDKwcWdZ",
+            "funding": "credit",
+            "last4": "4242"
+          },
+          "created": 1756742400,
+          "customer": "cus_dJZayTexJlACKB",
+          "type": "card"
+        },
+        {
+          "id": "pm_S60SWccf6YSucmoYCWjReDNg",
+          "object": "payment_method",
+          "billing_details": {
+            "address": {
+              "city": null,
+              "country": "US",
+              "line1": null,
+              "line2": null,
+              "postal_code": null,
+              "state": null
+            },
+            "email": "billing@river-electricals.example",
+            "name": "River Electricals",
+            "phone": null,
+            "tax_id": null
+          },
+          "card": {
+            "brand": "visa",
+            "checks": {
+              "address_line1_check": null,
+              "address_postal_code_check": "pass",
+              "cvc_check": "pass"
+            },
+            "country": "US",
+            "exp_month": 8,
+            "exp_year": 2028,
+            "fingerprint": "HlVB2fxJYCM59kAd",
+            "funding": "credit",
+            "last4": "1881"
+          },
+          "created": 1756742400,
+          "customer": "cus_S60SWccf6YSucm",
+          "type": "card"
+        },
+        {
+          "id": "pm_oHVyNEkFGMpbRTWK5AX1osBQ",
+          "object": "payment_method",
+          "billing_details": {
+            "address": {
+              "city": null,
+              "country": "US",
+              "line1": null,
+              "line2": null,
+              "postal_code": null,
+              "state": null
+            },
+            "email": "hello@harborlane.example",
+            "name": "Harbor Lane Studio",
+            "phone": null,
+            "tax_id": null
+          },
+          "card": {
+            "brand": "visa",
+            "checks": {
+              "address_line1_check": null,
+              "address_postal_code_check": "pass",
+              "cvc_check": "pass"
+            },
+            "country": "US",
+            "exp_month": 8,
+            "exp_year": 2028,
+            "fingerprint": "EaGgODEG6v8qQz1m",
+            "funding": "credit",
+            "last4": "0005"
+          },
+          "created": 1756742400,
+          "customer": "cus_oHVyNEkFGMpbRT",
+          "type": "card"
+        }
+      ],
+      "charges": [
+        {
+          "id": "ch_OMONUJwRxyfkAO05amMMtils",
+          "object": "charge",
+          "amount": 25000,
+          "amount_captured": 25000,
+          "amount_refunded": 0,
+          "balance_transaction": "txn_OMONUJwRxyfkAO05amMMtils",
+          "calculated_statement_descriptor": "CALDER RIDGE",
+          "captured": true,
+          "created": 1772464800,
+          "currency": "usd",
+          "customer": "cus_dJZayTexJlACKB",
+          "description": "Switchgear parts order #D-100",
+          "disputed": false,
+          "metadata": {
+            "order_id": "D-100"
+          },
+          "paid": true,
+          "payment_intent": "pi_OMONUJwRxyfkAO05amMMtils",
+          "payment_method": "pm_dJZayTexJlACKB58vsk3ayCx",
+          "payment_method_details": {
+            "card": {
+              "brand": "visa",
+              "exp_month": 8,
+              "exp_year": 2028,
+              "funding": "credit",
+              "last4": "4242",
+              "network": "visa"
+            },
+            "type": "card"
+          },
+          "refunded": false,
+          "status": "succeeded"
+        },
+        {
+          "id": "ch_Sd4zV5cEaOB8x0imh4qSTpyF",
+          "object": "charge",
+          "amount": 25000,
+          "amount_captured": 25000,
+          "amount_refunded": 0,
+          "balance_transaction": "txn_Sd4zV5cEaOB8x0imh4qSTpyF",
+          "calculated_statement_descriptor": "CALDER RIDGE",
+          "captured": true,
+          "created": 1772532120,
+          "currency": "usd",
+          "customer": "cus_dJZayTexJlACKB",
+          "description": "Switchgear parts order #D-101",
+          "disputed": false,
+          "metadata": {
+            "order_id": "D-101"
+          },
+          "paid": true,
+          "payment_intent": "pi_Sd4zV5cEaOB8x0imh4qSTpyF",
+          "payment_method": "pm_dJZayTexJlACKB58vsk3ayCx",
+          "payment_method_details": {
+            "card": {
+              "brand": "visa",
+              "exp_month": 8,
+              "exp_year": 2028,
+              "funding": "credit",
+              "last4": "4242",
+              "network": "visa"
+            },
+            "type": "card"
+          },
+          "refunded": false,
+          "status": "succeeded"
+        },
+        {
+          "id": "ch_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "object": "charge",
+          "amount": 25000,
+          "amount_captured": 25000,
+          "amount_refunded": 0,
+          "balance_transaction": "txn_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "calculated_statement_descriptor": "CALDER RIDGE",
+          "captured": true,
+          "created": 1772532240,
+          "currency": "usd",
+          "customer": "cus_dJZayTexJlACKB",
+          "description": "Switchgear parts order #D-101",
+          "disputed": false,
+          "metadata": {
+            "order_id": "D-101"
+          },
+          "paid": true,
+          "payment_intent": "pi_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "payment_method": "pm_dJZayTexJlACKB58vsk3ayCx",
+          "payment_method_details": {
+            "card": {
+              "brand": "visa",
+              "exp_month": 8,
+              "exp_year": 2028,
+              "funding": "credit",
+              "last4": "4242",
+              "network": "visa"
+            },
+            "type": "card"
+          },
+          "refunded": false,
+          "status": "succeeded"
+        },
+        {
+          "id": "ch_WCsZkaM5zWZDAz4ZMX6cDQQy",
+          "object": "charge",
+          "amount": 25000,
+          "amount_captured": 25000,
+          "amount_refunded": 0,
+          "balance_transaction": "txn_WCsZkaM5zWZDAz4ZMX6cDQQy",
+          "calculated_statement_descriptor": "CALDER RIDGE",
+          "captured": true,
+          "created": 1772537400,
+          "currency": "usd",
+          "customer": "cus_S60SWccf6YSucm",
+          "description": "Conduit fittings order #D-200",
+          "disputed": false,
+          "metadata": {
+            "order_id": "D-200"
+          },
+          "paid": true,
+          "payment_intent": "pi_WCsZkaM5zWZDAz4ZMX6cDQQy",
+          "payment_method": "pm_S60SWccf6YSucmoYCWjReDNg",
+          "payment_method_details": {
+            "card": {
+              "brand": "visa",
+              "exp_month": 8,
+              "exp_year": 2028,
+              "funding": "credit",
+              "last4": "1881",
+              "network": "visa"
+            },
+            "type": "card"
+          },
+          "refunded": false,
+          "status": "succeeded"
+        },
+        {
+          "id": "ch_JsA7JdthLfIA9Xasj0cWSMcB",
+          "object": "charge",
+          "amount": 25000,
+          "amount_captured": 25000,
+          "amount_refunded": 0,
+          "balance_transaction": "txn_JsA7JdthLfIA9Xasj0cWSMcB",
+          "calculated_statement_descriptor": "CALDER RIDGE",
+          "captured": true,
+          "created": 1772617260,
+          "currency": "usd",
+          "customer": "cus_S60SWccf6YSucm",
+          "description": "Conduit fittings order #D-201",
+          "disputed": false,
+          "metadata": {
+            "order_id": "D-201"
+          },
+          "paid": true,
+          "payment_intent": "pi_JsA7JdthLfIA9Xasj0cWSMcB",
+          "payment_method": "pm_S60SWccf6YSucmoYCWjReDNg",
+          "payment_method_details": {
+            "card": {
+              "brand": "visa",
+              "exp_month": 8,
+              "exp_year": 2028,
+              "funding": "credit",
+              "last4": "1881",
+              "network": "visa"
+            },
+            "type": "card"
+          },
+          "refunded": false,
+          "status": "succeeded"
+        },
+        {
+          "id": "ch_AWo6uE3ilfESIwPMpD7MCRFA",
+          "object": "charge",
+          "amount": 25000,
+          "amount_captured": 25000,
+          "amount_refunded": 0,
+          "balance_transaction": "txn_AWo6uE3ilfESIwPMpD7MCRFA",
+          "calculated_statement_descriptor": "CALDER RIDGE",
+          "captured": true,
+          "created": 1772617380,
+          "currency": "usd",
+          "customer": "cus_S60SWccf6YSucm",
+          "description": "Conduit fittings order #D-201",
+          "disputed": false,
+          "metadata": {
+            "order_id": "D-201"
+          },
+          "paid": true,
+          "payment_intent": "pi_AWo6uE3ilfESIwPMpD7MCRFA",
+          "payment_method": "pm_S60SWccf6YSucmoYCWjReDNg",
+          "payment_method_details": {
+            "card": {
+              "brand": "visa",
+              "exp_month": 8,
+              "exp_year": 2028,
+              "funding": "credit",
+              "last4": "1881",
+              "network": "visa"
+            },
+            "type": "card"
+          },
+          "refunded": false,
+          "status": "succeeded"
+        },
+        {
+          "id": "ch_FoM54gEb9f8QJt7JfNQNRrpV",
+          "object": "charge",
+          "amount": 9000,
+          "amount_captured": 9000,
+          "amount_refunded": 0,
+          "balance_transaction": "txn_FoM54gEb9f8QJt7JfNQNRrpV",
+          "calculated_statement_descriptor": "CALDER RIDGE",
+          "captured": true,
+          "created": 1772719800,
+          "currency": "usd",
+          "customer": "cus_oHVyNEkFGMpbRT",
+          "description": "Display stand order #D-300",
+          "disputed": false,
+          "metadata": {
+            "order_id": "D-300"
+          },
+          "paid": true,
+          "payment_intent": "pi_FoM54gEb9f8QJt7JfNQNRrpV",
+          "payment_method": "pm_oHVyNEkFGMpbRTWK5AX1osBQ",
+          "payment_method_details": {
+            "card": {
+              "brand": "visa",
+              "exp_month": 8,
+              "exp_year": 2028,
+              "funding": "credit",
+              "last4": "0005",
+              "network": "visa"
+            },
+            "type": "card"
+          },
+          "refunded": false,
+          "status": "succeeded"
+        }
+      ],
+      "payment_intents": [
+        {
+          "id": "pi_OMONUJwRxyfkAO05amMMtils",
+          "object": "payment_intent",
+          "amount": 25000,
+          "amount_received": 25000,
+          "created": 1772464800,
+          "currency": "usd",
+          "customer": "cus_dJZayTexJlACKB",
+          "description": "Switchgear parts order #D-100",
+          "latest_charge": "ch_OMONUJwRxyfkAO05amMMtils",
+          "metadata": {
+            "order_id": "D-100"
+          },
+          "payment_method": "pm_dJZayTexJlACKB58vsk3ayCx",
+          "status": "succeeded"
+        },
+        {
+          "id": "pi_Sd4zV5cEaOB8x0imh4qSTpyF",
+          "object": "payment_intent",
+          "amount": 25000,
+          "amount_received": 25000,
+          "created": 1772532120,
+          "currency": "usd",
+          "customer": "cus_dJZayTexJlACKB",
+          "description": "Switchgear parts order #D-101",
+          "latest_charge": "ch_Sd4zV5cEaOB8x0imh4qSTpyF",
+          "metadata": {
+            "order_id": "D-101"
+          },
+          "payment_method": "pm_dJZayTexJlACKB58vsk3ayCx",
+          "status": "succeeded"
+        },
+        {
+          "id": "pi_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "object": "payment_intent",
+          "amount": 25000,
+          "amount_received": 25000,
+          "created": 1772532240,
+          "currency": "usd",
+          "customer": "cus_dJZayTexJlACKB",
+          "description": "Switchgear parts order #D-101",
+          "latest_charge": "ch_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "metadata": {
+            "order_id": "D-101"
+          },
+          "payment_method": "pm_dJZayTexJlACKB58vsk3ayCx",
+          "status": "succeeded"
+        },
+        {
+          "id": "pi_WCsZkaM5zWZDAz4ZMX6cDQQy",
+          "object": "payment_intent",
+          "amount": 25000,
+          "amount_received": 25000,
+          "created": 1772537400,
+          "currency": "usd",
+          "customer": "cus_S60SWccf6YSucm",
+          "description": "Conduit fittings order #D-200",
+          "latest_charge": "ch_WCsZkaM5zWZDAz4ZMX6cDQQy",
+          "metadata": {
+            "order_id": "D-200"
+          },
+          "payment_method": "pm_S60SWccf6YSucmoYCWjReDNg",
+          "status": "succeeded"
+        },
+        {
+          "id": "pi_JsA7JdthLfIA9Xasj0cWSMcB",
+          "object": "payment_intent",
+          "amount": 25000,
+          "amount_received": 25000,
+          "created": 1772617260,
+          "currency": "usd",
+          "customer": "cus_S60SWccf6YSucm",
+          "description": "Conduit fittings order #D-201",
+          "latest_charge": "ch_JsA7JdthLfIA9Xasj0cWSMcB",
+          "metadata": {
+            "order_id": "D-201"
+          },
+          "payment_method": "pm_S60SWccf6YSucmoYCWjReDNg",
+          "status": "succeeded"
+        },
+        {
+          "id": "pi_AWo6uE3ilfESIwPMpD7MCRFA",
+          "object": "payment_intent",
+          "amount": 25000,
+          "amount_received": 25000,
+          "created": 1772617380,
+          "currency": "usd",
+          "customer": "cus_S60SWccf6YSucm",
+          "description": "Conduit fittings order #D-201",
+          "latest_charge": "ch_AWo6uE3ilfESIwPMpD7MCRFA",
+          "metadata": {
+            "order_id": "D-201"
+          },
+          "payment_method": "pm_S60SWccf6YSucmoYCWjReDNg",
+          "status": "succeeded"
+        },
+        {
+          "id": "pi_FoM54gEb9f8QJt7JfNQNRrpV",
+          "object": "payment_intent",
+          "amount": 9000,
+          "amount_received": 9000,
+          "created": 1772719800,
+          "currency": "usd",
+          "customer": "cus_oHVyNEkFGMpbRT",
+          "description": "Display stand order #D-300",
+          "latest_charge": "ch_FoM54gEb9f8QJt7JfNQNRrpV",
+          "metadata": {
+            "order_id": "D-300"
+          },
+          "payment_method": "pm_oHVyNEkFGMpbRTWK5AX1osBQ",
+          "status": "succeeded"
+        }
+      ],
+      "balance_transactions": [
+        {
+          "id": "txn_OMONUJwRxyfkAO05amMMtils",
+          "object": "balance_transaction",
+          "amount": 25000,
+          "available_on": 1772637600,
+          "created": 1772464800,
+          "currency": "usd",
+          "description": "Switchgear parts order #D-100",
+          "fee": 755,
+          "net": 24245,
+          "reporting_category": "charge",
+          "source": "ch_OMONUJwRxyfkAO05amMMtils",
+          "status": "available",
+          "type": "charge"
+        },
+        {
+          "id": "txn_Sd4zV5cEaOB8x0imh4qSTpyF",
+          "object": "balance_transaction",
+          "amount": 25000,
+          "available_on": 1772704920,
+          "created": 1772532120,
+          "currency": "usd",
+          "description": "Switchgear parts order #D-101",
+          "fee": 755,
+          "net": 24245,
+          "reporting_category": "charge",
+          "source": "ch_Sd4zV5cEaOB8x0imh4qSTpyF",
+          "status": "available",
+          "type": "charge"
+        },
+        {
+          "id": "txn_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "object": "balance_transaction",
+          "amount": 25000,
+          "available_on": 1772705040,
+          "created": 1772532240,
+          "currency": "usd",
+          "description": "Switchgear parts order #D-101",
+          "fee": 755,
+          "net": 24245,
+          "reporting_category": "charge",
+          "source": "ch_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "status": "available",
+          "type": "charge"
+        },
+        {
+          "id": "txn_WCsZkaM5zWZDAz4ZMX6cDQQy",
+          "object": "balance_transaction",
+          "amount": 25000,
+          "available_on": 1772710200,
+          "created": 1772537400,
+          "currency": "usd",
+          "description": "Conduit fittings order #D-200",
+          "fee": 755,
+          "net": 24245,
+          "reporting_category": "charge",
+          "source": "ch_WCsZkaM5zWZDAz4ZMX6cDQQy",
+          "status": "available",
+          "type": "charge"
+        },
+        {
+          "id": "txn_JsA7JdthLfIA9Xasj0cWSMcB",
+          "object": "balance_transaction",
+          "amount": 25000,
+          "available_on": 1772790060,
+          "created": 1772617260,
+          "currency": "usd",
+          "description": "Conduit fittings order #D-201",
+          "fee": 755,
+          "net": 24245,
+          "reporting_category": "charge",
+          "source": "ch_JsA7JdthLfIA9Xasj0cWSMcB",
+          "status": "available",
+          "type": "charge"
+        },
+        {
+          "id": "txn_AWo6uE3ilfESIwPMpD7MCRFA",
+          "object": "balance_transaction",
+          "amount": 25000,
+          "available_on": 1772790180,
+          "created": 1772617380,
+          "currency": "usd",
+          "description": "Conduit fittings order #D-201",
+          "fee": 755,
+          "net": 24245,
+          "reporting_category": "charge",
+          "source": "ch_AWo6uE3ilfESIwPMpD7MCRFA",
+          "status": "available",
+          "type": "charge"
+        },
+        {
+          "id": "txn_FoM54gEb9f8QJt7JfNQNRrpV",
+          "object": "balance_transaction",
+          "amount": 9000,
+          "available_on": 1772892600,
+          "created": 1772719800,
+          "currency": "usd",
+          "description": "Display stand order #D-300",
+          "fee": 291,
+          "net": 8709,
+          "reporting_category": "charge",
+          "source": "ch_FoM54gEb9f8QJt7JfNQNRrpV",
+          "status": "available",
+          "type": "charge"
+        }
+      ]
+    }
+  }
+}

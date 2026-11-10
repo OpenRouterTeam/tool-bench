@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/github/file-login-bug",
-  "scenario_sha256": "sha256:07713b9c1b05fcd579678c51477444800daeeb13ad25f8795022f5212b796583",
+  "scenario_sha256": "sha256:f8b4df18185941c23cf47d34571c3276466f0131a68e823597fbf6a551e9f2de",
   "dataset_sha256": "sha256:3b75506d03c8f40eceb3a9f553a45b3de838913b097fda3254bda29cecdadb31",
   "contract_sha256": "sha256:6aa15e4ce133c1d72853195b23105cd45d9231a62312788833cb4e3dbc0b29e7"
 }

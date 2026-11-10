@@ -33,10 +33,112 @@ Captured values cannot be predicted or replaced with convenient validation value
   reference execution alone does not establish complete argument validation or
   supported operation semantics.
 
+### Captured-argument constraints
+
+A capture may declare a `constraint`: a JSON Schema for the captured value in the
+keyword subset shared by the Rust validator and the generated oracle's
+`value-schema.jq` (`type`, `properties`, `required`, `additionalProperties`,
+`items`, `enum`, `const`, `minLength`, `maxLength`, `minItems`, `maxItems`,
+`pattern`, `minimum`, `maximum`; formats and descriptions stay annotations).
+A constraint names exactly one JSON type. Patterns are limited to an ASCII subset
+without groups-with-flags or look-around so both engines read them identically.
+
+```toml
+[[solution.call.capture]]
+name = "refund_id"
+pointer = "/content/0/text"
+json_pointer = "/id"
+constraint = { type = "string", pattern = "^re_[A-Za-z0-9_]+$" }
+```
+
+Three checks use the declaration; none fabricates a captured value:
+
+1. **Static authoring.** For every `${binding}` use, the type the binding produces
+   (its declared type, or a string when interpolated into text) must be admitted
+   by the locked input schema at that argument position, and a declared `enum`
+   must be inside the consumer's `enum`. Interpolating a declared object or array
+   into text fails. When the source tool has a locked `outputSchema` and the
+   capture reads `/structuredContent/...`, the declared type must also overlap
+   the source position. A mismatch fails `taskgen` naming the call, binding,
+   tool and argument. Positions the locked schema does not constrain are recorded
+   as `consumer_unconstrained`, not as verified.
+2. **Capture time.** Both oracle implementations (`SolutionCall::capture_result`
+   and the generated `capture-constraints.jq` step) validate the actual value
+   before it is bound. A violation stops the program; the value is never bound.
+3. **Before the consuming call.** The generated oracle validates the fully
+   rendered arguments against the consuming tool's locked input schema
+   (`call-N.arguments-schema.json`, checked by `argument-schema.jq`) and exits
+   before the request is sent if they violate it. `OracleTools::check_resolved`
+   is the same check with the complete Rust validator. A task generated without
+   the locked schemas still emits the check, so that oracle refuses to send the
+   call rather than sending it unvalidated.
+
+The inventory drops `captured_argument_constraints_deferred` for a scenario only
+when every call using captured values has a declared constraint for each binding
+**and** a locked input schema inside the runtime-checkable subset. Otherwise the
+gap stays and the call's `captured.open` list says why
+(`undeclared_capture_constraint:<binding>` or
+`locked_input_schema_not_runtime_checkable:<keyword>`). Each call's `captured`
+entry lists every binding use, its mode and its static result.
+
+Limits: a declared constraint is the author's claim about a value's shape, not
+proof that the value identifies the intended record; schema validity still does
+not establish operation semantics; and the jq validator covers only the subset
+above (the parity fixture in `crates/scenario/tests/captured_arguments.rs` compares
+it with the Rust validator).
+
 The status and deferred JSON Pointer paths appear on each inventory call.
 Binding names, capture pointers and forward references are independently validated.
 Tools and arguments embedded inside code, GraphQL or SQL strings are not recursively
 validated as separate operations.
+
+## Validation-evidence admission
+
+Oracle-passes/no-op-fails evidence is not enough to admit a scored task. Each
+scored scenario needs declared tests for an independently authored **valid
+alternative** and for at least one **near miss** (`wrong_entity`,
+`collateral_change`, `partial`, `undone_prohibited_change`). Declarations live in
+`catalog/validation-evidence/<group>.toml`:
+
+```toml
+[[scenario]]
+id = "code/terraform/unlock-orders-prod"
+valid_alternative = [
+  "crates/world/tests/terraform_contracts.rs::cancellation_then_speculative_verification_is_a_valid_recovery_alternative",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/terraform_contracts.rs::clearing_the_target_lock_does_not_authorize_legacy_workspace_edits",
+]
+```
+
+Loading (`OracleTools::load`, therefore every `taskgen` run) fails when a
+reference is not `<path under crates/**/tests/>::<function>`, the file is
+missing, the function is not a `#[test]`/`#[tokio::test]` function, the file
+never names the scenario id, the scenario does not exist, a test is listed twice
+for one scenario, or an entry references nothing. A scenario without both a valid
+alternative and a near miss is not rejected from generation; it carries the
+`validation_evidence_missing` source gap, and the inventory's `authoring` summary
+counts scenarios with and without evidence and with every near-miss kind.
+
+The check establishes that the named tests exist and belong to a file about the
+scenario. It does not run them, and it cannot verify that a test's meaning matches
+its declared kind; that classification is reviewed, not derived. Never add a
+reference to clear the gap without a test that really exercises that behavior.
+
+## Reviewed-operation admission
+
+`catalog/operation-support/<service>.toml` is the machine-readable index of
+[reviewed operation support](operation-support.md). Each reference call of a
+scenario must map to a declared operation (`endpoint` + `tool`, plus `operation`
+for generic tools: the Stripe `stripe_api_operation_id` and the first two words of
+each `call_aws` command). Undeclared operations are listed per scenario under
+`authoring.unreviewed_operations` and raise the `unreviewed_reference_operation`
+source gap. Declarations fail loading when the endpoint or locked tool does not
+exist, the named `section` is not a heading of `docs/operation-support.md`, a
+referenced test does not exist, `partial` support omits its limitations, or a
+generic tool is declared without an operation.
 
 ## Reference execution errors
 
@@ -120,7 +222,9 @@ The inventory includes scored/example counts, declared contract/preservation/his
 requirements, content-check kinds, effect permissions, declared faults,
 quantity/latest-record/interval-union checks, exact array-length permissions,
 request-cause-scoped permissions, reference
-argument admission status, declared result profiles/error permissions and snapshot hashes. Each scenario also binds its source,
+argument admission status, declared result profiles/error permissions and snapshot hashes. The top-level
+`authoring` object and each scenario's `authoring` entry report captured-argument
+validation, validation evidence and reviewed-operation coverage with their own limits. Each scenario also binds its source,
 contract, dataset and instruction bytes. Generation is repeatable; source changes
 that leave all declaration counts unchanged still invalidate freshness.
 

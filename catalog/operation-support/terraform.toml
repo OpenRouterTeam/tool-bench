@@ -1,0 +1,70 @@
+# Reviewed operation support for `terraform`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "terraform"
+tool = "action_run"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"
+
+[[operation]]
+endpoint = "terraform"
+tool = "create_run"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"
+
+[[operation]]
+endpoint = "terraform"
+tool = "force_unlock_workspace"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"
+
+[[operation]]
+endpoint = "terraform"
+tool = "get_run_details"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"
+
+[[operation]]
+endpoint = "terraform"
+tool = "list_runs"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"
+
+[[operation]]
+endpoint = "terraform"
+tool = "list_terraform_projects"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"
+
+[[operation]]
+endpoint = "terraform"
+tool = "list_workspace_variables"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"
+
+[[operation]]
+endpoint = "terraform"
+tool = "list_workspaces"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"
+
+[[operation]]
+endpoint = "terraform"
+tool = "update_workspace_variable"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Terraform workflow and representation checkpoint — revision 34"

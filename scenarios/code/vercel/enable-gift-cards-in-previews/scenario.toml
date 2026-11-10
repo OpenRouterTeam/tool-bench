@@ -7,6 +7,13 @@ services = ["vercel"]
 tags = ["write", "single-service", "vercel"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 0
+rationale = "Project storefront, both keys, values and target environments are given in the instruction; one create call with no lookup; the existing production PAYMENTS_API_URL (9oK7J2kV) is a separate scope left as is."
+
 [expect]
 version = 2
 audit_history = true

@@ -7,6 +7,13 @@ services = ["linear"]
 tags = ["write", "single-service", "linear", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "WEB-51 Checkout button unresponsive on Safari (Todo) shares its exact title with PAY-97 (state Duplicate) and resembles Done WEB-44; only WEB-51 may get Urgent, Alex Kim and the comment."
+
 [expect]
 version = 2
 audit_history = true

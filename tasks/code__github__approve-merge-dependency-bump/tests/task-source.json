@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/github/approve-merge-dependency-bump",
-  "scenario_sha256": "sha256:ce1be2bacd76de0b470b8e6fb7350fd1917a815a72a4a7312226902f9d882c86",
+  "scenario_sha256": "sha256:2f77b326ef72233618d0eec764ccc4911e8cf2df9301b222b45b72f33eba156f",
   "dataset_sha256": "sha256:744c9182c027f4451704b134ec22c098eb2268560d0fa9769cb179d761f90f31",
   "contract_sha256": "sha256:5f92c6db7a7e3f2a27d26151c5467720909a624dc20bd44f89e4a7e714451523"
 }

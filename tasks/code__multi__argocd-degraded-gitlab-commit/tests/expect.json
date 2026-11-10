@@ -94,13 +94,185 @@
     }
   ],
   "answer": {
-    "contains": [
-      "checkout-web",
-      "2.14.0-rc3",
-      "7712",
-      "image-publish"
-    ],
-    "regex": "(?is)(denied|permission_denied|expired|scopes)"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the Argo CD application that is Degraded on production and the image tag its failing pod runs, the ID of the GitLab pipeline named by the deploy commit that application is synced to, the job that failed in that pipeline, and the error that job's log reports.",
+      "selector": {
+        "collection": "/services/argocd/applications",
+        "matching": {
+          "metadata": {
+            "labels": {
+              "env": "production"
+            }
+          },
+          "status": {
+            "health": {
+              "status": "Degraded"
+            }
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "app": {
+          "field": "/metadata/name",
+          "kind": "text"
+        },
+        "commit_sha": {
+          "field": "/id",
+          "kind": "identifier",
+          "optional": true,
+          "record": "commit",
+          "min_prefix": 7
+        },
+        "error": {
+          "field": "/trace",
+          "kind": "identifier",
+          "record": "job",
+          "capture": "(?m)^denied: (\\w+):",
+          "wordings": {
+            "permission_denied": [
+              "permission denied",
+              "denied",
+              "expired",
+              "scopes"
+            ]
+          }
+        },
+        "image_tag": {
+          "field": "/images/0",
+          "kind": "identifier",
+          "record": "pod",
+          "capture": ":([^:/]+)$"
+        },
+        "job": {
+          "field": "/name",
+          "kind": "text",
+          "record": "job"
+        },
+        "pipeline": {
+          "field": "/id",
+          "kind": "identifier",
+          "record": "pipeline"
+        },
+        "scope": {
+          "field": "/trace",
+          "kind": "identifier",
+          "optional": true,
+          "record": "scope_trace",
+          "capture": "expected scopes \\(([^)]+)\\)"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "commit": {
+          "collection": "/services/gitlab/commits",
+          "on": {
+            "/id": "/status/sync/revision"
+          }
+        },
+        "job": {
+          "from": "pipeline",
+          "collection": "/services/gitlab/jobs",
+          "filter": {
+            "matching": {
+              "/status": "failed"
+            }
+          },
+          "on": {
+            "/pipeline_id": "/id"
+          }
+        },
+        "pipeline": {
+          "from": "commit",
+          "collection": "/services/gitlab/pipelines",
+          "on": {
+            "/id": "/message"
+          },
+          "capture_from": {
+            "/message": "pipeline #(\\d+)"
+          }
+        },
+        "pod": {
+          "collection": "/services/argocd/resources",
+          "filter": {
+            "matching": {
+              "/kind": "Pod"
+            },
+            "excluding": [
+              {
+                "/health/status": "Healthy"
+              }
+            ]
+          },
+          "on": {
+            "/manifest/metadata/labels/app.kubernetes.io~1instance": "/metadata/name"
+          }
+        },
+        "scope_trace": {
+          "allow_absence": true,
+          "from": "job",
+          "collection": "/services/gitlab/jobs",
+          "filter": {
+            "patterns": {
+              "/trace": "expected scopes \\([^)]+\\)"
+            }
+          },
+          "on": {
+            "/id": "/id"
+          }
+        }
+      },
+      "context": [
+        "commit ${commit_sha}",
+        "The promote job runs with when: always, so it promoted the tag to production anyway",
+        "the promote job runs with when: always",
+        "the promote job has when: always",
+        "the promote job uses when: always",
+        "the promote job is configured with when: always",
+        "the promote job still ran",
+        "the promote job ran anyway",
+        "the promote job succeeded",
+        "The token provided",
+        "scope ${scope}",
+        "does not match expected scopes",
+        "because",
+        "and pushed the deploy commit anyway",
+        "promoted it although its"
+      ],
+      "predicates": [
+        "does not match expected scopes",
+        "does not match the expected scopes"
+      ],
+      "assertions": [
+        "App: ${app}, failing on image tag ${image_tag}",
+        "${app} cannot pull tag ${image_tag}",
+        "${app} (${image_tag})",
+        "Pipeline: ${pipeline}, failed job: ${job}",
+        "Pipeline ${pipeline}: ${job} failed",
+        "Pipeline ${pipeline}",
+        "Pipeline #${pipeline}",
+        "${job} failed",
+        "${job} job failed",
+        "failed job: ${job}",
+        "Error: denied: ${error}",
+        "Error: ${error}",
+        "${error}",
+        "the docker push was ${error}",
+        "the CI token ${error}",
+        "the push was ${error}",
+        "${job} failed with ${error}",
+        "${job} failed because the CI token ${error}",
+        "${job} failed because the push was ${error}",
+        "GHCR_TOKEN had ${error}",
+        "Error: denied: ${error}: The token provided does not match expected scopes (${scope})",
+        "(${scope})"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

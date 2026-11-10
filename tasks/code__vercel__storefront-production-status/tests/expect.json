@@ -37,10 +37,153 @@
     }
   ],
   "answer": {
-    "contains": [
-      "c3a9f12"
-    ],
-    "regex": "(?i)(250\\s*MB|function size|maximum size|size limit)"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the commit SHA and commit message that storefront's current production deployment serves, and why the project's most recent preview deployment failed (its error code, or a plain wording of it).",
+      "selector": {
+        "collection": "/services/vercel/deployments",
+        "matching": {
+          "name": "storefront",
+          "readyState": "READY",
+          "target": "production"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "largest": {
+          "field": "/createdAt"
+        }
+      },
+      "facts": {
+        "commit": {
+          "field": "/meta/githubCommitSha",
+          "kind": "identifier",
+          "min_prefix": 7
+        },
+        "failed_prod_commit": {
+          "field": "/meta/githubCommitSha",
+          "kind": "identifier",
+          "optional": true,
+          "record": "failed_prod",
+          "min_prefix": 7
+        },
+        "failed_prod_message": {
+          "field": "/meta/githubCommitMessage",
+          "kind": "text",
+          "optional": true,
+          "record": "failed_prod",
+          "capture": "^(.*?)(?: \\(#\\d+\\))?$"
+        },
+        "failed_prod_pr": {
+          "field": "/meta/githubCommitMessage",
+          "kind": "identifier",
+          "optional": true,
+          "record": "failed_prod",
+          "capture": "\\(#(\\d+)\\)$"
+        },
+        "message": {
+          "field": "/meta/githubCommitMessage",
+          "kind": "text",
+          "capture": "^(.*?)(?: \\(#\\d+\\))?$"
+        },
+        "preview_branch": {
+          "field": "/meta/githubCommitRef",
+          "kind": "identifier",
+          "optional": true,
+          "record": "preview"
+        },
+        "preview_commit": {
+          "field": "/meta/githubCommitSha",
+          "kind": "identifier",
+          "optional": true,
+          "record": "preview",
+          "min_prefix": 7
+        },
+        "prod_pr": {
+          "field": "/meta/githubCommitMessage",
+          "kind": "identifier",
+          "optional": true,
+          "capture": "\\(#(\\d+)\\)$"
+        },
+        "reason": {
+          "field": "/errorCode",
+          "kind": "text",
+          "record": "preview",
+          "also": [
+            "/errorMessage"
+          ],
+          "wordings": {
+            "FUNCTION_SIZE_EXCEEDED": [
+              "function size",
+              "maximum size",
+              "size limit"
+            ]
+          }
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "failed_prod": {
+          "allow_absence": true,
+          "collection": "/services/vercel/deployments",
+          "filter": {
+            "matching": {
+              "/readyState": "ERROR",
+              "/target": "production"
+            }
+          },
+          "on": {
+            "/projectId": "/projectId"
+          },
+          "pick": {
+            "largest": "/createdAt"
+          }
+        },
+        "preview": {
+          "collection": "/services/vercel/deployments",
+          "filter": {
+            "excluding": [
+              {
+                "/target": "production"
+              }
+            ]
+          },
+          "on": {
+            "/projectId": "/projectId"
+          },
+          "pick": {
+            "largest": "/createdAt"
+          }
+        }
+      },
+      "context": [
+        "The newer production deployment for ${failed_prod_message} (${failed_prod_commit}) failed its build, so it never went live",
+        "(branch ${preview_branch}, commit ${preview_commit})",
+        "PR #${prod_pr}",
+        "PR #${failed_prod_pr}",
+        "1.",
+        "2."
+      ],
+      "assertions": [
+        "Production serves ${commit}",
+        "Production is on ${commit}",
+        "Commit: ${commit}",
+        "${commit}",
+        "Message: ${message}",
+        "${message}",
+        "\"${message}\"",
+        "${message} (#${prod_pr})",
+        "The latest preview failed with ${reason}",
+        "The newest preview went over the ${reason} limit",
+        "Preview failure: ${reason}",
+        "${reason}",
+        "a Serverless Function has exceeded the unzipped ${reason} of 250 MB",
+        "Preview failure: a Serverless Function has exceeded the unzipped ${reason} of 250 MB"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

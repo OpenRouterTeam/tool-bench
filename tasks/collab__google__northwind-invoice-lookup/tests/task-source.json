@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/google/northwind-invoice-lookup",
-  "scenario_sha256": "sha256:4341c077cae0da4b934a76a2b91b9f58f262b0b979b50275c821c8fb77fc586c",
+  "scenario_sha256": "sha256:f55ede697cd9fb18726a141c00d1be6566dd2833600f4ac36a25c1f8ebc2051d",
   "dataset_sha256": "sha256:73b4fef1b385270d496c465e92edb5e73b43ced1bbdd1873d34521c5cfdd2852",
-  "contract_sha256": "sha256:f5ba8c106f87abfa4e7d6dba38cf9dd68c70942a641af697e99b2c46d221c12a"
+  "contract_sha256": "sha256:1b1e8105a415fe3b2b6ed56f641600e3814bb9fe78af7045e8801be8d92428d0"
 }

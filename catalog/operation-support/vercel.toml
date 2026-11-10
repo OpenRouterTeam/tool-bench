@@ -1,0 +1,56 @@
+# Reviewed operation support for `vercel`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "vercel"
+tool = "vercel-create-deployment"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Vercel environment scope and production recovery"
+
+[[operation]]
+endpoint = "vercel"
+tool = "vercel-create-environment-variables"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Vercel environment scope and production recovery"
+
+[[operation]]
+endpoint = "vercel"
+tool = "vercel-find-project"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Vercel environment scope and production recovery"
+
+[[operation]]
+endpoint = "vercel"
+tool = "vercel-get-deployment"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Vercel environment scope and production recovery"
+
+[[operation]]
+endpoint = "vercel"
+tool = "vercel-get-environments"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Vercel environment scope and production recovery"
+
+[[operation]]
+endpoint = "vercel"
+tool = "vercel-get-project-domain"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Vercel environment scope and production recovery"
+
+[[operation]]
+endpoint = "vercel"
+tool = "vercel-remove-environment-variable"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Vercel environment scope and production recovery"

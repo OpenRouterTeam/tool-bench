@@ -14,6 +14,7 @@ pub struct Inventory {
     pub validator: &'static str,
     pub limits: Vec<&'static str>,
     pub summary: Summary,
+    pub authoring: crate::authoring::Summary,
     pub snapshots: Vec<SnapshotIdentity>,
     pub scenarios: Vec<ScenarioCoverage>,
 }
@@ -22,6 +23,13 @@ pub struct Inventory {
 pub struct Summary {
     pub scored_tasks: usize,
     pub unscored_examples: usize,
+    pub unscored_diagnostics: usize,
+    /// Scored tasks by reviewed primary difficulty family.
+    pub scored_families: BTreeMap<&'static str, usize>,
+    /// Scored tasks that also exercise each secondary axis.
+    pub scored_secondary_families: BTreeMap<&'static str, usize>,
+    /// Scored tasks by information/operation dependency depth.
+    pub scored_dependency_depths: BTreeMap<u32, usize>,
     pub scored_version_two: usize,
     pub scored_legacy: usize,
     pub scored_declared_unscorable: usize,
@@ -41,6 +49,9 @@ pub struct ScenarioCoverage {
     pub source: mock_core::provenance::DatasetSource,
     pub instruction_sha256: String,
     pub scored: bool,
+    /// The reviewed `[scenario.family]` assignment (absent only for examples).
+    pub family: Option<crate::family::ScenarioFamily>,
+    pub scripted_user: bool,
     pub services: Vec<String>,
     pub tags: Vec<String>,
     pub contract_version: u32,
@@ -67,6 +78,7 @@ pub struct ScenarioCoverage {
     pub answer_check: &'static str,
     pub reference_answer_template: bool,
     pub declared_environment_faults: Vec<String>,
+    pub authoring: crate::authoring::ScenarioAuthoring,
     pub source_gaps: Vec<&'static str>,
     pub reference_calls: Vec<CallValidation>,
 }
@@ -102,6 +114,7 @@ pub fn inventory(
     );
     let mut summary = Summary::default();
     let mut rows = Vec::new();
+    let mut authoring = crate::authoring::Accumulator::default();
     for (scenario, reference_calls) in scenarios.iter().zip(calls) {
         anyhow::ensure!(
             reference_calls.len() == scenario.solution.calls.len(),
@@ -117,9 +130,25 @@ pub fn inventory(
             "coverage reference identities differ for {}",
             scenario.meta.id
         );
-        let scored = !scenario.meta.id.starts_with("example/");
+        let scored = scenario.scored();
         if scored {
             summary.scored_tasks += 1;
+            if let Some(family) = &scenario.meta.family {
+                *summary
+                    .scored_families
+                    .entry(family.primary.key())
+                    .or_default() += 1;
+                for secondary in &family.secondary {
+                    *summary
+                        .scored_secondary_families
+                        .entry(secondary.key())
+                        .or_default() += 1;
+                }
+                *summary
+                    .scored_dependency_depths
+                    .entry(family.dependency_depth)
+                    .or_default() += 1;
+            }
             summary.scored_declared_unscorable +=
                 usize::from(!scenario.expect.environment_faults.is_empty());
             if scenario.expect.version == 2 {
@@ -131,6 +160,8 @@ pub fn inventory(
                 usize::from(scenario.meta.tags.iter().any(|tag| tag == "lookup"));
             summary.scored_writes +=
                 usize::from(scenario.meta.tags.iter().any(|tag| tag == "write"));
+        } else if scenario.meta.id.starts_with("diagnostic/") {
+            summary.unscored_diagnostics += 1
         } else {
             summary.unscored_examples += 1
         }
@@ -273,6 +304,15 @@ pub fn inventory(
         }) {
             source_gaps.push("legacy_answer_semantics")
         }
+        if scenario
+            .expect
+            .answer
+            .as_ref()
+            .and_then(|answer| answer.record_facts.as_ref())
+            .is_some_and(|facts| facts.assertions.is_empty())
+        {
+            source_gaps.push("answer_assertion_grammar_missing");
+        }
         if scenario.expect.answer.as_ref().is_some_and(|answer| {
             answer.source == mock_core::grading::AnswerSource::LegacyAnswerFile
                 && (answer.sentry_dsn.is_some()
@@ -285,6 +325,8 @@ pub fn inventory(
         if static_count != reference_calls.len() {
             source_gaps.push("captured_argument_constraints_deferred")
         }
+        let scenario_authoring =
+            authoring.review(scenario, &reference_calls, tools, scored, &mut source_gaps);
         if scored {
             for gap in &source_gaps {
                 *summary.scored_source_gaps.entry(*gap).or_default() += 1;
@@ -314,6 +356,10 @@ pub fn inventory(
             source: mock_core::dataset::Dataset::load(&scenario.dir)?.source,
             instruction_sha256: mock_core::runner::sha256(scenario.instruction.as_bytes()),
             scored,
+            family: scenario.meta.family.clone(),
+            scripted_user: mock_core::dataset::Dataset::load(&scenario.dir)?
+                .scripted_user
+                .is_some(),
             services: scenario.meta.services.clone(),
             tags: scenario.meta.tags.clone(),
             contract_version: scenario.expect.version,
@@ -390,9 +436,17 @@ pub fn inventory(
                 .expect
                 .answer
                 .as_ref()
-                .is_some_and(|answer| answer.record_facts.is_some())
+                .and_then(|answer| answer.record_facts.as_ref())
+                .is_some_and(|facts| !facts.assertions.is_empty())
             {
                 "source_bound_record_facts_with_reviewed_claims"
+            } else if scenario
+                .expect
+                .answer
+                .as_ref()
+                .is_some_and(|answer| answer.record_facts.is_some())
+            {
+                "source_bound_record_facts_without_affirmative_clauses"
             } else if scenario.expect.answer.is_some() {
                 "legacy_file_substrings_or_regex"
             } else {
@@ -405,6 +459,7 @@ pub fn inventory(
                 .iter()
                 .map(|fault| fault.code.clone())
                 .collect(),
+            authoring: scenario_authoring,
             source_gaps,
             reference_calls,
         });
@@ -425,6 +480,7 @@ pub fn inventory(
             "native_runtime_completion_and_model_unawareness_are_not_established",
         ],
         summary,
+        authoring: authoring.finish(tools),
         snapshots: tools.identities(),
         scenarios: rows,
     })

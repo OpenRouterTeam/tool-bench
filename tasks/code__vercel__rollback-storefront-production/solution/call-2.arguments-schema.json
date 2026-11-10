@@ -1,0 +1,1 @@
+{"type":"object","properties":{"idOrUrl":{"type":"string","description":"ID or URL of the deployment to retrieve"},"teamId":{"type":"string","description":"Team ID to scope the request"}},"required":["idOrUrl"]}

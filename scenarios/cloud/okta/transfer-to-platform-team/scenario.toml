@@ -7,6 +7,13 @@ services = ["okta"]
 tags = ["write", "single-service", "okta"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Only one Maria Gonzalez exists (00u1mrgnzlz6Wx3Yz4x7) and the groups Platform Engineering and Support Agents are named exactly; each id is a direct lookup followed by the writes."
+
 [expect]
 version = 2
 audit_history = true

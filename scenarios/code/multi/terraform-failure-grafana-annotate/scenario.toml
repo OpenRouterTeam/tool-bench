@@ -7,6 +7,13 @@ services = ["terraform", "grafana"]
 tags = ["write", "multi-service", "terraform", "grafana", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state", "cross_system_identity"]
+dependency_depth = 2
+rationale = "Errored runs: run-Gy4tBHGg (prod, apply, 13:12:09Z), older run-nAAGvVVu (prod, plan) and run-YF4vEQXa (staging); dashboards payments-db-prod, -staging and -legacy; contract pins run id, time and payments-db-prod."
+
 # The failed prod run is run-Gy4tBHGggKx49nbH on workspace payments-api-prod (ws-vJd7W10B1cG75Uxp):
 # "Upgrade payments DB to Postgres 16", errored at 2026-10-28T13:12:09Z (1793193129000 ms) during
 # apply with InvalidParameterCombination (visible only in its apply log). Distractors: the older

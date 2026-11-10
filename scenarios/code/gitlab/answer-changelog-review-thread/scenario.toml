@@ -7,6 +7,13 @@ services = ["gitlab"]
 tags = ["single-service", "write", "gitlab", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Dana's changelog question exists on billing-service!88, on merged !80 (already resolved) and on checkout-ios!212 (same 4.2.0 bump); !88 also has Lena's open thread; contract pins discussion d7e8c986 on !88."
+
 [expect]
 version = 2
 audit_history = true

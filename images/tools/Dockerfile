@@ -82,4 +82,4 @@ COPY servers/snapshots /opt/tool-bench/snapshots
 COPY servers/config /etc/tool-bench
 COPY servers/extensions /etc/tool-bench/extensions
 EXPOSE 7101-7132
-ENTRYPOINT ["tools-supervisor", "--ca-url", "http://world:9000/_bench/ca.pem"]
+ENTRYPOINT ["tools-supervisor", "--ca-url", "http://world-bootstrap:9000/_bench/ca.pem"]

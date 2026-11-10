@@ -7,6 +7,13 @@ services = ["aws"]
 tags = ["write", "single-service", "aws", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Two IAM users carry full-name Priya Raman: employee praman (path /, data) and auditor priya.raman-audit (/external/, Kessler & Vance); preservation only allows changes on the auditor."
+
 [expect]
 version = 2
 audit_history = true

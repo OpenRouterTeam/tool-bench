@@ -59,6 +59,11 @@ def admit_scripted_agent(trial) -> None:
         raise AdmissionError("unsupported scripted-agent settings")
 
 def native_identity(trial) -> dict:
+    from deploy.runner import proxy_capture
+    if proxy_capture.is_proxied_agent(trial.agent):
+        if not trial.agent.version():
+            raise AdmissionError("container agent version was not observed")
+        return proxy_capture.proxied_identity(trial)
     from harbor.agents.computer_1.computer_1 import Computer1
     if type(trial.agent) is not Computer1 or not trial.config.agent.model_name:
         raise AdmissionError("unsupported native inference producer")

@@ -42,6 +42,8 @@ struct ScenarioFile {
     fault_schedule: Option<FaultSchedule>,
     #[serde(default)]
     materialization: Option<crate::materialization::MaterializationSpec>,
+    #[serde(default)]
+    scripted_user: Option<crate::scripted_user::UserScript>,
 }
 
 /// A scenario's starting world: metadata plus one store per service directory.
@@ -53,6 +55,7 @@ pub struct Dataset {
     pub source: DatasetSource,
     pub fault_schedule: Option<FaultSchedule>,
     pub materialization: Option<crate::materialization::Bundle>,
+    pub scripted_user: Option<crate::scripted_user::UserScript>,
 }
 
 impl Dataset {
@@ -65,6 +68,11 @@ impl Dataset {
             message: e.to_string(),
         })?;
         LogicalClock::new(&file.scenario.now, file.scenario.clock_step_secs)?;
+        if let Some(script) = &file.scripted_user {
+            script.validate().map_err(|message| {
+                dataset_error(&meta_path, format!("scripted_user: {message}"))
+            })?;
+        }
 
         let mut services = BTreeMap::new();
         let mut source = Sha256::new();
@@ -136,6 +144,7 @@ impl Dataset {
             source: provenance,
             fault_schedule: file.fault_schedule,
             materialization,
+            scripted_user: file.scripted_user,
         })
     }
 }

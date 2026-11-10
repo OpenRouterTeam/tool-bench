@@ -7,15 +7,86 @@ services = ["linear"]
 tags = ["lookup", "single-service", "linear"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "PAY-118 is the only open Urgent bug in Payments v2; PAY-104 is an Urgent bug but Done, PLAT-233 is an open Urgent bug in another project, PAY-119 is open but High; answer must name only PAY-118."
+
 # PAY-118 is the only open Urgent bug in Payments v2. Distractors: PAY-104 (Urgent bug, Done),
 # PLAT-233 (open Urgent bug in another project), PAY-119 (open High bug).
 [expect]
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["PAY-118", "Priya"]
-regex = "(?i)in[ -]progress"
+# Issues of the project named Payments v2 whose workflow state is still open (backlog,
+# unstarted or started) and that carry the Bug label; the most urgent is the one with the
+# smallest non-zero priority (Linear: 1 = Urgent, 0 = none). The label ID is the only typed
+# value (a label list cannot be compared to a label name in the selector); the `bug_label`
+# join proves it is the label named Bug.
+[expect.answer.record_facts]
+requirement = "Give the identifier of the most urgent bug in the Payments v2 project that is still open, the person it is assigned to, and its workflow state."
+mode = "statements"
+selection = { smallest = { field = "/priority" } }
+rejected = ["no longer ${state}", "no longer assigned to ${owner}", "no longer owned by ${owner}"]
+context = [
+  "| Issue | Owner | State |",
+]
+assertions = [
+  "${issue}",
+  "Issue: ${issue}",
+  "${issue} is assigned to ${owner}",
+  "${issue} is owned by ${owner}",
+  "owner: ${owner}",
+  "${owner}",
+  "state: ${state}",
+  "${state}",
+  "${issue}, ${owner}, ${state}",
+  "${issue} - owner: ${owner} - state: ${state}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/linear/issues"
+matching = { labelIds = ["75dbca3d-6368-502e-8e56-0c82837ea691"] }
+references = [
+  { source_field = "/projectId", target = { collection = "/services/linear/projects", matching = { name = "Payments v2" } }, target_field = "/id" },
+  { source_field = "/stateId", target = { collection = "/services/linear/workflow_states", field_patterns = { "/type" = "^(triage|backlog|unstarted|started)$" } }, target_field = "/id" },
+]
+
+[expect.answer.record_facts.filter]
+ranges = { "/priority" = { min = "1" } }
+
+[expect.answer.record_facts.related.bug_label]
+collection = "/services/linear/labels"
+filter = { matching = { "/name" = "Bug" } }
+on = { "/id" = "/labelIds" }
+
+[expect.answer.record_facts.related.owner]
+collection = "/services/linear/users"
+on = { "/id" = "/assigneeId" }
+
+[expect.answer.record_facts.related.state]
+collection = "/services/linear/workflow_states"
+on = { "/id" = "/stateId" }
+
+[expect.answer.record_facts.facts.issue]
+field = "/identifier"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.owner]
+record = "owner"
+field = "/name"
+also = ["/displayName"]
+kind = "text"
+
+[expect.answer.record_facts.facts.state]
+record = "state"
+field = "/name"
+kind = "text"
+
+[expect.answer.record_facts.facts.state.wordings]
+"In Progress" = ["in-progress"]
 
 [[expect.forbidden_calls]]
 service = "linear"
@@ -33,17 +104,4 @@ tool = "linear_getProjectIssues"
 arguments = { projectId = "e3c09e4d-1537-5f94-8bf9-aa46108fc659", includeCompleted = false }
 
 [solution]
-answer = "The most urgent open bug in Payments v2 is PAY-118 \"Refund webhook retries double-charge customers after 3DS timeout\" (priority Urgent). It is assigned to Priya Natarajan and is In Progress (in the current cycle, 42).\n"
-
-[expect.answer.record_facts]
-requirement = "answer must identify the most urgent open bug and its identifier"
-mode = "contains"
-selection = "only"
-
-[expect.answer.record_facts.selector]
-collection = "/services/linear/issues"
-matching = { identifier = "PAY-118" }
-
-[expect.answer.record_facts.facts.issue_id]
-field = "/identifier"
-kind = "text"
+answer = "PAY-118 is assigned to Priya Natarajan; state: In Progress."

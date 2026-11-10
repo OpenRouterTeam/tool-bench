@@ -7,6 +7,13 @@ services = ["datadog"]
 tags = ["lookup", "single-service", "datadog"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "checkout.api.latency.p95 has env:prod and env:staging series; staging peaks 2210 at 14:15, cart-api 2120, and prod is higher outside the hour (2950 at 13:30); answer must be 1843 at 14:35."
+
 # Prod peaks at 1843 ms at 14:35 inside the window. Distractors: staging peaks at 2210 ms
 # (14:15), prod is higher just outside the window (2950 ms at 13:30, 2400 ms at 15:15), and
 # cart-api peaks at 2120 ms.
@@ -14,8 +21,65 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["1843", "14:35"]
+# Every point of the production series inside the hour is one row; the highest one is the
+# peak, and its timestamp is rendered as a UTC clock time.
+[expect.answer.record_facts]
+requirement = "State the highest value in milliseconds that the production checkout.api.latency.p95 series reported between 14:00 and 15:00 UTC on 2026-10-29, and the UTC time (HH:MM) of that point."
+mode = "statements"
+# The task asks for the highest point; these words say the opposite of the same value.
+contradictions = ["lowest", "minimum", "smallest"]
+context = ["not the ${staging_peak} staging peak", "on 2026-10-29"]
+assertions = [
+  "Peak: ${peak} at ${time} UTC",
+  "| Peak p95 | ${peak} | | Time (UTC) | ${time} |",
+  "The highest p95 was ${peak}, reached at ${time} UTC",
+  "The highest p95 was ${peak}, ${time}",
+  "The highest p95 was ${peak}, reached at ${time}",
+  "${peak} at ${time} UTC",
+  "${peak} at ${time}",
+  "The production checkout API p95 latency peaked at ${peak} at ${time} UTC",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/datadog/metrics"
+matching = { metric = "checkout.api.latency.p95", tags = ["env:prod"] }
+
+[expect.answer.record_facts.selection.group]
+unnest = "/points"
+rows = { ranges = { "/item/0" = { min = "1793282400", max = "1793286000" } } }
+by = "/item/0"
+measure = { sum = "/item/1" }
+pick = "largest"
+
+[expect.answer.record_facts.related.staging]
+collection = "/services/datadog/metrics"
+filter = { matching = { "/_key" = "checkout.api.latency.p95{env:staging,service:checkout-api}" } }
+
+[expect.answer.record_facts.related.staging.group]
+unnest = "/points"
+rows = { ranges = { "/item/0" = { min = "1793282400", max = "1793286000" } } }
+by = "/item/0"
+measure = { sum = "/item/1" }
+pick = "largest"
+
+[expect.answer.record_facts.facts.peak]
+field = "/value"
+kind = "number"
+units = ["ms", "milliseconds"]
+require_unit = true
+
+[expect.answer.record_facts.facts.time]
+field = "/key"
+kind = "text"
+clock = true
+
+[expect.answer.record_facts.facts.staging_peak]
+record = "staging"
+field = "/value"
+kind = "number"
+units = ["ms", "milliseconds"]
+require_unit = true
+optional = true
 
 [[solution.call]]
 endpoint = "datadog"

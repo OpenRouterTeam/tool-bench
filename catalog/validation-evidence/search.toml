@@ -1,0 +1,76 @@
+# Validation evidence for scored scenarios in the `search` group.
+#
+# Each entry names tests that exercise the scenario's contract with an independently
+# authored valid alternative plan and with deliberately wrong near-miss executions.
+# `taskgen` verifies that every file and test function exists and that the file names the
+# scenario; it cannot verify what a test means. Scenarios without a valid alternative and at
+# least one near-miss keep the `validation_evidence_missing` inventory gap.
+# See docs/authoring-admission.md.
+schema_version = 1
+
+[[scenario]]
+id = "search/exa/enrich-lead-list"
+valid_alternative = [
+  "crates/world/tests/remaining_research_contracts.rs::enrichment_query_rows_stream_and_answer_layouts_are_valid_alternatives",
+]
+
+[scenario.near_miss]
+partial = [
+  "crates/world/tests/remaining_research_contracts.rs::enrichment_partial_split_or_missing_jobs_fail_their_state_contract",
+]
+undone_prohibited_change = [
+  "crates/world/tests/remaining_research_contracts.rs::enrichment_deleted_restored_or_helper_side_effects_fail",
+]
+
+[[scenario]]
+id = "search/exa/fleet-charger-research"
+valid_alternative = [
+  "crates/world/tests/remaining_research_contracts.rs::fleet_schema_wording_repeated_checks_and_answer_forms_are_valid",
+]
+
+[[scenario]]
+id = "search/firecrawl/crawl-api-reference"
+valid_alternative = [
+  "crates/world/tests/firecrawl_contracts.rs::case_equivalent_api_seeds_are_valid",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/firecrawl_contracts.rs::additional_unrequested_crawls_fail_preservation",
+]
+
+[[scenario]]
+id = "search/firecrawl/monitor-competitor-pricing"
+valid_alternative = [
+  "crates/world/tests/firecrawl_contracts.rs::broad_unjudged_markdown_tracking_is_a_valid_alternative",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/firecrawl_contracts.rs::a_lookalike_target_url_is_not_the_requested_pricing_page",
+]
+collateral_change = [
+  "crates/world/tests/firecrawl_contracts.rs::extra_recipients_targets_and_outbound_channels_are_not_requested_scope",
+  "crates/world/tests/firecrawl_contracts.rs::independent_clock_edits_do_not_authorize_existing_monitor_changes",
+  "crates/world/tests/firecrawl_contracts.rs::unrequested_runs_of_existing_monitors_fail_preservation",
+]
+
+[[scenario]]
+id = "search/firecrawl/pause-broken-pricing-monitor"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/firecrawl_contracts.rs::pausing_does_not_authorize_other_target_configuration_changes",
+]
+undone_prohibited_change = [
+  "crates/world/tests/firecrawl_contracts.rs::restored_target_damage_remains_an_unauthorized_history",
+]
+
+[[scenario]]
+id = "search/tavily/competitor-pricing-research"
+
+[scenario.near_miss]
+partial = [
+  "crates/world/tests/remaining_research_contracts.rs::pricing_off_page_or_missing_competitors_fail",
+  "crates/world/tests/remaining_research_contracts.rs::pricing_wrong_model_duplicate_or_missing_research_fail",
+]

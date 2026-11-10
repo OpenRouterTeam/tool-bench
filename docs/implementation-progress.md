@@ -1,6 +1,16 @@
 # Benchmark refinement progress
 
-## Current source and admission boundary
+## Current Integration Boundary
+
+The November 10 local integration is unpublished evaluator **45**, evidence
+schema **7**, on base `e39b0e06`. It is not wrapped up: exact-source validation,
+canonical regeneration, remaining consumer implementation and external
+qualification are still open. See
+[the current integration ledger](full-improvement-plan-status.md).
+The named checkpoints below retain their historical counts and qualification
+boundaries; they do not certify this uncommitted source.
+
+## Historical Revision-43 Boundary
 
 Current source is evaluator **43**, with **134 v2 / 16 legacy** scored contracts,
 150 scored tasks and two examples. Two operational cross-system workflows now

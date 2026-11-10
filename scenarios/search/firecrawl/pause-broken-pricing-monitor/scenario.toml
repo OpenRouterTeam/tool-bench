@@ -7,6 +7,13 @@ services = ["firecrawl"]
 tags = ["write", "single-service", "firecrawl", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["tool_ambiguity"]
+dependency_depth = 2
+rationale = "Monitors Tailspin pricing (...9a11, six failed checks since 10-27), Tailspin plans (...9a12) and Tailspin pricing (EU) (...9a13) look alike; PATCH on 9a12-9a14 and any DELETE are forbidden."
+
 [expect]
 version = 2
 audit_history = true

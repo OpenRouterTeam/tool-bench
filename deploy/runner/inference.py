@@ -149,6 +149,8 @@ class InferenceEvidence:
     finalization: str = FinalizationStatus.NO_RESPONSE.value
     scenario: Optional[str] = None
     session_id: Optional[str] = None
+    # Provider exchanges recorded by the host proxy (deploy/runner/proxy_capture.py).
+    transport: Optional[dict] = None
 
     def to_dict(self) -> dict:
         result = {
@@ -171,6 +173,8 @@ class InferenceEvidence:
             "scenario": self.scenario,
             "session_id": self.session_id,
         }
+        if self.transport is not None:
+            result["transport"] = self.transport
         return result
 
     def to_json(self) -> str:
@@ -246,6 +250,9 @@ class InferenceEvidence:
                 return False, f"noninteger cost accounting field {name}"
         if self.scripted and "native" in self.adapter.name:
             return False, "scripted evidence must not claim native adapter"
+        if (self.transport is not None) != (self.adapter.name == _PROXY_ADAPTER_NAME) or (
+                self.transport is not None and self.scripted):
+            return False, "provider exchanges belong only to the host proxy capture"
         if self.cost.retry_input_tokens is not None and self.cost.total_input_tokens is not None:
             if self.cost.retry_input_tokens > self.cost.total_input_tokens:
                 return False, "retry tokens exceed total"
@@ -297,6 +304,16 @@ _THIS_MODULE = Path(__file__)
 
 def _adapter_sha256() -> str:
     return _module_digest(_THIS_MODULE, _THIS_MODULE.with_name("computer1_capture.py"))
+
+
+# Host provider-proxy capture for container-side CLI agents. Its identity covers the
+# proxy itself, the sealer and this schema module.
+_PROXY_ADAPTER_NAME = "host-proxy-native-anthropic-messages-v1"
+_PROXY_SOURCE = _THIS_MODULE.parent.parent / "arm-proxy.ts"
+
+
+def _proxy_adapter_sha256() -> str:
+    return _module_digest(_THIS_MODULE, _THIS_MODULE.with_name("proxy_capture.py"), _PROXY_SOURCE)
 
 
 # ---------------------------------------------------------------------------
@@ -645,11 +662,15 @@ def admit_evidence(evidence: InferenceEvidence) -> None:
     if not ok:
         raise AdmissionError(f"inference evidence validation failed: {err}")
     if not evidence.scripted:
-        if evidence.adapter.name not in _TRUSTED_ADAPTER_REGISTRY:
+        if evidence.adapter.name == _PROXY_ADAPTER_NAME:
+            expected = _proxy_adapter_sha256()
+        elif evidence.adapter.name in _TRUSTED_ADAPTER_REGISTRY:
+            expected = _adapter_sha256()
+        else:
             raise AdmissionError(
                 f"non-scripted evidence claims unregistered adapter '{evidence.adapter.name}'"
             )
-        if evidence.adapter.code_sha256 != _adapter_sha256():
+        if evidence.adapter.code_sha256 != expected:
             raise AdmissionError(
                 "non-scripted evidence adapter digest does not match this module"
             )

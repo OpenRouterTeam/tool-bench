@@ -7,14 +7,55 @@ services = ["exa"]
 tags = ["lookup", "single-service", "exa", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Four Priya Raman profiles: priya-raman-tessellate (VP Eng, Tessellate Bio), a former Tessellate Bio director now CTO at Kestrel Genomics, a Tessellate Analytics data scientist and a Boston cardiologist."
+
 # Right profile: priya-raman-tessellate. Distractors: a former Tessellate Bio director (now
 # CTO elsewhere), a data scientist at Tessellate Analytics, and a Boston cardiologist.
 [expect]
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["linkedin.com/in/priya-raman-tessellate"]
+# The profile is found by what the instruction states: a people result for Priya Raman
+# whose headline and current position are VP of Engineering at Tessellate Bio.
+[expect.answer.record_facts]
+requirement = "Give the LinkedIn profile URL of the Priya Raman who currently holds the VP of Engineering role at Tessellate Bio."
+mode = "statements"
+context = [
+  "(role confirmed on ${team_page_url})",
+  "not https://www.linkedin.com/in/priya-raman-4b21a9",
+  "team page: ${team_page_url}",
+]
+assertions = [
+  "${url}",
+  "Profile: ${url}",
+  "Profile: [Priya Raman](${url}/)",
+  "Profile: [Priya Raman](${url})",
+]
+# The company's team page corroborates the role; it is not a profile.
+
+[expect.answer.record_facts.selector]
+collection = "/services/exa/documents"
+matching = { category = "people", author = "Priya Raman" }
+field_patterns = { "/title" = 'VP of Engineering - Tessellate Bio \|', "/text" = 'Tessellate Bio, VP of Engineering \(\d{4}-present\)' }
+
+[expect.answer.record_facts.facts.url]
+field = "/url"
+kind = "identifier"
+
+[expect.answer.record_facts.related.team_page]
+collection = "/services/exa/documents"
+filter = { matching = { "/category" = "company" }, patterns = { "/url" = 'tessellate\.bio/team$' } }
+
+[expect.answer.record_facts.facts.team_page_url]
+record = "team_page"
+field = "/url"
+kind = "identifier"
+optional = true
 
 [[expect.required_calls]]
 service = "exa"
@@ -22,22 +63,9 @@ method = "POST"
 path_regex = "^/(search|contents)$"
 
 [solution]
-answer = "Priya Raman, VP of Engineering at Tessellate Bio (Boston): https://www.linkedin.com/in/priya-raman-tessellate\n"
+answer = "https://www.linkedin.com/in/priya-raman-tessellate"
 
 [[solution.call]]
 endpoint = "exa"
 tool = "people_search_exa"
 arguments = { query = "Priya Raman VP of Engineering Tessellate Bio Boston" }
-
-[expect.answer.record_facts]
-requirement = "answer must contain the VP of Engineering LinkedIn profile URL"
-mode = "contains"
-selection = "only"
-
-[expect.answer.record_facts.selector]
-collection = "/services/exa/documents"
-field_patterns = { "/title" = "(?i)VP of Engineering" }
-
-[expect.answer.record_facts.facts.url]
-field = "/url"
-kind = "text"

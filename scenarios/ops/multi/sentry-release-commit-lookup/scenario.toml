@@ -7,6 +7,13 @@ services = ["sentry", "github"]
 tags = ["lookup", "multi-service", "sentry", "github", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "dependency_depth"
+secondary = ["cross_system_identity", "entity_ambiguity"]
+dependency_depth = 4
+rationale = "Chain: top unresolved STOREFRONT-WEB-7Q -> first release storefront@5.2.0 -> commit 9f1c2ab -> GitHub PR #57 -> author sofia; same-title 8D (5.3.0, PR #63) and open unmerged PR #70 are decoys."
+
 # Sentry: STOREFRONT-WEB-7Q (2,600 events, CartDrawer) first seen in storefront@5.2.0, whose
 # only commit is 9f1c2ab "feat(cart): slide-out cart drawer" by Sofia Alvarez. Look-alike:
 # STOREFRONT-WEB-8D (same "reading 'map'" TypeError, 2,172 events, ProductGrid) from
@@ -16,9 +23,92 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["STOREFRONT-WEB-7Q", "storefront@5.2.0", "Sofia"]
-regex = "(?i)(#|pull/|PR\\s*|pull request\\s*)57\\b"
+[expect.answer.record_facts]
+requirement = "Name the unresolved Sentry issue of the storefront-web project that has the most events (short ID), the release it first appeared in, the number of the GitHub pull request whose merge commit is that release's commit, and that pull request's author."
+mode = "statements"
+selection = { largest = { field = "/count" } }
+# The task asks for the issue with the most events; these words say the opposite of it.
+contradictions = ["fewest", "least frequent", "least noisy", "quietest"]
+context = [
+  "(https://github.com/lumen-labs/storefront/pull/${pull_request})",
+  "(${event_count} events, unresolved)",
+  '(single commit ${commit_sha}, "${commit_message}")',
+ 'commit title: "${commit_title}"',
+]
+assertions = [
+  "Issue ${issue_id} first appeared in release ${release}. It was introduced by PR #${pull_request}, authored by ${author}.",
+  "${issue_id}, ${release}, pull request ${pull_request} by @${author}",
+  "${issue_id}, ${release}, PR #${pull_request}, ${author}",
+  "${issue_id} first appeared in ${release}; PR #${pull_request} by ${author}",
+  "| Sentry issue | ${issue_id} | | First release | ${release} | | Pull request | #${pull_request} | | Author | ${author} |",
+  "- Sentry issue: ${issue_id} - First seen in release: ${release} - Pull request: #${pull_request} - Author: ${author}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/sentry/issues"
+matching = { status = "unresolved", project = "storefront-web" }
+
+[expect.answer.record_facts.related.release]
+collection = "/services/sentry/releases"
+on = { "/version" = "/firstRelease" }
+
+# The pull request is the one whose merge commit is the release's commit.
+[expect.answer.record_facts.related.pull]
+from = "release"
+collection = "/services/github/pulls"
+on = { "/merge_commit_sha" = "/commits/0/id" }
+
+[expect.answer.record_facts.related.author]
+from = "pull"
+collection = "/services/github/users"
+on = { "/login" = "/user" }
+
+[expect.answer.record_facts.facts.issue_id]
+field = "/shortId"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.release]
+record = "release"
+field = "/version"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.pull_request]
+record = "pull"
+field = "/number"
+kind = "number"
+units = ["#", "pr", "request", "number"]
+require_unit = true
+
+[expect.answer.record_facts.facts.author]
+record = "author"
+field = "/name"
+kind = "text"
+also = ["/login"]
+
+[expect.answer.record_facts.facts.event_count]
+field = "/count"
+kind = "number"
+optional = true
+
+[expect.answer.record_facts.facts.commit_sha]
+record = "release"
+field = "/commits/0/id"
+capture = '^(.{7})'
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.commit_message]
+record = "release"
+field = "/commits/0/message"
+kind = "text"
+optional = true
+
+[expect.answer.record_facts.facts.commit_title]
+record = "release"
+field = "/commits/0/message"
+capture = '^(?:feat|fix|chore|perf|refactor|docs|style|test|ci|build|revert)(?:\([^)]+\))?: (.+)'
+kind = "text"
+optional = true
 
 [[expect.required_calls]]
 service = "github"
@@ -64,9 +154,4 @@ tool = "pull_request_read"
 arguments = { method = "get", owner = "lumen-labs", repo = "storefront", pullNumber = 57 }
 
 [solution]
-answer = """
-- Sentry issue: STOREFRONT-WEB-7Q, "TypeError: Cannot read properties of undefined (reading 'map')" in CartDrawer (2,600 events, unresolved)
-- First seen in release: storefront@5.2.0 (single commit 9f1c2ab, "feat(cart): slide-out cart drawer")
-- Pull request: lumen-labs/storefront #57 "Slide-out cart drawer"
-- Author: Sofia Alvarez (@sofia)
-"""
+answer = "Issue STOREFRONT-WEB-7Q first appeared in release storefront@5.2.0. It was introduced by PR #57, authored by Sofia Alvarez."

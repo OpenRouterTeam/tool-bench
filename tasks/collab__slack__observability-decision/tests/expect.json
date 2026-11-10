@@ -23,10 +23,103 @@
     }
   ],
   "answer": {
-    "contains": [
-      "Grafana Cloud"
-    ],
-    "regex": "(?i)(2026-11-15|nov(ember)?\\.?\\s+15(th)?)"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the observability vendor announced as the decision in the vendor evaluation thread, and the date on which the new contract starts.",
+      "selector": {
+        "collection": "/services/slack/messages",
+        "matching": {},
+        "field_patterns": {
+          "/text": "^Decision: "
+        },
+        "references": [
+          {
+            "source_field": "/thread_ts",
+            "target": {
+              "collection": "/services/slack/messages",
+              "matching": {},
+              "field_patterns": {
+                "/text": "^Observability vendor evaluation"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/ts"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "contract_term": {
+          "field": "/text",
+          "kind": "text",
+          "optional": true,
+          "capture": "on a (\\d+-year term)"
+        },
+        "start": {
+          "field": "/text",
+          "kind": "date",
+          "capture": "it starts (\\d{4}-\\d{2}-\\d{2})"
+        },
+        "vendor": {
+          "field": "/text",
+          "kind": "text",
+          "capture": "^Decision: we're going with ([^.]+)\\."
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "chose Datadog",
+        "picked Datadog",
+        "selected Datadog",
+        "went with Datadog",
+        "going with Datadog",
+        "chose Honeycomb",
+        "picked Honeycomb",
+        "selected Honeycomb",
+        "went with Honeycomb",
+        "going with Honeycomb",
+        "did not pick ${vendor}",
+        "didn't pick ${vendor}",
+        "did not choose ${vendor}",
+        "didn't choose ${vendor}",
+        "did not select ${vendor}",
+        "didn't select ${vendor}",
+        "did not go with ${vendor}",
+        "didn't go with ${vendor}",
+        "${vendor} was not chosen",
+        "${vendor} was not picked",
+        "${vendor} was not selected",
+        "${vendor} wasn't chosen",
+        "${vendor} wasn't picked",
+        "${vendor} wasn't selected",
+        "completes on ${start}"
+      ],
+      "context": [
+        "a ${contract_term}",
+        "not Datadog or Honeycomb"
+      ],
+      "assertions": [
+        "Vendor: ${vendor}",
+        "It is ${vendor}",
+        "We picked ${vendor}",
+        "We went with ${vendor}",
+        "We signed with ${vendor}",
+        "${vendor}",
+        "Contract start: ${start}",
+        "the contract starts on ${start}",
+        "the contract starts ${start}",
+        "the contract begins ${start}",
+        "the new contract begins ${start}",
+        "and the contract starts ${start}",
+        "${start}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

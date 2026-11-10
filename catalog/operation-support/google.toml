@@ -1,0 +1,77 @@
+# Reviewed operation support for `google`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "get_drive_file_permissions"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "get_drive_shareable_link"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "get_gmail_message_content"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "list_spreadsheets"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "manage_drive_access"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "manage_event"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "modify_sheet_values"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "read_sheet_values"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "search_drive_files"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"
+
+[[operation]]
+endpoint = "google-workspace"
+tool = "search_gmail_messages"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Google scripted selected-replica MCP checkpoint — condition 40B"

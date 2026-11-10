@@ -98,6 +98,17 @@ must not be removed to make a surface look more neutral.
 - Neutral/evaluation framing sensitivity requires prespecified matched runs and
   behavioral outcomes, not a claim that a model cannot recognize evaluation.
 
+## Host audit of resolved surfaces
+
+The remaining scope above is now partly covered by a trusted-host audit in the strict
+runner. It captures the resolved instruction, the agent container's real files,
+environment, argv, mounts and hostnames, and the MCP responses and tool bodies the tools
+container actually served. It reports its own `surface_audit` status, with an uncaptured
+surface counted as unqualified. See `exposure-and-surface-audit.md`.
+
+It has not yet run against a live Docker trial, does not capture harness-injected
+prompts, and is a lexical scan. It does not certify blinding.
+
 ## Reproduction boundaries
 
 The earlier signed-review condition retains its matching compiled coordinator

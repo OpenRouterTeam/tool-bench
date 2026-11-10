@@ -7,6 +7,13 @@ services = ["argocd"]
 tags = ["single-service", "lookup", "argocd"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 3
+rationale = "Two Degraded apps: checkout-web (prod-use1, image tag 2.14.0-rc3 not found) and checkout-web-staging (staging cluster, missing env var); answer must name checkout-web and 2.14.0-rc3."
+
 # The production app is checkout-web: its new ReplicaSet cannot pull the image tag
 # 2.14.0-rc3 (the tag does not exist in the registry). checkout-web-staging is also
 # Degraded, but on the staging cluster and for a different reason (a missing env var).
@@ -14,9 +21,83 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["checkout-web", "2.14.0-rc3"]
-regex = "(?is)(ImagePullBackOff|ErrImagePull|pull|not found|does(n't| not) exist|missing (image|tag))"
+# The application is the one whose health is Degraded and whose env label is production.
+# Its failing pod (the only pod of that application that is not Healthy) supplies the image
+# tag it runs and the reason it is waiting. The failing Deployment carries the application's
+# own name, so the `app` fact also names the workload.
+[expect.answer.record_facts]
+requirement = "Name the Argo CD application that is Degraded on production (its failing Deployment has the same name), the image tag its failing pod runs, and why that pod is not starting (the reason it is waiting)."
+mode = "statements"
+context = ["The old pods are still serving", "pod ${pod_name}", "Why"]
+assertions = [
+  "Application: ${app}",
+  "Failing workload: Deployment ${app}",
+  "Root cause: ${reason}",
+  "the image tag ${image_tag} was never pushed",
+  "${app} is Degraded",
+  "its new pod cannot pull ghcr.io/lumen-retail/${app}:${image_tag} (${reason})",
+  "its pod cannot pull image tag ${image_tag} (${reason})",
+  "App: ${app}",
+  "App ${app}",
+  "Tag ${image_tag}",
+  "Tag: ${image_tag}",
+  "the kubelet ${reason} the image",
+  "| App | ${app} |",
+  "| Tag | ${image_tag} |",
+  "| Why | the kubelet ${reason} the image |",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/argocd/applications"
+matching = { status = { health = { status = "Degraded" } }, metadata = { labels = { env = "production" } } }
+
+[expect.answer.record_facts.related.pod]
+collection = "/services/argocd/resources"
+filter = { matching = { "/kind" = "Pod" }, excluding = [{ "/health/status" = "Healthy" }] }
+on = { "/manifest/metadata/labels/app.kubernetes.io~1instance" = "/metadata/name" }
+
+[expect.answer.record_facts.facts.app]
+field = "/metadata/name"
+kind = "text"
+
+[expect.answer.record_facts.facts.image_tag]
+record = "pod"
+field = "/images/0"
+capture = ':([^:/]+)$'
+kind = "identifier"
+
+[expect.answer.record_facts.facts.pod_name]
+record = "pod"
+field = "/name"
+kind = "identifier"
+optional = true
+
+# The coded source value is the pod's waiting reason; the pod's own health message names
+# the same condition. The wordings are bound to that code and are plain wordings of it only.
+[expect.answer.record_facts.facts.reason]
+record = "pod"
+field = "/manifest/status/containerStatuses/0/state/waiting/reason"
+also = ["/health/message"]
+kind = "text"
+
+[expect.answer.record_facts.facts.reason.wordings]
+ImagePullBackOff = [
+  "ErrImagePull",
+  "image pull back-off",
+  "image pull backoff",
+  "cannot pull",
+  "can't pull",
+  "could not pull",
+  "couldn't pull",
+  "unable to pull",
+  "failed to pull",
+  "fails to pull",
+  "failing to pull",
+  "cannot be pulled",
+  "can't be pulled",
+  "could not be pulled",
+  "couldn't be pulled",
+]
 
 [[expect.forbidden_calls]]
 service = "argocd"
@@ -47,9 +128,5 @@ arguments = { applicationName = "checkout-web", applicationNamespace = "argocd",
 
 [solution]
 answer = """
-Degraded production app: checkout-web (Argo CD project storefront, cluster prod-us-east-1, namespace storefront).
-
-Failing workload: Deployment checkout-web. Its new ReplicaSet checkout-web-7f8b9c6d5 (the 2.14.0-rc3 rollout) has pod checkout-web-7f8b9c6d5-q2x7m stuck in ImagePullBackOff, so the rollout exceeded its progress deadline. The old 2.13.4 pods are still serving.
-
-Root cause: the image ghcr.io/lumen-retail/checkout-web:2.14.0-rc3 cannot be pulled; the registry answers "not found" for that tag. The commit "checkout-web(prod): promote 2.14.0-rc3" points production at an image tag that was never pushed.
+Application: checkout-web. Tag: 2.14.0-rc3. Root cause: ImagePullBackOff - the image tag 2.14.0-rc3 was never pushed.
 """

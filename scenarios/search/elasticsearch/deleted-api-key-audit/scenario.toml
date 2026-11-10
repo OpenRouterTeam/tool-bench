@@ -7,15 +7,88 @@ services = ["elasticsearch"]
 tags = ["lookup", "single-service", "elasticsearch", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "m.okafor's successful delete of ci-deploy-bot at 16:42:57 vs j.doe's denied delete at 14:05, r.chen deleting ci-deploy-bot-staging, and a.santos deleting a same-named key in the legacy index in August."
+
 # m.okafor at 2026-10-29T16:42:57Z. Distractors: j.doe's denied attempt, r.chen deleting
 # ci-deploy-bot-staging, and a.santos deleting a same-named key in the legacy index in August.
 [expect]
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["m.okafor"]
-regex = '16:42'
+[expect.answer.record_facts]
+requirement = "Name the actor of the successful api_key.delete audit event for the key ci-deploy-bot on 2026-10-29 UTC, and state the UTC time (hour and minute) of that event."
+mode = "statements"
+assertions = [
+  "- User: ${user} - Deleted at: ${time} UTC",
+  "The key was deleted by ${user} at ${time} UTC.",
+  "${user} deleted the key at ${time} UTC.",
+  "${user} at ${time} UTC",
+  "User: ${user} Deleted at: ${time}",
+  "User: ${user}",
+  "Deleted at: ${time}",
+  "The key was deleted by ${user} at ${time} UTC",
+  "${user} deleted it at ${time} UTC",
+]
+context = [
+  "on October 29",
+  "then created ${replacement_key} at ${replacement_time}",
+  "An earlier delete attempt by ${denied_actor} at ${denied_time} was denied",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/elasticsearch/docs"
+matching = { event_action = "api_key.delete", event_outcome = "success", target_name = "ci-deploy-bot" }
+field_patterns = { "/@timestamp" = "^2026-10-29T" }
+
+[expect.answer.record_facts.facts.user]
+field = "/actor"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.time]
+field = "/@timestamp"
+kind = "text"
+clock = true
+
+[expect.answer.record_facts.related.replacement_event]
+allow_absence = true
+collection = "/services/elasticsearch/docs"
+filter = { matching = { "/event_action" = "api_key.create", "/actor" = "m.okafor" }, patterns = { "/@timestamp" = "^2026-10-29T" } }
+
+[expect.answer.record_facts.related.denied_event]
+allow_absence = true
+collection = "/services/elasticsearch/docs"
+filter = { matching = { "/event_action" = "api_key.delete", "/event_outcome" = "failure", "/target_name" = "ci-deploy-bot" }, patterns = { "/@timestamp" = "^2026-10-29T" } }
+
+[expect.answer.record_facts.facts.replacement_key]
+record = "replacement_event"
+field = "/target_name"
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.replacement_time]
+record = "replacement_event"
+field = "/@timestamp"
+kind = "text"
+clock = true
+optional = true
+
+[expect.answer.record_facts.facts.denied_actor]
+record = "denied_event"
+field = "/actor"
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.denied_time]
+record = "denied_event"
+field = "/@timestamp"
+kind = "text"
+clock = true
+optional = true
 
 [[expect.required_calls]]
 service = "elasticsearch"
@@ -23,7 +96,7 @@ method = "POST"
 path_regex = "(_search|_query)$"
 
 [solution]
-answer = "m.okafor deleted the API key ci-deploy-bot on 2026-10-29 at 16:42:57 UTC (from 10.8.4.77), then created ci-deploy-bot-v2 at 16:44. An earlier delete attempt by j.doe at 14:05 was denied.\n"
+answer = "The key was deleted by m.okafor at 16:42 UTC."
 
 [[solution.call]]
 endpoint = "elasticsearch"

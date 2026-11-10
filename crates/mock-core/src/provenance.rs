@@ -19,6 +19,9 @@ pub struct TaskContext {
     pub connector_env_sha256: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub materialization_files: BTreeMap<String, String>,
+    /// Hash of the private exposure manifest; absent for the default full catalog.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exposure_sha256: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -112,11 +115,13 @@ impl ExecutionManifest {
                     && self.inference_identity.is_none()
             }
             "native" => {
-                self.agent.name == "computer-1"
-                    && self.inference_identity.as_ref().is_some_and(|identity| {
-                        !identity.configured_model.is_empty()
-                            && !identity.configured_provider.is_empty()
-                    })
+                matches!(
+                    self.agent.name.as_str(),
+                    "computer-1" | crate::transport::PROXY_AGENT_NAME
+                ) && self.inference_identity.as_ref().is_some_and(|identity| {
+                    !identity.configured_model.is_empty()
+                        && !identity.configured_provider.is_empty()
+                })
             }
             _ => false,
         };

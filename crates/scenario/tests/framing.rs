@@ -83,6 +83,7 @@ fn matched_framing_preserves_profile_world_contract_tools_and_budgets() {
                     workspace_profile: profile,
                     framing,
                     review_policy: None,
+                    locked_tools: None,
                 },
             )
             .unwrap();

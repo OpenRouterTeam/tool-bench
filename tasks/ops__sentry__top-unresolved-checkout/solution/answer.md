@@ -1,1 +1,1 @@
-CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s (1,842 events, 611 users)
+CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s

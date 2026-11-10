@@ -1,0 +1,196 @@
+# Validation evidence for scored scenarios in the `cloud` group.
+#
+# Each entry names tests that exercise the scenario's contract with an independently
+# authored valid alternative plan and with deliberately wrong near-miss executions.
+# `taskgen` verifies that every file and test function exists and that the file names the
+# scenario; it cannot verify what a test means. Scenarios without a valid alternative and at
+# least one near-miss keep the `validation_evidence_missing` inventory gap.
+# See docs/authoring-admission.md.
+schema_version = 1
+
+[[scenario]]
+id = "cloud/aws/grant-auditor-access"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/aws_contracts.rs::removing_an_existing_auditor_temporarily_is_not_authorized_by_the_final_member_list",
+]
+undone_prohibited_change = [
+  "crates/world/tests/aws_contracts.rs::unrelated_group_changes_remain_failures_after_their_membership_is_restored",
+]
+
+[[scenario]]
+id = "cloud/aws/orders-api-cpu-alarm"
+valid_alternative = [
+  "crates/world/tests/aws_contracts.rs::direct_and_single_metric_stat_alarms_are_valid_configuration_representations",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/aws_contracts.rs::additional_alarms_are_not_authorized_by_a_correct_requested_alarm",
+]
+
+[[scenario]]
+id = "cloud/aws/stop-legacy-reporting-worker"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/aws_contracts.rs::a_wrong_staging_stop_or_an_unrequested_worker_stop_is_not_safe_shutdown",
+  "crates/world/tests/aws_contracts.rs::the_protected_volume_cannot_receive_an_unrequested_deletion_tag",
+]
+undone_prohibited_change = [
+  "crates/world/tests/aws_contracts.rs::a_restored_ticket_value_cannot_erase_an_earlier_wrong_tag",
+]
+
+[[scenario]]
+id = "cloud/cloudflare/add-status-cname"
+valid_alternative = [
+  "crates/world/tests/cloudflare_contracts.rs::dns_batch_and_returned_id_metadata_updates_are_valid_plans",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/cloudflare_contracts.rs::creating_the_correct_dns_record_does_not_authorize_a_staging_record",
+]
+undone_prohibited_change = [
+  "crates/world/tests/cloudflare_contracts.rs::a_restored_existing_dns_record_or_collateral_creation_remains_unauthorized",
+  "crates/world/tests/cloudflare_contracts.rs::temporarily_proxying_the_new_statuspage_record_is_not_erased_by_the_final_fix",
+]
+
+[[scenario]]
+id = "cloud/cloudflare/enable-checkout-flag"
+valid_alternative = [
+  "crates/world/tests/cloudflare_contracts.rs::kv_updates_accept_multipart_bulk_reordering_and_equivalent_numbers",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/cloudflare_contracts.rs::kv_metadata_reset_permission_does_not_authorize_arbitrary_metadata_rewrites",
+  "crates/world/tests/cloudflare_contracts.rs::kv_other_json_fields_extra_fields_and_wrong_numeric_types_are_not_authorized",
+]
+undone_prohibited_change = [
+  "crates/world/tests/cloudflare_contracts.rs::an_allowed_metadata_reset_cannot_erase_an_earlier_arbitrary_metadata_rewrite",
+  "crates/world/tests/cloudflare_contracts.rs::kv_metadata_growth_cannot_be_hidden_by_later_restoration",
+  "crates/world/tests/cloudflare_contracts.rs::restored_kv_owner_edits_cannot_hide_in_one_execute_program",
+]
+
+[[scenario]]
+id = "cloud/cloudflare/route-orders-api-v2"
+valid_alternative = [
+  "crates/world/tests/cloudflare_contracts.rs::separate_http_and_https_routes_are_equivalent_complete_coverage",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/cloudflare_contracts.rs::routing_changes_do_not_authorize_reconfiguring_the_already_deployed_worker",
+]
+partial = [
+  "crates/world/tests/cloudflare_contracts.rs::worker_route_coverage_cannot_be_partial_or_widen_to_other_traffic",
+]
+undone_prohibited_change = [
+  "crates/world/tests/cloudflare_contracts.rs::existing_route_edits_are_rejected_even_when_restored_and_a_good_new_route_exists",
+]
+
+[[scenario]]
+id = "cloud/mongodb/pause-idle-staging-cluster"
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/mongodb_contracts.rs::the_same_named_cluster_in_another_project_is_not_the_requested_target",
+]
+collateral_change = [
+  "crates/world/tests/mongodb_contracts.rs::pausing_the_target_does_not_authorize_pausing_an_unlisted_production_cluster",
+]
+undone_prohibited_change = [
+  "crates/world/tests/mongodb_contracts.rs::restoring_an_unrequested_cluster_pause_does_not_erase_the_interruption",
+]
+
+[[scenario]]
+id = "cloud/mongodb/purge-qa-accounts"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/mongodb_contracts.rs::qa_cleanup_does_not_authorize_changes_to_other_crm_collections",
+]
+
+[[scenario]]
+id = "cloud/mongodb/refund-order"
+valid_alternative = [
+  "crates/world/tests/mongodb_contracts.rs::refund_aggregation_merge_is_valid_without_a_required_update_many_call",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/mongodb_contracts.rs::recording_a_refund_does_not_authorize_changes_to_the_product_catalog",
+  "crates/world/tests/mongodb_contracts.rs::refund_permission_does_not_authorize_repricing_the_order_items",
+  "crates/world/tests/mongodb_contracts.rs::refund_permission_does_not_authorize_rewriting_the_customer_record_on_the_order",
+]
+undone_prohibited_change = [
+  "crates/world/tests/mongodb_contracts.rs::temporary_changes_to_another_order_remain_unauthorized_after_restoration",
+]
+
+[[scenario]]
+id = "cloud/okta/contractor-self-service-reset"
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/okta_contracts.rs::denial_strings_do_not_pass_when_the_policy_targets_the_wrong_group",
+]
+undone_prohibited_change = [
+  "crates/world/tests/okta_contracts.rs::returning_an_unsafe_temporary_allow_to_deny_does_not_erase_its_history",
+]
+
+[[scenario]]
+id = "cloud/okta/offboard-contractor"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/okta_contracts.rs::deactivation_does_not_authorize_corrupting_the_retained_audit_identity",
+]
+
+[[scenario]]
+id = "cloud/okta/transfer-to-platform-team"
+valid_alternative = [
+  "crates/world/tests/okta_contracts.rs::a_complete_preserved_profile_and_repeated_requested_writes_are_valid",
+]
+
+[scenario.near_miss]
+undone_prohibited_change = [
+  "crates/world/tests/okta_contracts.rs::restoring_an_unrequested_phone_change_does_not_erase_transfer_collateral",
+]
+
+[[scenario]]
+id = "cloud/supabase/cancel-pending-orders-duplicate-customer"
+valid_alternative = [
+  "crates/world/tests/supabase_contracts.rs::a_cancellation_data_migration_is_an_exposed_valid_alternative",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/supabase_contracts.rs::cancellation_does_not_authorize_paid_orders_money_or_customer_edits",
+]
+undone_prohibited_change = [
+  "crates/world/tests/supabase_contracts.rs::restoring_another_orders_status_does_not_erase_committed_collateral",
+]
+
+[[scenario]]
+id = "cloud/supabase/enable-rls-flagged-table"
+valid_alternative = [
+  "crates/world/tests/supabase_contracts.rs::tracked_rls_accepts_a_different_migration_name_and_quoted_identifiers",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/supabase_contracts.rs::rls_does_not_authorize_policies_other_tables_or_staging",
+]
+undone_prohibited_change = [
+  "crates/world/tests/supabase_contracts.rs::removing_a_temporary_policy_does_not_erase_an_unauthorized_exposure",
+]
+
+[[scenario]]
+id = "cloud/supabase/pause-legacy-marketing-project"
+
+[scenario.near_miss]
+undone_prohibited_change = [
+  "crates/world/tests/supabase_contracts.rs::restoring_an_unlisted_project_pause_does_not_erase_the_interruption",
+]

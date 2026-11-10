@@ -247,7 +247,12 @@ fn diagnostic_examples_require_explicit_generation_and_never_inflate_the_scored_
         .output()
         .unwrap();
     assert!(result.status.success(), "{result:?}");
-    assert_eq!(fs::read_dir(&output).unwrap().count(), 152);
+    assert_eq!(fs::read_dir(&output).unwrap().count(), 154);
+    assert!(
+        output
+            .join("diagnostic__stripe__no-action-already-refunded/tests/materialization/base.json")
+            .is_file()
+    );
     assert!(
         output
             .join("example__aws__missing-bucket-policy/solution/solve.sh")
@@ -256,8 +261,9 @@ fn diagnostic_examples_require_explicit_generation_and_never_inflate_the_scored_
     let counts: serde_json::Value = serde_json::from_slice(&fs::read(inventory).unwrap()).unwrap();
     assert_eq!(counts["summary"]["scored_tasks"], 150);
     assert_eq!(counts["summary"]["unscored_examples"], 2);
-    assert_eq!(counts["summary"]["reference_calls"], 459);
-    assert_eq!(counts["summary"]["static_argument_schemas"], 441);
+    assert_eq!(counts["summary"]["unscored_diagnostics"], 2);
+    assert_eq!(counts["summary"]["reference_calls"], 462);
+    assert_eq!(counts["summary"]["static_argument_schemas"], 444);
     assert_eq!(counts["summary"]["deferred_argument_schemas"], 18);
     assert_eq!(counts["summary"]["scored_declared_unscorable"], 0);
     assert!(
@@ -265,7 +271,10 @@ fn diagnostic_examples_require_explicit_generation_and_never_inflate_the_scored_
             .as_array()
             .unwrap()
             .iter()
-            .filter(|row| { row["id"].as_str().unwrap().starts_with("example/") })
+            .filter(|row| {
+                let id = row["id"].as_str().unwrap();
+                id.starts_with("example/") || id.starts_with("diagnostic/")
+            })
             .all(|row| row["scored"] == false)
     );
     let normal = directory.path().join("normal");
@@ -394,7 +403,7 @@ fn validation_rejects_answers_without_the_answer_path_and_bad_endpoints() {
     fs::write(d.join("instruction.md"), "Tell me the count.").unwrap();
     fs::write(
         d.join("scenario.toml"),
-        format!("[scenario]\nid = \"{id}\"\ntitle = \"t\"\nnow = \"2026-01-01T00:00:00Z\"\nseed = \"s\"\nservices = [\"github\"]\n\n[expect.answer]\ncontains = [\"3\"]\n"),
+        format!("[scenario]\nid = \"{id}\"\ntitle = \"t\"\nnow = \"2026-01-01T00:00:00Z\"\nseed = \"s\"\nservices = [\"github\"]\n\n[scenario.family]\nschema_version = 1\nprimary = \"baseline\"\ndependency_depth = 0\nrationale = \"A synthetic validation fixture with one direct count.\"\n\n[expect.answer]\ncontains = [\"3\"]\n"),
     )
     .unwrap();
     let s = Scenario::load(&d).unwrap();
@@ -408,7 +417,7 @@ fn validation_rejects_answers_without_the_answer_path_and_bad_endpoints() {
     fs::write(d.join("instruction.md"), "Write it to /app/answer.md.").unwrap();
     fs::write(
         d.join("scenario.toml"),
-        format!("[scenario]\nid = \"{id}\"\ntitle = \"t\"\nnow = \"2026-01-01T00:00:00Z\"\nseed = \"s\"\nservices = [\"github\"]\n\n[expect.answer]\ncontains = [\"3\"]\n\n[[solution.call]]\nendpoint = \"nope\"\ntool = \"x\"\n"),
+        format!("[scenario]\nid = \"{id}\"\ntitle = \"t\"\nnow = \"2026-01-01T00:00:00Z\"\nseed = \"s\"\nservices = [\"github\"]\n\n[scenario.family]\nschema_version = 1\nprimary = \"baseline\"\ndependency_depth = 0\nrationale = \"A synthetic validation fixture with one direct count.\"\n\n[expect.answer]\ncontains = [\"3\"]\n\n[[solution.call]]\nendpoint = \"nope\"\ntool = \"x\"\n"),
     )
     .unwrap();
     let err = Scenario::load(&d)

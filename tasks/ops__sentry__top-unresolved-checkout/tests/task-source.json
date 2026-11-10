@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/sentry/top-unresolved-checkout",
-  "scenario_sha256": "sha256:5358c83d93a54214f859684047f8b00f1ae7c9518d299de641d7e401d487e14e",
+  "scenario_sha256": "sha256:4f9c7bd9afc4f91a2551fa9aae2feb6a7122f1446a52ea62b20a8c9315e11825",
   "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
-  "contract_sha256": "sha256:3f1d1729aa929e9ea27323048bd5ec3cb48601d5862d94cc3a1c72c51d1e0d2f"
+  "contract_sha256": "sha256:0d2dcf122c1d7f12903b43f8900d2bbe1ef1209cf0c77fde431110a79b245568"
 }

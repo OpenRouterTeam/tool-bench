@@ -8,11 +8,128 @@
   "required_calls": [],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "TestRetryBackoffCapsAtMaxDelay",
-      "32s"
-    ],
-    "regex": null
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the job that failed in the latest CI run of pull request #42's branch, the test that failed in that job, and the exact assertion message its log prints for that test.",
+      "selector": {
+        "collection": "/services/github/pulls",
+        "matching": {
+          "number": 42
+        },
+        "key_prefix": "octo-org/payments-api#",
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "assertion": {
+          "field": "/log",
+          "kind": "text",
+          "record": "job",
+          "capture": "_test\\.go:\\d+: (.+)"
+        },
+        "job": {
+          "field": "/name",
+          "kind": "text",
+          "record": "job"
+        },
+        "run_id": {
+          "field": "/id",
+          "kind": "identifier",
+          "optional": true,
+          "record": "run"
+        },
+        "test": {
+          "field": "/log",
+          "kind": "identifier",
+          "record": "job",
+          "capture": "--- FAIL: (\\S+)"
+        },
+        "test_file": {
+          "field": "/log",
+          "kind": "identifier",
+          "optional": true,
+          "record": "job",
+          "capture": "(\\S+_test\\.go):\\d+:"
+        },
+        "test_location": {
+          "field": "/log",
+          "kind": "identifier",
+          "optional": true,
+          "record": "job",
+          "capture": "(\\S+_test\\.go:\\d+):"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "job": {
+          "from": "run",
+          "collection": "/services/github/workflow_jobs",
+          "filter": {
+            "matching": {
+              "/conclusion": "failure"
+            }
+          },
+          "on": {
+            "/run_id": "/id"
+          }
+        },
+        "run": {
+          "collection": "/services/github/workflow_runs",
+          "filter": {
+            "matching": {
+              "/repo": "octo-org/payments-api"
+            }
+          },
+          "on": {
+            "/head_branch": "/head"
+          },
+          "pick": {
+            "largest": "/run_number"
+          }
+        }
+      },
+      "context": [
+        "Lint and integration tests passed",
+        "lint and integration-tests passed",
+        "lint and integration-tests jobs passed",
+        "lint and integration-tests both passed",
+        "lint and integration-tests succeeded",
+        "The lint and integration-tests jobs succeeded",
+        "lint and integration-tests jobs succeeded",
+        "lint and integration-tests both succeeded",
+        "lint and integration-tests were green",
+        "lint and integration-tests are green",
+        "at ${test_location}",
+        "in ${test_file}",
+        "run ${run_id}",
+        "Assertion"
+      ],
+      "contradictions": [
+        "passed",
+        "succeeded",
+        "green"
+      ],
+      "assertions": [
+        "Job: ${job}",
+        "the ${job} job is red",
+        "the ${job} job",
+        "${job}",
+        "Failing test: ${test}",
+        "${test}",
+        "Assertion: ${assertion}",
+        "\"${assertion}\"",
+        "${assertion}",
+        "${test} reports \"${assertion}\"",
+        "${job} failed: ${test}",
+        "${job} failed",
+        "${test} (${test_location}) reports ${assertion}",
+        "${test} (${test_location}) reports \"${assertion}\"",
+        "${test_location}",
+        "Assertion: ${test_location}: ${assertion}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

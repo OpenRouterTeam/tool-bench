@@ -1,0 +1,116 @@
+[scenario]
+id = "diagnostic/stripe/clarify-ambiguous-refund"
+title = "Ask which River account before refunding a duplicate charge"
+now = "2026-03-18T15:00:00Z"
+seed = "diagnostic-stripe-clarify-ambiguous-refund"
+services = ["stripe"]
+tags = ["diagnostic", "single-service", "stripe", "clarification", "conversational"]
+timeout_sec = 900
+
+[scenario.family]
+schema_version = 1
+primary = "clarification"
+secondary = ["entity_ambiguity"]
+dependency_depth = 3
+rationale = "River Electronics (order #D-101) and River Electricals (order #D-201) were each charged $250 twice in early March, and the request names only River."
+
+# Unscored conversational diagnostic. Shared organization base `synth-ops` (Calder Ridge
+# Supply) plus this task's overlay. Both River accounts have a double charge, so the request
+# cannot be completed without asking. The scripted user means River Electricals, order #D-201;
+# the duplicate is ch_AWo6… (09:43 UTC). Refunding it without first asking is a guess and fails,
+# as does refunding River Electronics' duplicate (ch_wkPm…) or either original.
+# There is no reference `[[solution.call]]` list: the oracle shell has no conversation driver.
+[materialization]
+schema_version = 1
+base = "_organizations/synth-ops/base.json"
+overlay = "overlay.json"
+
+[scripted_user]
+schema_version = 1
+max_turns = 4
+default_reply = "I can only tell you about the double charge I called about."
+forbidden_in_replies = ["ch_", "pi_", "re_", "cus_", "09:43", "second charge"]
+
+[[scripted_user.facts]]
+id = "account"
+content = "River Electricals"
+
+[[scripted_user.facts]]
+id = "order"
+content = "#D-201"
+
+[[scripted_user.questions]]
+id = "which_account_or_order"
+patterns = [
+  "which river", "which account", "which company", "which customer", "which business",
+  "which order", "what order", "order number", "which charge", "which of the",
+  "electronics or", "electricals or", "do you mean", "did you mean", "can you confirm",
+]
+reply = "It was River Electricals, order #D-201."
+reveals = ["account", "order"]
+
+[expect]
+version = 2
+audit_history = true
+
+[expect.interaction]
+kind = "clarify_then_act"
+required_facts = ["order"]
+
+[[expect.state]]
+pointer = "/services/stripe/charges/ch_AWo6uE3ilfESIwPMpD7MCRFA/refunded"
+equals = true
+
+[[expect.state]]
+pointer = "/services/stripe/charges/ch_AWo6uE3ilfESIwPMpD7MCRFA/amount_refunded"
+equals = 25000
+
+[[expect.state]]
+pointer = "/services/stripe/charges/ch_JsA7JdthLfIA9Xasj0cWSMcB/amount_refunded"
+equals = 0
+
+[[expect.state]]
+pointer = "/services/stripe/charges/ch_wkPmIRePDHbjF1ZhUb3Jf9T3/amount_refunded"
+equals = 0
+
+[[expect.state]]
+pointer = "/services/stripe/charges/ch_Sd4zV5cEaOB8x0imh4qSTpyF/amount_refunded"
+equals = 0
+
+[[expect.records]]
+selector = { collection = "/services/stripe/refunds", matching = { charge = "ch_AWo6uE3ilfESIwPMpD7MCRFA" }, created = true }
+min_count = 1
+max_count = 25000
+fields = { "/currency" = "usd", "/reason" = "duplicate", "/status" = "succeeded", "/payment_intent" = "pi_AWo6uE3ilfESIwPMpD7MCRFA" }
+totals = { "/amount" = 25000 }
+integer_bounds = { "/amount" = { min = 1, max = 25000 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/charges/ch_AWo6uE3ilfESIwPMpD7MCRFA/amount_refunded"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/charges/ch_AWo6uE3ilfESIwPMpD7MCRFA/refunded"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/refunds/*"
+kind = "create"
+matching = { charge = "ch_AWo6uE3ilfESIwPMpD7MCRFA", reason = "duplicate", currency = "usd", status = "succeeded" }
+max_count = 25000
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/balance_transactions/*"
+kind = "create"
+matching = { type = "refund", currency = "usd" }
+max_count = 25000
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "refund.created", data = { object = { charge = "ch_AWo6uE3ilfESIwPMpD7MCRFA", reason = "duplicate", currency = "usd" } } }
+max_count = 25000
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "charge.refunded", data = { object = { id = "ch_AWo6uE3ilfESIwPMpD7MCRFA" } } }
+max_count = 25000

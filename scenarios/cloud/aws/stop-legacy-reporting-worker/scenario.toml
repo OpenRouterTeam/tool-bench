@@ -7,6 +7,13 @@ services = ["aws"]
 tags = ["write", "single-service", "aws", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["tool_ambiguity"]
+dependency_depth = 1
+rationale = "Two instances are named reporting-worker-legacy: prod i-07b9d1f3a5c8e2046 and staging i-0e4a6c8b2d1f35790; contract needs the prod one stopped with its volume still in-use and staging untouched."
+
 [expect]
 version = 2
 audit_history = true

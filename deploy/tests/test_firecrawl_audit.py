@@ -500,7 +500,7 @@ class BusinessGoalTests(unittest.TestCase):
 
 
 class ProtocolTests(unittest.TestCase):
-    def test_schema_six_without_faults_preserves_the_frozen_audit_condition(self):
+    def test_supported_schema_revisions_without_faults_preserve_the_frozen_audit_condition(self):
         trial = Trial("create", runtime=True)
         trial.monitor()
         with tempfile.TemporaryDirectory() as temporary:
@@ -508,9 +508,11 @@ class ProtocolTests(unittest.TestCase):
             verifier = trial.write(root)
             path = root / "artifacts/world/evidence.json"
             evidence = json.loads(path.read_text())
-            evidence["schema_version"] = 6
-            path.write_text(json.dumps(evidence))
-            self.assertEqual(AUDIT.audit_trial(verifier, "create")[0], "pass")
+            for revision in (6, 7):
+                with self.subTest(revision=revision):
+                    evidence["schema_version"] = revision
+                    path.write_text(json.dumps(evidence))
+                    self.assertEqual(AUDIT.audit_trial(verifier, "create")[0], "pass")
             evidence["fault_records"] = [{"decision": "response_lost"}]
             path.write_text(json.dumps(evidence))
             with self.assertRaises(AUDIT.AuditRejected):

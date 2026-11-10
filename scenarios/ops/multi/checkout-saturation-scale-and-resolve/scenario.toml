@@ -7,6 +7,13 @@ services = ["pagerduty", "kubernetes"]
 tags = ["write", "multi-service", "pagerduty", "kubernetes", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity"]
+dependency_depth = 3
+rationale = "Incidents 4810 (checkout-api) and 4811 (checkout-api-staging) share the title Checkout API saturated; runbooks say shop-prod to 9 vs shop-staging to 3 replicas; only shop-prod/checkout and 4810 may change."
+
 [expect]
 version = 2
 audit_history = true

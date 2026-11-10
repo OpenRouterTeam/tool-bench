@@ -45,11 +45,76 @@
     }
   ],
   "answer": {
-    "contains": [
-      "Priya Raman",
-      "Marcus Chen"
-    ],
-    "regex": null
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the level-1 and level-2 on-call people for the Payments escalation policy right now.",
+      "selector": {
+        "collection": "/services/pagerduty/escalation_policies",
+        "matching": {
+          "name": "Payments"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "oncall1": {
+          "field": "/name",
+          "kind": "text",
+          "record": "level1"
+        },
+        "oncall2": {
+          "field": "/name",
+          "kind": "text",
+          "record": "level2"
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "${oncall2} is on call and ${oncall1} is the backup",
+        "${oncall2} and ${oncall1}"
+      ],
+      "related": {
+        "level1": {
+          "from": "schedule",
+          "collection": "/services/pagerduty/users",
+          "on": {
+            "/id": "/id"
+          }
+        },
+        "level2": {
+          "collection": "/services/pagerduty/users",
+          "on": {
+            "/id": "/escalation_rules/1/targets/0/id"
+          }
+        },
+        "schedule": {
+          "collection": "/services/pagerduty/schedules",
+          "on": {
+            "/id": "/escalation_rules/0/targets/0/id"
+          },
+          "pick": {
+            "oncall": {
+              "overrides": "/services/pagerduty/overrides"
+            }
+          }
+        }
+      },
+      "context": [
+        "covering Riya Patel via a schedule override",
+        "covering Riya Patel",
+        "override covering Riya Patel",
+        "(override for Riya Patel)"
+      ],
+      "assertions": [
+        "On call: ${oncall1}, backup: ${oncall2}",
+        "${oncall1} and ${oncall2}",
+        "Level 1: ${oncall1}. Level 2: ${oncall2}",
+        "Primary: ${oncall1}, secondary: ${oncall2}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

@@ -7,6 +7,13 @@ services = ["okta"]
 tags = ["lookup", "single-service", "okta"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "On 2026-03-13 jordyn.patel has 6 FAILURE sign-ins; near-miss logins jordan.patel (2) and jordan.pate (4 policy DENY), plus lee.wong 8 on 03-10 and alex.kim 7 on 03-14, are distractors the answer must avoid."
+
 # Failed (outcome FAILURE) sign-ins on 2026-03-13 UTC: Jordyn Patel 6 from 203.0.113.77,
 # Marcus Chen 3, Jordan Patel 2, Priya Raman 1. Distractors: Jordan Pate's 4 policy DENYs,
 # Lee Wong's 8 failures on 03-10, Alex Kim's 7 failures just after midnight on 03-14.
@@ -14,9 +21,41 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["jordyn.patel@octo-corp.example", "203.0.113.77"]
-regex = '(?i)\b(6|six)\b'
+[expect.answer.record_facts]
+requirement = "State the login of the Okta account with the most failed sign-in events (user.session.start with outcome FAILURE) published on 2026-03-13 UTC, the number of those failed attempts, and the client IP address they all came from."
+mode = "statements"
+assertions = [
+  "${login} had the most failed sign-ins (${attempts}), all from IP ${ip}.",
+  "Username: ${login}\nFailed attempts: ${attempts}\nIP address: ${ip}",
+  "${login} had ${attempts}, every one from ${ip}.",
+  "${login} had ${attempts} from ${ip}.",
+  "${login} had ${attempts} attempts from ${ip}.",
+]
+
+
+[expect.answer.record_facts.selector]
+collection = "/services/okta/logs"
+matching = { eventType = "user.session.start", outcome = { result = "FAILURE" } }
+field_patterns = { "/published" = "^2026-03-13T" }
+
+[expect.answer.record_facts.selection.group]
+by = "/actor/alternateId"
+measure = "count"
+pick = "largest"
+
+[expect.answer.record_facts.facts.login]
+field = "/key"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.attempts]
+field = "/value"
+kind = "number"
+units = ["attempts", "attempt", "failed", "failures", "failure", "unsuccessful", "times"]
+require_unit = true
+
+[expect.answer.record_facts.facts.ip]
+field = "/member/client/ipAddress"
+kind = "identifier"
 
 # Read-only task.
 [[expect.forbidden_calls]]
@@ -38,4 +77,4 @@ tool = "get_logs"
 arguments = { filter = 'outcome.result eq "FAILURE"', since = "2026-03-13T00:00:00.000Z", until = "2026-03-14T00:00:00.000Z", limit = 100 }
 
 [solution]
-answer = "jordyn.patel@octo-corp.example had the most failed sign-ins on March 13 (6 failed attempts), all from IP 203.0.113.77.\n"
+answer = "jordyn.patel@octo-corp.example had 6 failures, every one from 203.0.113.77."

@@ -7,6 +7,13 @@ services = ["vercel"]
 tags = ["write", "single-service", "vercel", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "checkout-api (api-legacy.acme-shop.com) and checkout-api-next (api.acme-shop.com) both have a production STRIPE_SECRET_KEY plus preview/development test keys; contract pins the prj_9NauQL production binding."
+
 [expect]
 version = 2
 audit_history = true
@@ -58,7 +65,7 @@ arguments = { idOrName = "checkout-api-next", domain = "api.acme-shop.com" }
 endpoint = "vercel"
 tool = "vercel-get-environments"
 arguments = { idOrName = "checkout-api-next" }
-capture = [{ name = "production_key_id", pointer = "/content/1/text", json_pointer = "", select = { matching = { key = "STRIPE_SECRET_KEY", type = "sensitive" }, pointer = "/id" } }]
+capture = [{ name = "production_key_id", pointer = "/content/1/text", json_pointer = "", select = { matching = { key = "STRIPE_SECRET_KEY", type = "sensitive" }, pointer = "/id" }, constraint = { type = "string", minLength = 1 } }]
 
 [[solution.call]]
 endpoint = "vercel"

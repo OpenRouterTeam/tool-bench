@@ -1,0 +1,1 @@
+{"type":"object","properties":{"id":{"type":"string","pattern":"^gid://shopify/Product/[0-9]+$"},"publicationIds":{"type":"array","minItems":1,"maxItems":250,"items":{"type":"string","pattern":"^gid://shopify/Publication/[0-9]+$"}}},"required":["id","publicationIds"],"additionalProperties":false}

@@ -7,6 +7,13 @@ services = ["github"]
 tags = ["single-service", "write", "github"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Open Renovate PRs #57 (lodash 4.17.21, security label, ci/test success) and #58 (axios 1.7.4, ci/test failure) plus #55 dark mode; contract allows exactly one review, on #57, and its squash merge."
+
 [expect]
 version = 2
 audit_history = true

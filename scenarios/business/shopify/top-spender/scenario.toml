@@ -7,6 +7,13 @@ services = ["shopify"]
 tags = ["single-service", "lookup", "shopify"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Priya Raman totals 1130.00 over three paid orders; Elena Novak's 1608.00 order is REFUNDED, Hannah Wright's 1260.00 is VOIDED, Tom Achebe has 1050.00, Marcus Bell has the most orders; answer must name Priya."
+
 # Priya Raman: 1,130.00 across 3 orders. Distractors: Marcus Bell has the most orders (6,
 # 740.00); Elena Novak and Hannah Wright have larger raw order totals, but those big orders
 # were refunded / voided; Tom Achebe is a close second at 1,050.00.
@@ -14,9 +21,51 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["Priya Raman", "priya.raman@outlook.com"]
-regex = '1,?130(\.\d+)?'
+[expect.answer.record_facts]
+requirement = "Name the Shopify customer whose orders sum to the largest total once refunded and cancelled orders are left out, with that customer's email address and that total in US dollars."
+mode = "statements"
+# Words that rank the customer anywhere but first.
+contradictions = ["second", "second-highest", "second-largest", "runner-up", "the least", "the lowest"]
+assertions = [
+  "${name} (${email}) has spent the most: ${total}.",
+  "${name} (${email}): ${total}",
+  "Name: ${name}\nEmail: ${email}\nTotal spent: ${total}",
+  "${name} <${email}> has spent ${total}.",
+  "${name} <${email}> has spent ${total} with us.",
+  "Top spender: ${name} (${email}), ${total}.",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/shopify/orders"
+matching = { currencyCode = "USD" }
+
+[expect.answer.record_facts.filter]
+absent = ["/cancelledAt"]
+excluding = [{ "/financialStatus" = "REFUNDED" }]
+
+[expect.answer.record_facts.selection.group]
+by = "/customerId"
+measure = { sum = "/totalPrice" }
+pick = "largest"
+
+[expect.answer.record_facts.related.customer]
+collection = "/services/shopify/customers"
+on = { "/id" = "/key" }
+
+[expect.answer.record_facts.facts.name]
+record = "customer"
+field = "/firstName"
+append = ["/lastName"]
+kind = "text"
+
+[expect.answer.record_facts.facts.email]
+record = "customer"
+field = "/email"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.total]
+field = "/value"
+kind = "money"
 
 [[expect.forbidden_calls]]
 service = "shopify"
@@ -28,4 +77,4 @@ tool = "get-customers"
 arguments = { limit = 50 }
 
 [solution]
-answer = "Priya Raman (priya.raman@outlook.com) has spent the most: $1,130.00 across 3 orders."
+answer = "Priya Raman (priya.raman@outlook.com) has spent the most: $1,130.00."

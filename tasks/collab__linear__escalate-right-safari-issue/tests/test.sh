@@ -13,6 +13,7 @@ set -- bench-verify \
   --runner-policy /tests/runner-policy.json \
   --runner-admission /exports/runner-admission.json \
   --realized-manifest /exports/realized-manifest.json \
+  --inference-evidence /exports/inference-evidence.json \
   --output /logs/verifier
 if [ -f /app/answer.md ]; then
   set -- "$@" --answer /app/answer.md

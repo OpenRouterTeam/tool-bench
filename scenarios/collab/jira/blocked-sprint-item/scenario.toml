@@ -7,6 +7,13 @@ services = ["jira"]
 tags = ["lookup", "single-service", "jira", "multi-step"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 3
+rationale = "Active Sprint 23 has PAY-119 blocked by PAY-117 (Sam Ortiz); PAY-122 is blocked by PAY-121 but sits in future Sprint 24 and PAY-120/PAY-116 is only a relates link; answer must name only PAY-119."
+
 # In PAY Sprint 23 (active), PAY-119 "Switch production traffic to the v2 gateway" is
 # blocked by PAY-117 "Rotate payment gateway API credentials", assigned to Sam Ortiz.
 # Distractor: PAY-116 blocks PAY-120 (the other direction), and the future sprint.
@@ -14,8 +21,103 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["PAY-119", "PAY-117", "Sam Ortiz"]
+# The blocked issue is the Story that is the inward ("is blocked by") side of a Blocks link
+# and sits in sprint 7. The sprint ID is the only typed value: an issue's sprint field is an
+# integer list and a sprint's ID is text, which the selector cannot compare, so the `sprint`
+# join proves that the sprint is the active one (a different active sprint is an environment
+# error, never a stale pass). The link gives the blocker, whose assignee is the third fact.
+[expect.answer.record_facts]
+requirement = "Name the story in the active Payments sprint that is blocked by another issue, the issue that blocks it, and the person assigned to the blocking issue."
+mode = "statements"
+rejected = [
+  "${blocker} is blocked by ${blocked}",
+  "${blocker} blocked by ${blocked}",
+  "${blocker} is blocked on ${blocked}",
+  "${blocker} depends on ${blocked}",
+  "${blocked} blocks ${blocker}",
+  "${blocked} is blocking ${blocker}",
+  "${blocked} is the blocker",
+  "blocker: ${blocked}",
+  "blocked issue: ${blocker}",
+  "blocked: ${blocker}",
+  "${blocker} does not block",
+  "${blocker} doesn't block",
+  "${blocker} is not blocking",
+  "${blocker} isn't blocking",
+]
+context = [
+  "| Blocked story | Blocker | Blocker assignee |",
+  "Blocked story",
+  "status ${blocker_status}",
+]
+assertions = [
+  "Blocked: ${blocked}",
+  "Blocked story: ${blocked}",
+  "Blocked story ${blocked}",
+  "Blocker ${blocker}",
+  "Blocker assignee ${assignee}",
+  "${blocked} is blocked by ${blocker}",
+  "Blocked by: ${blocker}",
+  "Blocker: ${blocker}",
+  "${blocker} blocks ${blocked}",
+  "owned by ${assignee}",
+  "Blocker assignee: ${assignee}",
+  "assigned to ${assignee}",
+  "${blocker} (owned by ${assignee}) blocks ${blocked}",
+  "${blocked} is blocked by ${blocker}, assigned to ${assignee}",
+  "| ${blocked} | ${blocker} | ${assignee} |",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/jira/issues"
+matching = { fields = { issuetype = "Story", customfield_10104 = [7] } }
+references = [{ source_field = "/key", target = { collection = "/services/jira/issuelinks", references = [{ source_field = "/type", target = { collection = "/services/jira/issuelinktypes", matching = { name = "Blocks" } }, target_field = "/id" }] }, target_field = "/inward" }]
+
+[expect.answer.record_facts.related.sprint]
+collection = "/services/jira/sprints"
+filter = { matching = { "/state" = "active" } }
+on = { "/id" = "/fields/customfield_10104" }
+
+[expect.answer.record_facts.related.link]
+collection = "/services/jira/issuelinks"
+on = { "/inward" = "/key" }
+
+[expect.answer.record_facts.related.link_type]
+from = "link"
+collection = "/services/jira/issuelinktypes"
+filter = { matching = { "/name" = "Blocks" } }
+on = { "/id" = "/type" }
+
+[expect.answer.record_facts.related.blocker]
+from = "link"
+collection = "/services/jira/issues"
+on = { "/key" = "/outward" }
+
+[expect.answer.record_facts.related.assignee]
+from = "blocker"
+collection = "/services/jira/users"
+on = { "/name" = "/fields/assignee" }
+
+[expect.answer.record_facts.facts.blocked]
+field = "/key"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.blocker]
+record = "blocker"
+field = "/key"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.assignee]
+record = "assignee"
+field = "/displayName"
+also = ["/name"]
+kind = "text"
+
+[expect.answer.record_facts.facts.blocker_status]
+record = "blocker"
+field = "/fields/status"
+kind = "text"
+optional = true
 
 [[expect.forbidden_calls]]
 service = "jira"
@@ -42,17 +144,4 @@ tool = "jira_get_issue"
 arguments = { issue_key = "PAY-117", fields = "summary,status,assignee" }
 
 [solution]
-answer = "PAY-119 (Switch production traffic to the v2 gateway) is blocked by PAY-117 (Rotate payment gateway API credentials), which is assigned to Sam Ortiz and In Progress.\n"
-
-[expect.answer.record_facts]
-requirement = "answer must identify the blocked sprint item"
-mode = "contains"
-selection = "only"
-
-[expect.answer.record_facts.selector]
-collection = "/services/jira/issues"
-matching = { key = "PAY-119" }
-
-[expect.answer.record_facts.facts.issue_key]
-field = "/key"
-kind = "text"
+answer = "PAY-119 is blocked by PAY-117, assigned to Sam Ortiz."

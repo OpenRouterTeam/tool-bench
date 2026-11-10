@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/okta/transfer-to-platform-team",
-  "scenario_sha256": "sha256:6e64e9eeed1fd3725ee63bfb8928d3735f288c2cc0a9bda518bc77378d0233e4",
+  "scenario_sha256": "sha256:7e12fc8554e01d4e3ad25c638aa0f0518d956d66a704e422db7d8d3ed9e9b440",
   "dataset_sha256": "sha256:cf05a4c735b64d4ea0774342dd8b5431a3c2733525ba98b01866177117eeb54c",
   "contract_sha256": "sha256:19a36cf9b452323711420d70de621ced877948d747687bd8c90b5e2730a31553"
 }

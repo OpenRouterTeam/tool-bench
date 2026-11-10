@@ -489,3 +489,331 @@ fn cross_task_evidence_and_malformed_contracts_cannot_be_scored_successfully() {
     assert_eq!(assessment["outcome"], "invalid_contract");
     assert_eq!(assessment["reward"], 0.0);
 }
+
+// ---- host provider-proxy capture for container-side CLI agents ----
+//
+// The documents under tests/fixtures/proxy-capture are produced by the real proxy and
+// runner sealer (deploy/runner/test_proxy_capture.py keeps them equal to live output).
+
+fn proxy_capture(name: &str) -> Vec<u8> {
+    fs::read(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures/proxy-capture")
+            .join(format!("{name}.json")),
+    )
+    .unwrap()
+}
+
+fn proxy_fixture(directory: &Path, name: &str, answer_source: &str, actor_answer: &str) -> String {
+    use mock_core::runner::sha256;
+    let scenario = fixture_with_answer_source(directory, Some(answer_source));
+    fs::write(directory.join("answer.md"), actor_answer).unwrap();
+    let inference_bytes = proxy_capture(name);
+    let inference: Value = serde_json::from_slice(&inference_bytes).unwrap();
+    let mut configured = inference["identity"].clone();
+    configured["observed_model"] = Value::Null;
+    let mut manifest: Value =
+        serde_json::from_slice(&fs::read(directory.join("realized-manifest.json")).unwrap())
+            .unwrap();
+    manifest["execution_kind"] = json!("native");
+    manifest["agent"]["name"] = json!(mock_core::transport::PROXY_AGENT_NAME);
+    manifest["inference_identity"] = configured;
+    let manifest_bytes = serde_json::to_vec(&manifest).unwrap();
+    fs::write(directory.join("realized-manifest.json"), &manifest_bytes).unwrap();
+    fs::write(directory.join("inference-evidence.json"), &inference_bytes).unwrap();
+    fs::write(
+        directory.join("runner-policy.json"),
+        json!({
+            "schema_version": 1, "runner_protocol": "tool-bench-runner-v3",
+            "verification_protocol": "offline-world-evidence-v5", "harbor_version": "0.23.0",
+            "adapter_sha256": "a".repeat(64),
+            "inference_adapter": {
+                "name": mock_core::inference::COMPUTER1_ADAPTER_NAME,
+                "code_sha256": sha256(b"offline-host-capture-fixture"),
+            },
+            "proxy_inference_adapter": inference["adapter"],
+        })
+        .to_string(),
+    )
+    .unwrap();
+    fs::write(directory.join("runner-admission.json"), json!({
+        "schema_version": 1, "runner_protocol": "tool-bench-runner-v3",
+        "verification_protocol": "offline-world-evidence-v5", "scenario": scenario,
+        "session_id": "trial__env", "harbor_version": "0.23.0", "adapter_sha256": "a".repeat(64),
+        "contract_sha256": sha256(&fs::read(directory.join("contract.json")).unwrap()),
+        "evidence_sha256": sha256(&fs::read(directory.join("evidence.json")).unwrap()),
+        "main_artifacts_sha256": sha256(b"snapshot"), "answer_sha256": sha256(actor_answer.as_bytes()),
+        "manifest_sha256": sha256(&manifest_bytes), "inference_evidence_sha256": sha256(&inference_bytes),
+        "phase": "stopped", "failure": null,
+        "main": {"container_id": "b".repeat(64), "status": "exited", "running": false,
+            "paused": false, "restarting": false, "started_at": "2026-01-01T00:00:00Z",
+            "finished_at": "2026-01-01T00:01:00Z"},
+        "collection_checks": 2,
+    }).to_string()).unwrap();
+    scenario
+}
+
+fn rebind_inference(directory: &Path, inference: &Value) {
+    let bytes = serde_json::to_vec(inference).unwrap();
+    fs::write(directory.join("inference-evidence.json"), &bytes).unwrap();
+    let path = directory.join("runner-admission.json");
+    let mut receipt: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    receipt["inference_evidence_sha256"] = json!(mock_core::runner::sha256(&bytes));
+    fs::write(path, receipt.to_string()).unwrap();
+}
+
+fn receipt(directory: &Path) -> Value {
+    serde_json::from_slice(&fs::read(directory.join("result/verification.json")).unwrap()).unwrap()
+}
+
+#[test]
+fn proxy_captured_final_reply_is_graded_instead_of_the_container_answer_file() {
+    let directory = tempfile::tempdir().unwrap();
+    let scenario = proxy_fixture(directory.path(), "completed", "final_response", "Mallory");
+    let assessed = verify(directory.path(), &scenario, true);
+    assert_eq!(assessed["reward"], 1.0, "{assessed}");
+    let receipt = receipt(directory.path());
+    assert_eq!(receipt["answer_source"], "native_final_response");
+    assert_eq!(
+        receipt["graded_answer_sha256"],
+        mock_core::runner::sha256(b"Maya")
+    );
+    assert_eq!(receipt["failure_class"]["label"], "pass");
+    // An authored artifact request is still graded from the collected file.
+    let directory = tempfile::tempdir().unwrap();
+    let scenario = proxy_fixture(
+        directory.path(),
+        "completed",
+        "legacy_answer_file",
+        "Mallory",
+    );
+    let assessed = verify(directory.path(), &scenario, true);
+    assert_eq!(assessed["reward"], 0.0, "{assessed}");
+    assert_eq!(receipt_label(directory.path()), "task_failure");
+}
+
+fn receipt_label(directory: &Path) -> String {
+    receipt(directory)["failure_class"]["label"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
+#[test]
+fn proxy_capture_classifies_every_ending_the_same_way_the_runner_did() {
+    for (name, outcome, label, domain) in [
+        ("completed", "pass", "pass", "none"),
+        ("recovered_rate_limit", "pass", "pass", "none"),
+        (
+            "first_turn_context_rejection",
+            "context_overflow",
+            "first_turn_context_rejection",
+            "agent",
+        ),
+        (
+            "later_turn_context_rejection",
+            "context_overflow",
+            "later_turn_context_rejection",
+            "agent",
+        ),
+        (
+            "malformed_model_output",
+            "fail",
+            "malformed_model_output",
+            "agent",
+        ),
+        ("no_public_response", "fail", "no_public_response", "agent"),
+        (
+            "unrecovered_rate_limit",
+            "environment_error",
+            "unrecovered_rate_limit",
+            "infrastructure",
+        ),
+        (
+            "schema_admission_failure",
+            "environment_error",
+            "schema_admission_failure",
+            "infrastructure",
+        ),
+        (
+            "capture_gap",
+            "environment_error",
+            "failed_finalization",
+            "infrastructure",
+        ),
+        // A resumed session is rejected at binding, never graded as a fresh reply.
+        (
+            "resumed_session",
+            "environment_error",
+            "environment_error",
+            "infrastructure",
+        ),
+    ] {
+        let directory = tempfile::tempdir().unwrap();
+        let scenario = proxy_fixture(directory.path(), name, "final_response", "Maya");
+        // The legacy flag is ignored once structured evidence is bound.
+        let assessed = verify_with_options(directory.path(), &scenario, true, name == "completed");
+        assert_eq!(assessed["outcome"], outcome, "{name}: {assessed}");
+        let receipt = receipt(directory.path());
+        assert_eq!(receipt["failure_class"]["label"], label, "{name}");
+        assert_eq!(receipt["failure_class"]["domain"], domain, "{name}");
+        if name != "resumed_session" {
+            assert_eq!(
+                receipt["inference_classification"],
+                name.replace("capture_gap", "failed_finalization")
+            );
+        }
+    }
+}
+
+#[test]
+fn proxy_capture_that_disagrees_with_its_exchanges_or_trial_is_an_environment_fault() {
+    for mutation in [
+        "classification",
+        "final_text",
+        "turn_kind",
+        "retry_count",
+        "tokens",
+        "drop_exchange",
+        "drop_transport",
+        "computer1_name",
+        "session",
+        "code",
+        "unapproved_policy",
+    ] {
+        let directory = tempfile::tempdir().unwrap();
+        let scenario = proxy_fixture(
+            directory.path(),
+            "recovered_rate_limit",
+            "final_response",
+            "Maya",
+        );
+        let mut inference: Value =
+            serde_json::from_slice(&proxy_capture("recovered_rate_limit")).unwrap();
+        match mutation {
+            "classification" => inference["classification"] = json!("completed"),
+            "final_text" => {
+                // A context rejection relabelled as a completed answer.
+                inference =
+                    serde_json::from_slice(&proxy_capture("first_turn_context_rejection")).unwrap();
+                inference["classification"] = json!("completed");
+                inference["finalization"] = json!("normal");
+                inference["turns"][0]["kind"] = json!("final_response");
+                inference["final_response"] =
+                    json!({"text": "Maya", "turn": 0, "finalization": "normal", "resumed": false});
+            }
+            "turn_kind" => inference["turns"][0]["kind"] = json!("tool_use"),
+            "retry_count" => {
+                inference["turns"][0]["retry_count"] = json!(0);
+                inference["turns"][0]["retried"] = json!(false);
+            }
+            "tokens" => inference["turns"][0]["input_tokens"] = json!(1),
+            "drop_exchange" => {
+                inference["transport"]["exchanges"]
+                    .as_array_mut()
+                    .unwrap()
+                    .remove(0);
+            }
+            "drop_transport" => {
+                inference.as_object_mut().unwrap().remove("transport");
+            }
+            "computer1_name" => {
+                inference["adapter"]["name"] = json!(mock_core::inference::COMPUTER1_ADAPTER_NAME)
+            }
+            "session" => inference["session_id"] = json!("another-trial__env"),
+            "code" => {
+                inference["adapter"]["code_sha256"] =
+                    json!(mock_core::runner::sha256(b"edited proxy"))
+            }
+            "unapproved_policy" => {
+                let path = directory.path().join("runner-policy.json");
+                let mut policy: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+                policy
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("proxy_inference_adapter");
+                fs::write(path, policy.to_string()).unwrap();
+            }
+            _ => unreachable!(),
+        }
+        rebind_inference(directory.path(), &inference);
+        let assessed = verify(directory.path(), &scenario, true);
+        assert_eq!(
+            assessed["outcome"], "environment_error",
+            "{mutation}: {assessed}"
+        );
+        assert_eq!(assessed["reward"], 0.0, "{mutation}");
+    }
+}
+
+#[test]
+fn provider_context_rejection_is_classified_despite_mcp_startup_and_connector_traffic() {
+    use mock_core::{
+        grading::{Expect, GradeInput, Outcome, grade},
+        journal::JournalEntry,
+        startup::StartupCall,
+    };
+    let entry = |seq: u64, path: &str| JournalEntry {
+        seq,
+        operation_id: None,
+        replay: None,
+        time: "2026-11-03T15:00:00Z".into(),
+        service: "github".into(),
+        source: "192.0.2.10".into(),
+        method: "GET".into(),
+        host: None,
+        scheme: "http".into(),
+        content_type: None,
+        path: path.into(),
+        query: None,
+        request_body: Value::Null,
+        status: 200,
+        response_body: json!({}),
+    };
+    // One declared startup handshake plus a lazy connector call no startup list covers.
+    let journal = [entry(1, "/api/v3/user"), entry(2, "/api/v3/meta")];
+    let startup = [StartupCall {
+        service: "github".into(),
+        method: "GET".into(),
+        path: "/api/v3/user".into(),
+        query: None,
+    }];
+    let expect: Expect = serde_json::from_value(json!({"answer": {"contains": ["Maya"]}})).unwrap();
+    let assess = |context_overflow: bool| {
+        grade(&GradeInput {
+            expect: &expect,
+            state: json!({"services": {}}),
+            journal: &journal,
+            answer: None,
+            tools_ips: vec!["192.0.2.10".into()],
+            context_overflow,
+            startup: &startup,
+            initial_state: None,
+            events: None,
+        })
+    };
+    // The journal heuristic cannot see the rejection once any connector traffic exists.
+    assert_eq!(assess(true).outcome, Outcome::Fail);
+    for (name, label) in [
+        (
+            "first_turn_context_rejection",
+            "first_turn_context_rejection",
+        ),
+        (
+            "later_turn_context_rejection",
+            "later_turn_context_rejection",
+        ),
+    ] {
+        let evidence: mock_core::inference::InferenceEvidence =
+            serde_json::from_slice(&proxy_capture(name)).unwrap();
+        evidence.validate().unwrap();
+        mock_core::transport::check(&evidence).unwrap();
+        let mut assessment = assess(false);
+        evidence.apply_to_grade(&mut assessment);
+        assert_eq!(assessment.outcome, Outcome::ContextOverflow, "{name}");
+        assert_eq!(
+            mock_core::failure::classify(&assessment, Some(&evidence)).label,
+            label
+        );
+    }
+}

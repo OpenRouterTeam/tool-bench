@@ -7,6 +7,13 @@ services = ["tavily"]
 tags = ["write", "single-service", "tavily", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "The compare page lists exactly Tallybook, Billfold and Sumwise; the G2 category page adds InvoiceNinja, Zervant and FreshBooks, and Ledgerize was dropped in 2025; inputs naming extras are rejected."
+
 [expect]
 version = 2
 audit_history = true

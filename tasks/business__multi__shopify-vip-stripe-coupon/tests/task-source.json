@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "business/multi/shopify-vip-stripe-coupon",
-  "scenario_sha256": "sha256:1dfb3bb3b61bfe351f3c5450c212646a76800ca4be21a5838ca40c7bda0085bb",
+  "scenario_sha256": "sha256:862c536c2d4b02e6b3dca99cca108f2feb7f29c4fcd4cec346d307bfd1e14445",
   "dataset_sha256": "sha256:d66c2ebc2b0a78998dffd199e84c424388db8d6642c2d00914cc96354b32dcfc",
   "contract_sha256": "sha256:4d7aeb599c5f4cc95079305450f04fa19cc5df4d36aa360aeeab6e703efe2232"
 }

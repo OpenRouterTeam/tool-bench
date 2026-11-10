@@ -7,6 +7,13 @@ services = ["sentry", "vercel"]
 tags = ["write", "multi-service", "sentry", "vercel", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "cross_system_identity"
+secondary = ["entity_ambiguity", "stale_state"]
+dependency_depth = 3
+rationale = "Sentry STOREFRONT-5R firstRelease e07a3c9 is matched to the Vercel deployment with that githubCommitSha; the prior serving build is c3a9f12 (dpl_8o704), not errored 2f6c8a1 or preview 91b7e4c; 5T is preview-only."
+
 # STOREFRONT-5R (7201330418) first appeared in release e07a3c9 ("Switch to payments client v3
 # (#491)", production since 08:16). The build serving production before it is c3a9f12
 # (dpl_8o704…); the newer eslint build 2f6c8a1 failed and never served. Traps: the newer

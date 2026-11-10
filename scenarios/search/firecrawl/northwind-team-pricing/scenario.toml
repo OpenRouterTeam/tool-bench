@@ -7,14 +7,64 @@ services = ["firecrawl"]
 tags = ["lookup", "single-service", "firecrawl", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Live pricing page (updated 2026-09-01) says Team $79 annual with 12 seats; the Feb 2025 blog post and G2 listing (updated March 2025) say $69 and 10 seats; Northwind Traders is a look-alike."
+
 # $79/month billed annually with 12 seats is only on the live pricing page; the 2025 blog
 # post and the G2 listing say $69 and 10 seats, and monthly billing is $99.
 [expect]
 version = 2
 audit_history = true
 
-[expect.answer]
-regex = '(?is)(\$\s?79\b.*\b12\b|\b12\b.*\$\s?79\b)'
+# The page is Northwind Analytics' own pricing page. Both facts are read from the Team
+# entry of its text; the patterns also read the Team entry of the 2025 blog post and of the
+# third-party listing, whose values therefore count as another record's.
+[expect.answer.record_facts]
+requirement = "State the monthly price in US dollars of Northwind Analytics' Team plan when billed annually, and the number of seats that plan includes, according to the company's own current pricing page."
+mode = "statements"
+context = [
+  "(Source: ${source_url})",
+  "Northwind Analytics",
+]
+assertions = [
+  "Team plan: ${price}/month billed annually, ${seats} included.",
+  "Price: ${price} per month (annual billing) Seats: ${seats}",
+  "| Price | ${price} | | Seats included | ${seats} seats |",
+  "| Price | ${price} | | Seats included | ${seats} |",
+  "${price}/month, ${seats}",
+  "${price}/month, ${seats} users",
+  "${price} per month billed annually, ${seats} seats",
+  "${price} per month billed annually ($99 billed monthly), ${seats} seats, extra seats $8/seat/month.",
+  "${price}/month billed annually, ${seats} seats",
+  "${price}/month billed annually, ${seats}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/firecrawl/pages"
+field_patterns = { "/title" = '^Pricing \| Northwind Analytics$' }
+
+[expect.answer.record_facts.facts.price]
+field = "/markdown"
+capture = 'Team(?:\n\n|\*\* plan is| \|) ?(?:\*\*)?\$(\d+)(?:/| per )month'
+kind = "money"
+units = ["usd", "dollars"]
+require_unit = true
+
+[expect.answer.record_facts.facts.seats]
+field = "/markdown"
+capture = 'Team[^#]*?(\d+) (?:seats|users)'
+kind = "number"
+units = ["seats", "seat", "users", "user"]
+require_unit = true
+
+[expect.answer.record_facts.facts.source_url]
+field = "/_key"
+kind = "identifier"
+optional = true
 
 [[solution.call]]
 endpoint = "firecrawl"
@@ -27,4 +77,4 @@ tool = "firecrawl_scrape"
 arguments = { url = "https://www.northwind-analytics.com/pricing", formats = ["markdown"] }
 
 [solution]
-answer = "Northwind Analytics Team plan: $79 per month when billed annually (USD), including 12 seats. (Source: https://www.northwind-analytics.com/pricing)\n"
+answer = "Team plan: $79/month billed annually, 12 seats included."

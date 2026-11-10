@@ -7,6 +7,13 @@ services = ["mongodb", "zendesk"]
 tags = ["lookup", "multi-service", "mongodb", "zendesk", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity", "stale_state"]
+dependency_depth = 3
+rationale = "Hana Sato has orders 10598 (delivered, solved ticket 4208), 10601 (shipped UPS, open ticket 4222) and 10605; Diego's 10603 is the same headphones that day and shop_staging has a fake-tracking 10601."
+
 # Open ticket 4222: the Studio X2 headphones Hana ordered on October 21 = shop.orders 10601,
 # shipped, UPS 1Z4X97W80391827364. Look-alikes: her solved ticket 4208 (order 10598, USPS),
 # her other open order 10605 (processing), Diego Alvarez's headphones order 10603 the same day
@@ -15,9 +22,61 @@ timeout_sec = 1200
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["10601", "UPS", "1Z4X97W80391827364"]
-regex = "(?i)shipped"
+# The order is the production shop.orders document created on October 21, 2026 (the order
+# date the ticket body gives) whose customer email is that of the Zendesk user Hana Sato.
+# "not yet delivered" is a true aside about a shipped order.
+[expect.answer.record_facts]
+requirement = "State the order number, current status, carrier and tracking number of the production shop.orders order that Zendesk requester Hana Sato placed on October 21, 2026."
+mode = "statements"
+context = [
+  "but has not yet been delivered",
+  "but has not been delivered",
+  "hasn't yet been delivered",
+  "hasn't been delivered",
+  "not yet been delivered",
+  "not yet delivered",
+  "not delivered yet",
+  "on Oct 23",
+  "on 2026-10-23",
+  "ETA Oct 31",
+  "estimated delivery 2026-10-31",
+]
+
+assertions = [
+  "Order number: ${order}\nStatus: ${status}\nCarrier: ${carrier}\nTracking number: ${tracking}",
+  "Order ${order} has ${status} with ${carrier} (tracking ${tracking})",
+  "Order ${order} was ${status} via ${carrier} (${tracking})",
+  "Order ${order}: ${status}, ${carrier}, tracking ${tracking}.",
+  "Order ${order}: ${status}. Carrier: ${carrier}. Tracking number: ${tracking}.",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/mongodb/db.shop.orders"
+field_patterns = { "/createdAt/$date" = "^2026-10-21T" }
+
+[[expect.answer.record_facts.selector.references]]
+source_field = "/customer/email"
+target_field = "/email"
+
+[expect.answer.record_facts.selector.references.target]
+collection = "/services/zendesk/users"
+matching = { name = "Hana Sato" }
+
+[expect.answer.record_facts.facts.order]
+field = "/orderNumber"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.status]
+field = "/status"
+kind = "text"
+
+[expect.answer.record_facts.facts.carrier]
+field = "/shipping/carrier"
+kind = "text"
+
+[expect.answer.record_facts.facts.tracking]
+field = "/shipping/trackingNumber"
+kind = "identifier"
 
 [[expect.forbidden_calls]]
 service = "zendesk"
@@ -60,4 +119,4 @@ tool = "find"
 arguments = { connectionId = "preconfigured", database = "shop", collection = "orders", filter = { "customer.email" = "hana.sato@example.org" } }
 
 [solution]
-answer = "Hana's ticket 4222 is about order 10601 (Studio X2 Headphones, ordered 2026-10-21). Status: shipped (on 2026-10-23). Carrier: UPS, tracking number 1Z4X97W80391827364, estimated delivery 2026-10-31.\n"
+answer = "Order 10601: shipped, UPS, tracking 1Z4X97W80391827364."

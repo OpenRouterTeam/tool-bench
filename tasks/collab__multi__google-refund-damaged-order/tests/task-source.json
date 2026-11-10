@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/multi/google-refund-damaged-order",
-  "scenario_sha256": "sha256:6229c768aeefa21466f13200d1435bdb497e133c03a88b1af86c93288685608d",
+  "scenario_sha256": "sha256:87525ca56efcd9ca46b0a9a220d4047dca216cc2806c945115aa965b7016c3c7",
   "dataset_sha256": "sha256:554be4f4b46066465a5f730afff9d9dca2d6c51949916016f252dd57bb7b725f",
   "contract_sha256": "sha256:a6b63a4900e14f889bd0a60820b0e86ff8503539942de47212fce697a467a297"
 }

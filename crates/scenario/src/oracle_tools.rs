@@ -15,6 +15,7 @@ use crate::SolutionCall;
 
 struct ToolSchema {
     schema: Value,
+    output: Option<Value>,
     validator: OnceLock<Result<jsonschema::Validator, String>>,
 }
 
@@ -26,6 +27,17 @@ struct Snapshot {
 
 pub struct OracleTools {
     snapshots: BTreeMap<String, Snapshot>,
+    /// Reviewed authoring declarations (validation evidence and operation support).
+    pub declarations: crate::authoring::Declarations,
+}
+
+impl std::fmt::Debug for OracleTools {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("OracleTools")
+            .field("snapshots", &self.snapshots.len())
+            .finish_non_exhaustive()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -45,6 +57,9 @@ pub struct CallValidation {
     pub deferred_paths: Vec<String>,
     pub result_contract: crate::oracle_results::ResultContract,
     pub allowed_api_errors: Vec<crate::oracle_results::AllowedApiError>,
+    /// Present only when the arguments use values captured from an earlier result.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub captured: Option<crate::captured::CapturedArguments>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -102,6 +117,10 @@ impl OracleTools {
                         name.into(),
                         ToolSchema {
                             schema: schema.clone(),
+                            output: definition
+                                .get("outputSchema")
+                                .filter(|schema| schema.is_object())
+                                .cloned(),
                             validator: OnceLock::new(),
                         },
                     )
@@ -131,7 +150,78 @@ impl OracleTools {
                 bail!("duplicate endpoint {}", endpoint.id);
             }
         }
-        Ok(Self { snapshots })
+        let tools = Self {
+            snapshots,
+            declarations: crate::authoring::Declarations::default(),
+        };
+        let declarations = crate::authoring::Declarations::load(root, catalog, &tools)?;
+        Ok(Self {
+            declarations,
+            ..tools
+        })
+    }
+
+    fn tool(&self, call: &SolutionCall) -> anyhow::Result<&ToolSchema> {
+        self.snapshots
+            .get(&call.endpoint)
+            .with_context(|| format!("unknown reference endpoint {}", call.endpoint))?
+            .tools
+            .get(&call.tool)
+            .with_context(|| format!("unknown reference tool {}.{}", call.endpoint, call.tool))
+    }
+
+    pub fn has_tool(&self, endpoint: &str, tool: &str) -> bool {
+        self.snapshots
+            .get(endpoint)
+            .is_some_and(|snapshot| snapshot.tools.contains_key(tool))
+    }
+
+    /// Statically checks captured-argument declarations and records the result on each call.
+    pub fn attach_captured(
+        &self,
+        solution: &crate::Solution,
+        validations: &mut [CallValidation],
+    ) -> anyhow::Result<()> {
+        let analyzed = crate::captured::analyze(solution, |call| {
+            let tool = self.tool(call)?;
+            Ok(crate::captured::LockedTool {
+                input: &tool.schema,
+                output: tool.output.as_ref(),
+            })
+        })?;
+        anyhow::ensure!(
+            analyzed.len() == validations.len(),
+            "captured-argument analysis needs every reference call"
+        );
+        for (validation, captured) in validations.iter_mut().zip(analyzed) {
+            validation.captured = captured;
+        }
+        Ok(())
+    }
+
+    /// The locked input schema the generated oracle enforces on a call's resolved arguments,
+    /// when those arguments use captured values and the schema is runtime-checkable.
+    pub fn runtime_argument_schema(&self, call: &SolutionCall) -> anyhow::Result<Option<&Value>> {
+        let tool = self.tool(call)?;
+        Ok(crate::captured::unsupported(&tool.schema)
+            .is_none()
+            .then_some(&tool.schema))
+    }
+
+    /// Validates fully resolved arguments against the locked input schema (complete validator).
+    pub fn check_resolved(&self, call: &SolutionCall, arguments: &Value) -> anyhow::Result<()> {
+        let tool = self.tool(call)?;
+        let found = crate::captured::violations(&tool.schema, arguments)
+            .map_err(|error| anyhow::anyhow!("{}.{}: {error}", call.endpoint, call.tool))?;
+        if !found.is_empty() {
+            bail!(
+                "resolved arguments for {}.{} violate the locked input schema: {}",
+                call.endpoint,
+                call.tool,
+                found.join("; ")
+            );
+        }
+        Ok(())
     }
 
     pub fn validate(&self, call: &SolutionCall) -> anyhow::Result<CallValidation> {
@@ -224,6 +314,7 @@ impl OracleTools {
                 &call.tool,
             ),
             allowed_api_errors: call.allow_api_errors.clone(),
+            captured: None,
         })
     }
 }

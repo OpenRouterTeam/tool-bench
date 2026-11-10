@@ -7,6 +7,13 @@ services = ["argocd"]
 tags = ["single-service", "write", "argocd"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "tool_ambiguity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 1
+rationale = "App search-indexer is OutOfSync on search-indexer-config; contract requires the restart resource action on search-indexer-worker and forbids sync, PUT and DELETE; staging twin and search-indexer-api must stay untouched."
+
 [expect]
 version = 2
 audit_history = true
@@ -100,7 +107,7 @@ allow = [
 endpoint = "argocd"
 tool = "get_application_resource_tree"
 arguments = { applicationName = "search-indexer" }
-capture = [{ name = "worker_uid", pointer = "/content/0/text", json_pointer = "/nodes", select = { matching = { kind = "Deployment", namespace = "search", name = "search-indexer-worker" }, pointer = "/uid" } }]
+capture = [{ name = "worker_uid", pointer = "/content/0/text", json_pointer = "/nodes", select = { matching = { kind = "Deployment", namespace = "search", name = "search-indexer-worker" }, pointer = "/uid" }, constraint = { type = "string", minLength = 1 } }]
 
 [[solution.call]]
 endpoint = "argocd"

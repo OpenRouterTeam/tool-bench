@@ -70,11 +70,107 @@
     }
   ],
   "answer": {
-    "contains": [
-      "STOREFRONT-WEB-8D",
-      "5.3.0"
-    ],
-    "regex": "1,?318[\\s\\S]*2,?172|2,?172[\\s\\S]*1,?318"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "For the Sentry issue linked from the open WEB bug about the product grid, give its short ID, its number of events, its number of affected users, and the release in which it first appeared.",
+      "selector": {
+        "collection": "/services/jira/issues",
+        "matching": {
+          "fields": {
+            "issuetype": "Bug",
+            "project": "WEB"
+          }
+        },
+        "field_patterns": {
+          "/fields/summary": "(?i)^product grid\\b"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "events": {
+          "field": "/count",
+          "kind": "number",
+          "record": "sentry",
+          "units": [
+            "events"
+          ],
+          "require_unit": true
+        },
+        "issue": {
+          "field": "/shortId",
+          "kind": "identifier",
+          "record": "sentry"
+        },
+        "last_release": {
+          "field": "/lastRelease",
+          "kind": "identifier",
+          "optional": true,
+          "record": "sentry",
+          "capture": "@(.+)$"
+        },
+        "release": {
+          "field": "/firstRelease",
+          "kind": "identifier",
+          "record": "sentry",
+          "capture": "@(.+)$"
+        },
+        "users": {
+          "field": "/userCount",
+          "kind": "number",
+          "record": "sentry",
+          "units": [
+            "users",
+            "affected users"
+          ],
+          "require_unit": true
+        }
+      },
+      "mode": "statements",
+      "filter": {
+        "absent": [
+          "/fields/resolution"
+        ]
+      },
+      "related": {
+        "sentry": {
+          "collection": "/services/sentry/issues",
+          "on": {
+            "/id": "/fields/description"
+          },
+          "capture_from": {
+            "/fields/description": "sentry\\.io/issues/(\\d+)"
+          }
+        }
+      },
+      "context": [
+        "last seen in storefront@${last_release}",
+        "unlike STOREFRONT-WEB-7Q with 2,600 events"
+      ],
+      "predicates": [
+        "Cannot read properties of undefined"
+      ],
+      "assertions": [
+        "Sentry issue: ${issue}",
+        "${issue}",
+        "Events: ${events}",
+        "${events} events",
+        "Affected users: ${users}",
+        "${users} users",
+        "${users} affected users",
+        "First release: storefront@${release}",
+        "first release storefront@${release}",
+        "first seen in ${release}",
+        "storefront@${release}",
+        "${issue}: ${events} events, ${users} users, first seen in ${release}",
+        "${issue} has ${events} events affecting ${users} users",
+        "${issue} (${events} events, ${users} users, first seen in ${release})",
+        "${events} events and ${users} users, first seen in ${release}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

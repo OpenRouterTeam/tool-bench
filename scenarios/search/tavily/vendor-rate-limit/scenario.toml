@@ -7,13 +7,93 @@ services = ["tavily"]
 tags = ["lookup", "single-service", "tavily"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Quillstream v3 docs (updated 2026-09-14) say Business 1,200 rpm; the deprecated v2 page and a 2025 review say 600 and a 2025 forum post 900; Quillpad Business 300 is a look-alike vendor."
+
 # v3 docs say 1,200/min; the deprecated v2 page and a review say 600, a forum post 900.
 [expect]
 version = 2
 audit_history = true
 
-[expect.answer]
-regex = "1[,. ]?200"
+# The page is the rate-limit reference on Quillstream's own docs site whose title carries
+# no version or deprecation qualifier; the limit is read from the Business row of its table.
+[expect.answer.record_facts]
+requirement = "State the API rate limit of the Business plan in requests per minute according to Quillstream's own current rate-limit documentation, and cite that documentation page by its URL."
+mode = "statements"
+context = [
+  "the deprecated v2 docs said ${v2_limit} requests per minute",
+  "The v2 page ${v2_source} is deprecated.",
+  "(burst ${burst_limit}), per workspace",
+  "(updated ${updated_date})",
+  "the ${v2_limit}/min figure is from the deprecated v2 docs",
+  "${v2_limit}/min figure is from the deprecated v2 docs",
+  "the deprecated v2 docs say ${v2_limit} requests per minute",
+  "the deprecated v2 docs list ${v2_limit} requests per minute",
+]
+assertions = [
+  "${limit}/min for Business, from ${source}",
+  "Business plan: ${limit}. Found at [Rate limits](${source}).",
+  "${limit}/min (${source})",
+  "${limit} per minute (${source})",
+  "${limit} a minute (${source})",
+  "${limit} req/min (${source})",
+  "${limit} requests/min for Business, from ${source}",
+  "Business plan: ${limit} rpm. Found at [Rate limits](${source}).",
+  "${limit} requests per minute (${source})",
+  "${limit} requests a minute (${source})",
+  "${limit} requests per minute, from ${source}",
+  "${limit}/min, from ${source}",
+]
+# The deprecated v2 page lists a lower limit; saying so is a true aside.
+
+
+[expect.answer.record_facts.selector]
+collection = "/services/tavily/pages"
+field_patterns = { "/url" = '^https://docs\.quillstream\.io/', "/title" = '^Rate limits \|' }
+
+[expect.answer.record_facts.facts.limit]
+field = "/raw_content"
+capture = '\| Business \| ([\d,]+) \|'
+kind = "number"
+units = ["requests", "request", "reqs", "req", "rpm", "/min", "/minute", "per minute", "per min", "a minute"]
+require_unit = true
+
+[expect.answer.record_facts.facts.source]
+field = "/url"
+kind = "identifier"
+
+[expect.answer.record_facts.related.v2_page]
+collection = "/services/tavily/pages"
+filter = { patterns = { "/title" = '(?i)v2.*deprecated|deprecated.*v2' } }
+
+[expect.answer.record_facts.facts.v2_limit]
+record = "v2_page"
+field = "/raw_content"
+capture = '\| Business \| ([\d,]+) \|'
+kind = "number"
+optional = true
+
+[expect.answer.record_facts.facts.v2_source]
+record = "v2_page"
+field = "/url"
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.burst_limit]
+field = "/raw_content"
+capture = '\| Business \| [\d,]+ \| (\d+) \|'
+kind = "number"
+optional = true
+
+[expect.answer.record_facts.facts.updated_date]
+field = "/raw_content"
+capture = '[Ll]ast updated:? ([A-Z][a-z]+ \d{1,2},? \d{4}|\d{4}-\d{2}-\d{2})'
+kind = "date"
+optional = true
 
 [[expect.required_calls]]
 service = "tavily"
@@ -21,7 +101,7 @@ method = "POST"
 path_regex = "^/(search|extract|crawl|map|research)$"
 
 [solution]
-answer = "The Business plan is limited to 1,200 requests per minute (burst 200), per workspace. Source: Quillstream API v3 docs, https://docs.quillstream.io/api/rate-limits (updated 2026-09-14). The 600/min figure is from the deprecated v2 docs.\n"
+answer = "1,200 requests per minute (https://docs.quillstream.io/api/rate-limits)"
 
 [[solution.call]]
 endpoint = "tavily"

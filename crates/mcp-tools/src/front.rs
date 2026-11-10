@@ -53,15 +53,27 @@ pub trait Backend: Send + Sync + 'static {
     fn close(&self, session: Arc<Self::Session>) -> impl Future<Output = ()> + Send;
 }
 
+/// Passive observer of the response bodies a client was actually served.
+pub trait Observer: Send + Sync + 'static {
+    fn served(&self, method: &str, body: &str);
+}
+
 struct Front<B: Backend> {
     backend: B,
+    observer: Option<Arc<dyn Observer>>,
     sessions: Mutex<HashMap<String, Arc<B::Session>>>,
     next: AtomicU64,
 }
 
 pub fn router<B: Backend>(backend: B) -> Router {
+    router_observed(backend, None)
+}
+
+/// [`router`] that also reports every served response body to `observer`.
+pub fn router_observed<B: Backend>(backend: B, observer: Option<Arc<dyn Observer>>) -> Router {
     let front = Arc::new(Front {
         backend,
+        observer,
         sessions: Mutex::new(HashMap::new()),
         next: AtomicU64::new(1),
     });
@@ -130,21 +142,35 @@ async fn handle_post<B: Backend>(
     };
 
     let is_request = msg.get("id").is_some() && msg.get("method").is_some();
+    let method = msg["method"].as_str().unwrap_or_default().to_owned();
+    let observer = front.observer.clone();
     let mut response = if is_request {
         match front.backend.request(&session, msg).await {
-            Ok(Reply::Json(reply)) => (
-                StatusCode::OK,
-                [(CONTENT_TYPE, "application/json")],
-                reply.to_string(),
-            )
-                .into_response(),
+            Ok(Reply::Json(reply)) => {
+                let body = reply.to_string();
+                if let Some(observer) = &observer {
+                    observer.served(&method, &body);
+                }
+                (StatusCode::OK, [(CONTENT_TYPE, "application/json")], body).into_response()
+            }
             Ok(Reply::Stream(rx)) => {
-                let events = UnboundedReceiverStream::new(rx).map(|msg| {
-                    Ok::<_, Infallible>(Event::default().event("message").data(msg.to_string()))
+                let events = UnboundedReceiverStream::new(rx).map(move |msg| {
+                    let body = msg.to_string();
+                    if let Some(observer) = &observer {
+                        observer.served(&method, &body);
+                    }
+                    Ok::<_, Infallible>(Event::default().event("message").data(body))
                 });
                 Sse::new(events).into_response()
             }
-            Err(e) => rpc_error(StatusCode::BAD_GATEWAY, id, -32603, &e.to_string()),
+            Err(e) => {
+                let message = e.to_string();
+                if let Some(observer) = &observer {
+                    let body = json!({"jsonrpc": "2.0", "id": id, "error": {"code": -32603, "message": message}});
+                    observer.served(&method, &body.to_string());
+                }
+                rpc_error(StatusCode::BAD_GATEWAY, id, -32603, &message)
+            }
         }
     } else {
         match front.backend.notify(&session, msg).await {

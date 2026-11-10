@@ -115,7 +115,22 @@ world reset/isolation, and image source identity. They include altered raw
 inputs, missing files, links, duplicate keys, unsafe paths, source changes
 shared by two tasks, and malicious renders with recomputed artifact hashes.
 
-This does not introduce scored family assignments, validated clarification or
-no-action tasks, a user simulator, frozen release admission, new profile
-policies, or held-out governance. Those improvement-plan requirements remain
-open. No existing scored task is bulk-migrated to a shared base by this slice.
+`deploy/tests/test_materialization_loader.py` drives the real loader through
+`release-manifest --dataset-source` on the committed sources and on edited
+temporary copies, and compares its render with an independent reference
+materializer. `crates/world/tests/diagnostic_outcomes.rs` shows through the
+loader and running worlds that a shared-base edit changes every dependent task
+identity, an overlay edit changes only its own task, and trials of the same or
+sibling tasks cannot mutate each other or the sources.
+
+## Committed base
+
+`scenarios/_organizations/synth-ops/base.json` (revision 1) is the fictional
+Calder Ridge Supply billing organization. Two unscored diagnostics materialize
+from it: `diagnostic/stripe/no-action-already-refunded` and
+`diagnostic/stripe/clarify-ambiguous-refund`. Their family metadata,
+interaction outcomes, scripted user and the frozen release manifest are
+described in `families-clarification-release.md`.
+
+No existing scored task is bulk-migrated to a shared base, and no new profile
+policy or held-out governance is introduced by this slice.

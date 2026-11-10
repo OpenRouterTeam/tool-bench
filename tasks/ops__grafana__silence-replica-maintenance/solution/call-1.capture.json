@@ -1,1 +1,1 @@
-[{"name":"created_silence","pointer":"/content/0/text","json_pointer":"/silenceID","select":null}]
+[{"name":"created_silence","pointer":"/content/0/text","json_pointer":"/silenceID","select":null,"constraint":{"minLength":1,"type":"string"}}]

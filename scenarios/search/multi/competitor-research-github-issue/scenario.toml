@@ -7,6 +7,13 @@ services = ["exa", "github"]
 tags = ["write", "multi-service", "exa", "github", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "GA post and live pricing (2026-10-27) say Scale $349 and 50M events; the 2025-11-10 beta post says $299 and 25M and closed issue 3 covers the beta; Lumenwise and the archived 2024 repo are look-alikes."
+
 # GA (2026-10-27): Scale $349/month billed annually ($419 monthly), 50M events/month. Two web
 # documents state it: the launch blog post and the live pricing page. Stale: the 2025 beta
 # post ($299, 25M events). Look-alike company: Lumenwise (Scale $499). The live tracker is

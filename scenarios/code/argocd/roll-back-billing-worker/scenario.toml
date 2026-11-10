@@ -7,6 +7,13 @@ services = ["argocd"]
 tags = ["single-service", "write", "argocd"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Three apps track main: billing-worker (prod, Degraded), billing-api and billing-worker-staging; contract forbids PUT on the latter two and requires billing-worker pinned to v1.42.0 (b0826e9), not v1.41.0."
+
 [expect]
 version = 2
 audit_history = true
@@ -112,7 +119,7 @@ allow = [
 endpoint = "argocd"
 tool = "get_application"
 arguments = { applicationName = "billing-worker" }
-capture = [{ name = "billing_spec", pointer = "/content/0/text", json_pointer = "/spec" }]
+capture = [{ name = "billing_spec", pointer = "/content/0/text", json_pointer = "/spec", constraint = { type = "object", required = ["source"] } }]
 
 [[solution.call]]
 endpoint = "argocd"

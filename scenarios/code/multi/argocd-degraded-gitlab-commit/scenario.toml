@@ -7,6 +7,13 @@ services = ["argocd", "gitlab"]
 tags = ["lookup", "multi-service", "argocd", "gitlab", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "cross_system_identity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 4
+rationale = "Argo CD checkout-web sync revision a23f2a7 must be matched to the GitLab storefront-deploy commit, whose message names checkout-web pipeline 7712; traps are the Degraded staging twin and lint-failed pipeline 7716."
+
 # checkout-web (prod) runs storefront-deploy a23f2a7 ("promote 2.14.0-rc3") and cannot pull
 # ghcr.io/lumen-retail/checkout-web:2.14.0-rc3. The deploy commit names checkout-web pipeline
 # #7712 (tag v2.14.0-rc3), whose image-publish job failed (ghcr push denied, expired token)
@@ -17,9 +24,134 @@ timeout_sec = 1200
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["checkout-web", "2.14.0-rc3", "7712", "image-publish"]
-regex = "(?is)(denied|permission_denied|expired|scopes)"
+# The application whose health is Degraded and whose env label is production -> its failing
+# pod (image tag) and the deploy commit Argo CD is synced to -> the pipeline that commit's
+# message names -> the job of that pipeline that failed. The error is the registry's own
+# error code on the `denied:` line of that job's trace.
+[expect.answer.record_facts]
+requirement = "Name the Argo CD application that is Degraded on production and the image tag its failing pod runs, the ID of the GitLab pipeline named by the deploy commit that application is synced to, the job that failed in that pipeline, and the error that job's log reports."
+mode = "statements"
+# True of the error itself, not a denial of it.
+predicates = ["does not match expected scopes", "does not match the expected scopes"]
+# True remarks about the deploy commit's title and the pipeline's promote job, which ran.
+context = [
+  "commit ${commit_sha}",
+  "The promote job runs with when: always, so it promoted the tag to production anyway",
+  "the promote job runs with when: always",
+  "the promote job has when: always",
+  "the promote job uses when: always",
+  "the promote job is configured with when: always",
+  "the promote job still ran",
+  "the promote job ran anyway",
+  "the promote job succeeded",
+  "The token provided",
+  "scope ${scope}",
+  "does not match expected scopes",
+  "because",
+  "and pushed the deploy commit anyway",
+  "promoted it although its",
+]
+assertions = [
+  "App: ${app}, failing on image tag ${image_tag}",
+  "${app} cannot pull tag ${image_tag}",
+  "${app} (${image_tag})",
+  "Pipeline: ${pipeline}, failed job: ${job}",
+  "Pipeline ${pipeline}: ${job} failed",
+  "Pipeline ${pipeline}",
+  "Pipeline #${pipeline}",
+  "${job} failed",
+  "${job} job failed",
+  "failed job: ${job}",
+  "Error: denied: ${error}",
+  "Error: ${error}",
+  "${error}",
+  "the docker push was ${error}",
+  "the CI token ${error}",
+  "the push was ${error}",
+  "${job} failed with ${error}",
+  "${job} failed because the CI token ${error}",
+  "${job} failed because the push was ${error}",
+  "GHCR_TOKEN had ${error}",
+  "Error: denied: ${error}: The token provided does not match expected scopes (${scope})",
+  "(${scope})",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/argocd/applications"
+matching = { status = { health = { status = "Degraded" } }, metadata = { labels = { env = "production" } } }
+
+[expect.answer.record_facts.related.pod]
+collection = "/services/argocd/resources"
+filter = { matching = { "/kind" = "Pod" }, excluding = [{ "/health/status" = "Healthy" }] }
+on = { "/manifest/metadata/labels/app.kubernetes.io~1instance" = "/metadata/name" }
+
+[expect.answer.record_facts.related.commit]
+collection = "/services/gitlab/commits"
+on = { "/id" = "/status/sync/revision" }
+
+[expect.answer.record_facts.related.pipeline]
+from = "commit"
+collection = "/services/gitlab/pipelines"
+on = { "/id" = "/message" }
+capture_from = { "/message" = 'pipeline #(\d+)' }
+
+[expect.answer.record_facts.related.job]
+from = "pipeline"
+collection = "/services/gitlab/jobs"
+filter = { matching = { "/status" = "failed" } }
+on = { "/pipeline_id" = "/id" }
+
+[expect.answer.record_facts.facts.app]
+field = "/metadata/name"
+kind = "text"
+
+[expect.answer.record_facts.facts.image_tag]
+record = "pod"
+field = "/images/0"
+capture = ':([^:/]+)$'
+kind = "identifier"
+
+[expect.answer.record_facts.facts.pipeline]
+record = "pipeline"
+field = "/id"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.job]
+record = "job"
+field = "/name"
+kind = "text"
+
+[expect.answer.record_facts.facts.error]
+record = "job"
+field = "/trace"
+capture = '(?m)^denied: (\w+):'
+kind = "identifier"
+
+# Plain wordings of the registry's error line, bound to its error code: the push was
+# denied because the token no longer matched the expected scopes (it had expired).
+[expect.answer.record_facts.facts.error.wordings]
+permission_denied = ["permission denied", "denied", "expired", "scopes"]
+
+[expect.answer.record_facts.facts.commit_sha]
+record = "commit"
+field = "/id"
+kind = "identifier"
+min_prefix = 7
+optional = true
+
+[expect.answer.record_facts.facts.scope]
+record = "scope_trace"
+field = "/trace"
+capture = 'expected scopes \(([^)]+)\)'
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.related.scope_trace]
+from = "job"
+collection = "/services/gitlab/jobs"
+on = { "/id" = "/id" }
+filter = { patterns = { "/trace" = 'expected scopes \([^)]+\)' } }
+allow_absence = true
 
 [[expect.required_calls]]
 service = "gitlab"
@@ -78,14 +210,5 @@ arguments = { project_id = "lumen-retail/storefront/checkout-web", job_id = "771
 
 [solution]
 answer = """
-Degraded production app: checkout-web (cluster prod-us-east-1, namespace storefront). Its new ReplicaSet
-cannot pull ghcr.io/lumen-retail/checkout-web:2.14.0-rc3 (ErrImagePull / ImagePullBackOff, "not found").
-
-Argo CD is synced to storefront-deploy commit a23f2a7 "checkout-web(prod): promote 2.14.0-rc3", pushed by
-deploy-bot from lumen-retail/storefront/checkout-web pipeline 7712 (tag v2.14.0-rc3).
-
-In pipeline 7712 the image-publish job failed: `docker push` was rejected with
-"denied: permission_denied: The token provided does not match expected scopes (write:packages)" because the
-GHCR_TOKEN CI token expired, so the 2.14.0-rc3 image was never pushed. The promote job runs with
-`when: always`, so it promoted the tag to production anyway.
+App: checkout-web, failing on image tag 2.14.0-rc3. Pipeline 7712: image-publish failed because the CI token expired. The promote job runs with when: always, so it promoted the tag to production anyway.
 """

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/grafana/annotate-checkout-deploy",
-  "scenario_sha256": "sha256:3f921bddecf6682bfd91b10fb9d633d6a3c6d71b748c8ea67991a8060376e626",
+  "scenario_sha256": "sha256:74e524061cb4d4c3d6ed4b4b72f7cfcf82a93e18c3b61b8ce40a375effa56883",
   "dataset_sha256": "sha256:f24f8ebc2d3e3fe806b84c36f84467438a6702642b8f52c64715a45d372d0eba",
   "contract_sha256": "sha256:9b1e266f34c13ec8a37a2ed04980010796d78ef5c0f996f9d42161a020a9d905"
 }

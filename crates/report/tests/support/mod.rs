@@ -64,6 +64,35 @@ pub fn write_unresolved(directory: &Path, trial: &str, task: &str) {
     assert_eq!(assessment["outcome"], "unresolved", "{assessment}");
 }
 
+pub fn write_environment_error(directory: &Path, trial: &str, task: &str) {
+    write_fixture(
+        directory,
+        trial,
+        task,
+        json!({
+            "version": 2,
+            "audit_history": true,
+            "answer": {"record_facts": {
+                "requirement": "Read the authored issue fact.",
+                "selector": {
+                    "collection": "/services/github/issues",
+                    "matching": {"number": 1}
+                },
+                "facts": {"value": {"field": "/unavailable_fact", "kind": "identifier"}},
+                "assertions": ["The fact is ${value}"]
+            }}
+        }),
+        b"Maya",
+        None,
+        None,
+    );
+    let assessment: Value = serde_json::from_slice(
+        &fs::read(directory.join(trial).join("verifier/assessment.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(assessment["outcome"], "environment_error", "{assessment}");
+}
+
 fn write_fixture(
     directory: &Path,
     trial: &str,

@@ -7,6 +7,13 @@ services = ["grafana"]
 tags = ["write", "single-service", "grafana", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Dashboards checkout-prod (Checkout Service), checkout-staging (Checkout Service (staging)) and checkout-legacy; staging already has a v4.19.0 deploy annotation; contract allows one annotation, on checkout-prod."
+
 [expect]
 version = 2
 audit_history = true

@@ -7,6 +7,13 @@ services = ["cloudflare"]
 tags = ["lookup", "single-service", "cloudflare", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Only checkout.octo-shop.com is proxied to 203.0.113.40; legacy-reports.octo-corp.com has the same IP DNS-only, cdn.octo-shop.com is .41, preview.octo-corp.dev is .4, and a TXT mentions the IP."
+
 # checkout.octo-shop.com is the only proxied record with content 203.0.113.40. Look-alikes:
 # legacy-reports.octo-corp.com (same IP, DNS only), cdn.octo-shop.com (203.0.113.41),
 # preview.octo-corp.dev (203.0.113.4) and a TXT record mentioning the address. The answer
@@ -15,8 +22,28 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-regex = '(?i)^\W*checkout\.octo-shop\.com\W*$'
+[expect.answer.record_facts]
+requirement = "Name the hostname of the proxied Cloudflare DNS record whose content is exactly 203.0.113.40, and no other hostname."
+mode = "statements"
+# Words that clear the record instead of naming it as the stale one.
+contradictions = ["is fine", "is okay"]
+
+context = [
+  "(A record, proxied, content 203.0.113.40)",
+]
+assertions = [
+  "${hostname}",
+  "The hostname is ${hostname}.",
+  "Hostname: ${hostname}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/cloudflare/dns_records"
+matching = { content = "203.0.113.40", proxied = true }
+
+[expect.answer.record_facts.facts.hostname]
+field = "/name"
+kind = "identifier"
 
 [[expect.forbidden_calls]]
 service = "cloudflare"

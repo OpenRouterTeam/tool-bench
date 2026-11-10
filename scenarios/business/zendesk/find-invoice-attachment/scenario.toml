@@ -7,6 +7,13 @@ services = ["zendesk"]
 tags = ["lookup", "single-service", "zendesk", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Priya Raman's Lumen-Invoice-INV-20931.pdf is on ticket 3108; distractors are Priya Ramesh's invoice_oct.pdf on 3105, an agent-posted invoice on colleague ticket 3110 and Priya's own png and har files."
+
 # Ticket 3108 holds Priya Raman's invoice. Distractors: an invoice posted by an agent on her
 # colleague's ticket (3110), an invoice from Priya Ramesh at another company (3105), and
 # Priya Raman's other attachments (a screenshot, a HAR capture).
@@ -14,8 +21,53 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["3108", "Lumen-Invoice-INV-20931.pdf"]
+# The comment is found by its author (the Priya Raman who belongs to Lumen Analytics) and an
+# attachment whose file name says "invoice". The ticket is the one named by the comment's
+# record key (`<ticket id>/<n>`).
+[expect.answer.record_facts]
+requirement = "State the number of the Zendesk ticket on which Priya Raman of Lumen Analytics posted a comment with an invoice attachment, and that attachment's file name."
+mode = "statements"
+assertions = [
+  "Ticket: ${ticket}\nFile: ${file}",
+  "It's on ticket ${ticket}; the attachment is ${file}.",
+  "Ticket ${ticket}, file ${file}.",
+  "Priya Raman's invoice is on ticket ${ticket}; the file is ${file}.",
+  "The invoice attachment is on ticket ${ticket}: ${file}.",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/zendesk/comments"
+field_patterns = { "/attachments/0/file_name" = "(?i)invoice" }
+
+[[expect.answer.record_facts.selector.references]]
+source_field = "/author_id"
+target_field = "/id"
+
+[expect.answer.record_facts.selector.references.target]
+collection = "/services/zendesk/users"
+matching = { name = "Priya Raman" }
+
+[[expect.answer.record_facts.selector.references.target.references]]
+source_field = "/organization_id"
+target_field = "/id"
+
+[expect.answer.record_facts.selector.references.target.references.target]
+collection = "/services/zendesk/organizations"
+matching = { name = "Lumen Analytics" }
+
+[expect.answer.record_facts.related.ticket]
+collection = "/services/zendesk/tickets"
+on = { "/id" = "/_key" }
+capture_from = { "/_key" = '^(\d+)/' }
+
+[expect.answer.record_facts.facts.ticket]
+record = "ticket"
+field = "/id"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.file]
+field = "/attachments/0/file_name"
+kind = "identifier"
 
 [[expect.forbidden_calls]]
 service = "zendesk"
@@ -33,7 +85,7 @@ path = "/_mcp/tools/call"
 body = { name = "create_ticket" }
 
 [solution]
-answer = "Priya Raman attached her invoice to ticket #3108 (\"Question about our October bill\"). The file is Lumen-Invoice-INV-20931.pdf.\n"
+answer = "The invoice attachment is on ticket 3108: Lumen-Invoice-INV-20931.pdf."
 
 [[solution.call]]
 endpoint = "zendesk"

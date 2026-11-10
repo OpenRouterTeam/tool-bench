@@ -7,6 +7,13 @@ services = ["cloudflare"]
 tags = ["write", "single-service", "cloudflare"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Pattern api.octo-corp.com/v2/* and script orders-api-v2 are given verbatim; only the octo-corp.com zone id is looked up, and the staging script and octo-corp.dev route have different exact names."
+
 [expect]
 version = 2
 audit_history = true

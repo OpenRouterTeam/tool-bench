@@ -73,11 +73,75 @@
     }
   ],
   "answer": {
-    "contains": [
-      "Dana Nguyen",
-      "Sam Okafor"
-    ],
-    "regex": null
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the level-1 and level-2 on-call people for the production Database Reliability escalation policy right now.",
+      "selector": {
+        "collection": "/services/pagerduty/escalation_policies",
+        "matching": {
+          "name": "Database Reliability"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "oncall1": {
+          "field": "/name",
+          "kind": "text",
+          "record": "level1"
+        },
+        "oncall2": {
+          "field": "/name",
+          "kind": "text",
+          "record": "level2"
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "Level 1: ${oncall2}",
+        "First on call: ${oncall2}",
+        "Level 2: ${oncall1}",
+        "Backup: ${oncall1}"
+      ],
+      "related": {
+        "level1": {
+          "from": "schedule",
+          "collection": "/services/pagerduty/users",
+          "on": {
+            "/id": "/id"
+          }
+        },
+        "level2": {
+          "collection": "/services/pagerduty/users",
+          "on": {
+            "/id": "/escalation_rules/1/targets/0/id"
+          }
+        },
+        "schedule": {
+          "collection": "/services/pagerduty/schedules",
+          "on": {
+            "/id": "/escalation_rules/0/targets/0/id"
+          },
+          "pick": {
+            "oncall": {
+              "overrides": "/services/pagerduty/overrides"
+            }
+          }
+        }
+      },
+      "assertions": [
+        "Level 1: ${oncall1}",
+        "First on call: ${oncall1}",
+        "Level 2: ${oncall2}",
+        "Backup: ${oncall2}",
+        "${oncall1} and ${oncall2}",
+        "On call: ${oncall1}, backup: ${oncall2}",
+        "Level 1: ${oncall1}. Level 2: ${oncall2}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

@@ -7,6 +7,13 @@ services = ["mongodb"]
 tags = ["write", "single-service", "mongodb"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Order 10482 for Priya Natarajan exists in shop.orders (total 214.5) and again in shop_staging.orders (total 2); she also has orders 10433 and 10517; only the prod 10482 document may change."
+
 [expect]
 version = 2
 audit_history = true
@@ -39,8 +46,8 @@ endpoint = "mongodb"
 tool = "find"
 arguments = { connectionId = "preconfigured", database = "shop", collection = "orders", filter = { orderNumber = 10482, "customer.name" = "Priya Natarajan" } }
 capture = [
-  { name = "order_id", pointer = "/structuredContent/documents/0/_id" },
-  { name = "order_total", pointer = "/structuredContent/documents/0/total" },
+  { name = "order_id", pointer = "/structuredContent/documents/0/_id", constraint = { type = "object", required = ["$oid"] } },
+  { name = "order_total", pointer = "/structuredContent/documents/0/total", constraint = { type = "number", minimum = 0 } },
 ]
 
 [[solution.call]]

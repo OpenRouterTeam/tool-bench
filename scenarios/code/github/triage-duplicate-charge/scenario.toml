@@ -7,6 +7,13 @@ services = ["github"]
 tags = ["single-service", "write", "github", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Open payments-api#12 vs closed #7 (same bug, 2025), #14 idempotency logs, billing-worker#3 and web#88; last retry.go commit is by sam while the newest commit is lin's go.mod bump; contract needs #12 assigned to sam."
+
 # The open issue is octo-org/payments-api#12. Look-alikes: #7 (same bug, closed in 2025),
 # #14 (duplicate idempotency keys in logs), billing-worker#3 (duplicate emails), web#88
 # (double-click). The last change to internal/charge/retry.go is sam's commit; the latest

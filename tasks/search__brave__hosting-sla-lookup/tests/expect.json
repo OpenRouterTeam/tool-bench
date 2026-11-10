@@ -21,10 +21,88 @@
   ],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "99.95"
-    ],
-    "regex": "(?i)\\b10\\s?(%|percent)"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the monthly uptime percentage that Ironbark Hosting's SLA in force commits to for the Business plan, and the service credit percentage due when uptime falls just below that commitment.",
+      "selector": {
+        "collection": "/services/brave/web",
+        "matching": {},
+        "field_patterns": {
+          "/title": "^Service Level Agreement \\| Ironbark Hosting$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "credit": {
+          "field": "/content",
+          "kind": "number",
+          "capture": "Business (?:\\| [\\d.]+% \\||plan: [\\d.]+% monthly uptime\\. Service credit:) (\\d+(?:\\.\\d+)?)% of the monthly fee",
+          "units": [
+            "%",
+            "percent",
+            "pct"
+          ],
+          "require_unit": true
+        },
+        "effective_date": {
+          "field": "/content",
+          "kind": "date",
+          "optional": true,
+          "capture": "Effective ([A-Z][a-z]+ \\d{1,2},? \\d{4})"
+        },
+        "escalated_credit": {
+          "field": "/content",
+          "kind": "number",
+          "optional": true,
+          "capture": "; (\\d+)% below"
+        },
+        "escalated_threshold": {
+          "field": "/content",
+          "kind": "number",
+          "optional": true,
+          "capture": "; \\d+% below (\\d+\\.\\d+)%"
+        },
+        "uptime": {
+          "field": "/content",
+          "kind": "number",
+          "capture": "Business (?:\\||plan:) (\\d+(?:\\.\\d+)?)%",
+          "units": [
+            "%",
+            "percent",
+            "pct"
+          ],
+          "require_unit": true
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "uptime: ${credit}%",
+        "uptime of ${credit}%",
+        "uptime is ${credit}%",
+        "${credit}% uptime",
+        "${credit}% monthly uptime",
+        "credit: ${uptime}%",
+        "credit of ${uptime}%",
+        "credit is ${uptime}%"
+      ],
+      "context": [
+        "(SLA effective ${effective_date})",
+        "${escalated_credit}% below ${escalated_threshold}%"
+      ],
+      "assertions": [
+        "Uptime: ${uptime} Service credit: ${credit} of the monthly fee",
+        "The Business plan commits to ${uptime} monthly uptime; the credit is ${credit} of the monthly fee.",
+        "The Business plan commits to ${uptime} percent monthly uptime; the credit is ${credit} percent of the monthly fee.",
+        "| Uptime | ${uptime} | | Credit | ${credit} |",
+        "${uptime} (credit: ${credit}; ${escalated_credit}% if uptime drops below ${escalated_threshold}%)",
+        "${uptime} (credit: ${credit})",
+        "${uptime} monthly uptime, ${credit} service credit"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

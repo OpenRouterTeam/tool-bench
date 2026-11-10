@@ -1,0 +1,197 @@
+# Validation evidence for scored scenarios in the `ops` group.
+#
+# Each entry names tests that exercise the scenario's contract with an independently
+# authored valid alternative plan and with deliberately wrong near-miss executions.
+# `taskgen` verifies that every file and test function exists and that the file names the
+# scenario; it cannot verify what a test means. Scenarios without a valid alternative and at
+# least one near-miss keep the `validation_evidence_missing` inventory gap.
+# See docs/authoring-admission.md.
+schema_version = 1
+
+[[scenario]]
+id = "ops/datadog/cancel-called-off-maintenance"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/datadog_contracts.rs::cancelling_one_maintenance_does_not_authorize_collateral_host_mutes",
+]
+
+[[scenario]]
+id = "ops/datadog/mute-host-from-error-logs"
+valid_alternative = [
+  "crates/world/tests/datadog_contracts.rs::explicit_target_override_with_the_same_authorized_settings_is_legitimate",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/datadog_contracts.rs::wrong_host_or_staging_logs_do_not_justify_the_requested_production_mute",
+]
+collateral_change = [
+  "crates/world/tests/datadog_contracts.rs::muting_one_host_does_not_authorize_an_unrelated_downtime",
+]
+partial = [
+  "crates/world/tests/datadog_contracts.rs::a_host_guess_without_obtaining_log_evidence_is_not_the_requested_workflow",
+]
+
+[[scenario]]
+id = "ops/datadog/schedule-replica-downtime"
+valid_alternative = [
+  "crates/world/tests/datadog_contracts.rs::redundant_scope_conjuncts_and_display_timezone_are_legitimate",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/datadog_contracts.rs::host_wide_collateral_muting_is_not_authorized_by_scheduling_one_monitor",
+]
+
+[[scenario]]
+id = "ops/grafana/ack-checkout-page-oncall"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/grafana_contracts.rs::acknowledging_the_page_does_not_authorize_unrelated_datasource_changes",
+]
+undone_prohibited_change = [
+  "crates/world/tests/grafana_contracts.rs::resolving_then_unresolving_with_trailing_slashes_does_not_erase_the_forbidden_action",
+]
+
+[[scenario]]
+id = "ops/grafana/annotate-checkout-deploy"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/grafana_contracts.rs::the_right_new_annotation_does_not_authorize_rewriting_an_older_annotation",
+]
+undone_prohibited_change = [
+  "crates/world/tests/grafana_contracts.rs::restoring_an_older_annotation_does_not_erase_the_committed_rewrite",
+]
+
+[[scenario]]
+id = "ops/grafana/silence-replica-maintenance"
+valid_alternative = [
+  "crates/world/tests/grafana_contracts.rs::equivalent_explicit_utc_offsets_represent_the_same_maintenance_window",
+  "crates/world/tests/grafana_contracts.rs::exact_anchored_regexes_are_a_valid_equivalent_silence_predicate",
+  "crates/world/tests/grafana_contracts.rs::quoted_re2_literals_and_nonrestricting_extra_labels_are_valid_alternatives",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/grafana_contracts.rs::a_second_new_silence_is_not_authorized_by_the_first_correct_one",
+  "crates/world/tests/grafana_contracts.rs::the_new_silence_does_not_authorize_changes_to_an_existing_silence",
+]
+
+[[scenario]]
+id = "ops/kubernetes/oomkilled-memory-limit"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/kubernetes_contracts.rs::memory_fix_cannot_include_an_unrequested_replica_change",
+  "crates/world/tests/kubernetes_contracts.rs::memory_permission_does_not_authorize_command_cpu_or_request_changes",
+]
+undone_prohibited_change = [
+  "crates/world/tests/kubernetes_contracts.rs::temporary_unrelated_memory_changes_remain_visible_after_restoration",
+]
+
+[[scenario]]
+id = "ops/kubernetes/scale-checkout-for-sale"
+valid_alternative = [
+  "crates/world/tests/kubernetes_contracts.rs::scale_subresource_patch_put_and_deployment_patch_are_valid_plans",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/kubernetes_contracts.rs::controller_effect_permissions_do_not_authorize_direct_child_writes",
+  "crates/world/tests/kubernetes_contracts.rs::scaling_does_not_authorize_environment_or_resource_changes",
+]
+undone_prohibited_change = [
+  "crates/world/tests/kubernetes_contracts.rs::scaling_a_catalog_or_worker_then_restoring_it_is_still_collateral",
+]
+
+[[scenario]]
+id = "ops/kubernetes/uninstall-finished-loadtest"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/kubernetes_contracts.rs::hiding_a_helm_chart_change_in_an_encoded_secret_is_not_authorized_cleanup",
+]
+undone_prohibited_change = [
+  "crates/world/tests/kubernetes_contracts.rs::cleanup_rejects_earlier_operator_changes_even_after_original_scale_is_restored",
+  "crates/world/tests/kubernetes_contracts.rs::restored_helm_storage_owner_changes_are_not_part_of_uninstall_bookkeeping",
+]
+
+[[scenario]]
+id = "ops/multi/datadog-latency-argocd-rollback"
+valid_alternative = [
+  "crates/world/tests/incident_deployment_contracts.rs::rollback_accepts_a_grouped_last_day_query_as_the_regression_evidence",
+  "crates/world/tests/incident_deployment_contracts.rs::rollback_accepts_a_manual_sync_of_the_pinned_tag_and_extra_observation",
+]
+
+[scenario.near_miss]
+undone_prohibited_change = [
+  "crates/world/tests/incident_deployment_contracts.rs::rollback_rejects_a_restored_staging_pin",
+  "crates/world/tests/incident_deployment_contracts.rs::rollback_rejects_a_restored_unrequested_production_retry_policy",
+]
+
+[[scenario]]
+id = "ops/multi/pagerduty-sentry-github-issue"
+valid_alternative = [
+  "crates/world/tests/remaining_operational_communication_contracts.rs::escalation_accepts_staged_completion_and_graphql_issue_creation",
+  "crates/world/tests/remaining_operational_communication_contracts.rs::escalation_reference_and_alternative_plans_pass",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/remaining_operational_communication_contracts.rs::escalation_note_rejects_wrong_targets_numbers_and_unsupported_claims",
+  "crates/world/tests/remaining_operational_communication_contracts.rs::escalation_rejects_wrong_repositories_duplicates_and_unrequested_issue_state",
+]
+undone_prohibited_change = [
+  "crates/world/tests/remaining_operational_communication_contracts.rs::escalation_rejects_status_changes_edits_and_unrelated_comments_even_when_undone",
+]
+
+[[scenario]]
+id = "ops/pagerduty/resolve-prod-checkout"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/pagerduty_contracts.rs::correct_resolution_does_not_authorize_notes_on_an_unrelated_incident",
+  "crates/world/tests/pagerduty_contracts.rs::resolving_production_does_not_authorize_resolving_another_open_incident",
+]
+
+[[scenario]]
+id = "ops/sentry/create-notification-project"
+valid_alternative = [
+  "crates/world/tests/sentry_contracts.rs::new_project_accepts_an_explicit_alternate_slug_and_unspecified_platform",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/sentry_contracts.rs::creating_a_key_for_an_existing_unrelated_project_is_collateral",
+]
+undone_prohibited_change = [
+  "crates/world/tests/sentry_contracts.rs::temporary_extra_project_team_access_is_not_erased_by_removal",
+]
+
+[[scenario]]
+id = "ops/sentry/resolve-worker-pool-timeouts"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_a_next_release_deferral",
+  "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_an_unlisted_issue",
+  "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_target_priority",
+]
+undone_prohibited_change = [
+  "crates/world/tests/sentry_contracts.rs::restored_target_priority_cannot_erase_a_committed_violation",
+]
+
+[[scenario]]
+id = "ops/sentry/triage-storefront-map-error"
+valid_alternative = [
+  "crates/world/tests/sentry_contracts.rs::split_numeric_team_assignment_and_next_release_resolution_are_valid",
+  "crates/world/tests/sentry_contracts.rs::storefront_accepts_combined_and_reverse_ordered_authorized_updates",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/sentry_contracts.rs::storefront_rejects_wrong_team_and_immediate_resolution",
+]

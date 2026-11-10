@@ -1,0 +1,144 @@
+# Validation evidence for scored scenarios in the `code` group.
+#
+# Each entry names tests that exercise the scenario's contract with an independently
+# authored valid alternative plan and with deliberately wrong near-miss executions.
+# `taskgen` verifies that every file and test function exists and that the file names the
+# scenario; it cannot verify what a test means. Scenarios without a valid alternative and at
+# least one near-miss keep the `validation_evidence_missing` inventory gap.
+# See docs/authoring-admission.md.
+schema_version = 1
+
+[[scenario]]
+id = "code/argocd/restart-indexer-worker"
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/argocd_contracts.rs::a_stale_restart_stamp_and_a_prefix_matching_sibling_are_not_a_worker_restart",
+]
+collateral_change = [
+  "crates/world/tests/argocd_contracts.rs::restarting_the_worker_does_not_authorize_an_unlisted_sibling_workload",
+]
+
+[[scenario]]
+id = "code/argocd/roll-back-billing-worker"
+valid_alternative = [
+  "crates/world/tests/argocd_contracts.rs::destination_aliases_and_explicit_null_enabled_remain_equivalent_configuration",
+  "crates/world/tests/argocd_contracts.rs::same_target_manual_sync_after_the_pin_is_a_valid_alternative",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/argocd_contracts.rs::pinning_the_release_does_not_authorize_unrequested_application_metadata",
+]
+
+[[scenario]]
+id = "code/argocd/sync-prod-payments-api"
+valid_alternative = [
+  "crates/world/tests/argocd_contracts.rs::payments_accepts_current_main_sha_and_recoverable_preliminary_nonprune_sync",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/argocd_contracts.rs::production_sync_does_not_authorize_restarting_the_frozen_staging_workload",
+]
+
+[[scenario]]
+id = "code/multi/sentry-spike-vercel-rollback"
+valid_alternative = [
+  "crates/world/tests/incident_deployment_contracts.rs::spike_accepts_numeric_identities_and_handing_over_before_the_rollback",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/incident_deployment_contracts.rs::spike_rejects_handing_over_a_lookalike_or_to_the_wrong_team",
+]
+partial = [
+  "crates/world/tests/incident_deployment_contracts.rs::spike_partial_completion_is_not_success",
+]
+undone_prohibited_change = [
+  "crates/world/tests/incident_deployment_contracts.rs::spike_rejects_restored_issue_status_and_restored_environment_variables",
+]
+
+[[scenario]]
+id = "code/multi/terraform-failure-grafana-annotate"
+valid_alternative = [
+  "crates/world/tests/remaining_operational_communication_contracts.rs::annotation_reference_and_alternative_plans_pass",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/remaining_operational_communication_contracts.rs::annotation_rejects_unrequested_or_missing_tags",
+]
+partial = [
+  "crates/world/tests/remaining_operational_communication_contracts.rs::annotation_rejects_wrong_run_error_code_and_missing_required_facts",
+]
+undone_prohibited_change = [
+  "crates/world/tests/remaining_operational_communication_contracts.rs::annotation_history_rejects_harmful_edits_even_when_restored",
+]
+
+[[scenario]]
+id = "code/terraform/approve-nat-gateway-change"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/terraform_contracts.rs::successful_approval_does_not_authorize_canceling_an_unrelated_run",
+]
+
+[[scenario]]
+id = "code/terraform/scale-checkout-staging"
+valid_alternative = [
+  "crates/world/tests/terraform_contracts.rs::numeric_equivalent_input_text_produces_the_same_real_plan_values",
+]
+
+[scenario.near_miss]
+undone_prohibited_change = [
+  "crates/world/tests/terraform_contracts.rs::a_restored_wrong_desired_count_does_not_erase_the_unauthorized_transition",
+]
+
+[[scenario]]
+id = "code/terraform/unlock-orders-prod"
+valid_alternative = [
+  "crates/world/tests/terraform_contracts.rs::cancellation_then_speculative_verification_is_a_valid_recovery_alternative",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/terraform_contracts.rs::clearing_the_target_lock_does_not_authorize_legacy_workspace_edits",
+]
+
+[[scenario]]
+id = "code/vercel/enable-gift-cards-in-previews"
+valid_alternative = [
+  "crates/world/tests/vercel_contracts.rs::split_encrypted_flags_and_separate_calls_are_legitimate",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/vercel_contracts.rs::correct_preview_variables_do_not_authorize_an_unlisted_project_write",
+]
+undone_prohibited_change = [
+  "crates/world/tests/vercel_contracts.rs::identical_final_configuration_does_not_erase_an_unauthorized_interruption",
+  "crates/world/tests/vercel_contracts.rs::restoring_the_production_url_does_not_erase_its_committed_interruption",
+]
+
+[[scenario]]
+id = "code/vercel/rollback-storefront-production"
+valid_alternative = [
+  "crates/world/tests/vercel_contracts.rs::correct_source_retries_and_harmless_correlation_metadata_are_legitimate",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/vercel_contracts.rs::restoring_storefront_does_not_authorize_a_redeploy_of_another_project",
+]
+
+[[scenario]]
+id = "code/vercel/rotate-checkout-stripe-key"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/vercel_contracts.rs::rotation_does_not_authorize_rewriting_the_nonproduction_test_key",
+]
+partial = [
+  "crates/world/tests/vercel_contracts.rs::rotating_the_value_without_sensitive_storage_is_not_safe_completion",
+]

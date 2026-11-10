@@ -7,6 +7,13 @@ services = ["zendesk"]
 tags = ["write", "single-service", "zendesk", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Open ticket 6230 (Dr. Osei, patient portal 502) vs her solved 6225 on the same issue, Northwind Traders solved 502 ticket 6201 and Cedar Pharmacy open 502 ticket 6233; only 6230 may change."
+
 [expect]
 version = 2
 audit_history = true

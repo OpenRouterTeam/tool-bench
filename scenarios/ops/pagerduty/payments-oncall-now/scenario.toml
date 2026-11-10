@@ -7,6 +7,13 @@ services = ["pagerduty"]
 tags = ["lookup", "single-service", "pagerduty", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Payments Primary rotation has Riya Patel this week but override PQ7OV01 puts Priya Raman on call 2026-10-30T06:00Z to 10-31T06:00Z, covering now; Payments Gateway (Legacy) and Payouts are look-alike policies."
+
 # Riya Patel is scheduled on Payments Primary this week, but Priya Raman has an override
 # covering today; level 2 is Marcus Chen. "Payments Gateway (Legacy)" (Jordan Alvarez)
 # and "Payouts" (Riya Patel) are look-alike policies.
@@ -15,7 +22,53 @@ version = 2
 audit_history = true
 
 [expect.answer]
-contains = ["Priya Raman", "Marcus Chen"]
+ [expect.answer.record_facts]
+ requirement = "Name the level-1 and level-2 on-call people for the Payments escalation policy right now."
+ mode = "statements"
+rejected = ["${oncall2} is on call and ${oncall1} is the backup", "${oncall2} and ${oncall1}"]
+assertions = [
+  "On call: ${oncall1}, backup: ${oncall2}",
+  "${oncall1} and ${oncall2}",
+  "Level 1: ${oncall1}. Level 2: ${oncall2}",
+  "Primary: ${oncall1}, secondary: ${oncall2}",
+]
+ context = [
+   "covering Riya Patel via a schedule override",
+   "covering Riya Patel",
+   "override covering Riya Patel",
+   "(override for Riya Patel)",
+ ]
+
+ [expect.answer.record_facts.selector]
+ collection = "/services/pagerduty/escalation_policies"
+ matching = { name = "Payments" }
+
+ # Resolve level 1: schedule from first escalation rule target
+ [expect.answer.record_facts.related.schedule]
+ collection = "/services/pagerduty/schedules"
+ on = { "/id" = "/escalation_rules/0/targets/0/id" }
+ pick = { oncall = { overrides = "/services/pagerduty/overrides" } }
+
+ # Join oncall user to directory
+ [expect.answer.record_facts.related.level1]
+ from = "schedule"
+ collection = "/services/pagerduty/users"
+ on = { "/id" = "/id" }
+
+ # Level 2: direct user reference from second escalation rule
+ [expect.answer.record_facts.related.level2]
+ collection = "/services/pagerduty/users"
+ on = { "/id" = "/escalation_rules/1/targets/0/id" }
+
+ [expect.answer.record_facts.facts.oncall1]
+ record = "level1"
+ field = "/name"
+ kind = "text"
+
+ [expect.answer.record_facts.facts.oncall2]
+ record = "level2"
+ field = "/name"
+ kind = "text"
 
 # Analytics queries are read-only POSTs; anything else that POSTs writes.
 [[expect.forbidden_calls]]
@@ -42,9 +95,4 @@ tool = "list_oncalls"
 arguments = { escalation_policy_ids = ["PEPPAY1"] }
 
 [solution]
-answer = """
-On call right now for the Payments escalation policy:
-
-- Level 1 (first responder): Priya Raman (covering Riya Patel via a schedule override until 2026-10-31 06:00 UTC)
-- Level 2 (next in line): Marcus Chen
-"""
+answer = "On call: Priya Raman, backup: Marcus Chen."

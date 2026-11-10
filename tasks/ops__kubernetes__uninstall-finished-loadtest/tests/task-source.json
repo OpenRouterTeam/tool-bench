@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/kubernetes/uninstall-finished-loadtest",
-  "scenario_sha256": "sha256:8c4f3559cf2ac3de022ff415605f779ee4dd126d4d211286c19ffdaf6b1ac3c0",
+  "scenario_sha256": "sha256:e5b2a9d8912a477205278f7f13c17220c7e5611819a63957bbfc628b1baebcb7",
   "dataset_sha256": "sha256:3fa1de35a4deefbcf59765b57922b4c0a04eb02d635dbf2760acc5e8876cf321",
   "contract_sha256": "sha256:d30b0bacd20579ca6d442764ac453a0a58f94e64aa82befacef3f2a6b872df11"
 }

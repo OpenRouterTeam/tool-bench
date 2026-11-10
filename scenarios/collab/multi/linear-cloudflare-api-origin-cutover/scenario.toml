@@ -7,6 +7,13 @@ services = ["linear", "cloudflare"]
 tags = ["write", "multi-service", "linear", "cloudflare", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state", "tool_ambiguity"]
+dependency_depth = 3
+rationale = "Todo PLAT-241 asks for 198.51.100.45 while canceled PLAT-238 carries old 198.51.100.44; staging api.octo-corp.dev record must not be patched; creating a second record (POST) or deleting is forbidden."
+
 # PLAT-241 (Todo) asks to point the existing api.octo-corp.com A record
 # (5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58) at 198.51.100.45, proxied, without creating a second record. Look-alikes: the
 # canceled PLAT-238 with the old address 198.51.100.44, and the staging api.octo-corp.dev

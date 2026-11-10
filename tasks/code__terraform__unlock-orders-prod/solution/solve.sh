@@ -38,6 +38,13 @@ bound_call() {
   else
     cp "$2" "$WORK/call.json"
   fi
+  if [ -n "$5" ]; then
+    if [ ! -f "$5" ]; then
+      printf '%s\n' "oracle: the locked input schema for captured arguments was not generated; refusing to send the call" >&2
+      exit 1
+    fi
+    jq -e -L "$DIR" --slurpfile schema "$5" -f "$DIR/argument-schema.jq" "$WORK/call.json" > /dev/null
+  fi
   call "$1" "$WORK/call.json" > "$WORK/response.json"
   cat "$WORK/response.json"
   printf '\n'
@@ -46,11 +53,13 @@ bound_call() {
     jq -Rse -f "$DIR/response.jq" "$WORK/response.json" > "$WORK/result.json"
     jq -n --slurpfile bindings "$WORK/bindings.json" --slurpfile captures "$3" \
       --slurpfile result "$WORK/result.json" -f "$DIR/capture.jq" > "$WORK/new-bindings.json"
+    jq -e -L "$DIR" --slurpfile captures "$3" -f "$DIR/capture-constraints.jq" \
+      "$WORK/new-bindings.json" > /dev/null
     mv "$WORK/new-bindings.json" "$WORK/bindings.json"
   fi
 }
-bound_call 7109 "$DIR/call-0.json" "$DIR/call-0.capture.json" 0
-bound_call 7109 "$DIR/call-1.json" "$DIR/call-1.capture.json" 0
-bound_call 7109 "$DIR/call-2.json" "$DIR/call-2.capture.json" 0
-bound_call 7109 "$DIR/call-3.json" "$DIR/call-3.capture.json" 0
-bound_call 7109 "$DIR/call-4.json" "$DIR/call-4.capture.json" 1
+bound_call 7109 "$DIR/call-0.json" "$DIR/call-0.capture.json" 0 ""
+bound_call 7109 "$DIR/call-1.json" "$DIR/call-1.capture.json" 0 ""
+bound_call 7109 "$DIR/call-2.json" "$DIR/call-2.capture.json" 0 ""
+bound_call 7109 "$DIR/call-3.json" "$DIR/call-3.capture.json" 0 ""
+bound_call 7109 "$DIR/call-4.json" "$DIR/call-4.capture.json" 1 "$DIR/call-4.arguments-schema.json"

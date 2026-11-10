@@ -1246,6 +1246,12 @@ The Rust in-process oracle and generated shell/jq adapter use shared parity fixt
 images include jq; only oracle solution files contain the capture/render helpers.
 These bindings do not add tools or edit vendor tool definitions.
 
+A capture may also declare a `constraint` (a small JSON Schema subset). The value
+is validated when it is captured, its type is checked statically against the
+consuming tool's locked input schema, and the generated oracle validates the
+rendered arguments against that schema before sending the call. See
+[captured-argument constraints](authoring-admission.md#captured-argument-constraints).
+
 ## Result artifacts
 
 ### Business-time policy

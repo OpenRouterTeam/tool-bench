@@ -7,6 +7,13 @@ services = ["grafana"]
 tags = ["write", "single-service", "grafana", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 3
+rationale = "HighCheckoutLatency alert groups: IHQ4K2M7 (prod, new), IST7B3N1 (staging, new), IOLD9X1Z (prod, resolved Nov 8); schedules Checkout Primary, Checkout Secondary, SRE Primary on weekly rotations; only IHQ4K2M7 acked."
+
 [expect]
 version = 2
 audit_history = true

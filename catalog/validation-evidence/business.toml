@@ -1,0 +1,52 @@
+# Validation evidence for scored scenarios in the `business` group.
+#
+# Each entry names tests that exercise the scenario's contract with an independently
+# authored valid alternative plan and with deliberately wrong near-miss executions.
+# `taskgen` verifies that every file and test function exists and that the file names the
+# scenario; it cannot verify what a test means. Scenarios without a valid alternative and at
+# least one near-miss keep the `validation_evidence_missing` inventory gap.
+# See docs/authoring-admission.md.
+schema_version = 1
+
+[[scenario]]
+id = "business/multi/hubspot-won-to-salesforce-opportunity"
+valid_alternative = [
+  "crates/world/tests/cross_system_contracts.rs::crm_sync_accepts_composite_record_update_and_staged_actual_note_association",
+  "crates/world/tests/cross_system_contracts.rs::crm_sync_accepts_numeric_strings_staged_updates_and_short_record_ids",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/cross_system_contracts.rs::correct_note_words_cannot_compensate_for_the_wrong_deal_or_extra_opportunity_changes",
+]
+collateral_change = [
+  "crates/world/tests/cross_system_contracts.rs::editing_source_deal_values_to_match_a_wrong_sync_is_not_authorized",
+]
+undone_prohibited_change = [
+  "crates/world/tests/cross_system_contracts.rs::restored_sync_note_contradictions_cannot_erase_committed_content",
+]
+
+[[scenario]]
+id = "business/multi/shopify-vip-stripe-coupon"
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/cross_system_contracts.rs::vip_customer_name_matches_do_not_authorize_gift_or_other_customer_subscriptions",
+]
+undone_prohibited_change = [
+  "crates/world/tests/cross_system_contracts.rs::vip_tag_substrings_lost_tags_and_restored_tag_removal_fail",
+]
+
+[[scenario]]
+id = "business/multi/zendesk-refund-via-stripe"
+valid_alternative = [
+  "crates/world/tests/refund_contract.rs::a_shifted_id_stream_and_a_payment_intent_plan_are_valid_alternatives",
+]
+
+[[scenario]]
+id = "business/stripe/refund-duplicate-charge"
+
+[scenario.near_miss]
+undone_prohibited_change = [
+  "crates/services/stripe/tests/scenarios.rs::correct_refund_plus_restored_customer_edits_is_not_safe_completion",
+]

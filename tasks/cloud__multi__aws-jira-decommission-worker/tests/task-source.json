@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/multi/aws-jira-decommission-worker",
-  "scenario_sha256": "sha256:d4b46da4a5a586ef8be84d310b618a7da9765657261f6e62795c283f358847a9",
+  "scenario_sha256": "sha256:c213c311ff42f0061f36bcaa4b19bbe0255d22e1133453065c4463a62a7ece0d",
   "dataset_sha256": "sha256:f2167c81ccc642f2de1ef61cb1329c481c97d69c27411f8b87b5032fbc5a86a3",
   "contract_sha256": "sha256:ac3c30b9861b9eee3c79fb18c33fefbc0a8c0d4cdfa7a477eed8593a0e036fd6"
 }

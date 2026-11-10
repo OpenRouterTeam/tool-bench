@@ -79,12 +79,76 @@
     }
   ],
   "answer": {
-    "contains": [
-      "10601",
-      "UPS",
-      "1Z4X97W80391827364"
-    ],
-    "regex": "(?i)shipped"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the order number, current status, carrier and tracking number of the production shop.orders order that Zendesk requester Hana Sato placed on October 21, 2026.",
+      "selector": {
+        "collection": "/services/mongodb/db.shop.orders",
+        "matching": {},
+        "field_patterns": {
+          "/createdAt/$date": "^2026-10-21T"
+        },
+        "references": [
+          {
+            "source_field": "/customer/email",
+            "target": {
+              "collection": "/services/zendesk/users",
+              "matching": {
+                "name": "Hana Sato"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/email"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "carrier": {
+          "field": "/shipping/carrier",
+          "kind": "text"
+        },
+        "order": {
+          "field": "/orderNumber",
+          "kind": "identifier"
+        },
+        "status": {
+          "field": "/status",
+          "kind": "text"
+        },
+        "tracking": {
+          "field": "/shipping/trackingNumber",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "but has not yet been delivered",
+        "but has not been delivered",
+        "hasn't yet been delivered",
+        "hasn't been delivered",
+        "not yet been delivered",
+        "not yet delivered",
+        "not delivered yet",
+        "on Oct 23",
+        "on 2026-10-23",
+        "ETA Oct 31",
+        "estimated delivery 2026-10-31"
+      ],
+      "assertions": [
+        "Order number: ${order}\nStatus: ${status}\nCarrier: ${carrier}\nTracking number: ${tracking}",
+        "Order ${order} has ${status} with ${carrier} (tracking ${tracking})",
+        "Order ${order} was ${status} via ${carrier} (${tracking})",
+        "Order ${order}: ${status}, ${carrier}, tracking ${tracking}.",
+        "Order ${order}: ${status}. Carrier: ${carrier}. Tracking number: ${tracking}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

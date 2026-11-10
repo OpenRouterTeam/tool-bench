@@ -7,6 +7,13 @@ services = ["hubspot"]
 tags = ["single-service", "write", "hubspot"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Deal 9100104 Initech Data Warehouse Migration has look-alike 9100105 (Phase 0 Assessment), both associated with Bill Lumbergh 512005; contract requires the one note association on 9100104."
+
 [expect]
 version = 2
 audit_history = true

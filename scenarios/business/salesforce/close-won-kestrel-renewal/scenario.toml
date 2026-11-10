@@ -7,6 +7,13 @@ services = ["salesforce"]
 tags = ["write", "single-service", "salesforce", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Opp 0065g000006FoSrAAK Kestrel Aerospace Renewal FY27 (Denver) vs Kestrel Aerospace UK Renewal FY27, closed Renewal FY26, Kestrel Analytics Renewal and Flight Ops Expansion; only the Denver FY27 opp may change."
+
 [expect]
 version = 2
 audit_history = true

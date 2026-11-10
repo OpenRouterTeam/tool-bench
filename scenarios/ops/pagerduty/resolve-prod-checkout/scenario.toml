@@ -7,6 +7,13 @@ services = ["pagerduty"]
 tags = ["write", "single-service", "pagerduty", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Open incidents 4810 (checkout-api) and 4811 (checkout-api-staging) are both titled Checkout error rate above 5%, as are resolved 4752 and 4655; only 4810 and its two alerts may be resolved."
+
 [expect]
 version = 2
 audit_history = true

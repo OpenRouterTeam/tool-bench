@@ -7,6 +7,13 @@ services = ["terraform"]
 tags = ["single-service", "write", "terraform"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["tool_ambiguity"]
+dependency_depth = 2
+rationale = "desired_count exists on checkout-service-staging (var-4eRpJG8P, value 2) and checkout-service-prod (var-FwwYKSi2, value 6); contract pins the staging var to 4 with one planned run there and forbids the apply action."
+
 [expect]
 version = 2
 audit_history = true
@@ -119,7 +126,7 @@ arguments = { terraform_org_name = "acme-platform", workspace_name = "checkout-s
 endpoint = "terraform"
 tool = "create_run"
 arguments = { terraform_org_name = "acme-platform", workspace_name = "checkout-service-staging", run_type = "plan_and_apply", message = "Scale checkout staging to 4 tasks for load test" }
-capture = [{ name = "review_run", pointer = "/content/0/text", json_pointer = "/data/id" }]
+capture = [{ name = "review_run", pointer = "/content/0/text", json_pointer = "/data/id", constraint = { type = "string", pattern = "^run-[A-Za-z0-9]+$" } }]
 
 [[solution.call]]
 endpoint = "terraform"

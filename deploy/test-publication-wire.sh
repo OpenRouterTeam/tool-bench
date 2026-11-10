@@ -38,7 +38,7 @@ compose cp "$TASK/solution" main:/solution
 compose exec -T main sh /solution/solve.sh > "$OUT/mcp-results.log" 2>&1
 compose stop --timeout 10 main >/dev/null
 compose exec -T world sh -eu -c \
-  'curl -fsS -X POST -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9000/_bench/finalize' \
+  'curl -fsS -X POST -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9001/_bench/finalize' \
   > "$OUT/evidence.json"
 jq -e --argjson evaluator "$EXPECTED_EVALUATOR_VERSION" --argjson schema "$EXPECTED_EVIDENCE_SCHEMA_VERSION" '
   .schema_version == $schema and .evaluator_version == $evaluator

@@ -7,6 +7,13 @@ services = ["terraform"]
 tags = ["single-service", "write", "terraform"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Three runs titled Add second NAT gateway in us-east-1b: run-1q2oy8I2 (network-core-prod, planned), run-blTtGlrN (network-core-staging, planned) and discarded draft run-Vckpoh9I; contract applies only run-1q2oy8I2."
+
 [expect]
 version = 2
 audit_history = true

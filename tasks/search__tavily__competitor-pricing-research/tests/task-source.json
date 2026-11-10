@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/tavily/competitor-pricing-research",
-  "scenario_sha256": "sha256:66c78a70e0c37a686d6fd847971e3e3d9e467e19d49f7cc0fd5434fabfe09599",
+  "scenario_sha256": "sha256:4a4f95243afb9a8b6f518cf2a1d55264f78dbf84f7e44c44a086f0911b13b622",
   "dataset_sha256": "sha256:3478a763cb21e467d1c3314146444a2e0a6e547385dc8e754398c65d4ecb4826",
   "contract_sha256": "sha256:07798b91eb299d9c68f38ced4e080b2d31abc497256580b7278431b92efc83c1"
 }

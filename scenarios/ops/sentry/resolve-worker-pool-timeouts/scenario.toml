@@ -7,6 +7,13 @@ services = ["sentry"]
 tags = ["write", "single-service", "sentry", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "PAYMENTS-WORKER-1K and CHECKOUT-API-3F share the title OperationalError: could not obtain connection from pool within 5.0s; preservation allows only PAYMENTS-WORKER-1K to become resolved."
+
 [expect]
 version = 2
 audit_history = true

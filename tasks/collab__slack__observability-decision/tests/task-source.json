@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "collab/slack/observability-decision",
-  "scenario_sha256": "sha256:761a15da77e3f56e0268da902a46f44de291f69433cfbed45aed70d027aca4bf",
+  "scenario_sha256": "sha256:84146ac8a7ee60da9b96d9733dfe4c2f245df328c75831b5e875fa6bd2723f6b",
   "dataset_sha256": "sha256:759c3e40133dbb265a5862712574141ac44c94b62849dd5aa64cfe3dc3ced0da",
-  "contract_sha256": "sha256:66d92924312248243765e4b647b490fb7927533908fff98906cbb8377f05fd65"
+  "contract_sha256": "sha256:9ac89ff7ed2a54308451bf831d827ef2dc5053edfb93c52e2b798357ff5ccb50"
 }

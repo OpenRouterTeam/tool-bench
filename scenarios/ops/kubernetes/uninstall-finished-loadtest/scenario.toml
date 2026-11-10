@@ -7,6 +7,13 @@ services = ["kubernetes"]
 tags = ["write", "single-service", "kubernetes", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Helm releases: perf/checkout-loadtest (pods Succeeded), perf/search-loadtest (pods Running), perf/k6-operator and a same-named perf-staging/checkout-loadtest; contract removes only the perf job and script."
+
 [expect]
 version = 2
 audit_history = true

@@ -8,6 +8,8 @@ from deploy.runner.admission import AdmissionError
 from deploy.runner.strict_docker import StrictDockerEnvironment
 from deploy.runner.manifest import admit_scripted_agent, native_identity
 from deploy.runner.computer1_capture import Computer1HostCapture
+from deploy.runner.proxy_capture import is_proxied_agent
+from deploy.runner.surface_audit import ProxyHarnessMessages
 from deploy.runner.inference import (
     Computer1InferenceAdapter,
     NativeEvidenceCollector,
@@ -20,7 +22,7 @@ def _is_scripted_agent(trial: Trial) -> bool:
     return type(trial.agent) in {OracleAgent, NopAgent}
 
 
-def install_collection_gate(trial: Trial) -> None:
+def install_collection_gate(trial: Trial, provider_proxy=None) -> None:
     if (
         type(trial.agent_environment) is not StrictDockerEnvironment
         or trial.config.artifacts
@@ -37,8 +39,23 @@ def install_collection_gate(trial: Trial) -> None:
     ):
         raise AdmissionError("unsupported strict-controller execution condition")
     environment = trial.agent_environment
+    harness_messages = None
 
-    if _is_scripted_agent(trial):
+    proxied = is_proxied_agent(trial.agent)
+    if (provider_proxy is not None) != proxied:
+        raise AdmissionError("a container-side agent and the host provider proxy require each other")
+    if proxied:
+        # A container-side CLI agent is observed at the host-owned provider proxy.
+        provider_proxy.bind_trial(
+            trial, scenario=environment._scenario, session_id=environment.session_id,
+        )
+        harness_messages = ProxyHarnessMessages.create(
+            getattr(environment, "_surface_audit", None), provider_proxy,
+        )
+        inference_adapter = None
+        host_capture = provider_proxy
+        inference_evidence_fn = None
+    elif _is_scripted_agent(trial):
         admit_scripted_agent(trial)
         inference_adapter = None
         host_capture = None
@@ -69,6 +86,8 @@ def install_collection_gate(trial: Trial) -> None:
             if not evidence_bound:
                 if host_capture is not None:
                     evidence = host_capture.finalize()
+                    if harness_messages is not None:
+                        harness_messages.finish()
                     admit_evidence(evidence)
                     environment.bind_inference_evidence(evidence, host_capture=host_capture)
                     evidence_bound = True
@@ -114,7 +133,11 @@ def _create_native_adapter(trial: Trial) -> Computer1InferenceAdapter:
     )
 
 
-async def run_trial(config: TrialConfig):
-    trial = await Trial.create(config)
-    install_collection_gate(trial)
-    return await trial.run()
+async def run_trial(config: TrialConfig, provider_proxy=None):
+    try:
+        trial = await Trial.create(config)
+        install_collection_gate(trial, provider_proxy)
+        return await trial.run()
+    finally:
+        if provider_proxy is not None:
+            provider_proxy.close()

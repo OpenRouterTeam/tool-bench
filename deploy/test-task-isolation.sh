@@ -27,7 +27,7 @@ compose() {
 }
 cleanup() {
   compose logs --no-color > "$OUT/container.log" 2>&1 || true
-  compose exec -T world sh -c 'curl -fsS -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9000/_bench/evidence' \
+  compose exec -T world sh -c 'curl -fsS -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9001/_bench/evidence' \
     > "$OUT/probe-evidence.json" 2>/dev/null || true
   compose down -v --remove-orphans >/dev/null 2>&1 || true
 }
@@ -59,19 +59,23 @@ compose exec -T main sh -eu -c '
   status="$(curl --noproxy "*" --connect-timeout 2 --max-time 3 -s -o /dev/null -w "%{http_code}" "http://$1:8121/v1/customers" || true)"
   case "$status" in 000|403) ;; *) printf "unexpected direct API status: %s\n" "$status" >&2; exit 1 ;; esac
 ' probe "$BACKEND_IP"
-STATUS="$(compose exec -T tools curl -s -o /dev/null -w '%{http_code}' http://world:9000/_bench/evidence)"
-[ "$STATUS" = 401 ] || { printf 'tools admin status was %s, expected 401\n' "$STATUS" >&2; exit 1; }
+STATUS="$(compose exec -T tools curl -s -o /dev/null -w '%{http_code}' http://world-bootstrap:9000/_bench/evidence)"
+[ "$STATUS" = 404 ] || { printf 'bootstrap exposed a control route: status %s, expected 404\n' "$STATUS" >&2; exit 1; }
+STATUS="$(compose exec -T tools curl --connect-timeout 2 --max-time 3 -s -o /dev/null -w '%{http_code}' "http://$BACKEND_IP:9000/_bench/health" || true)"
+[ "$STATUS" = 000 ] || { printf 'bootstrap is listening on the API interface: HTTP %s\n' "$STATUS" >&2; exit 1; }
+STATUS="$(compose exec -T tools curl --connect-timeout 2 --max-time 3 -s -o /dev/null -w '%{http_code}' http://world:9001/_bench/evidence || true)"
+[ "$STATUS" = 000 ] || { printf 'tools reached the control listener: HTTP %s\n' "$STATUS" >&2; exit 1; }
 compose exec -T tools sh -eu -c '
   if env | grep -qE "^(BENCH_ADMIN_TOKEN|HARBOR_TRIAL_ADMIN_TOKEN)="; then exit 1; fi
 '
 compose exec -T world sh -eu -c \
-  'curl -fsS -X POST -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9000/_bench/finalize' \
+  'curl -fsS -X POST -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9001/_bench/finalize' \
   > "$OUT/sealed-before.json"
 jq -e '.finalization.phase == "sealed" and (.finalization.pending | length) == 0' "$OUT/sealed-before.json" >/dev/null
 STATUS="$(compose exec -T tools curl -s -o /dev/null -w '%{http_code}' -X POST http://world:8121/v1/customers)"
 [ "$STATUS" = 503 ] || { printf 'closed world accepted tool-peer access: %s\n' "$STATUS" >&2; exit 1; }
 compose exec -T world sh -eu -c \
-  'curl -fsS -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9000/_bench/evidence' \
+  'curl -fsS -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9001/_bench/evidence' \
   > "$OUT/sealed-after.json"
 jq -S '.tools_ips |= sort' "$OUT/sealed-before.json" > "$OUT/sealed-before.normalized.json"
 jq -S '.tools_ips |= sort' "$OUT/sealed-after.json" > "$OUT/sealed-after.normalized.json"

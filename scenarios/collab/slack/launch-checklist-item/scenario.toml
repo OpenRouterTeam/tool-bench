@@ -7,6 +7,13 @@ services = ["slack"]
 tags = ["write", "single-service", "slack"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "F0PAYV2LST1 is the only list named Payments v2 launch checklist (the other is the v1 2025 checklist) and Priya Natarajan is a unique user; all four column values are given; one appended record is checked."
+
 [expect]
 version = 2
 audit_history = true

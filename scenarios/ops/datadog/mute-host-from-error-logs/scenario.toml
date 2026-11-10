@@ -7,6 +7,13 @@ services = ["datadog"]
 tags = ["write", "single-service", "datadog", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Reset errors: 12 on checkout-api-prod-1b, 3 on checkout-api-staging-1b, 1 on prod-1a at 12:41, 1 on payments-api-prod-1a; checkout-worker-prod-1b errors differ; contract forbids muting those five hosts."
+
 [expect]
 version = 2
 audit_history = true

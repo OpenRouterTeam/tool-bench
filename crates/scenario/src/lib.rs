@@ -1,8 +1,9 @@
 //! Scenario sources (`scenarios/<group>/<service|multi>/<slug>/`) and their conversion into
 //! Harbor task directories.
 
-pub mod audit;
+pub mod authoring;
 pub mod awareness;
+pub mod captured;
 pub mod clarification;
 pub mod connections;
 pub mod coverage;
@@ -13,7 +14,9 @@ pub mod images;
 pub mod oracle_results;
 pub mod oracle_tools;
 pub mod profile;
+pub mod proxy_policy;
 pub mod release;
+pub mod release_manifest;
 pub mod solution;
 pub mod taskgen;
 
@@ -41,6 +44,9 @@ pub struct Meta {
     pub tags: Vec<String>,
     #[serde(default = "default_timeout")]
     pub timeout_sec: u32,
+    /// Reviewed difficulty family (`[scenario.family]`); required when scored.
+    #[serde(default)]
+    pub family: Option<family::ScenarioFamily>,
 }
 
 fn default_timeout() -> u32 {
@@ -106,6 +112,7 @@ impl Scenario {
         .with_context(|| format!("parsing {}", path.display()))?;
         let instruction = fs::read_to_string(dir.join("instruction.md"))
             .with_context(|| format!("reading {}/instruction.md", dir.display()))?;
+        family::check(&file.scenario).with_context(|| format!("loading {}", path.display()))?;
         Ok(Self {
             dir: dir.to_owned(),
             meta: file.scenario,
@@ -113,6 +120,11 @@ impl Scenario {
             expect: file.expect,
             solution: file.solution,
         })
+    }
+
+    /// Whether this scenario counts toward the scored denominator.
+    pub fn scored(&self) -> bool {
+        family::scored(&self.meta.id)
     }
 
     /// Harbor task directory name: the id with `/` replaced by `__` (globbable by group/service).
@@ -143,7 +155,19 @@ impl Scenario {
                 self.meta.id
             );
         }
-        Dataset::load(&self.dir).with_context(|| format!("{}: dataset", self.meta.id))?;
+        let dataset =
+            Dataset::load(&self.dir).with_context(|| format!("{}: dataset", self.meta.id))?;
+        let conversational = self
+            .meta
+            .family
+            .as_ref()
+            .is_some_and(|family| family.primary == family::DifficultyFamily::Clarification);
+        if dataset.scripted_user.is_some() != conversational || conversational && self.scored() {
+            bail!(
+                "{}: a scripted user belongs to exactly the unscored clarification family",
+                self.meta.id
+            );
+        }
         for service in &self.meta.services {
             if !catalog.services.iter().any(|s| &s.name == service) {
                 bail!("{}: unknown service {service}", self.meta.id);
@@ -190,7 +214,8 @@ impl Scenario {
         {
             bail!("{}: no expectations", self.meta.id);
         }
-        self.solution
+        let mut validations = self
+            .solution
             .calls
             .iter()
             .enumerate()
@@ -199,7 +224,11 @@ impl Scenario {
                     .validate(call)
                     .with_context(|| format!("{}: solution.call[{index}]", self.meta.id))
             })
-            .collect()
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        tools
+            .attach_captured(&self.solution, &mut validations)
+            .with_context(|| format!("{}: captured arguments", self.meta.id))?;
+        Ok(validations)
     }
 }
 

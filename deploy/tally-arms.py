@@ -5,9 +5,11 @@ hidden search turns included), and paired per-task differences with a seeded boo
 
   deploy/tally-arms.py /tmp/tool-bench-arms/matrix/haiku /tmp/tool-bench-arms/matrix/kimi
 
-The default path reproduces historical transcript/meta heuristics and is labeled legacy,
-not current inference admission. Use --verified --report-bin <bench-report> <run-dir>...
-for receipt-checked structured inference evidence; unavailable costs remain unknown.
+Failure classes come from structured inference evidence only: the sealed arm-proxy capture
+smoke-arms.sh writes beside each run (<run>.inference.json), or, with
+--verified --report-bin <bench-report> <run-dir>..., the report's receipt-checked explanation.
+A run without that evidence is counted as unclassified; nothing is inferred from transcripts,
+journals or .meta text. Local smoke evidence is unbound and diagnostic, not admission.
 """
 import collections
 import argparse
@@ -54,16 +56,32 @@ def read_run(prefix):
         served += 1 if details else 0
         cost += usage.get('cost') or 0
     passed = reward['reward'] == 1.0
-    overflow = not passed and meta.get('overflow') == '1' and meta.get('tool_uses') == '0'
+    classification = inference_classification(prefix)
     return {
         'passed': passed,
-        'overflow': overflow,
+        'classification': classification,
+        'overflow': not passed and classification in CONTEXT_REJECTIONS,
         'prompt': prompt,
         'cost': cost,
         'served': served,
         'requests': requests,
         'mcp_bypass': reward.get('mcp_bypass', 0),
     }
+
+
+CONTEXT_REJECTIONS = ('first_turn_context_rejection', 'later_turn_context_rejection')
+
+
+def inference_classification(prefix):
+    """The sealed proxy capture's classification, or None when the run has none."""
+    try:
+        with open(prefix + '.inference.json') as source:
+            evidence = json.load(source)
+    except FileNotFoundError:
+        return None
+    if evidence.get('scripted') is not False or not isinstance(evidence.get('transport'), dict):
+        raise ValueError(f'{prefix}.inference.json is not a provider-proxy capture')
+    return evidence['classification']
 
 
 def split_name(name):
@@ -104,12 +122,12 @@ def paired(runs, a, b, value):
 def main():
     if len(sys.argv) > 1 and sys.argv[1] == "--verified":
         return verified_main(sys.argv[2:])
-    print("Legacy/non-comparable historical tally: transcript/meta classification is not current inference admission.")
+    print("Local smoke tally (unbound, diagnostic): failure classes come from sealed arm-proxy captures only.")
     for directory in sys.argv[1:]:
         runs = collect(directory)
         model = os.path.basename(directory)
         print(f'== {model}: {len(runs)} runs')
-        print(f"{'arm':10} {'n':>3} {'passed [95%]':>16} {'overflow':>8} {'fail':>4} {'mean prompt':>12} {'mean $':>8} {'$/pass':>8} {'served':>9}")
+        print(f"{'arm':10} {'n':>3} {'passed [95%]':>16} {'overflow':>8} {'fail':>4} {'mean prompt':>12} {'mean $':>8} {'$/pass':>8} {'served':>9}  classes")
         for arm in ARMS:
             group = [run for run in runs if run['arm'] == arm]
             if not group:
@@ -123,6 +141,7 @@ def main():
                 f"{arm:10} {n:>3} {f'{100 * passes / n:.0f}% [{100 * low:.0f},{100 * high:.0f}]':>16} {overflows:>8} {n - passes - overflows:>4} "
                 f"{sum(run['prompt'] for run in group) / n:>12,.0f} {cost / n:>8.4f} {(cost / passes if passes else float('nan')):>8.4f} "
                 f"{sum(run['served'] for run in group)}/{sum(run['requests'] for run in group):<6}"
+                f"  {dict(collections.Counter(run['classification'] or 'unclassified' for run in group))}"
             )
         for a, b in (('universal', 'native'), ('universal', 'off')):
             for label, value, scale in (('passed', lambda run: float(run['passed']), 100), ('cost $', lambda run: run['cost'], 1)):
@@ -149,6 +168,9 @@ def verified_main(arguments):
             raise ValueError("unsupported verified report format")
         trials = value["trials"]
         classes = collections.Counter()
+        failure_classes = collections.Counter()
+        fault_domains = collections.Counter()
+        retry_attempts = []
         costs = []
         unknown_costs = 0
         for trial in trials:
@@ -163,12 +185,24 @@ def verified_main(arguments):
                     unknown_costs += 1
                 else:
                     costs.append(cost)
+            explanation = trial.get("explanation")
+            failure = (explanation or {}).get("failure_class")
+            # An unreproducible assessment has no class; it is never guessed from text.
+            failure_classes[failure["label"] if failure else "unverified"] += 1
+            fault_domains[failure["domain"] if failure else "unverified"] += 1
+            retries = ((explanation or {}).get("accounting") or {}).get("retry_attempts")
+            if retries is not None:
+                retry_attempts.append(retries)
         print(json.dumps({
             "directory": directory,
             "scope": "diagnostic summary, not a final paired comparison",
             "attempts": len(trials),
             "provenance_checked": sum(bool(trial["provenance_checked"]) for trial in trials),
             "classifications": dict(classes),
+            "failure_classes": dict(failure_classes),
+            "fault_domains": dict(fault_domains),
+            "known_retry_attempts": sum(retry_attempts) if retry_attempts else None,
+            "attempts_with_unknown_retries": len(trials) - len(retry_attempts),
             "known_host_cost_usd": sum(costs) if costs else None,
             "attempts_with_known_host_cost": len(costs),
             "attempts_with_unknown_host_cost": unknown_costs,

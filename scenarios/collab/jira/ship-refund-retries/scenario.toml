@@ -7,6 +7,13 @@ services = ["jira"]
 tags = ["write", "single-service", "jira", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "PAY-121 Retry failed refund webhooks sits beside PAY-122 Retry failed payout webhooks, PAY-123 refund webhook docs and PAY-125 retry runbook; only PAY-121 may move to Done and get the comment."
+
 [expect]
 version = 2
 audit_history = true

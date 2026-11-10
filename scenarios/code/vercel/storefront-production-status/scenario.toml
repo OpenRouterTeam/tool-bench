@@ -7,6 +7,13 @@ services = ["vercel"]
 tags = ["lookup", "single-service", "vercel"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Newest storefront production deployment 7d41c9e (#487) is ERROR so c3a9f12 is still live, with older 5e8d2b7 superseded; storefront-admin has a newer unrelated preview failure; answer needs c3a9f12 and function size."
+
 # The newest production deployment (7d41c9e, Next.js 15.4 upgrade) failed, so production
 # still serves c3a9f12. The newest storefront preview (feat/gift-cards) failed on function
 # size; storefront-admin has a newer, unrelated preview failure.
@@ -14,9 +21,116 @@ timeout_sec = 900
 version = 2
 audit_history = true
 
-[expect.answer]
-contains = ["c3a9f12"]
-regex = "(?i)(250\\s*MB|function size|maximum size|size limit)"
+# The newest READY production deployment of storefront supplies the commit and its message
+# (without the squash-merge "(#NNN)" suffix). The newest deployment of the same project that
+# is not a production deployment is the latest preview; its error code is why it failed.
+[expect.answer.record_facts]
+requirement = "State the commit SHA and commit message that storefront's current production deployment serves, and why the project's most recent preview deployment failed (its error code, or a plain wording of it)."
+mode = "statements"
+selection = { largest = { field = "/createdAt" } }
+context = [
+  "The newer production deployment for ${failed_prod_message} (${failed_prod_commit}) failed its build, so it never went live",
+  "(branch ${preview_branch}, commit ${preview_commit})",
+  "PR #${prod_pr}",
+  "PR #${failed_prod_pr}",
+
+  "1.",
+  "2.",
+]
+assertions = [
+  "Production serves ${commit}",
+  "Production is on ${commit}",
+  "Commit: ${commit}",
+  "${commit}",
+  "Message: ${message}",
+  "${message}",
+  '"${message}"',
+  "${message} (#${prod_pr})",
+  "The latest preview failed with ${reason}",
+  "The newest preview went over the ${reason} limit",
+  "Preview failure: ${reason}",
+  "${reason}",
+  "a Serverless Function has exceeded the unzipped ${reason} of 250 MB",
+  "Preview failure: a Serverless Function has exceeded the unzipped ${reason} of 250 MB",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/vercel/deployments"
+matching = { name = "storefront", target = "production", readyState = "READY" }
+
+[expect.answer.record_facts.related.preview]
+collection = "/services/vercel/deployments"
+filter = { excluding = [{ "/target" = "production" }] }
+on = { "/projectId" = "/projectId" }
+pick = { largest = "/createdAt" }
+
+[expect.answer.record_facts.facts.commit]
+field = "/meta/githubCommitSha"
+kind = "identifier"
+min_prefix = 7
+
+[expect.answer.record_facts.facts.message]
+field = "/meta/githubCommitMessage"
+capture = '^(.*?)(?: \(#\d+\))?$'
+kind = "text"
+
+# The coded source value is the deployment's error code; the bound wordings are plain
+# wordings of that code only.
+[expect.answer.record_facts.facts.reason]
+record = "preview"
+field = "/errorCode"
+also = ["/errorMessage"]
+kind = "text"
+
+[expect.answer.record_facts.facts.reason.wordings]
+FUNCTION_SIZE_EXCEEDED = ["function size", "maximum size", "size limit"]
+
+[expect.answer.record_facts.related.failed_prod]
+allow_absence = true
+collection = "/services/vercel/deployments"
+filter = { matching = { "/readyState" = "ERROR", "/target" = "production" } }
+on = { "/projectId" = "/projectId" }
+pick = { largest = "/createdAt" }
+
+[expect.answer.record_facts.facts.failed_prod_commit]
+record = "failed_prod"
+field = "/meta/githubCommitSha"
+kind = "identifier"
+min_prefix = 7
+optional = true
+
+[expect.answer.record_facts.facts.failed_prod_message]
+record = "failed_prod"
+field = "/meta/githubCommitMessage"
+capture = '^(.*?)(?: \(#\d+\))?$'
+kind = "text"
+optional = true
+
+[expect.answer.record_facts.facts.preview_commit]
+record = "preview"
+field = "/meta/githubCommitSha"
+kind = "identifier"
+min_prefix = 7
+optional = true
+
+[expect.answer.record_facts.facts.preview_branch]
+record = "preview"
+field = "/meta/githubCommitRef"
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.prod_pr]
+field = "/meta/githubCommitMessage"
+capture = '\(#(\d+)\)$'
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.failed_prod_pr]
+record = "failed_prod"
+field = "/meta/githubCommitMessage"
+capture = '\(#(\d+)\)$'
+kind = "identifier"
+optional = true
 
 [[expect.forbidden_calls]]
 service = "vercel"
@@ -38,10 +152,5 @@ arguments = { idOrUrl = "dpl_1KT70nyZgoWTlCSRmxLe0svxe4Xx" }
 
 [solution]
 answer = """
-Production for `storefront` is served by deployment dpl_8o704GjcwumkLAaxPwjoxb4V6QDF, built from
-commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9 ("Fix tax rounding for EU orders (#482)", Mateo Alvarez).
-The newer production deployment for "Upgrade to Next.js 15.4 (#487)" (7d41c9e) failed its build, so it never went live.
-
-The latest preview deployment (branch feat/gift-cards, commit 4be1d07) failed because a Serverless Function
-exceeded the unzipped maximum size of 250 MB (FUNCTION_SIZE_EXCEEDED).
+Production serves c3a9f12 - "Fix tax rounding for EU orders". The latest preview failed with FUNCTION_SIZE_EXCEEDED.
 """

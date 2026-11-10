@@ -155,9 +155,17 @@ alone, or average provisional rewards across environment/unresolved outcomes.
 - Final comparisons also reject environment/contract errors, missing/unknown
   assessments, reported trial exceptions, and inconsistent binary metrics.
   Retain those attempts and apply only the prespecified repair/replacement policy.
-- The world's admin port (`world:9000`) answers only `/_bench/health` and `/_bench/ca.pem` without
-  the world's admin token, and scored MCP-only tasks reject non-tools/nonlocal
-  callers even on those public paths. `main` does not share the backend network.
+- With a trial credential, the world's bootstrap port (`world-bootstrap:9000`)
+  serves only health and CA data on a separate tools/world network, not the API
+  backend. `BENCH_BOOTSTRAP_BIND_HOST` resolves the world's own private network
+  alias before any listener starts, without waiting for tools to start. State,
+  grading, reset, evidence and scripted-user
+  routes bind to loopback port 9001 inside the world container and still require
+  its admin token. Collection uses world-container execution, not an agent network
+  route. Readiness checks loopback port 9001. `main` never joins the bootstrap
+  network, even on a direct-API track, and does not share the backend network for
+  scored MCP-only tasks. Protected startup fails if the bootstrap interface
+  is missing or ambiguous.
   A manually started development world can explicitly enable
   `BENCH_ALLOW_INSECURE_LOCAL=1`; this is not a scored-task configuration.
 - Legacy answer-file collection remains while trustworthy harness-final-response

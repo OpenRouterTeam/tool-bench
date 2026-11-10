@@ -7,6 +7,13 @@ services = ["google", "supabase", "stripe"]
 tags = ["write", "multi-service", "google", "gmail", "supabase", "stripe", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity"]
+dependency_depth = 3
+rationale = "Two Priya Shah customers (1107 acme.io, 1042 fastmail.com) each have a $62.00 order on Oct 20 (5024 vs 5025); refunding charge ch_Gd7W... or mailing the fastmail address is forbidden."
+
 # The complaint (thread c41e7a2b9d03f615) is from priya.shah@acme.io = customer 1107, whose
 # October 20 order is 5024 ($62.00, ch_Hk5TzQ9wNc2RbV6mXa8LuE4P). Look-alikes: the other
 # Priya Shah (priya.shah@fastmail.com, 1042) also has a $62.00 order on October 20 (5025,

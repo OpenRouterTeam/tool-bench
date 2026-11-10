@@ -12,8 +12,11 @@ use anyhow::{Context, bail};
 use serde::Serialize;
 use serde_json::Value;
 
+pub mod conditions;
+pub mod explain;
 mod provenance;
 pub use provenance::Provenance;
+pub mod release;
 pub mod review;
 
 /// Grader outcome codes (`mock_core::grading::Outcome::code`).
@@ -82,6 +85,8 @@ pub fn trial_summary(trials: &[Trial]) -> Value {
                 "outcome": trial.outcome,
                 "provenance_checked": trial.provenance.is_some(),
                 "inference": trial.provenance.as_ref().and_then(|value| value.inference.as_ref()),
+                "surface_audit": conditions::trial_surface_audit(trial),
+                "information_condition": trial.provenance.as_ref().and_then(|value| value.condition.as_ref()),
             })
         }).collect::<Vec<_>>(),
     })
@@ -89,6 +94,14 @@ pub fn trial_summary(trials: &[Trial]) -> Value {
 
 /// Every trial `result.json` under `root` (job-level `result.json` files are skipped).
 pub fn load_trials(root: &Path) -> anyhow::Result<Vec<Trial>> {
+    load_trials_inner(root, true)
+}
+
+pub(crate) fn load_diagnostic_trials(root: &Path) -> anyhow::Result<Vec<Trial>> {
+    load_trials_inner(root, false)
+}
+
+fn load_trials_inner(root: &Path, strict_provenance: bool) -> anyhow::Result<Vec<Trial>> {
     let mut files = Vec::new();
     walk(root, &mut files)?;
     files.sort();
@@ -117,9 +130,14 @@ pub fn load_trials(root: &Path) -> anyhow::Result<Vec<Trial>> {
                 | Outcome::Fail
                 | Outcome::ContextOverflow
                 | Outcome::IntegrityViolation
+                | Outcome::EnvironmentError
                 | Outcome::Unresolved
         ) {
-            provenance::load(file.parent().context("trial directory")?, &v)?
+            match provenance::load(file.parent().context("trial directory")?, &v) {
+                Ok(value) => value,
+                Err(error) if strict_provenance => return Err(error),
+                Err(_) => None,
+            }
         } else {
             None
         };
@@ -219,6 +237,11 @@ pub struct Comparison {
     pub inference_a: Vec<TrialInference>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub inference_b: Vec<TrialInference>,
+    /// Counts of the per-trial `surface_audit` status in each arm.
+    pub surface_audit_a: BTreeMap<String, usize>,
+    pub surface_audit_b: BTreeMap<String, usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub information_treatment: Option<conditions::InformationTreatment>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -366,6 +389,19 @@ pub fn compare_declared(
     b: &[Trial],
     allow_agent_difference: bool,
 ) -> anyhow::Result<Comparison> {
+    compare_treatment(a, b, allow_agent_difference, None)
+}
+
+/// [`compare_declared`] that may also declare one information treatment (framing,
+/// workspace or exposure). Arms whose information differs in any undeclared way are
+/// rejected with the differences listed.
+pub fn compare_treatment(
+    a: &[Trial],
+    b: &[Trial],
+    allow_agent_difference: bool,
+    information: Option<mock_core::conditions::InformationAxis>,
+) -> anyhow::Result<Comparison> {
+    let information_treatment = conditions::admit(a, b, information)?;
     let content_review = review_comparison(a, b)?;
     if a.iter()
         .chain(b)
@@ -459,7 +495,8 @@ pub fn compare_declared(
             .provenance
             .as_ref()
             .expect("checked provenance");
-        if left.compatibility(allow_agent_difference) != right.compatibility(allow_agent_difference)
+        if left.compatibility_under(allow_agent_difference, information)
+            != right.compatibility_under(allow_agent_difference, information)
         {
             bail!(
                 "incompatible world/source/grader/execution conditions for {task}; only explicitly declared agent differences are supported"
@@ -546,11 +583,11 @@ pub fn compare_declared(
     Ok(Comparison {
         admission_level: admission_level.into(),
         release_sha256,
-        declared_treatments: if allow_agent_difference {
-            vec!["agent".into()]
-        } else {
-            Vec::new()
-        },
+        declared_treatments: allow_agent_difference
+            .then(|| "agent".to_owned())
+            .into_iter()
+            .chain(information.map(conditions::axis_label))
+            .collect(),
         paired_tasks: tasks.len(),
         unpaired_tasks,
         mean_a,
@@ -575,6 +612,9 @@ pub fn compare_declared(
         content_review,
         inference_a: inference_rows(a),
         inference_b: inference_rows(b),
+        surface_audit_a: conditions::surface_audit_counts(a),
+        surface_audit_b: conditions::surface_audit_counts(b),
+        information_treatment,
     })
 }
 

@@ -48,16 +48,37 @@ pub struct OperationEvent {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum EventKind {
     RequestStarted,
-    RequestHeadReceived { head: RequestHead },
-    RequestBodyReceived { body: CapturedBody },
-    StateCommitted { records: Vec<StateChange> },
-    ResponseCompleted { status: u16, body_complete: bool },
+    RequestHeadReceived {
+        head: RequestHead,
+    },
+    RequestBodyReceived {
+        body: CapturedBody,
+    },
+    StateCommitted {
+        records: Vec<StateChange>,
+    },
+    ResponseCompleted {
+        status: u16,
+        body_complete: bool,
+    },
     ResponseDeliveryLost,
-    FaultSelected { record: crate::faults::FaultRecord },
-    EnvironmentFailed { code: String, reason: String },
+    FaultSelected {
+        record: crate::faults::FaultRecord,
+    },
+    UserExchanged {
+        record: crate::scripted_user::UserExchange,
+    },
+    EnvironmentFailed {
+        code: String,
+        reason: String,
+    },
     OperationAborted,
-    ExecutionRetained { execution_id: u64 },
-    ExecutionReleased { execution_id: u64 },
+    ExecutionRetained {
+        execution_id: u64,
+    },
+    ExecutionReleased {
+        execution_id: u64,
+    },
 }
 
 #[derive(Debug, Clone, Default)]
@@ -190,6 +211,15 @@ impl EventLog {
         record: crate::faults::FaultRecord,
     ) {
         self.push(Some(operation), time, EventKind::FaultSelected { record });
+    }
+
+    pub(crate) fn user_exchange(
+        &mut self,
+        operation: OperationContext,
+        time: String,
+        record: crate::scripted_user::UserExchange,
+    ) {
+        self.push(Some(operation), time, EventKind::UserExchanged { record });
     }
 
     pub(crate) fn retain(&mut self, operation: OperationContext, time: String) -> u64 {

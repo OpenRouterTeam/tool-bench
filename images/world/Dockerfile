@@ -21,5 +21,5 @@ COPY --from=build /bench-verify /usr/local/bin/bench-verify
 COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/doc/tool-bench/
 COPY scenarios /opt/tool-bench/scenarios
 EXPOSE 443 8101-8130 9000
-HEALTHCHECK --interval=1s --timeout=2s --retries=30 CMD curl -fs http://localhost:9000/_bench/health || exit 1
+HEALTHCHECK --interval=1s --timeout=2s --retries=30 CMD curl -fs http://localhost:9001/_bench/health || curl -fs http://localhost:9000/_bench/health || exit 1
 ENTRYPOINT ["world"]

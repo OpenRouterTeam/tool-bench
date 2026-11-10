@@ -21,10 +21,66 @@
   ],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "555-0142"
-    ],
-    "regex": "(?i)0?9(:00)?\\s*(am|a\\.m\\.)?\\s*(-|–|—|to|until)\\s*(14:00|14\\.00|2(:00)?\\s*(pm|p\\.m\\.))"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the phone number and Saturday opening hours of the Portland, Oregon caterer from local listing data.",
+      "selector": {
+        "collection": "/services/brave/pois",
+        "matching": {
+          "postal_address": {
+            "addressRegion": "OR"
+          }
+        },
+        "field_patterns": {
+          "/title": "(?i)catering"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "hours": {
+          "field": "/opening_hours/days/5/0/opens",
+          "kind": "text",
+          "append": [
+            "/opening_hours/days/5/0/closes"
+          ],
+          "wordings": {
+            "09:00 14:00": [
+              "09:00-14:00",
+              "9:00-14:00",
+              "09:00 - 14:00",
+              "9:00 - 14:00",
+              "9am-2pm",
+              "9 am - 2 pm",
+              "9:00 AM - 2:00 PM",
+              "9:00am - 2:00pm",
+              "09:00 to 14:00",
+              "9am to 2pm",
+              "9 am to 2 pm",
+              "9:00 AM to 2:00 PM"
+            ]
+          }
+        },
+        "phone": {
+          "field": "/contact/telephone",
+          "kind": "phone"
+        }
+      },
+      "mode": "statements",
+      "filter": {
+        "patterns": {
+          "/categories/0": "(?i)caterer"
+        }
+      },
+      "assertions": [
+        "Phone: ${phone}. Saturday: ${hours}.",
+        "${phone}, Saturday hours ${hours}.",
+        "${phone}, Saturday ${hours}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

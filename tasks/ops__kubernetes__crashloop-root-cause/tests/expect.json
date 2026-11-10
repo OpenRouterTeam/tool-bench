@@ -34,11 +34,99 @@
     }
   ],
   "answer": {
-    "contains": [
-      "ledger-worker-zx4mrndj8b-gdg8j",
-      "password authentication failed"
-    ],
-    "regex": null
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the pod in the payments namespace whose container is in CrashLoopBackOff, and quote the error message that the ERROR line of its crashed container's log ends with.",
+      "selector": {
+        "collection": "/services/kubernetes/pods",
+        "matching": {
+          "metadata": {
+            "namespace": "payments"
+          }
+        },
+        "field_patterns": {
+          "/status/containerStatuses/0/state/waiting/reason": "^CrashLoopBackOff$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "error": {
+          "field": "/previous/0",
+          "kind": "text",
+          "record": "logs",
+          "append": [
+            "/previous/1",
+            "/previous/2",
+            "/previous/3"
+          ],
+          "capture": "ERROR .*?: ([^:]+?)(?: \\d{4}-\\d{2}-\\d{2}T|$)"
+        },
+        "pod": {
+          "field": "/metadata/name",
+          "kind": "identifier"
+        },
+        "restarts": {
+          "field": "/status/containerStatuses/0/restartCount",
+          "kind": "number",
+          "optional": true
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "logs": {
+          "collection": "/services/kubernetes/pod_logs",
+          "on": {
+            "/_key": "/_key"
+          },
+          "capture": {
+            "/_key": "^(.+)/[^/]+$"
+          }
+        }
+      },
+      "context": [
+        "in the payments namespace",
+        "(CrashLoopBackOff, ${restarts} restarts)",
+        "(CrashLoopBackOff)",
+        "It exits with code 1 right after start-up because it cannot log in to its database:",
+        "The ledger database credentials need fixing (the ledger user's password was rejected).",
+        "2026-11-03T08:33:44.302Z ERROR db: connect ledger-db.payments.svc:5432:",
+        "Its previous container log ends with:",
+        "2026-11-03T08:33:44.302Z FATAL could not initialise ledger store, exiting (exit code 1)"
+      ],
+      "predicates": [
+        "cannot log in",
+        "can't log in",
+        "cannot authenticate",
+        "can't authenticate",
+        "could not authenticate",
+        "cannot connect",
+        "can't connect",
+        "could not connect",
+        "cannot reach",
+        "can't reach",
+        "could not reach",
+        "never becomes ready",
+        "does not become ready",
+        "does not stay up",
+        "never stays up",
+        "could not initialise",
+        "could not initialize",
+        "cannot initialise",
+        "cannot initialize"
+      ],
+      "assertions": [
+        "Pod: ${pod} Error: pq: ${error}",
+        "${pod} is crash-looping: pq: ${error}",
+        "${pod} is crash-looping. pq: ${error}",
+        "${pod}: pq: ${error}",
+        "${pod} cannot authenticate to Postgres: ${error}",
+        "${pod} never becomes ready: ${error}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

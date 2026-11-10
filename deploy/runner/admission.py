@@ -19,7 +19,7 @@ class AdmissionError(RuntimeError):
 def adapter_sha256() -> str:
     digest = hashlib.sha256()
     for name in ["admission.py", "strict_docker.py", "snapshot.py", "controller.py", "manifest.py",
-                 "inference.py", "computer1_capture.py"]:
+                 "inference.py", "computer1_capture.py", "proxy_capture.py", "surface_audit.py"]:
         content = Path(__file__).with_name(name).read_bytes()
         digest.update(name.encode())
         digest.update(b"\0")

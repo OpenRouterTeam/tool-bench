@@ -7,6 +7,13 @@ services = ["linear"]
 tags = ["write", "single-service", "linear"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "PAY-121 rotate webhook signing secrets (Backlog) sits beside Done PAY-120 rotate API keys; In Progress exists per team (PAY, PLAT, WEB); cycle 41 is completed and 43 upcoming; contract pins PAY cycle 42 and state."
+
 [expect]
 version = 2
 audit_history = true

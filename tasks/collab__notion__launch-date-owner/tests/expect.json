@@ -33,10 +33,71 @@
     }
   ],
   "answer": {
-    "contains": [
-      "Lena Fischer"
-    ],
-    "regex": "(?i)(2026-11-12|nov(ember)?\\.?\\s+12)"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the launch date and the owner that the live (not trashed) Payments v2 GA row of the Product launches tracker currently shows.",
+      "selector": {
+        "collection": "/services/notion/data_sources",
+        "matching": {
+          "title": [
+            {
+              "plain_text": "Product launches"
+            }
+          ]
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "date": {
+          "field": "/properties/Launch date/date/start",
+          "kind": "date",
+          "record": "row"
+        },
+        "owner": {
+          "field": "/properties/Owner/people/0/name",
+          "kind": "text",
+          "record": "row"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "row": {
+          "collection": "/services/notion/pages",
+          "filter": {
+            "matching": {
+              "/in_trash": false,
+              "/properties/Launch/title/0/plain_text": "Payments v2 GA"
+            }
+          },
+          "on": {
+            "/parent/data_source_id": "/id"
+          }
+        }
+      },
+      "context": [
+        "Payments v2 GA",
+        "which",
+        "| Launch | Date | Owner |"
+      ],
+      "assertions": [
+        "Launch date: ${date}",
+        "launches on ${date}",
+        "scheduled for ${date}",
+        "${date}",
+        "Owner: ${owner}",
+        "owner is ${owner}",
+        "owned by ${owner}",
+        "${owner} owns",
+        "${owner}",
+        "and is owned by ${owner}",
+        "Payments v2 GA launches on ${date} and is owned by ${owner}",
+        "| ${date} | ${owner} |"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

@@ -7,6 +7,13 @@ services = ["salesforce"]
 tags = ["write", "single-service", "salesforce", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Case 00001041 (Bluefin Logistics, label printer sync after warehouse upgrade) vs 00001043 label printer sync at Bluefin Marine Supply and Bluefin Logistics cases 00001032 and 00001044; only 00001041 may change."
+
 [expect]
 version = 2
 audit_history = true

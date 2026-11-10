@@ -61,10 +61,95 @@
     }
   ],
   "answer": {
-    "contains": [
-      "410.5"
-    ],
-    "regex": "(?i)(\\b4\\s+(new\\s+)?(customers|signups|sign-ups|users|people|referr)|(customers|signups|sign-ups|sign ups|users|people)[^0-9\\n]{0,40}\\b4\\b)"
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the number of FALL26 referral customers (excluding QA accounts) in the production storefront and their total non-cancelled order spend in dollars.",
+      "selector": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+        "matching": {
+          "referral_code": "FALL26"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "measure": "count",
+          "pick": "only"
+        }
+      },
+      "facts": {
+        "customer_count": {
+          "field": "/value",
+          "kind": "number"
+        },
+        "total_spend": {
+          "field": "/value",
+          "kind": "money",
+          "record": "order_total",
+          "units": [
+            "$",
+            "usd"
+          ]
+        }
+      },
+      "mode": "statements",
+      "filter": {
+        "excluding": [
+          {
+            "/email": "qa+ref1@octo-shop.com"
+          },
+          {
+            "/email": "qa+ref2@octo-shop.com"
+          }
+        ]
+      },
+      "related": {
+        "order_total": {
+          "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders",
+          "group": {
+            "rows": {
+              "matching": {
+                "/row_related/customer/referral_code": "FALL26"
+              },
+              "excluding": [
+                {
+                  "/row_related/customer/email": "qa+ref1@octo-shop.com"
+                },
+                {
+                  "/row_related/customer/email": "qa+ref2@octo-shop.com"
+                },
+                {
+                  "/status": "cancelled"
+                }
+              ]
+            },
+            "measure": {
+              "sum": "/total"
+            },
+            "pick": "only",
+            "row_related": {
+              "customer": {
+                "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+                "on": {
+                  "/id": "/customer_id"
+                }
+              }
+            }
+          }
+        }
+      },
+      "assertions": [
+        "${customer_count} customers have signed up, spending ${total_spend} in total.",
+        "Customers: ${customer_count}\nTotal spend: ${total_spend}",
+        "${customer_count} referral sign-ups, ${total_spend} total spend.",
+        "${customer_count} customers, ${total_spend} total spend.",
+        "${customer_count} customers, ${total_spend} total.",
+        "There are ${customer_count} FALL26 referral sign-ups and they have spent ${total_spend}."
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

@@ -22,6 +22,7 @@ fn captures_actual_refund_ids_from_json_text_tool_results() {
         pointer: "/content/0/text".into(),
         json_pointer: Some("/id".into()),
         select: None,
+        constraint: None,
     }];
     let mut bindings = Bindings::new();
     refund
@@ -163,12 +164,14 @@ fn captures_are_atomic_and_cannot_overwrite_bindings() {
             pointer: "/one".into(),
             json_pointer: None,
             select: None,
+            constraint: None,
         },
         Capture {
             name: "two".into(),
             pointer: "/missing".into(),
             json_pointer: None,
             select: None,
+            constraint: None,
         },
     ];
     let mut bindings = Bindings::new();
@@ -198,7 +201,8 @@ fn unsafe_names_forward_references_and_invalid_pointers_fail_authoring() {
                 name: name.into(),
                 pointer: "".into(),
                 json_pointer: None,
-                select: None
+                select: None,
+                constraint: None,
             }
             .validate()
             .is_err()
@@ -210,7 +214,8 @@ fn unsafe_names_forward_references_and_invalid_pointers_fail_authoring() {
                 name: "valid".into(),
                 pointer: pointer.into(),
                 json_pointer: None,
-                select: None
+                select: None,
+                constraint: None,
             }
             .validate()
             .is_err()
@@ -292,6 +297,7 @@ fn final_answer_templates_require_captured_bindings_and_a_real_template() {
         pointer: "/structuredContent/dsn".into(),
         json_pointer: None,
         select: None,
+        constraint: None,
     }];
     let valid = Solution {
         calls: vec![capture],
@@ -309,6 +315,7 @@ fn failed_tools_and_missing_capture_fields_do_not_supply_values() {
         pointer: "/content/0/text".into(),
         json_pointer: Some("/id".into()),
         select: None,
+        constraint: None,
     }];
     for result in [
         json!({"isError": true, "content": [{"text": "{\"id\":\"fake\"}"}]}),

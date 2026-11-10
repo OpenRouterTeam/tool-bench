@@ -7,6 +7,13 @@ services = ["notion"]
 tags = ["write", "single-service", "notion"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Customer escalations data source f937b556 and user Alex Kim (6a5aa3fe) are each unique in the workspace; all row values are given in the instruction; contract checks one created row."
+
 [expect]
 version = 2
 audit_history = true

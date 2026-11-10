@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/brave/keynote-recording",
-  "scenario_sha256": "sha256:ab5eb72e6e0ad9d0b7e6f3572e4be7605e6152034fe8a5b107bcdc45fe2227a4",
+  "scenario_sha256": "sha256:afbf94f28e7e7dbb29c5e1e89849d3b935d9e22ab84d327a906086bfd6dfc158",
   "dataset_sha256": "sha256:d851ecdff5abf3a8d48ed64dc4157c43b349ef98600e16f155a326c4b7c8f982",
-  "contract_sha256": "sha256:a72b865d90ff1e4d7a37337a361c0758c9e77ea99556ffc94dbc928a2069a388"
+  "contract_sha256": "sha256:97a3895a2b411db85d96634e6d5ac193d24262190f29586ccfde54825ef1a35d"
 }

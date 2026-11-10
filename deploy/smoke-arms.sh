@@ -1,6 +1,9 @@
 #!/bin/bash
 # deploy/smoke-ori.sh with a router arm: Claude Code's requests go through deploy/arm-proxy.ts,
 # which records usage per request and, for `universal`, adds #54394's deferred_tools control.
+# The proxy also captures every provider exchange; deploy/runner/proxy_capture.py seals that into
+# <run>.inference.json, the only source of the run's failure class (no transcript or journal grep).
+# This local path runs the agent on the host, so its evidence is unbound and diagnostic.
 #   ARM=off        ENABLE_TOOL_SEARCH=false (full payload), proxy -> $TARGET (default production)
 #   ARM=native     Claude Code defaults (client ToolSearch), proxy -> $TARGET
 #   ARM=universal  full payload plus the universal control, proxy -> $TARGET (default the local
@@ -51,7 +54,9 @@ for id in "$@"; do
   # to the world before grading, as tests/test.sh does with /app/answer.md in a Harbor trial.
   instruction=$(sed "s|/app/answer.md|$work/answer.md|g" $M/scenarios/$id/instruction.md)
   : > $OUT/$slug.usage.jsonl
-  bun $M/deploy/arm-proxy.ts --port $PROXY_PORT --target "$TARGET" --log $OUT/$slug.usage.jsonl $UNIVERSAL --model "$MODEL" ${PROVIDER:+--provider "$PROVIDER"} > $OUT/$slug.proxy.log 2>&1 &
+  rm -f $OUT/$slug.capture.jsonl $OUT/$slug.inference.json
+  printf '%s' "$instruction" > $OUT/$slug.instruction.txt
+  bun $M/deploy/arm-proxy.ts --port $PROXY_PORT --target "$TARGET" --log $OUT/$slug.usage.jsonl --capture $OUT/$slug.capture.jsonl --instruction-file $OUT/$slug.instruction.txt $UNIVERSAL --model "$MODEL" ${PROVIDER:+--provider "$PROVIDER"} > $OUT/$slug.proxy.log 2>&1 &
   proxy_pid=$!
   for i in $(seq 1 30); do grep -q arm-proxy $OUT/$slug.proxy.log && break; sleep 0.5; done
   settings="{\"env\": {\"ANTHROPIC_BASE_URL\": \"http://127.0.0.1:$PROXY_PORT/api\"}}"
@@ -61,16 +66,18 @@ for id in "$@"; do
       ${DISALLOWED:+--disallowedTools $DISALLOWED} \
       --strict-mcp-config --mcp-config $OUT/$slug.mcp.json \
       --permission-mode bypassPermissions < /dev/null > $OUT/$slug.stream.jsonl 2> $OUT/$slug.stderr)
-  echo "agent exit=$? seconds=$(( $(date +%s) - start )) arm=$ARM target=$TARGET model=$MODEL provider=${PROVIDER:--}" > $OUT/$slug.meta
+  agent_exit=$?
+  echo "agent exit=$agent_exit seconds=$(( $(date +%s) - start )) arm=$ARM target=$TARGET model=$MODEL provider=${PROVIDER:--}" > $OUT/$slug.meta
+  # SIGTERM makes the proxy write its finalized event; the sealer fails closed without it.
   kill $proxy_pid 2>/dev/null; wait $proxy_pid 2>/dev/null
-  overflow=0; grep -qiE 'prompt is too long|context_length_exceeded|maximum context length|exceeds the context window|input is too long' $OUT/$slug.stream.jsonl $OUT/$slug.stderr $OUT/$slug.usage.jsonl && overflow=1
+  classification=$(cd $M && ${BENCH_PYTHON:-python3.12} -m deploy.runner.proxy_capture --events $OUT/$slug.capture.jsonl --model "$MODEL" --provider "${PROVIDER:-unpinned}" --arm "$ARM" --exit-code "$agent_exit" --output $OUT/$slug.inference.json) || classification=unclassified
+  case "$classification" in first_turn_context_rejection|later_turn_context_rejection) overflow=1 ;; *) overflow=0 ;; esac
   [ -f "$work/answer.md" ] && curl -s -X POST --data-binary @"$work/answer.md" http://127.0.0.1:$ADMIN_PORT/_bench/answer > /dev/null && cp "$work/answer.md" $OUT/$slug.answer.md
   curl -s http://127.0.0.1:$ADMIN_PORT/_bench/journal > $OUT/$slug.journal.json
   curl -s -X POST -H 'content-type: application/json' --data-binary @$M/scenarios/$id/../../../../tasks/$(echo "$id" | sed 's|/|__|g')/tests/expect.json "http://127.0.0.1:$ADMIN_PORT/_bench/grade?context_overflow=$overflow" > $OUT/$slug.reward.json
   # The grader's own context_overflow outcome needs an empty tools-container journal, which the MCP
-  # servers' startup handshakes rule out; record what the harness saw so the tally can tell.
-  tool_uses=$(grep -o '"type":"tool_use"' $OUT/$slug.stream.jsonl | wc -l | tr -d ' ')
-  echo "overflow=$overflow tool_uses=$tool_uses" >> $OUT/$slug.meta
+  # servers' startup handshakes rule out; the tally reads the sealed capture's classification.
+  echo "classification=$classification" >> $OUT/$slug.meta
   echo "$id: $(cat $OUT/$slug.reward.json) $(tr '\n' ' ' < $OUT/$slug.meta)"
 done
 docker rm -f $WORLD $TOOLS >/dev/null 2>&1; docker network rm $NET >/dev/null 2>&1

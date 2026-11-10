@@ -33,12 +33,163 @@
     }
   ],
   "answer": {
-    "contains": [
-      "PAY-119",
-      "PAY-117",
-      "Sam Ortiz"
-    ],
-    "regex": null
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the story in the active Payments sprint that is blocked by another issue, the issue that blocks it, and the person assigned to the blocking issue.",
+      "selector": {
+        "collection": "/services/jira/issues",
+        "matching": {
+          "fields": {
+            "customfield_10104": [
+              7
+            ],
+            "issuetype": "Story"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/key",
+            "target": {
+              "collection": "/services/jira/issuelinks",
+              "matching": {},
+              "references": [
+                {
+                  "source_field": "/type",
+                  "target": {
+                    "collection": "/services/jira/issuelinktypes",
+                    "matching": {
+                      "name": "Blocks"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/id"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/inward"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "assignee": {
+          "field": "/displayName",
+          "kind": "text",
+          "record": "assignee",
+          "also": [
+            "/name"
+          ]
+        },
+        "blocked": {
+          "field": "/key",
+          "kind": "identifier"
+        },
+        "blocker": {
+          "field": "/key",
+          "kind": "identifier",
+          "record": "blocker"
+        },
+        "blocker_status": {
+          "field": "/fields/status",
+          "kind": "text",
+          "optional": true,
+          "record": "blocker"
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "${blocker} is blocked by ${blocked}",
+        "${blocker} blocked by ${blocked}",
+        "${blocker} is blocked on ${blocked}",
+        "${blocker} depends on ${blocked}",
+        "${blocked} blocks ${blocker}",
+        "${blocked} is blocking ${blocker}",
+        "${blocked} is the blocker",
+        "blocker: ${blocked}",
+        "blocked issue: ${blocker}",
+        "blocked: ${blocker}",
+        "${blocker} does not block",
+        "${blocker} doesn't block",
+        "${blocker} is not blocking",
+        "${blocker} isn't blocking"
+      ],
+      "related": {
+        "assignee": {
+          "from": "blocker",
+          "collection": "/services/jira/users",
+          "on": {
+            "/name": "/fields/assignee"
+          }
+        },
+        "blocker": {
+          "from": "link",
+          "collection": "/services/jira/issues",
+          "on": {
+            "/key": "/outward"
+          }
+        },
+        "link": {
+          "collection": "/services/jira/issuelinks",
+          "on": {
+            "/inward": "/key"
+          }
+        },
+        "link_type": {
+          "from": "link",
+          "collection": "/services/jira/issuelinktypes",
+          "filter": {
+            "matching": {
+              "/name": "Blocks"
+            }
+          },
+          "on": {
+            "/id": "/type"
+          }
+        },
+        "sprint": {
+          "collection": "/services/jira/sprints",
+          "filter": {
+            "matching": {
+              "/state": "active"
+            }
+          },
+          "on": {
+            "/id": "/fields/customfield_10104"
+          }
+        }
+      },
+      "context": [
+        "| Blocked story | Blocker | Blocker assignee |",
+        "Blocked story",
+        "status ${blocker_status}"
+      ],
+      "assertions": [
+        "Blocked: ${blocked}",
+        "Blocked story: ${blocked}",
+        "Blocked story ${blocked}",
+        "Blocker ${blocker}",
+        "Blocker assignee ${assignee}",
+        "${blocked} is blocked by ${blocker}",
+        "Blocked by: ${blocker}",
+        "Blocker: ${blocker}",
+        "${blocker} blocks ${blocked}",
+        "owned by ${assignee}",
+        "Blocker assignee: ${assignee}",
+        "assigned to ${assignee}",
+        "${blocker} (owned by ${assignee}) blocks ${blocked}",
+        "${blocked} is blocked by ${blocker}, assigned to ${assignee}",
+        "| ${blocked} | ${blocker} | ${assignee} |"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",

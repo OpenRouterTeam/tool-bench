@@ -7,6 +7,13 @@ services = ["zendesk"]
 tags = ["write", "single-service", "zendesk", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Open ticket 4217 (Marcus Chen, October double charge) vs his solved September ticket 4201 with refund RF-87002, his open seats ticket 4219 and Marcus Cheng's double-charge ticket 4220."
+
 [expect]
 version = 2
 audit_history = true

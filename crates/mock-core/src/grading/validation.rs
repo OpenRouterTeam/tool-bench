@@ -198,6 +198,9 @@ impl Expect {
                 return Err("per_commit limits require audited mutation history".into());
             }
         }
+        if let Some(check) = &self.interaction {
+            check.validate(self)?;
+        }
         if self.state.is_empty()
             && self.records.is_empty()
             && self.relations.is_empty()

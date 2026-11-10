@@ -439,6 +439,7 @@ async fn origin_restrictions_apply_before_both_http_and_tls_dispatch() {
         world::AccessPolicy {
             admin_token: Some("secret".into()),
             tools_host: Some("192.0.2.10".into()),
+            bootstrap_bind: None,
         },
     )
     .await

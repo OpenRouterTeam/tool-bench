@@ -7,6 +7,13 @@ services = ["linear"]
 tags = ["write", "single-service", "linear"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Instruction gives exact title, team Web App, labels Bug and Safari, project Web 4.12 release and full name Alex Kim; each resolves to one record (Alex Rivera is a different name); one created issue is checked."
+
 [expect]
 version = 2
 audit_history = true

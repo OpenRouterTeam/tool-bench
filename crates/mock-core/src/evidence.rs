@@ -11,7 +11,7 @@ use crate::{
     world::WorldState,
 };
 
-pub const EVIDENCE_SCHEMA_VERSION: u32 = 6;
+pub const EVIDENCE_SCHEMA_VERSION: u32 = 7;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]

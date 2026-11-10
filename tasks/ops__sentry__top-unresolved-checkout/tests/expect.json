@@ -34,7 +34,75 @@
   ],
   "answer": {
     "contains": [],
-    "regex": "(?i)\\bCHECKOUT-API-3F\\b"
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the unresolved Sentry issue of the checkout-api project that has the most events, by its short ID, and state that issue's title.",
+      "selector": {
+        "collection": "/services/sentry/issues",
+        "matching": {
+          "project": "checkout-api",
+          "status": "unresolved"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "largest": {
+          "field": "/count"
+        }
+      },
+      "facts": {
+        "distractor_id": {
+          "field": "/shortId",
+          "kind": "identifier",
+          "optional": true,
+          "record": "distractor"
+        },
+        "distractor_status": {
+          "field": "/status",
+          "kind": "text",
+          "optional": true,
+          "record": "distractor"
+        },
+        "issue_id": {
+          "field": "/shortId",
+          "kind": "identifier"
+        },
+        "title": {
+          "field": "/title",
+          "kind": "text"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "distractor": {
+          "collection": "/services/sentry/issues",
+          "filter": {
+            "matching": {
+              "/project": "checkout-api",
+              "/status": "ignored"
+            }
+          }
+        }
+      },
+      "context": [
+        "not ${distractor_id}, which is ${distractor_status}"
+      ],
+      "contradictions": [
+        "fewest",
+        "least frequent",
+        "least noisy",
+        "quietest"
+      ],
+      "assertions": [
+        "${issue_id} - ${title}",
+        "${issue_id}: ${title}",
+        "Short ID: ${issue_id} Title: \"${title}\"",
+        "| Short ID | Title | |---|---| | ${issue_id} | ${title} |",
+        "${issue_id}, titled ${title}"
+      ]
+    }
   },
   "preservation": null,
   "interfaces": "mcp_only",
