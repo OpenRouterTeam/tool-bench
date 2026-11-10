@@ -188,6 +188,46 @@ generated with `taskgen --runner-admission required` accept only such trials. Th
 mode is for auditing the benchmark itself (`deploy/test-*.sh`); it is not needed to
 run it. See [runner-admission.md](runner-admission.md).
 
+## What has been checked
+
+No model has been run against this revision through OpenRouter. These checks stand in
+for one, and each can be repeated from this repository:
+
+| Check | Result |
+|---|---|
+| Reference solution and no-op agent through stock Harbor (`deploy/stock-campaign.sh`) | The reference solution scores 1 on 150 of 150 tasks and the no-op agent scores 0 on 150 of 150 |
+| The production worker's own planner, validation and trial code (`deploy/production/`) | All 150 task directories load, and 26 scripted attempts end as expected |
+| AI agents attempting tasks through the MCP servers without seeing the contracts (`deploy/pilot/`) | 357 attempts in four waves. The last wave covered all 150 tasks on the final contracts: 147 passed |
+| Reply corpora (`crates/mock-core/tests/fixtures/`) | 499 of 500 correct replies pass and 300 of 300 wrong replies are rejected |
+
+What the agent attempts found, and what to expect from a model run:
+
+- **Lookup replies.** The reader that grades written replies was the weak point. In
+  successive waves it left 5 of 56, 3 of 55 and 2 of 55 correct replies unscored, each
+  time because of a note written after a complete answer. Every case was fixed and all
+  158 replies are now regression fixtures, but those rates are the honest guide: expect
+  a few percent of correct, wordy replies to come back unresolved. `bench-report` lists
+  unresolved trials apart from failures. Read them before trusting a small difference
+  between two arms.
+- **Write tasks.** All 95 passed in the last wave. A probe of the alternatives the
+  agents had doubted loosened about 30 contracts where an ordinary way of doing the job
+  was rejected, and fixed 11 mock behaviours that blocked or misled correct work.
+- **One model.** Every pilot agent was the same model. A different model will take
+  paths these did not, so treat a task that one model fails every time while its trace
+  looks right as a contract to inspect, with `bench-report --explain <task>`.
+
+Before the first production run:
+
+1. Merge to `main` and wait for `.github/workflows/tool-bench-images.yml` to publish the
+   two images. The committed tasks name image tags that exist only after that.
+2. Run the `nop` agent over all 150 tasks. It costs nothing. Expect 150 incorrect and 0
+   skipped; a skipped trial means the environment or the verifier failed.
+3. Run a small paid sample (for example 20 tasks, one attempt, one harness) and read
+   every skipped and unresolved trial before scaling up.
+
+The worker-side follow-ups from the rehearsal are in
+[`deploy/production/FINDINGS.md`](../deploy/production/FINDINGS.md).
+
 ## Checking the benchmark without a model
 
 | Tool | What it shows |

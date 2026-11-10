@@ -848,12 +848,14 @@ struct Mention {
 #[derive(Clone, Copy)]
 enum Claim {
     /// The source value, stated and not set aside. `concluding` wording ("so the app is
-    /// X", "Owner: X") settles an answer that was open or had gone to another record.
-    Source { concluding: bool },
+    /// X", "it was seen in X") takes back an answer that had gone to another record.
+    /// `settling` wording gives the value as the answer in so many words (a label, an
+    /// answer cue, "the app is X"): after it only a correction moves the answer.
+    Source { concluding: bool, settling: bool },
     /// Another authored record's value, not set aside. `cued` wording presents it as
-    /// the answer wherever it appears; a bare identification (`identified`) does so
-    /// unless the reply has already concluded on the source value; `opening` wording
-    /// does so only while the reply has not yet answered.
+    /// the answer wherever it appears; an identification or a singling-out word
+    /// (`identified`) does so unless the reply has already concluded on the source
+    /// value; `opening` wording does so only while the reply has not yet answered.
     Other {
         cued: bool,
         identified: bool,
@@ -915,22 +917,36 @@ impl Evidence {
     /// The answer starts open. The first record the reply commits to takes it. After
     /// that, another record takes it over only by strong wording ("the real peak was",
     /// "the most recent is"), and the source value takes it back only by concluding
-    /// wording. Once the reply has concluded on the source value ("Owner: X"), a bare
-    /// identification of another record ("the only difference is Y") is context too.
+    /// wording. Once the reply has concluded on the source value ("Owner: X"), another
+    /// record that is only identified or singled out ("the only difference is Y", "the
+    /// latest event is tagged Y") is context too: only a correction unsettles it.
     /// Records named in passing leave it where it is.
     fn contested(&mut self) -> Option<&'static str> {
         self.claims.sort_by_key(|(mention, _)| *mention);
         let mut answer = Answer::Open;
         for (_, claim) in &self.claims {
             answer = match (*claim, answer) {
-                (Claim::Source { concluding }, Answer::Open) => Answer::Source {
-                    concluded: concluding,
+                (Claim::Source { settling, .. }, Answer::Open) => Answer::Source {
+                    concluded: settling,
                 },
-                (Claim::Source { concluding }, Answer::Source { concluded }) => Answer::Source {
-                    concluded: concluded || concluding,
+                (Claim::Source { settling, .. }, Answer::Source { concluded }) => Answer::Source {
+                    concluded: concluded || settling,
                 },
-                (Claim::Source { concluding: true }, _) => Answer::Source { concluded: true },
-                (Claim::Source { concluding: false }, held) => held,
+                (
+                    Claim::Source {
+                        concluding: true,
+                        settling,
+                    },
+                    _,
+                ) => Answer::Source {
+                    concluded: settling,
+                },
+                (
+                    Claim::Source {
+                        concluding: false, ..
+                    },
+                    held,
+                ) => held,
                 (Claim::Other { cued: true, .. }, _) => Answer::Other,
                 (
                     Claim::Other {
@@ -1520,17 +1536,22 @@ pub(super) fn check(
                         let labelled = LEAD_IN
                             .captures(&sentence.masked[..*start])
                             .is_some_and(|lead| !LABEL_ASIDE.is_match(&lead[1]));
-                        let concluding = answer_cue(&around)
-                            || CONCLUSION_CUE.is_match(&around)
-                            || IDENTIFIES.is_match(before)
+                        let settling = answer_cue(&around)
+                            || IDENTIFIES_DIRECTLY.is_match(before)
                             || LABELLED.is_match(before)
                             || labelled;
+                        let concluding = settling
+                            || CONCLUSION_CUE.is_match(&around)
+                            || IDENTIFIES.is_match(before);
                         evidence.claims.push((
                             Mention {
                                 sentence: position,
                                 start: *start,
                             },
-                            Claim::Source { concluding },
+                            Claim::Source {
+                                concluding,
+                                settling,
+                            },
                         ));
                     }
                 }
@@ -1603,7 +1624,10 @@ pub(super) fn check(
                         };
                         for (mention, claim) in &mut evidence.claims {
                             if *mention == listed_source {
-                                *claim = Claim::Source { concluding: false };
+                                *claim = Claim::Source {
+                                    concluding: false,
+                                    settling: false,
+                                };
                             }
                         }
                         evidence.rivals.push(position);
@@ -1624,15 +1648,15 @@ pub(super) fn check(
                     evidence.rivals.push(position);
                     let (around, offset) = clause(&masked, start, end);
                     let before = &around[..offset];
-                    // A date or amount that happens to equal another record's turns up
-                    // in passing beside a word that singles out something else, so only
-                    // wording about the whole clause presents it as the answer.
-                    let cued = if measured {
-                        ASSERTED.is_match(&around)
-                    } else {
-                        answer_cue(&around)
-                    };
-                    let identified = IDENTIFIES_DIRECTLY.is_match(before);
+                    // Wording about the whole clause ("actually", "the real") presents the
+                    // record as the answer wherever it stands. A word that singles one
+                    // thing out ("the latest event is tagged X") describes that thing,
+                    // which need not be this value: like a bare identification, it counts
+                    // until the reply has concluded on the source value, and for a date
+                    // or amount, which turns up beside such words in passing, not at all.
+                    let cued = ASSERTED.is_match(&around);
+                    let identified = IDENTIFIES_DIRECTLY.is_match(before)
+                        || (!measured && SINGLED_OUT.is_match(&around));
                     // A measured value near the answer is usually a comparison; it
                     // competes only when it is claimed as the answer.
                     // Inside quotation marks it is someone else's text (a commit title, a
@@ -1659,7 +1683,7 @@ pub(super) fn check(
         let concluded: Vec<usize> = evidence
             .claims
             .iter()
-            .filter(|(_, claim)| matches!(claim, Claim::Source { concluding: true }))
+            .filter(|(_, claim)| matches!(claim, Claim::Source { settling: true, .. }))
             .map(|(mention, _)| mention.sentence)
             .collect();
         for (position, status, reach) in std::mem::take(&mut evidence.indirect) {
