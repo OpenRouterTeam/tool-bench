@@ -210,8 +210,9 @@ What the agent attempts found, and what to expect from a model run:
   unresolved trials apart from failures. Read them before trusting a small difference
   between two arms.
 - **Write tasks.** All 95 passed in the last wave. A probe of the alternatives the
-  agents had doubted loosened about 30 contracts where an ordinary way of doing the job
-  was rejected, and fixed 11 mock behaviours that blocked or misled correct work.
+  agents had doubted changed 30 tasks where an ordinary way of doing the job was
+  rejected or the data contradicted itself, and fixed 11 mock behaviours that blocked
+  or misled correct work.
 - **One model.** Every pilot agent was the same model. A different model will take
   paths these did not, so treat a task that one model fails every time while its trace
   looks right as a contract to inspect, with `bench-report --explain <task>`.
