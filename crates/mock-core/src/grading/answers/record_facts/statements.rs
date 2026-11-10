@@ -758,6 +758,35 @@ fn read_number(fact: &RecordFact, token: &NumberToken, target: Rational, text: &
     }
 }
 
+/// Where a candidate value is stated.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+struct Mention {
+    sentence: usize,
+    start: usize,
+}
+
+/// What a statement of a candidate value does to the reply's answer for one fact.
+#[derive(Clone, Copy)]
+enum Claim {
+    /// The source value, stated and not set aside. `concluding` wording ("so the app is
+    /// X", "Owner: X") settles an answer that was open or had gone to another record.
+    Source { concluding: bool },
+    /// Another authored record's value, not set aside. `strong` wording presents it as
+    /// the answer wherever it appears; `opening` wording does so only while the reply
+    /// has not yet answered.
+    Other { strong: bool, opening: bool },
+    /// The source value and another record's joined by nothing but a conjunction.
+    Listed,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Answer {
+    Open,
+    Source,
+    Other,
+    Listed,
+}
+
 #[derive(Default)]
 struct Evidence {
     affirmed: usize,
@@ -767,118 +796,194 @@ struct Evidence {
     conflict: bool,
     /// Another authored record's value is asserted.
     alternative: bool,
-    /// The first and last sentences that affirm the source value, and the byte offset of
-    /// the first statement in its sentence.
+    /// The first statement of the source value, for the declared fact order.
     first_affirmed: Option<(usize, usize)>,
-    last_affirmed: Option<usize>,
-    /// Sentences that state another authored record's value without setting it aside and
-    /// without also affirming the source value.
-    rivals: Vec<usize>,
-    /// Another record's value is joined to the source value as a list ("X and Y").
-    listed: bool,
+    /// The source value is stated only where the reply sets it aside.
+    demoted: bool,
+    claims: Vec<(Mention, Claim)>,
 }
 
 impl Evidence {
     fn count(&mut self, status: Status, sentence: usize, start: usize) {
         match status {
             // A hedged statement of the right value ("it appears to be X") is still the
-            // reply's answer; a reply that hedges between records is caught by the rivals.
+            // reply's answer; a reply that hedges between records is caught by the claims.
             Status::Affirmed | Status::Hedged => {
                 self.affirmed += 1;
                 self.first_affirmed.get_or_insert((sentence, start));
-                self.last_affirmed = Some(sentence);
             }
             Status::Denied => self.denied += 1,
             Status::Disputed => self.disputed += 1,
         }
     }
 
-    /// Whether another authored record competes with the source value as the reply's
-    /// answer. Other records are context when the reply both opens and closes on the
-    /// source value, or names them only in the sentence that states it. Otherwise the
-    /// reply must make its answer clear: an opening on another record needs a concluding
-    /// statement of the source value, and a close on another record must not present it
-    /// as the answer.
-    fn contested(&self, read: &[Sentence]) -> bool {
-        let (Some((first, _)), Some(last)) = (self.first_affirmed, self.last_affirmed) else {
-            return false;
-        };
-        let (Some(opening), Some(closing)) = (self.rivals.first(), self.rivals.last()) else {
-            return false;
-        };
-        let led = *opening < first;
-        let trailed = *closing > last;
-        match (led, trailed) {
-            (false, false) => false,
-            (false, true) => ANSWER_CUE.is_match(&read[*closing].masked),
-            (true, false) => {
-                let closing = &read[last].masked;
-                !(CONCLUSION_CUE.is_match(closing)
-                    || !(LIST_ITEM.is_match(closing) || DEMOTION.is_match(closing)))
-            }
-            (true, true) => true,
+    /// Reads the claims in order and reports why the source value is not the reply's
+    /// answer, if it is not.
+    ///
+    /// The answer starts open. The first record the reply commits to takes it. After
+    /// that, another record takes it over only by strong wording ("the real peak was",
+    /// "the most recent is"), and the source value takes it back only by concluding
+    /// wording. Records named in passing leave it where it is.
+    fn contested(&mut self) -> Option<&'static str> {
+        self.claims.sort_by_key(|(mention, _)| *mention);
+        let mut answer = Answer::Open;
+        for (_, claim) in &self.claims {
+            answer = match (*claim, answer) {
+                (Claim::Source { .. }, Answer::Open | Answer::Source) => Answer::Source,
+                (Claim::Source { concluding: true }, _) => Answer::Source,
+                (Claim::Source { concluding: false }, held) => held,
+                (Claim::Other { strong: true, .. }, _) => Answer::Other,
+                (Claim::Other { opening: true, .. }, Answer::Open) => Answer::Other,
+                (Claim::Other { .. }, held) => held,
+                (Claim::Listed, Answer::Other) => Answer::Other,
+                (Claim::Listed, _) => Answer::Listed,
+            };
+        }
+        match answer {
+            Answer::Source => None,
+            Answer::Open => Some("only where the reply sets it aside"),
+            Answer::Other => Some("but presents another authored record's value as the answer"),
+            Answer::Listed => Some("in a list with another authored record's value"),
         }
     }
 }
 
-/// Wording that presents a later record as the reply's real answer.
-static ANSWER_CUE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(concat!(
-        r"\b(?:actually|in fact|instead|rather|correct\w*|turns out|ultimately|final\w*|conclusion",
-        r"|the (?:real |right |correct |actual )?answer is|answer:",
-        r"|therefore|thus|hence|decision|decided|chose|chosen|picked|selected|winner",
-        r"|largest|biggest|highest|lowest|smallest|best|worst)\b",
-    ))
-    .expect("answer cue pattern")
-});
-/// Only a conjunction between two mentions: they are listed together.
-static LISTED_WITH: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^\s*(?:,|/|&|\+|,?\s*and|,?\s*or|plus|as well as|along with|and also)\s*$")
-        .expect("listed-with pattern")
-});
-/// A line of a list or table: a ranking, not a conclusion.
-static LIST_ITEM: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^\s*(?:\d+[.)]|[-+•·])\s").expect("list item pattern"));
-/// Wording that places the stated record below, after or outside the answer.
-static DEMOTION: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(concat!(
-        r"\b(?:second|third|fourth|fifth|runner-up|runners-up|next|behind|trails?|trailing|smaller|lower|fewer",
-        r"|less than|below|followed by|after that|exclud\w*|ignor\w*|closed|lost|archived|stale|outdated|old",
-        r"|previous|former|no longer|also|another|other|others)\b",
-    ))
-    .expect("demotion pattern")
-});
-/// Wording that marks a late statement of the source value as the reply's conclusion.
-static CONCLUSION_CUE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(concat!(
-        r"\b(?:so|therefore|thus|hence|consequently|accordingly|that leaves|which leaves|leaving|that makes",
-        r"|which makes|making|answer|conclusion|result|in short|in summary|summary|overall|final\w*|bottom line",
-        r"|tl;dr|net|actually|in fact|correct\w*|real|instead|only|right one|the one|match\w*",
-        r"|largest|biggest|highest|lowest|smallest|most|least|top|best|worst|latest|newest|oldest|current)\b",
-        r"|→|=>|->",
-    ))
-    .expect("conclusion cue pattern")
-});
-
-/// Words that set a record aside rather than present it as the answer.
+/// Words that set another record aside rather than present it as the answer, read
+/// anywhere in its sentence.
 static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
-        r"\b(?:exclud\w*|except\w*|ignor\w*|disregard\w*|skip\w*|omit\w*|discount\w*|rul(?:e|ed|ing) out",
+        r"\b(?:exclud\w*|except\w*|ignor\w*|disregard\w*|skip\w*|omit\w*|discount\w*|rul(?:e|ed|ing) out|set aside",
         r"|apart from|aside from|other than|rather than|instead of|as opposed to|unlike|besides",
-        r"|compar\w*|versus|vs|whereas|while|although|though|however|despite|even though",
-        r"|larger|bigger|smaller|higher|lower|greater|fewer|less|more|older|newer|earlier|later",
-        r"|second|third|next|runner-up|runners-up|behind|ahead of|followed by|after that",
-        r"|closed|lost|won|archived|cancel\w*|inactive|disabled|expired|stale|outdated|superseded|deprecated|legacy",
-        r"|old|previous|prior|former|formerly|was|were|used to|no longer|until|before",
-        r"|also|other|others|another|distractor\w*|look-?alike\w*|similar\w*|duplicate\w*|not to be confused",
+        r"|compar\w*|versus|vs|whereas|although|though|despite|even though",
+        r"|second|third|fourth|fifth|next|runner-up|runners-up|behind|ahead of|followed by|after that",
+        r"|closed|lost|won|archived|cancel\w*|refund\w*|inactive|disabled|expired|outdated|superseded|deprecated|legacy",
+        r"|old|older|previous|prior|former|formerly|used to|no longer|until|removed|failed|denied|errored",
+        r"|also|too|as well|other|others|another|different|distractor\w*|decoy|red herring|look-?alike\w*|similar\w*|duplicate\w*",
+        r"|not to be confused|unrelated|irrelevant|only (?:a|an|the|what)|just (?:a|an|the)|merely|neither",
         r"|for context|for reference|for comparison|by comparison|in contrast|e\.g|such as|including",
-        r"|not (?:the|an?) (?:answer|one|right|correct|match)|not counted|not included|doesn't count|does not count",
-        r"|staging|non-?prod\w*|sandbox|test environment",
-        r"|if|unless|otherwise|would|could have|in that case|hypothetical\w*",
+        r"|not (?:the|an?) (?:answer|one|right|correct|match)|not (?:this|that) one|not counted|not included",
+        r"|doesn't count|does not count|staging|non-?prod\w*|sandbox|test environment|draft|caveat|note|aside",
+        r"|if|unless|otherwise|would|could have|in that case|hypothetical\w*|discussed|considered|proposed|leaning",
         r")\b"
     ))
     .expect("set-aside pattern")
 });
+/// Wording before the source value, in its own clause, that sets it aside.
+static DEMOTED_BY: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:rul(?:e|ed|ing) out|exclud\w*|ignor\w*|disregard\w*|discard\w*|set aside|skip\w*",
+        r"|ahead of|rather than|instead of|unlike|compared (?:to|with)|versus|vs|other than|apart from|aside from",
+        r"|besides|behind|after|before|beat\w*|above|over)\s+(?:the\s+|a\s+|an\s+)?(?:\w+\s+){0,2}$",
+    ))
+    .expect("demoted-by pattern")
+});
+/// Wording after the source value, in its own clause, that sets it aside.
+static DEMOTED_AS: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:red herring|decoy|distractor|look-?alike|false lead|not (?:it|the one|the answer|relevant)",
+        r"|irrelevant|unrelated|outdated|superseded|no longer|ruled out|excluded|ignored|discarded|set aside",
+        r"|only (?:a|an|the|what)|just (?:a|an|the)|merely|second|third|runner-up|for comparison|for reference",
+        r"|for context|a different|(?:was|were|is|are) (?:discussed|considered|proposed|floated)",
+        r"|would have|leaning|already (?:being )?handled|the draft|a draft|the old|an old|before that|previously",
+        r"|used to|formerly)\b",
+    ))
+    .expect("demoted-as pattern")
+});
+/// Wording that presents a record as the reply's answer.
+static ANSWER_CUE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:actually|in fact|instead|rather|correct\w*|turns out|ultimately|final\w*|conclusion|answer",
+        r"|therefore|thus|hence|consequently|accordingly|that leaves|which leaves|leaving|that makes|which makes",
+        r"|in short|in summary|bottom line|tl;dr|decision|decided|chose|chosen|picked|selected",
+        r"|signed|winner|real|actual|right one|the one",
+        r"|most|least|largest|biggest|highest|lowest|smallest|top|best|worst|latest|newest|oldest|slowest|fastest",
+        r"|noisiest)\b",
+    ))
+    .expect("answer cue pattern")
+});
+/// Wording that marks a statement as the reply's conclusion.
+static CONCLUSION_CUE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\b(?:so|only|match\w*|remaining|left|result|summary|overall|now|current\w*|live)\b|→|=>|->")
+        .expect("conclusion cue pattern")
+});
+/// A mention that completes "the <thing> is ...": an identification, not a passing remark.
+static IDENTIFIES: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\b(?:is|was|are|were)\s+(?:the\s+|a\s+|an\s+)?(?:\w+\s+){0,3}[#@]?$")
+        .expect("identification pattern")
+});
+/// The same with nothing in between: "the vendor is X", not "is assigned to X".
+static IDENTIFIES_DIRECTLY: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\b(?:is|was|are|were)\s+(?:the\s+|a\s+|an\s+)?[#@]?$")
+        .expect("direct identification pattern")
+});
+/// A mention that answers a label: "Owner: ...".
+static LABELLED: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"[:=]\s*[#@]?$").expect("label pattern"));
+/// A mention that opens its line, after at most a list marker.
+static OPENS_LINE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^\s*(?:\d+[.)]\s*|[-+•·]\s*)?$").expect("line opening pattern"));
+/// Only a conjunction between two mentions: they are listed together.
+static LISTED_WITH: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^(?:,|/|&|\+|,?and|,?or|plus|aswellas|alongwith|andalso|both)?$")
+        .expect("listed-with pattern")
+});
+static PARENTHETICAL: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"\([^()]*\)").expect("parenthetical pattern"));
+/// Words that start a new clause.
+static CLAUSE_BREAK: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\s(?:but|so|while|whereas|because|since|however|yet)\s").expect("clause pattern")
+});
+
+/// The clause that governs a mention, with the mention itself blanked: the text around
+/// it up to a comma, semicolon, colon or clause word. A parenthetical is its own clause,
+/// and is skipped over when the mention sits outside it.
+fn clause(masked: &str, start: usize, end: usize) -> (String, usize) {
+    let before = &masked[..start];
+    let inside = before.matches('(').count() > before.matches(')').count();
+    let mut text = masked.to_owned();
+    text.replace_range(start..end, &" ".repeat(end - start));
+    let (mut left, mut right) = (0, text.len());
+    if inside {
+        left = before.rfind('(').map_or(0, |index| index + 1);
+        right = text[end..]
+            .find(')')
+            .map_or(text.len(), |index| end + index);
+    } else {
+        // Blank parentheticals, keeping offsets.
+        let spans: Vec<(usize, usize)> = PARENTHETICAL
+            .find_iter(&text)
+            .map(|found| (found.start(), found.end()))
+            .collect();
+        for (from, to) in spans {
+            text.replace_range(from..to, &" ".repeat(to - from));
+        }
+    }
+    let bytes = text.as_bytes();
+    let boundary = |index: usize| match bytes[index] {
+        b',' | b';' => true,
+        // Not the colon of a clock time or ratio.
+        b':' => {
+            !(index > 0
+                && index + 1 < bytes.len()
+                && bytes[index - 1].is_ascii_digit()
+                && bytes[index + 1].is_ascii_digit())
+        }
+        _ => false,
+    };
+    if let Some(index) = (left..start).rev().find(|index| boundary(*index)) {
+        left = index + 1;
+    }
+    if let Some(index) = (end..right).find(|index| boundary(*index)) {
+        right = index;
+    }
+    if let Some(found) = CLAUSE_BREAK.find_iter(&text[left..start]).last() {
+        left += found.start() + 1;
+    }
+    if let Some(found) = CLAUSE_BREAK.find(&text[end..right]) {
+        right = end + found.start();
+    }
+    (text[left..right].to_owned(), start - left)
+}
 
 /// The value's own forms plus the reviewed wordings of exactly that value.
 fn text_forms(fact: &RecordFact, forms: &[String]) -> Vec<String> {
@@ -1238,6 +1343,9 @@ pub(super) fn check(
                 | RecordFactKind::UtcDate
                 | RecordFactKind::TimeOfDay
         ) || fact.clock;
+        // A fact whose order the contract fixes is described by its place in that order
+        // ("then", "next in line", "the backup"), which is not a dismissal.
+        let ordered = contract.order.iter().any(|ordered| ordered == name);
         for (position, (sentence, found)) in read.iter().zip(&located).enumerate() {
             let mut affirmed_here: Vec<(usize, usize)> = Vec::new();
             for (start, end) in &found[index] {
@@ -1258,13 +1366,32 @@ pub(super) fn check(
                 }
                 if matches!(status, Status::Affirmed | Status::Hedged) {
                     affirmed_here.push((*start, *end));
+                    let (around, offset) = clause(&sentence.masked, *start, *end);
+                    let (before, after) = around.split_at(offset);
+                    // A measured value is compared and qualified in passing, so only a
+                    // name can be set aside.
+                    if !measured
+                        && !ordered
+                        && (DEMOTED_BY.is_match(before) || DEMOTED_AS.is_match(after))
+                    {
+                        evidence.demoted = true;
+                    } else {
+                        let concluding = ANSWER_CUE.is_match(&around)
+                            || CONCLUSION_CUE.is_match(&around)
+                            || IDENTIFIES.is_match(before)
+                            || LABELLED.is_match(before);
+                        evidence.claims.push((
+                            Mention {
+                                sentence: position,
+                                start: *start,
+                            },
+                            Claim::Source { concluding },
+                        ));
+                    }
                 }
                 evidence.count(status, position, *start);
             }
             for alternative in *alternatives {
-                if fact.optional {
-                    continue;
-                }
                 let shared = items
                     .iter()
                     .filter(|(_, other_fact, _, _)| !other_fact.optional)
@@ -1290,32 +1417,57 @@ pub(super) fn check(
                     if !masked[start..end].chars().any(char::is_alphanumeric) {
                         continue;
                     }
-                    if !matches!(
+                    if matches!(
                         sentence.status(start, end),
                         Status::Denied | Status::Disputed
                     ) {
-                        evidence.alternative = true;
-                        // Named beside the source value, another record is context unless
-                        // the two are simply listed together as the answer.
-                        let listed = affirmed_here.iter().any(|(left, right)| {
+                        continue;
+                    }
+                    evidence.alternative = true;
+                    let mention = Mention {
+                        sentence: position,
+                        start,
+                    };
+                    // Joined to the source value by nothing but a conjunction, the other
+                    // record is offered as an answer too.
+                    let listed = !measured
+                        && affirmed_here.iter().any(|(left, right)| {
                             let between = if *right <= start {
-                                &sentence.text[*right..start]
+                                &masked[*right..start]
                             } else if end <= *left {
-                                &sentence.text[end..*left]
+                                &masked[end..*left]
                             } else {
                                 return false;
                             };
-                            LISTED_WITH.is_match(between)
+                            let between: String = PARENTHETICAL
+                                .replace_all(between, "")
+                                .chars()
+                                .filter(|character| !character.is_whitespace())
+                                .collect();
+                            LISTED_WITH.is_match(&between)
                         });
-                        if listed {
-                            evidence.listed = true;
-                        } else if affirmed_here.is_empty()
-                            && !SET_ASIDE.is_match(&sentence.masked)
-                            && !(measured && evidence.first_affirmed.is_some())
-                        {
-                            evidence.rivals.push(position);
-                        }
+                    if listed {
+                        evidence.claims.push((mention, Claim::Listed));
+                        continue;
                     }
+                    // Set aside in so many words, or described by a reviewed cue for the
+                    // opposite of what the task asks ("lint and unit-tests passed").
+                    let mut rest = masked.clone();
+                    rest.replace_range(start..end, &" ".repeat(end - start));
+                    if SET_ASIDE.is_match(&rest) || !sentence.contradictions.is_empty() {
+                        continue;
+                    }
+                    let (around, offset) = clause(&masked, start, end);
+                    let before = &around[..offset];
+                    let strong =
+                        ANSWER_CUE.is_match(&around) || IDENTIFIES_DIRECTLY.is_match(before);
+                    // A measured value near the answer is usually a comparison; it
+                    // competes only when it is claimed as the answer.
+                    let opening =
+                        !measured && (LABELLED.is_match(before) || OPENS_LINE.is_match(before));
+                    evidence
+                        .claims
+                        .push((mention, Claim::Other { strong, opening }));
                 }
             }
         }
@@ -1364,14 +1516,8 @@ pub(super) fn check(
             review.get_or_insert(format!(
                 "answer both asserts and disputes the source {name}"
             ));
-        } else if evidence.listed {
-            review.get_or_insert(format!(
-                "answer lists another authored record's value together with the source {name}"
-            ));
-        } else if evidence.contested(&read) {
-            review.get_or_insert(format!(
-                "answer presents another authored record's value as well as the source {name}"
-            ));
+        } else if let Some(how) = evidence.contested() {
+            review.get_or_insert(format!("answer states the source {name} {how}"));
         }
         if let Some(first) = evidence.first_affirmed {
             stated.insert(*name, first);

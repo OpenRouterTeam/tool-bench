@@ -1,0 +1,176 @@
+{
+ "ops/sentry/top-unresolved-checkout": [
+  {
+   "style": "in-suite regression",
+   "expect": "reject",
+   "answer": "CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s) and CHECKOUT-API-3C are the two noisiest."
+  },
+  {
+   "style": "lists candidates",
+   "expect": "reject",
+   "answer": "The candidates are CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s), CHECKOUT-API-3C and CHECKOUT-API-2Z."
+  },
+  {
+   "style": "lists candidates",
+   "expect": "reject",
+   "answer": "CHECKOUT-API-3F or CHECKOUT-API-2R: OperationalError: could not obtain connection from pool within 5.0s"
+  },
+  {
+   "style": "closes on another record",
+   "expect": "reject",
+   "answer": "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s. The noisiest is CHECKOUT-API-2R."
+  },
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "CHECKOUT-API-2R: DisallowedHost: Invalid HTTP_HOST header: '10.4.2.17:8000'. CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s) is in the list too."
+  }
+ ],
+ "search/firecrawl/northwind-team-pricing": [
+  {
+   "style": "in-suite regression",
+   "expect": "reject",
+   "answer": "Team: $69/month billed annually, 10 seats. (The live pricing page shows $79/month and 12 seats.)"
+  },
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "Team: $69/month billed annually, 10 seats. The live pricing page shows $79/month and 12 seats."
+  },
+  {
+   "style": "number words",
+   "expect": "reject",
+   "answer": "one hundred seventy-nine dollars per month with twelve seats."
+  },
+  {
+   "style": "number words",
+   "expect": "reject",
+   "answer": "$79/month with one hundred twelve seats."
+  },
+  {
+   "style": "wrong entity",
+   "expect": "reject",
+   "answer": "The Enterprise plan is $79/month with 12 seats."
+  }
+ ],
+ "search/tavily/webhook-signature-sunset": [
+  {
+   "style": "in-suite regression",
+   "expect": "reject",
+   "answer": "December 1, 2026; verify Ferrowave-Signature-V2. (The signature guide mentions January 15, 2027.)"
+  },
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "December 1, 2026; verify Ferrowave-Signature-V2. The signature guide mentions January 15, 2027."
+  },
+  {
+   "style": "lists candidates",
+   "expect": "reject",
+   "answer": "January 15, 2027 or December 1, 2026; verify Ferrowave-Signature-V2."
+  }
+ ],
+ "search/exa/sdk-timeout-default": [
+  {
+   "style": "number words",
+   "expect": "reject",
+   "answer": "timeout_seconds, default one hundred thirty seconds"
+  },
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "request_timeout, default 60 seconds. The v4 page mentions timeout_seconds and 30 seconds."
+  }
+ ],
+ "search/brave/hosting-sla-lookup": [
+  {
+   "style": "number words",
+   "expect": "reject",
+   "answer": "Uptime is 99.95%; the credit is one hundred ten percent."
+  },
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "The SLA commits to 99.9% with a 5% credit. The page in force says 99.95% and 10%."
+  }
+ ],
+ "search/brave/competitor-funding-news": [
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "Norvik raised $12M in a Series A led by Fjord Capital. This week's news mentions a $45M Series B led by Halcyon Ventures."
+  }
+ ],
+ "search/tavily/vendor-rate-limit": [
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "600 requests per minute (https://docs.quillstream.io/v2/api/rate-limits). The v3 page https://docs.quillstream.io/api/rate-limits lists 1,200 requests per minute."
+  }
+ ],
+ "search/brave/keynote-recording": [
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "Marta Lindqvist, 12:05, https://www.youtube.com/watch?v=r8Kq2PgN7aE. There is a 47:12 upload at https://www.youtube.com/watch?v=Zt4mQeL1x9c."
+  }
+ ],
+ "ops/grafana/top-5xx-checkout-pod": [
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "checkout-5f6d7c8b9-zq4wd (4.5/s). checkout-7b9d6c5f4-xk2lp is at 3.5/s."
+  },
+  {
+   "style": "lists candidates",
+   "expect": "reject",
+   "answer": "checkout-7b9d6c5f4-xk2lp, checkout-7b9d6c5f4-m8vqt and checkout-5f6d7c8b9-zq4wd are all returning 5xx responses."
+  },
+  {
+   "style": "dismisses the right record",
+   "expect": "reject",
+   "answer": "checkout-7b9d6c5f4-xk2lp is fine. Cordon checkout-7b9d6c5f4-m8vqt."
+  },
+  {
+   "style": "dismisses the right record",
+   "expect": "reject",
+   "answer": "checkout-7b9d6c5f4-xk2lp is healthy; the pod to cordon is checkout-5f6d7c8b9-zq4wd."
+  }
+ ],
+ "ops/kubernetes/crashloop-root-cause": [
+  {
+   "style": "lists candidates",
+   "expect": "reject",
+   "answer": "ledger-worker-zx4mrndj8b-gdg8j and ledger-worker-c64m9bbw8-v45ss are both crash-looping: password authentication failed for user \"ledger\"."
+  }
+ ],
+ "ops/datadog/checkout-p95-peak": [
+  {
+   "style": "wrong entity",
+   "expect": "reject",
+   "answer": "Staging peaked at 1843 ms at 14:35 UTC."
+  },
+  {
+   "style": "closes on another record",
+   "expect": "reject",
+   "answer": "1843 ms at 14:35 UTC. The real peak was 2210 ms at 14:15."
+  },
+  {
+   "style": "opens on another record",
+   "expect": "reject",
+   "answer": "2210 ms at 14:15 UTC. Production shows 1843 ms at 14:35."
+  }
+ ],
+ "business/stripe/customer-mrr": [
+  {
+   "style": "lists candidates",
+   "expect": "reject",
+   "answer": "The MRR is $439.00 or $339.00."
+  },
+  {
+   "style": "wrong entity",
+   "expect": "reject",
+   "answer": "Harbor & Pine Roasters has an MRR of $439.00."
+  }
+ ]
+}

@@ -1,0 +1,280 @@
+{
+ "code/argocd/find-degraded-app": [
+  {
+   "answer": "checkout-web (2.14.0-rc3, ImagePullBackOff) is a red herring. The Degraded production app is checkout-web-staging.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "checkout-web-staging is the Degraded production app: tag 2.14.0-rc3, ImagePullBackOff. checkout-web is healthy.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "Two apps are Degraded: checkout-web (tag 2.14.0-rc3, ImagePullBackOff) and checkout-web-staging (tag 2.14.0-rc2, CrashLoopBackOff).",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "The Degraded production app is checkout-web-staging. The other app, checkout-web, runs tag 2.14.0-rc3 and shows ImagePullBackOff.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  },
+  {
+   "answer": "The Degraded production app is checkout-web-staging. checkout-web runs tag 2.14.0-rc3 and shows ImagePullBackOff.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "code/gitlab/diagnose-failed-pipeline": [
+  {
+   "answer": "Pipeline 5520 failed in integration-tests on column refund_reason. The most recent failed pipeline on main is 5511.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "Pipeline 5511 is the most recent failed pipeline on main. For comparison, 5520 failed in integration-tests on column refund_reason.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "Failed pipelines on main: 5511 (unit-tests, Redis timeout) and 5520 (integration-tests, column refund_reason).",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "Failed pipelines: 5511, 5520, 5523. Failed jobs: unit-tests, integration-tests. Column: refund_reason.",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "The most recent failed pipeline on main is 5511 (unit-tests). Pipeline 5520 failed in integration-tests on column refund_reason.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "collab/linear/urgent-bug-owner": [
+  {
+   "answer": "PAY-118 (Priya Natarajan, In Progress) is already being handled, so the most urgent open bug is PAY-119, owned by Lena Fischer, in Todo.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "Open bugs in Payments v2: PAY-118 (Priya Natarajan, In Progress), PAY-119 (Lena Fischer, Todo), PAY-122 (unassigned, Backlog).",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "PAY-118 is assigned to Priya Natarajan and is In Progress. The most urgent open bug is PAY-119.",
+   "expect": "reject",
+   "style": "closes-on-rival"
+  },
+  {
+   "answer": "The most urgent open bug is PAY-119 (Lena Fischer, Todo). PAY-118 is assigned to Priya Natarajan and is In Progress.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "collab/notion/launch-date-owner": [
+  {
+   "answer": "The tracker shows 2026-11-12 with owner Lena Fischer, but that row is outdated. The launch is on 2026-11-05 and Priya Natarajan owns it.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "Payments v2 partner beta launches on 2026-11-12 and Lena Fischer owns it. Payments v2 GA launches on 2026-10-20.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "There are two Payments v2 GA rows: one says 2026-11-12 (Lena Fischer), the other says 2026-11-05 (Priya Natarajan).",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "Launch date: 2026-11-05. Owner: Priya Natarajan. (An older row said 2026-11-12, Lena Fischer.)",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "collab/slack/observability-decision": [
+  {
+   "answer": "Grafana Cloud was discussed with a start of 2026-11-15, but the team ended up signing Honeycomb.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "Candidates were Datadog, Honeycomb and Grafana Cloud. Dates mentioned: 2026-11-15 and 2027-01-31.",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "The vendor is Honeycomb. Grafana Cloud would have started on 2026-11-15.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "collab/google/northwind-invoice-lookup": [
+  {
+   "answer": "PO-48213 for $12,480.00 due November 20, 2026 is the draft. The actual invoice is PO-48899 for $3,200.00, due November 25, 2026.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "Invoices found: PO-48213 ($12,480.00, due November 20, 2026), PO-47790 ($9,150.00, due October 20, 2026) and PO-48899 ($3,200.00, due November 25, 2026).",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "PO number: PO-47790. Amount due: $9,150.00. Due date: October 20, 2026. The October email mentions PO-48213 for $12,480.00, due November 20, 2026.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "collab/jira/blocked-sprint-item": [
+  {
+   "answer": "PAY-119 is blocked by PAY-117 (Sam Ortiz), but that is in the old sprint. In the active sprint the blocked story is PAY-122, blocked by PAY-121, assigned to Alex Kim.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "PAY-119 is blocked by PAY-117. PAY-119 is assigned to Sam Ortiz and PAY-117 to Alex Kim.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "The blocked story is PAY-117 and its blocker is PAY-119, which Sam Ortiz owns.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "Blocked stories: PAY-119 (blocked by PAY-117, Sam Ortiz) and PAY-122 (blocked by PAY-121, Alex Kim).",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "The blocked story is PAY-122, blocked by PAY-121 (Alex Kim). Separately, PAY-119 is blocked by PAY-117, assigned to Sam Ortiz.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "collab/multi/jira-sentry-crash-impact": [
+  {
+   "answer": "STOREFRONT-WEB-8D (2,172 events, 1,318 users, first seen in 5.3.0) is a different crash. The issue linked from the bug is STOREFRONT-WEB-7Q: 2,600 events, 1,904 users, first seen in 5.2.0.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "STOREFRONT-WEB-7Q has 2,172 events and 1,318 users and first appeared in 5.3.0. STOREFRONT-WEB-8D is only a look-alike.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "Matching Sentry issues: STOREFRONT-WEB-8D (2,172 events, 1,318 users, first seen in 5.3.0), STOREFRONT-WEB-7Q (2,600 events, 1,904 users, first seen in 5.2.0) and ADMIN-DASHBOARD-2M (96 events, 14 users, first seen in 2.8.0).",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "Sentry issue: STOREFRONT-WEB-7Q. Events: 2,600. Affected users: 1,904. First release: storefront@5.2.0. A similar issue, STOREFRONT-WEB-8D, has 2,172 events and 1,318 users and first appeared in 5.3.0.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "code/terraform/payments-db-upgrade-failure": [
+  {
+   "answer": "run-Gy4tBHGggKx49nbH (aws_db_instance.payments, InvalidParameterCombination, Plan: 1 to add, 1 to change, 0 to destroy) is an older run. The latest failed run is run-nAAGvVVuIe2rfmNM.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "Errored runs: run-nAAGvVVuIe2rfmNM and run-Gy4tBHGggKx49nbH. aws_db_instance.payments, InvalidParameterCombination. Plan: 1 to add, 1 to change, 0 to destroy.",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "The failed run is run-nAAGvVVuIe2rfmNM. A later run, run-Gy4tBHGggKx49nbH, failed applying aws_db_instance.payments with InvalidParameterCombination. Plan: 1 to add, 1 to change, 0 to destroy.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "code/multi/argocd-degraded-gitlab-commit": [
+  {
+   "answer": "checkout-web (2.14.0-rc3). Pipeline 7712's image-publish job failed with permission_denied, but the pipeline that promoted the release was 7716, where lint failed.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "checkout-web (2.14.0-rc3). Failed pipelines: 7712 (image-publish, permission_denied) and 7716 (lint).",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "checkout-web (2.14.0-rc3). Pipeline 7716 promoted the release; its lint job failed. Pipeline 7712's image-publish job failed with permission_denied.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "code/multi/vercel-deploy-github-pr-lookup": [
+  {
+   "answer": "Commit c3a9f12 (PR #482, written by mateoalv, approved by ines-d, merged by riley-p) is no longer live. Production serves 7d41c9e from PR #487.",
+   "expect": "reject",
+   "style": "dismiss"
+  },
+  {
+   "answer": "Commit c3a9f12, PR #482. The author is ines-d, the approver is riley-p and the merger is mateoalv.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "Recent production commits: c3a9f12 (PR #482, author mateoalv, approver ines-d, merger riley-p) and 7d41c9e (PR #487, author junpark).",
+   "expect": "reject",
+   "style": "list"
+  }
+ ],
+ "code/github/ci-failure-root-cause": [
+  {
+   "answer": "The lint job failed. In unit-tests, TestRetryBackoffCapsAtMaxDelay printed expected delay 30s, got 32s.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "The integration-tests job failed. unit-tests ran TestRetryBackoffCapsAtMaxDelay, which logged expected delay 30s, got 32s.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "search/elasticsearch/latency-by-region": [
+  {
+   "answer": "us-east-1 is the slowest region. For reference, eu-west-1 averages 412.5 ms.",
+   "expect": "reject",
+   "style": "wrong-entity"
+  },
+  {
+   "answer": "Averages: eu-west-1 412.5 ms, ap-southeast-2 305 ms, us-east-1 210 ms.",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "Slowest region: us-east-1. Average duration: 210 ms. (eu-west-1: 412.5 ms)",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  },
+  {
+   "answer": "The slowest region is ap-southeast-2. eu-west-1 averages 412.5 ms.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ],
+ "code/vercel/storefront-production-status": [
+  {
+   "answer": "Storefront production deployments: 7d41c9e (\"Upgrade to Next.js 15.4\") and c3a9f12 (\"Fix tax rounding for EU orders\"). Preview failures: FUNCTION_SIZE_EXCEEDED and BUILD_UTILS_SPAWN_1.",
+   "expect": "reject",
+   "style": "list"
+  },
+  {
+   "answer": "Production serves 7d41c9e (\"Upgrade to Next.js 15.4\"). Before that it served c3a9f12 (\"Fix tax rounding for EU orders\"). The latest preview failed with FUNCTION_SIZE_EXCEEDED.",
+   "expect": "reject",
+   "style": "opens-on-rival"
+  }
+ ]
+}
