@@ -54,5 +54,5 @@ commit `c56f4400f22c7e9fe9c5c12b85576b74369fb6b8`,
 `server/application/application.proto` (`UpdateSpec`, body binding `spec`) and
 `server/application/application.go` (`UpdateSpec` loads the current Application
 before replacing its spec). See
-`docs/research/2026-11-07-argocd-operation-contract.md` for pins, upstream references
+`docs/history/research/2026-11-07-argocd-operation-contract.md` for pins, upstream references
 and unresolved vendor/controller guarantees.
