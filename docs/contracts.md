@@ -1,7 +1,7 @@
 # Evaluation contracts
 
-The current source evaluator revision is **44**. Frozen runtime checkpoints are
-recorded separately in `implementation-progress.md`. Every numeric result records both
+The current source evaluator revision is **46**. Frozen runtime checkpoints are
+recorded separately in `history/implementation-progress.md`. Every numeric result records both
 `evaluator_version` and `contract_version`; retain those fields when exporting results.
 Revision 44 integrates the remaining version-2 source contracts, projected
 information delivery, alternative read shapes, exact timestamp conversion,
@@ -9,7 +9,7 @@ effect-bound actions, complete-event causal checks and typed source-bound resear
 answers. Source declarations,
 passing local tests and current candidate images are not runtime or release
 admission. Remaining answer and qualification limits are tracked in
-`overhaul-checklist.md`.
+`history/overhaul-checklist.md`.
 
 ## Source-Bound Research Answers
 
@@ -87,8 +87,8 @@ verified modeled Meet resources replace fixed cell spellings, predicted event
 IDs and conferencing labels. Organizer-side completion does not imply guest
 email delivery; notification requests are separate observations. Revision 39's
 Drive source slice and revision 38's admitted scripted-client condition remain
-distinct. See the [revision-40 source record](checkpoints/evaluator-40-google.md).
-The subsequent [40B result condition](checkpoints/google-40b-results.md) retains
+distinct. See the [revision-40 source record](history/checkpoints/evaluator-40-google.md).
+The subsequent [40B result condition](history/checkpoints/google-40b-results.md) retains
 business evaluator 40 while adding an explicitly selected-replica text adapter.
 Its corrected bounded scripted MCP campaign is now qualified separately; this
 does not admit hosted semantics, the upstream Python/SDK or native-model execution.
@@ -102,7 +102,7 @@ and public JSON plans are distinct representations of the bounded model.
 Source migration is not runtime admission or proof of provider/hosted execution.
 Revisions 28–33 migrate MongoDB, Supabase, Sentry, Vercel, Argo CD and Okta.
 Their separate source, transport, scripted-runtime and qualification limits remain
-recorded in `operation-support.md` and `implementation-progress.md`.
+recorded in `operation-support.md` and `history/implementation-progress.md`.
 Revision 27 migrates the three Kubernetes writes. Exact resource quantities and
 container identities replace spelling/index assumptions; desired replicas replace
 a fixed request shape. Request-cause-scoped permissions admit reviewed automatic
@@ -537,7 +537,7 @@ Google's synchronization warnings and guest-side visibility remain unqualified.
 `calendar_notification_requests` records the selected mode and organizer's
 attendee snapshot, not recipient enrollment, successful sending, receipt or
 acceptance. `externalOnly` must not be expanded into recipients by email domain.
-The [notification research](research/2026-11-07-google-invitation-notification-contract.md)
+The [notification research](history/research/2026-11-07-google-invitation-notification-contract.md)
 records the documented distinction and remaining uncertainty.
 
 The local Calendar model uses IANA zones and distinguishes submitted native
@@ -990,7 +990,7 @@ another check remains unresolved.
 `bench-report --require-attested` refuses a final paired comparison containing
 unresolved outcomes; it does not remove those attempts from the denominator or turn
 them into measured model failures. Empty/disjoint runs are invalid comparisons as well.
-The default report for stock-Harbor runs (see the [runbook](runbook.md#4-read-results))
+The default report for stock-Harbor runs (see the [runbook](production.md#comparing-arms))
 still reports: it counts unresolved attempts beside the pass rate, never inside it. A trusted,
 prespecified adjudication workflow and final native-answer semantics remain
 separate release work; do not edit reward files or rerun selectively to make

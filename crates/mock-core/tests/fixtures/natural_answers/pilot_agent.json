@@ -1,0 +1,37 @@
+{
+  "cloud/mongodb/top-category-revenue": [
+    {
+      "answer": "# Top product category by revenue — February 2026\n\n**Winning category: outdoor**\n**Total February revenue: $1,457.50 USD**\n\n## How it was calculated\n\n- Source: production MongoDB, database `shop`, collection `orders`.\n- Orders included: `status` = `delivered`, placed (`createdAt`) from 2026-02-01 00:00 UTC up to, but not including, 2026-03-01 00:00 UTC.\n- Revenue per order line = `items.price` × `items.qty`, summed by `items.category`.\n\n## Result by category\n\n| Rank | Category    | Revenue (USD) | Delivered orders |\n|------|-------------|---------------|------------------|\n| 1    | outdoor     | 1,457.50      | 3 (10459, 10482, 10499) |\n| 2    | electronics | 1,309.00      | 3 (10433, 10466, 10493) |\n| 3    | kitchen     | 798.00        | 3 (10428, 10477, 10504) |\n| 4    | apparel     | 436.00        | 2 (10441, 10511) |\n\nOutdoor breakdown: order 10459 = $435.00, order 10482 = $214.50, order 10499 = $808.00.\n\n## What was left out\n\nFebruary orders that were not delivered are excluded: 10452 (cancelled, electronics, $899), 10470 (refunded, outdoor, $119) and 10488 (shipped but not yet delivered, outdoor, $429). If the cancelled TV order had been counted, electronics would have come out on top, so the delivered-only rule decides the result.\n\n## Note on the date basis\n\nI treated \"February\" as the month the order was placed. Using the delivery date instead gives the same winner and the same outdoor total ($1,457.50); the only difference is apparel, which drops to $237.00 because order 10511 was placed Feb 27 and delivered Mar 2.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "code/multi/vercel-deploy-github-pr-lookup": [
+    {
+      "answer": "# Code change behind the EU tax totals on acme-shop.com\n\n**What production is serving now**\n\n- Vercel project `storefront` (team Acme Shop), production deployment `dpl_8o704GjcwumkLAaxPwjoxb4V6QDF`, aliased to `acme-shop.com`.\n- **Commit SHA:** `c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9` on `main` — \"Fix tax rounding for EU orders (#482)\".\n\n**The pull request behind that commit**\n\n- **PR number:** #482, \"Fix tax rounding for EU orders\" (`acme-shop/storefront`)\n- **Written by:** `mateoalv` (Mateo Alvarez)\n- **Approved by:** `ines-d` (approved 2026-10-24 09:20 UTC: \"Checked against the finance spreadsheet, numbers match. Approving.\")\n- **Merged by:** `riley-p` (merged 2026-10-24 09:38 UTC)\n\n**What changed:** one file, `lib/tax.ts` (+2/−1). EU VAT is now rounded half-even per line item and then summed, which fixes a 1-cent drift on multi-item EU baskets. The PR supersedes #478.\n\n**Notes**\n\n- `junpark` also reviewed #482.\n- A newer production deployment for \"Upgrade to Next.js 15.4 (#487)\" (commit `7d41c9e`) failed to build (state ERROR), so it is not live; production is still on the #482 commit above.\n- Nothing was redeployed or changed in Vercel or GitHub.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "collab/google/northwind-invoice-lookup": [
+    {
+      "answer": "# Northwind Traders — October services invoice (INV-20931)\n\n- **PO number referenced:** PO-48213\n- **Amount due:** $12,480.00\n- **Due date:** November 20, 2026\n\nSource: the invoice email \"Invoice INV-20931 for October services\" from Northwind Traders Billing <billing@northwind.example>, received Tue 27 Oct 2026.\n\nNotes:\n- The invoice states that $12,480.00 replaces the draft figure of $11,900.00 mentioned on the call, so $12,480.00 is the amount to pay.\n- The PO matches the one we sent Northwind on 20 Oct (PO-48213).\n- The attached PDF (INV-20931.pdf) could not be opened through the mail tools — the download returned no content — so these figures are taken from the invoice details stated in the email itself.\n\nNothing was sent, drafted or changed.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/brave/competitor-funding-news": [
+    {
+      "answer": "# Norvik Analytics — funding round announced this week\n\n- **Amount raised:** $45 million\n- **Round:** Series B\n- **Lead investor:** Halcyon Ventures (existing investor Fjord Capital also participated)\n\nSource: [TechBeat, 27 Oct 2026 — \"Norvik Analytics raises $45M Series B led by Halcyon Ventures\"](https://www.techbeat.io/2026/10/27/norvik-analytics-series-b).\n\nNotes, so the figures are not confused with similar results:\n\n- A $30M raise led by Brightline Partners reported on 28 Oct is for **Norvik Labs**, a Gothenburg warehouse-robotics company unrelated to Norvik Analytics.\n- The $12M Series A led by Fjord Capital is Norvik Analytics' previous round, from June 2025. DealBase's profile still lists that Series A as the latest round and has not been updated for the Series B.\n- I found one news source for the Series B (TechBeat); no second outlet or company press release turned up in search.\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ],
+  "search/brave/keynote-recording": [
+    {
+      "answer": "# PGConf Nordic 2026 opening keynote: full recording\n\n- **Speaker:** Marta Lindqvist\n- **Duration:** 47:12 (47 minutes 12 seconds)\n- **URL:** https://www.youtube.com/watch?v=Zt4mQeL1x9c\n\nVideo title: \"Keynote: Scaling Postgres to 1M writes/s - Marta Lindqvist | PGConf Nordic 2026\". It is listed as the full recording of the opening keynote given in Copenhagen on October 8, 2026.\n\nVideos I ruled out:\n\n- https://www.youtube.com/watch?v=r8Kq2PgN7aE is a highlights re-cut by DB Clips (only 12:05 long).\n- https://www.youtube.com/watch?v=Hq7wB3nVt2s is an early version from the Oslo PostgreSQL Meetup, April 2025 (only 28:40 long).\n- https://vimeo.com/987654321 is a different talk by Tom Ekberg at PGDay Paris 2026.\n\nCaveat: the search results do not show the uploading channel's name, so I identified the official recording from its title and description (the conference site says recordings are published on the PGConf Nordic YouTube channel, and the highlights video points to the full talk there).\n",
+      "expect": "pass",
+      "style": "pilot_agent"
+    }
+  ]
+}

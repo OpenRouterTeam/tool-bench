@@ -383,7 +383,7 @@ static TRAILING_NEGATION: LazyLock<Regex> = LazyLock::new(|| {
 static LATER_DENIAL: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
         r"^[^,;:()]{0,60}?\b(?:is|was|are|were)(?:\s+not|n't)\s+(?:the|a|an|it|correct|right|true|accurate|our|that|what|who|where|when|one|actually|really|on call)\b",
-        r"|(?:^|[,;:]\s*|\b(?:but|and|however|yet),?\s+)(?:that|this)\s+(?:is|was)(?:\s+not|n't)\b",
+        r"|(?:^|[,;:]\s*|\b(?:but|and|however|yet),?\s+)(?:that|this)\s+(?:is|was)(?:\s+not|n't)\s+(?:right|correct|true|accurate|the case|so|it|the answer|the one|the right|the correct|what|who|where|when|why|how|actually|really)\b",
         r"|\b(?:it|which|they|these|those)\s+(?:is|was|are|were)(?:\s+not|n't)\s+(?:the|a|an|correct|right|true|accurate|what|who|where|when|why|how|one|actually|really|in force|valid|current)\b",
     ))
     .expect("later denial pattern")
@@ -429,7 +429,11 @@ fn negator(word: &str) -> bool {
 /// `verb + preposition`, as in "not owned by") denies it.  A negator that
 /// reaches it across one other word ("did not pick X") disputes it: the
 /// reader cannot tell a denial from a negative predicate about X.
-fn leading(before: &str) -> Option<Status> {
+///
+/// The flag is set when the negator reaches the mention across a verb or other
+/// content word. It then negates a predicate about the mention ("has not been updated
+/// for X"), which need not deny that X is the answer.
+fn leading(before: &str) -> Option<(Status, bool)> {
     let before = before.trim_end_matches(['$', '€', '£', '¥', '#', '~', '[', '(', '<', ' ']);
     let tokens: Vec<&str> = before
         .split(' ')
@@ -455,11 +459,12 @@ fn leading(before: &str) -> Option<Status> {
         let paired = index > 0
             && PAIRED_NEGATORS.contains(&format!("{} {word}", bare(tokens[index - 1])).as_str());
         if negator(word) || paired {
-            return Some(if unknown {
+            let status = if unknown {
                 Status::Disputed
             } else {
                 Status::Denied
-            });
+            };
+            return Some((status, unknown || word_used));
         }
         let previous = std::mem::replace(&mut right, word);
         if PREPOSITIONS.contains(&word)
@@ -521,6 +526,13 @@ impl Sentence<'_> {
     }
 
     fn status(&self, start: usize, end: usize) -> Status {
+        self.reading(start, end).0
+    }
+
+    /// How the sentence treats a mention, and whether it negates it only in passing:
+    /// through a predicate about it ("has not been updated for X", "X did not delete
+    /// the key"), with nothing that denies or retracts the value itself.
+    fn reading(&self, start: usize, end: usize) -> (Status, bool) {
         let after = &self.masked[end..];
         // A mention inside parentheses is governed by what follows the parenthesis.
         let before = &self.masked[..start];
@@ -534,22 +546,23 @@ impl Sentence<'_> {
                 .is_some_and(|captures| !BENIGN_PREDICATE.is_match(&captures[1]))
         };
         let negated_after = negated(after) || outer.is_some_and(negated);
-        if let Some(status) = leading(&self.masked[..start]) {
-            status
-        } else if TRAILING_DENIAL.is_match(after)
+        let explicit = TRAILING_DENIAL.is_match(after)
             || outer.is_some_and(|text| TRAILING_DENIAL.is_match(text))
             || LATER_DENIAL.is_match(after)
             || outer.is_some_and(|text| LATER_DENIAL.is_match(text))
-            || negated_after
             || self.contradicted(start, end)
             || RETRACTION.is_match(&self.masked)
-            || self.taken_back
-        {
-            Status::Disputed
+            || self.taken_back;
+        if let Some((status, across)) = leading(&self.masked[..start]) {
+            (status, across && !explicit)
+        } else if explicit {
+            (Status::Disputed, false)
+        } else if negated_after {
+            (Status::Disputed, true)
         } else if HEDGE.is_match(&self.masked) {
-            Status::Hedged
+            (Status::Hedged, false)
         } else {
-            Status::Affirmed
+            (Status::Affirmed, false)
         }
     }
 }
@@ -773,10 +786,15 @@ enum Claim {
     /// The source value, stated and not set aside. `concluding` wording ("so the app is
     /// X", "Owner: X") settles an answer that was open or had gone to another record.
     Source { concluding: bool },
-    /// Another authored record's value, not set aside. `strong` wording presents it as
-    /// the answer wherever it appears; `opening` wording does so only while the reply
-    /// has not yet answered.
-    Other { strong: bool, opening: bool },
+    /// Another authored record's value, not set aside. `cued` wording presents it as
+    /// the answer wherever it appears; a bare identification (`identified`) does so
+    /// unless the reply has already concluded on the source value; `opening` wording
+    /// does so only while the reply has not yet answered.
+    Other {
+        cued: bool,
+        identified: bool,
+        opening: bool,
+    },
     /// The source value and another record's joined by nothing but a conjunction.
     Listed,
 }
@@ -784,7 +802,10 @@ enum Claim {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Answer {
     Open,
-    Source,
+    /// The source value; `concluded` once a concluding statement has given it.
+    Source {
+        concluded: bool,
+    },
     Other,
     Listed,
 }
@@ -802,6 +823,8 @@ struct Evidence {
     first_affirmed: Option<(usize, usize)>,
     /// The source value is stated only where the reply sets it aside.
     demoted: bool,
+    /// Mentions negated only in passing, weighed once the whole reply is read.
+    in_passing: Vec<Status>,
     claims: Vec<(Mention, Claim)>,
 }
 
@@ -825,16 +848,29 @@ impl Evidence {
     /// The answer starts open. The first record the reply commits to takes it. After
     /// that, another record takes it over only by strong wording ("the real peak was",
     /// "the most recent is"), and the source value takes it back only by concluding
-    /// wording. Records named in passing leave it where it is.
+    /// wording. Once the reply has concluded on the source value ("Owner: X"), a bare
+    /// identification of another record ("the only difference is Y") is context too.
+    /// Records named in passing leave it where it is.
     fn contested(&mut self) -> Option<&'static str> {
         self.claims.sort_by_key(|(mention, _)| *mention);
         let mut answer = Answer::Open;
         for (_, claim) in &self.claims {
             answer = match (*claim, answer) {
-                (Claim::Source { .. }, Answer::Open | Answer::Source) => Answer::Source,
-                (Claim::Source { concluding: true }, _) => Answer::Source,
+                (Claim::Source { concluding }, Answer::Open) => Answer::Source {
+                    concluded: concluding,
+                },
+                (Claim::Source { concluding }, Answer::Source { concluded }) => Answer::Source {
+                    concluded: concluded || concluding,
+                },
+                (Claim::Source { concluding: true }, _) => Answer::Source { concluded: true },
                 (Claim::Source { concluding: false }, held) => held,
-                (Claim::Other { strong: true, .. }, _) => Answer::Other,
+                (Claim::Other { cued: true, .. }, _) => Answer::Other,
+                (
+                    Claim::Other {
+                        identified: true, ..
+                    },
+                    held,
+                ) if held != (Answer::Source { concluded: true }) => Answer::Other,
                 (Claim::Other { opening: true, .. }, Answer::Open) => Answer::Other,
                 (Claim::Other { .. }, held) => held,
                 (Claim::Listed, Answer::Other) => Answer::Other,
@@ -842,7 +878,7 @@ impl Evidence {
             };
         }
         match answer {
-            Answer::Source => None,
+            Answer::Source { .. } => None,
             Answer::Open => Some("only where the reply sets it aside"),
             Answer::Other => Some("but presents another authored record's value as the answer"),
             Answer::Listed => Some("in a list with another authored record's value"),
@@ -867,6 +903,7 @@ static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
         r"|doesn't count|does not count|staging|non-?prod\w*|sandbox|test environment|draft|caveat|note|aside",
         r"|if|unless|otherwise|would|could have|in that case|hypothetical\w*|discussed|considered|proposed|leaning",
         r"|should|expect\w*|regularly|normally|usually|ordinarily|typically",
+        r"|stale|out[- ]of[- ]date|not (?:yet )?(?:been )?updated|still (?:lists?|shows?|says?|reports?)",
         r")\b"
     ))
     .expect("set-aside pattern")
@@ -1368,7 +1405,7 @@ pub(super) fn check(
         for (position, (sentence, found)) in read.iter().zip(&located).enumerate() {
             let mut affirmed_here: Vec<(usize, usize)> = Vec::new();
             for (start, end) in &found[index] {
-                let mut status = sentence.status(*start, *end);
+                let (mut status, in_passing) = sentence.reading(*start, *end);
                 if status == Status::Disputed
                     && measured
                     && !sentence.denies_after(*end)
@@ -1381,6 +1418,10 @@ pub(super) fn check(
                 // govern is not a denial of the name.
                 let in_path = sentence.text[..*start].ends_with('/');
                 if in_path && matches!(status, Status::Denied | Status::Disputed) {
+                    continue;
+                }
+                if in_passing && matches!(status, Status::Denied | Status::Disputed) {
+                    evidence.in_passing.push(status);
                     continue;
                 }
                 if matches!(status, Status::Affirmed | Status::Hedged) {
@@ -1492,15 +1533,31 @@ pub(super) fn check(
                     } else {
                         answer_cue(&around)
                     };
-                    let strong = cued || IDENTIFIES_DIRECTLY.is_match(before);
+                    let identified = IDENTIFIES_DIRECTLY.is_match(before);
                     // A measured value near the answer is usually a comparison; it
                     // competes only when it is claimed as the answer.
                     let opening =
                         !measured && (LABELLED.is_match(before) || OPENS_LINE.is_match(before));
-                    evidence
-                        .claims
-                        .push((mention, Claim::Other { strong, opening }));
+                    evidence.claims.push((
+                        mention,
+                        Claim::Other {
+                            cued,
+                            identified,
+                            opening,
+                        },
+                    ));
                 }
+            }
+        }
+        // A negative predicate about the value ("has not been updated for X") denies
+        // nothing once the reply has stated the value as its answer.
+        let concluded = evidence
+            .claims
+            .iter()
+            .any(|(_, claim)| matches!(claim, Claim::Source { concluding: true }));
+        for status in std::mem::take(&mut evidence.in_passing) {
+            if !concluded {
+                evidence.count(status, 0, 0);
             }
         }
         if evidence.affirmed == 0 {
@@ -1593,6 +1650,7 @@ mod tests {
 
     #[test]
     fn denial_requires_a_negator_that_governs_the_mention() {
+        let status = |before: &str| leading(before).map(|(status, _)| status);
         for before in [
             "it is not ",
             "the owner isn't actually ",
@@ -1607,14 +1665,14 @@ mod tests {
             "it is no longer ",
             "6 failed attempts, none from ",
         ] {
-            assert_eq!(leading(before), Some(Status::Denied), "{before}");
+            assert_eq!(status(before), Some(Status::Denied), "{before}");
         }
         for before in [
             "we did not pick ",
             "production is not serving ",
             "we didn't choose ",
         ] {
-            assert_eq!(leading(before), Some(Status::Disputed), "{before}");
+            assert_eq!(status(before), Some(Status::Disputed), "{before}");
         }
         for before in [
             "the rollout could not pull ",
@@ -1623,7 +1681,21 @@ mod tests {
             "no, it is ",
             "the image cannot be pulled, so the app is ",
         ] {
-            assert_eq!(leading(before), None, "{before}");
+            assert_eq!(status(before), None, "{before}");
+        }
+        // A negator that crosses a verb negates a predicate about the mention.
+        for (before, across) in [
+            ("it is not ", false),
+            ("that is not the issue ", false),
+            ("the account is not owned by ", true),
+            ("the page has not been updated for the ", true),
+            ("we did not pick ", true),
+        ] {
+            assert_eq!(
+                leading(before).map(|(_, across)| across),
+                Some(across),
+                "{before}"
+            );
         }
     }
 

@@ -3,7 +3,6 @@
     {
       "style": "names_another_record_after",
       "expect": "pass",
-      "known": "unresolved",
       "answer": "Order #1063 is unfulfilled ($176.00); order #1051 was fulfilled."
     }
   ],
@@ -51,7 +50,6 @@
     {
       "style": "names_another_record_after",
       "expect": "pass",
-      "known": "unresolved",
       "answer": "m.okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open. rchen's PR #57 was merged."
     }
   ]

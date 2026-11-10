@@ -190,6 +190,13 @@ RFC 3339 form.
    correctly identified and is not a dispute (`column X does not exist`, `PR X
    has not been merged`, `could not pull X`); anything else needs a `predicates`
    entry.
+
+   A statement negated only **in passing** does not count once the reply has
+   concluded on the value elsewhere (`Round: Series B`, then `the profile has
+   not been updated for the Series B`). In passing means the negator reaches
+   the value across a verb (`not owned by X`, `did not pick X`) or follows it
+   as a negated verb (`X did not delete …`), and nothing denies or retracts
+   the value itself. Without a concluding statement it counts as before.
 5. For each fact that is affirmed and nowhere denied or disputed, the reply's
    answer is read from its claims, in order (see
    [The reply's answer](#the-replys-answer)).
@@ -238,19 +245,33 @@ What makes a claim, with the cue lists in `statements.rs`:
   `Globex was ruled out`) is ignored.
 - **Not a claim: set aside.** An alternative is set aside by a word anywhere in
   its sentence (`SET_ASIDE`: `excluding`, `compared with`, `the runner-up`,
-  `previous`, `also`, `other`, `for context`, `staging`, `failed`, `if`), or by
+  `previous`, `also`, `other`, `for context`, `staging`, `failed`, `if`,
+  `should`, `normally`), or by
   a `contradictions` cue in the sentence. The source value is set aside by
   wording in its own clause, before it (`DEMOTED_BY`: `ruled out`, `rather
   than`, `ahead of`, `behind`, `over`) or after it (`DEMOTED_AS`: `is a red
   herring`, `is outdated`, `was considered`, `for comparison`). A reply that
   states the source value only where it is set aside has not answered.
-- **Concluding** (source): the clause holds an answer cue (`ANSWER_CUE`:
-  `actually`, `therefore`, `the answer`, `final`, `chosen`, `largest`, `latest`)
-  or a conclusion cue (`CONCLUSION_CUE`: `so`, `only`, `matches`, `remaining`,
+- **Answer cues** come in two kinds. `ASSERTED` wording is about its whole
+  clause (`actually`, `therefore`, `the answer`, `the real`, `in short`).
+  `SINGLED_OUT` wording picks one thing out of several (`the one`, `final`,
+  `chosen`, `largest`, `latest`) and presents the thing it describes, which
+  need not be every value in the clause.
+- **Concluding** (source): the clause holds an answer cue of either kind or a
+  conclusion cue (`CONCLUSION_CUE`: `so`, `only`, `matches`, `remaining`,
   `current`, `→`), or the value completes an identification (`IDENTIFIES`: `the
-  app is X`) or answers a label (`Owner: X`).
+  app is X`) or answers a label. A label is the lead-in before a colon or
+  equals sign with at most two words between it and the value (`Owner: X`,
+  `That leaves one: order X`); a lead-in that itself sets the value aside
+  (`Previous owner: X`) does not conclude.
 - **Strong** (other record): the clause holds an answer cue, or the value
-  directly completes an identification (`the vendor is Y`).
+  directly completes an identification (`the vendor is Y`). For a measured
+  fact only `ASSERTED` wording counts as a cue: a date or amount that happens
+  to equal another record's turns up beside a `SINGLED_OUT` word in passing
+  (`the PO matches the one we sent on 20 October`). An identification without
+  a cue does not take the answer from a source value the reply has already
+  concluded on (`Winning category: outdoor`, then `the only difference is
+  apparel`).
 - **Opening** (other record): the value answers a label or opens its line.
 
 A clause runs to the nearest comma, semicolon, colon or clause word (`but`,
@@ -294,19 +315,29 @@ today.
 
 | Corpus | Replies | Reader agrees | Known limit |
 |---|---|---|---|
-| `natural_answers/`, `natural_answers_heldout/`: correct replies | 500 | 493 pass | 7 unresolved |
+| `natural_answers/`, `natural_answers_heldout/`: correct replies | 500 | 499 pass | 1 unresolved |
 | `natural_answers/`, `natural_answers_heldout/`: wrong replies | 300 | 300 rejected | none |
-| `wrong_answers/`: wrong replies written to defeat the reader | 80 | 44 rejected | 36 pass |
+| `wrong_answers/`: wrong replies written to defeat the reader | 80 | 48 rejected | 32 pass |
 
 `from_unit_tests.json` in `natural_answers/` and in `wrong_answers/` holds
-replies that unit tests used to assert on and the reader misreads: 7 correct
-replies left unresolved and 29 wrong replies that pass. They were picked because
-the reader gets them wrong, so they are not part of the rates above.
+replies that unit tests used to assert on and the reader misread: 7 correct
+replies, 5 of them still left unresolved, and 29 wrong replies that pass. They
+were picked because the reader got them wrong, so they are not part of the
+rates above. `natural_answers/pilot_agent.json` holds the five replies that
+pilot agents wrote and an earlier reader left unresolved; all pass now.
 
-**Correct replies left unresolved** mention another authored record in wording
-the reader takes for a claim ("the regularly scheduled person this week is Riya
-Patel", "rchen's PR #57 was merged"), or state the answer in a clause that holds
-a dismissal word ("went over the function size limit").
+**Correct replies left unresolved** state a bare answer and then name another
+authored record in wording the reader takes for a claim ("the September invoice
+was PO-47790", "The 12:05 highlights cut is https://…"), or state the answer in
+a clause that holds a dismissal word ("went over the function size limit").
+
+The first 440 correct replies and their wrong counterparts were used to tune
+the cue lists, and the held-out half has since informed two more rules, so
+these rates describe the corpora, not unseen replies. On first contact the
+held-out half scored 195 of 210 correct replies passing and 123 of 126 wrong
+replies rejected. Fresh evidence comes from `deploy/pilot/`, where an agent
+attempts the task without seeing the contract: [production.md](production.md#what-has-been-checked)
+has the latest counts.
 
 **Wrong replies that pass** hold every right value, attached to the wrong thing
 or dismissed. The kinds, each a `style` in the fixtures:
@@ -335,8 +366,7 @@ or dismissed. The kinds, each a `style` in the fixtures:
   polarity, not arbitrary predicates.
 - A wrong detail the contract does not require: a fabricated or stale optional
   fact, other seconds after the right minute of a clock fact (`16:42:00` for
-  `16:42:57`), an extra item after a complete list, or number words the reader
-  reads in part ("one hundred ten percent" as ten percent).
+  `16:42:57`), or an extra item after a complete list.
 
 Limits of notation:
 
