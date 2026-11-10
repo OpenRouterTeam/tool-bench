@@ -1210,6 +1210,34 @@ JSON values, not original numeric token bytes. Fractional wire precision lost
 during ordinary JSON decoding is not recovered or certified by this predicate.
 The CloudWatch workflow's authored timestamps and wire values are whole seconds.
 
+A `series` read binds a returned time series to an authored one. It replaces
+`window` and `projection`:
+
+```toml
+[[expect.information]]
+prerequisite = { service = "datadog", method = "GET", path = "/api/v1/query" }
+response_field = "/series"
+source = { collection = "/services/datadog/metrics", matching = { metric = "billing.api.latency.p95", tags = ["env:prod", "service:billing-api"] } }
+series = { fields = { "/metric" = "/metric" }, scope = "/scope", source_tags = "/tags", points = "/pointlist", interval = "/interval", max_rollup_interval = 3600, source_points = "/points", timestamp_scale = 1000, start = "2026-10-29T09:00:00Z", end = "2026-10-29T09:10:00Z" }
+action = { service = "argocd", method = "PUT", path_regex = "^/api/v1/applications/billing-api(/spec)?$" }
+```
+
+A returned series is a witness when its `fields` equal the source's, its scope
+terms select that one source series, and every source point in `[start, end)`
+lies in a returned bucket whose value is within the range of the source points
+that bucket covers. `timestamp_scale` divides returned timestamps into the
+source's seconds; the returned interval is already in seconds. A count or sum,
+another or a mixed-scope series, and a response missing part of the window are
+not evidence. A scope the evaluator cannot parse is unresolved, not failed.
+
+By default each window point needs its own bucket: a response rolled up until
+several window points share one value is unresolved. `max_rollup_interval`
+(positive seconds) accepts such a rollup while the returned bucket interval is
+at most that wide; wider buckets keep the default. Set it to the coarsest
+interval at which the fact the action depends on is still visible, so that an
+ordinary longer query window is not penalized and a bucket that hides the fact
+is not accepted.
+
 An optional `action_effect` uses an effect predicate to restrict the action
 matcher to requests that actually commit that transition, including observed
 ancestors of a committing child operation. A GraphQL read, failed request or

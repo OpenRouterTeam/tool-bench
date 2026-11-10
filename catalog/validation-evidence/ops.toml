@@ -123,7 +123,8 @@ undone_prohibited_change = [
 id = "ops/multi/datadog-latency-argocd-rollback"
 valid_alternative = [
   "crates/world/tests/incident_deployment_contracts.rs::rollback_accepts_a_grouped_last_day_query_as_the_regression_evidence",
-  "crates/world/tests/incident_deployment_contracts.rs::rollback_accepts_a_manual_sync_of_the_pinned_tag_and_extra_observation",
+  "crates/world/tests/incident_deployment_contracts.rs::rollback_accepts_a_manual_sync_of_the_pinned_commit_and_extra_observation",
+  "crates/world/tests/incident_deployment_contracts.rs::rollback_accepts_rolled_up_latency_series_as_the_regression_evidence",
 ]
 
 [scenario.near_miss]

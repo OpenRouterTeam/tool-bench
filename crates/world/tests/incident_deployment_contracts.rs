@@ -18,8 +18,12 @@ const PRODUCTION: &str = "argocd/billing-api";
 const STAGING: &str = "argocd/billing-api-staging";
 const WORKER: &str = "argocd/billing-worker";
 const TARGET_COMMIT: &str = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2";
+const REGRESSED_COMMIT: &str = "9c2e41d7b85a03f6e1d4c8b7a925e06f3b17d4ac";
+const OLDER_COMMIT: &str = "2d61be0a94c3f7e85b1d06a2c4f9e83b7a51d6e0";
 const API_DEPLOYMENT: &str = "36d012a8-2d0c-5489-91a6-ab358783e78b";
 const FULL_DAY: (i64, i64) = (1_793_253_600, 1_793_282_400);
+const LAST_TWO_DAYS: (i64, i64) = (1_793_109_900, 1_793_282_700);
+const LAST_WEEK: (i64, i64) = (1_792_677_900, 1_793_282_700);
 const PROD_LATENCY: &str = "avg:billing.api.latency.p95{env:prod,service:billing-api}";
 
 fn rollback_trial(prepare: impl FnOnce(&mut Dataset)) -> ContractTrial {
@@ -161,7 +165,7 @@ async fn pin_application(trial: &ContractTrial, revision: &str, mutate: impl FnO
 }
 
 async fn roll_back(trial: &ContractTrial) {
-    pin_spec(trial, "billing-api", "v2.8.0", |_| {}).await;
+    pin_spec(trial, "billing-api", TARGET_COMMIT, |_| {}).await;
     observe(trial, "billing-api").await;
 }
 
@@ -183,10 +187,59 @@ fn deployed_image(trial: &ContractTrial) -> Value {
 }
 
 #[tokio::test]
-async fn rollback_reference_pins_the_tag_and_observes_the_modeled_v2_8_0_rollout() {
+async fn rollback_reference_pins_the_commit_read_from_history_and_observes_the_rollout() {
     let trial = rollback_trial(|_| {});
     investigate(&trial).await;
-    roll_back(&trial).await;
+    let read = trial
+        .call_from(
+            "argocd",
+            "GET",
+            "/api/v1/applications/billing-api",
+            Value::Null,
+        )
+        .await;
+    let calls = &trial.scenario.solution.calls;
+    let mut bindings = scenario::solution::Bindings::new();
+    calls
+        .iter()
+        .find(|call| !call.capture.is_empty())
+        .unwrap()
+        .capture_result(
+            &json!({"content":[{"type":"text","text":read.to_string()}]}),
+            &mut bindings,
+        )
+        .unwrap();
+    assert_eq!(bindings["previous_release"], TARGET_COMMIT);
+    let arguments = calls
+        .iter()
+        .find(|call| call.tool == "update_application_spec")
+        .unwrap()
+        .resolve_arguments(&bindings)
+        .unwrap();
+    native_arguments("argocd", "update_application_spec", arguments.clone());
+    trial
+        .call_from(
+            "argocd",
+            "PUT",
+            "/api/v1/applications/billing-api/spec?appNamespace=argocd",
+            arguments["spec"].clone(),
+        )
+        .await;
+    // The reference observes the rollout with exactly the reads that follow its update.
+    for _read in calls
+        .iter()
+        .skip_while(|call| call.tool != "update_application_spec")
+        .skip(1)
+    {
+        trial
+            .call_from(
+                "argocd",
+                "GET",
+                "/api/v1/applications/billing-api?appNamespace=argocd",
+                Value::Null,
+            )
+            .await;
+    }
     assert_outcome(&trial, Outcome::Pass);
     let deployed = application(&trial, PRODUCTION);
     assert_eq!(deployed["status"]["sync"]["revision"], TARGET_COMMIT);
@@ -215,11 +268,30 @@ async fn rollback_accepts_a_grouped_last_day_query_as_the_regression_evidence() 
 }
 
 #[tokio::test]
+async fn rollback_accepts_rolled_up_latency_series_as_the_regression_evidence() {
+    for (window, query, interval) in [
+        (LAST_TWO_DAYS, PROD_LATENCY, 600),
+        (LAST_WEEK, PROD_LATENCY, 3600),
+        (
+            FULL_DAY,
+            "max:billing.api.latency.p95{env:prod,service:billing-api}.rollup(max, 3600)",
+            3600,
+        ),
+    ] {
+        let trial = rollback_trial(|_| {});
+        let response = latency(&trial, window, query).await;
+        assert_eq!(response["series"][0]["interval"], interval, "{query}");
+        roll_back(&trial).await;
+        assert_outcome(&trial, Outcome::Pass);
+    }
+}
+
+#[tokio::test]
 async fn rollback_rejects_a_native_full_replacement_that_drops_application_metadata() {
     let trial = rollback_trial(|_| {});
     investigate(&trial).await;
     let original = application(&trial, PRODUCTION);
-    pin_application(&trial, "v2.8.0", |_| {}).await;
+    pin_application(&trial, TARGET_COMMIT, |_| {}).await;
     observe(&trial, "billing-api").await;
     let replaced = application(&trial, PRODUCTION);
     assert_eq!(replaced["status"]["sync"]["revision"], TARGET_COMMIT);
@@ -231,7 +303,7 @@ async fn rollback_rejects_a_native_full_replacement_that_drops_application_metad
 }
 
 #[tokio::test]
-async fn rollback_accepts_a_manual_sync_of_the_pinned_tag_and_extra_observation() {
+async fn rollback_accepts_a_manual_sync_of_the_pinned_commit_and_extra_observation() {
     let trial = rollback_trial(|_| {});
     latency(
         &trial,
@@ -244,14 +316,14 @@ async fn rollback_accepts_a_manual_sync_of_the_pinned_tag_and_extra_observation(
     native_arguments(
         "argocd",
         "sync_application",
-        json!({"applicationName":"billing-api","applicationNamespace":"argocd","revision":"v2.8.0"}),
+        json!({"applicationName":"billing-api","applicationNamespace":"argocd","revision":TARGET_COMMIT}),
     );
     trial
         .call_from(
             "argocd",
             "POST",
             "/api/v1/applications/billing-api/sync",
-            json!({"appNamespace":"argocd","revision":"v2.8.0"}),
+            json!({"appNamespace":"argocd","revision":TARGET_COMMIT}),
         )
         .await;
     observe(&trial, "billing-api").await;
@@ -263,7 +335,7 @@ async fn rollback_accepts_a_manual_sync_of_the_pinned_tag_and_extra_observation(
 async fn rollback_rejects_the_release_immediately_before_the_latest() {
     let trial = rollback_trial(|_| {});
     investigate(&trial).await;
-    pin_spec(&trial, "billing-api", "v2.9.0", |_| {}).await;
+    pin_spec(&trial, "billing-api", REGRESSED_COMMIT, |_| {}).await;
     observe(&trial, "billing-api").await;
     assert_eq!(
         deployed_image(&trial),
@@ -276,29 +348,32 @@ async fn rollback_rejects_the_release_immediately_before_the_latest() {
 async fn rollback_rejects_overshooting_to_an_older_release() {
     let trial = rollback_trial(|_| {});
     investigate(&trial).await;
-    pin_spec(&trial, "billing-api", "v2.7.0", |_| {}).await;
+    pin_spec(&trial, "billing-api", OLDER_COMMIT, |_| {}).await;
     observe(&trial, "billing-api").await;
     assert_outcome(&trial, Outcome::Fail);
 }
 
 #[tokio::test]
-async fn rollback_rejects_the_correct_commit_when_the_release_tag_was_requested() {
-    let trial = rollback_trial(|_| {});
-    investigate(&trial).await;
-    pin_spec(&trial, "billing-api", TARGET_COMMIT, |_| {}).await;
-    observe(&trial, "billing-api").await;
-    assert_eq!(
-        application(&trial, PRODUCTION)["status"]["sync"]["revision"],
-        TARGET_COMMIT
-    );
-    assert_outcome(&trial, Outcome::Fail);
+async fn rollback_rejects_a_tag_or_abbreviated_sha_when_the_full_commit_was_requested() {
+    for revision in ["v2.8.0", "f4befdc"] {
+        let trial = rollback_trial(|_| {});
+        investigate(&trial).await;
+        pin_spec(&trial, "billing-api", revision, |_| {}).await;
+        observe(&trial, "billing-api").await;
+        assert_eq!(
+            application(&trial, PRODUCTION)["status"]["sync"]["revision"],
+            TARGET_COMMIT,
+            "{revision}"
+        );
+        assert_outcome(&trial, Outcome::Fail);
+    }
 }
 
 #[tokio::test]
 async fn rollback_rejects_a_pin_whose_deployment_was_never_observed_to_complete() {
     let trial = rollback_trial(|_| {});
     investigate(&trial).await;
-    pin_spec(&trial, "billing-api", "v2.8.0", |_| {}).await;
+    pin_spec(&trial, "billing-api", TARGET_COMMIT, |_| {}).await;
     assert_outcome(&trial, Outcome::Fail);
 }
 
@@ -306,7 +381,7 @@ async fn rollback_rejects_a_pin_whose_deployment_was_never_observed_to_complete(
 async fn rollback_rejects_disabling_automated_sync() {
     let trial = rollback_trial(|_| {});
     investigate(&trial).await;
-    pin_spec(&trial, "billing-api", "v2.8.0", |spec| {
+    pin_spec(&trial, "billing-api", TARGET_COMMIT, |spec| {
         spec["syncPolicy"]
             .as_object_mut()
             .unwrap()
@@ -335,12 +410,12 @@ async fn rollback_rejects_a_restored_unrequested_production_retry_policy() {
     let trial = rollback_trial(|_| {});
     investigate(&trial).await;
     let original = application(&trial, PRODUCTION);
-    pin_spec(&trial, "billing-api", "v2.8.0", |spec| {
+    pin_spec(&trial, "billing-api", TARGET_COMMIT, |spec| {
         spec["syncPolicy"]["retry"]["limit"] = json!(1);
     })
     .await;
     observe(&trial, "billing-api").await;
-    pin_spec(&trial, "billing-api", "v2.8.0", |spec| {
+    pin_spec(&trial, "billing-api", TARGET_COMMIT, |spec| {
         spec["syncPolicy"]["retry"] = original["spec"]["syncPolicy"]["retry"].clone();
     })
     .await;
@@ -407,7 +482,7 @@ async fn rollback_without_reading_the_latency_series_has_no_causal_evidence() {
 #[tokio::test]
 async fn rollback_evidence_read_after_the_pin_does_not_justify_it() {
     let trial = rollback_trial(|_| {});
-    pin_spec(&trial, "billing-api", "v2.8.0", |_| {}).await;
+    pin_spec(&trial, "billing-api", TARGET_COMMIT, |_| {}).await;
     investigate(&trial).await;
     observe(&trial, "billing-api").await;
     assert_outcome(&trial, Outcome::Fail);
@@ -430,6 +505,14 @@ async fn rollback_wrong_source_series_are_not_regression_evidence() {
             FULL_DAY,
             "count:billing.api.latency.p95{env:prod,service:billing-api}.rollup(count, 600)",
         ),
+        (
+            FULL_DAY,
+            "avg:billing.api.latency.p95{env:prod,service:billing-api}.rollup(sum, 600)",
+        ),
+        (
+            LAST_TWO_DAYS,
+            "avg:billing.api.latency.p95{service:billing-api}",
+        ),
     ] {
         let trial = rollback_trial(|_| {});
         let response = latency(&trial, window, query).await;
@@ -450,11 +533,11 @@ async fn rollback_wrong_source_series_are_not_regression_evidence() {
 }
 
 #[tokio::test]
-async fn rollback_coarse_or_unparsed_series_need_adjudication_not_a_guessed_failure() {
+async fn rollback_daily_or_unparsed_series_need_adjudication_not_a_guessed_failure() {
     for (window, query) in [
         (
             FULL_DAY,
-            "avg:billing.api.latency.p95{env:prod,service:billing-api}.rollup(avg, 600)",
+            "avg:billing.api.latency.p95{env:prod,service:billing-api}.rollup(avg, 86400)",
         ),
         (
             FULL_DAY,
@@ -487,7 +570,7 @@ async fn rollback_missing_authored_release_content_remains_an_environment_fault(
     });
     investigate(&trial).await;
     let mut spec = application(&trial, PRODUCTION)["spec"].clone();
-    spec["source"]["targetRevision"] = json!("v2.8.0");
+    spec["source"]["targetRevision"] = json!(TARGET_COMMIT);
     let (status, response) = trial
         .request_from(
             "argocd",

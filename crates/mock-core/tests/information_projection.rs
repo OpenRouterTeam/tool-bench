@@ -348,6 +348,35 @@ async fn series_need_isolated_source_scope_and_resolving_buckets() {
     assert_eq!(assessment.outcome, Outcome::Pass, "{assessment:?}");
 }
 
+#[tokio::test]
+async fn a_declared_rollup_limit_accepts_merged_window_points_only_up_to_that_interval() {
+    let limited = |seconds: u64| {
+        let mut check = series_check();
+        check["series"]["max_rollup_interval"] = json!(seconds);
+        expect(check)
+    };
+    let accepting = limited(120);
+    for read in ["/series/coarse", "/series/fine"] {
+        let assessment = attempt(&accepting, &[read]).await;
+        assert_eq!(assessment.outcome, Outcome::Pass, "{read}: {assessment:?}");
+    }
+    for read in ["/series/mixed", "/series/count", "/series/partial"] {
+        let assessment = attempt(&accepting, &[read]).await;
+        assert_eq!(assessment.outcome, Outcome::Fail, "{read}: {assessment:?}");
+    }
+    for (expect, read) in [
+        (&accepting, "/series/glob"),
+        (&limited(119), "/series/coarse"),
+    ] {
+        let assessment = attempt(expect, &[read]).await;
+        assert_eq!(
+            assessment.outcome,
+            Outcome::Unresolved,
+            "{read}: {assessment:?}"
+        );
+    }
+}
+
 #[test]
 fn incoherent_projection_or_series_contracts_are_rejected_before_grading() {
     let mut invalid = Vec::new();
@@ -365,6 +394,7 @@ fn incoherent_projection_or_series_contracts_are_rejected_before_grading() {
     }
     for (field, value) in [
         ("timestamp_scale", json!(0)),
+        ("max_rollup_interval", json!(0)),
         ("end", json!("1970-01-01T00:00:00Z")),
         ("fields", json!({})),
         ("points", json!("")),

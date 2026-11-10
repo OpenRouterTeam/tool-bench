@@ -11,13 +11,16 @@ timeout_sec = 1200
 schema_version = 1
 primary = "dependency_depth"
 secondary = ["entity_ambiguity", "cross_system_identity"]
-dependency_depth = 4
-rationale = "Chain: prod p95 series jumps at 09:05 -> v2.9.0 deployed 09:02 -> prior revision f4befdc -> tag v2.8.0; contract requires the Datadog query before the Argo CD PUT; v2.9.1, billing-worker and staging app are decoys."
+dependency_depth = 3
+rationale = "Chain: prod p95 series jumps at 09:05 -> release 9c2e41d deployed 09:02 -> prior history entry f4befdc6, pinned by full commit; contract requires the Datadog query before the Argo CD PUT; 5ab7f03, billing-worker and staging app are decoys."
 
-# Prod billing-api p95 jumps from ~180 ms to ~900 ms at 09:05, right after v2.9.0 was deployed
-# at 09:02 (v2.9.1 at 12:10 did not help; billing-worker's 10:44 deploy is unrelated; the
-# staging spike 11:00-11:30 is a load test). Correct rollback: pin prod to v2.8.0 (f4befdc).
-# Traps: pinning v2.9.0 (the release before the latest), touching billing-api-staging.
+# Prod billing-api p95 jumps from ~180 ms to ~900 ms at 09:05, right after 9c2e41d (v2.9.0) was
+# deployed at 09:02 (5ab7f03, v2.9.1, at 12:10 did not help; billing-worker's 10:44 deploy is
+# unrelated; the staging spike 11:00-11:30 is a load test). Correct rollback: pin prod to the
+# full commit of the release before 9c2e41d, f4befdc6efa7504dc43d29f4de52c0f1529f52d2 (v2.8.0).
+# The commit is what get_application's status.history shows; no tool serves the release tags,
+# so the task asks for the commit and a tag or abbreviated SHA is not the requested pin.
+# Traps: pinning 9c2e41d (the release before the latest), touching billing-api-staging.
 
 [expect]
 version = 2
@@ -26,13 +29,13 @@ audit_history = true
 [[expect.records]]
 selector = { collection = "/services/argocd/applications", matching = { metadata = { name = "billing-api", namespace = "argocd" }, spec = { syncPolicy = { automated = {} } } } }
 equals = 1
-fields = { "/spec/source/targetRevision" = "v2.8.0", "/status/sync/status" = "Synced", "/status/health/status" = "Healthy" }
+fields = { "/spec/source/targetRevision" = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2", "/status/sync/status" = "Synced", "/status/health/status" = "Healthy" }
 optional_choices = { "/spec/syncPolicy/automated/enabled" = [true] }
 
 [[expect.records]]
 selector = { collection = "/services/argocd/sync_history", matching = { app = "argocd/billing-api" }, latest_by = "/sequence" }
 equals = 1
-fields = { "/history/revision" = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2", "/history/source/repoURL" = "https://github.com/lumen-retail/billing-api-deploy.git", "/history/source/path" = "overlays/production", "/history/source/targetRevision" = "v2.8.0" }
+fields = { "/history/revision" = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2", "/history/source/repoURL" = "https://github.com/lumen-retail/billing-api-deploy.git", "/history/source/path" = "overlays/production", "/history/source/targetRevision" = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" }
 
 [[expect.relations]]
 kind = "bijection"
@@ -68,11 +71,16 @@ fields = [
   { source_field = "/manifest/metadata/namespace", target_field = "/manifest/metadata/namespace", kind = "equals" },
   { source_field = "/cluster", target_field = "/cluster", kind = "equals" },
 ]
+
+# The prod p95 series over the onset window must have been returned before the PUT. A longer
+# query window makes Datadog roll the series up (600 s over two days, 3600 s over a week); the
+# 09:00 bucket still shows the jump, so buckets up to an hour wide count. A wider bucket hides
+# when the regression started and is left for adjudication.
 [[expect.information]]
 prerequisite = { service = "datadog", method = "GET", path = "/api/v1/query" }
 response_field = "/series"
 source = { collection = "/services/datadog/metrics", matching = { metric = "billing.api.latency.p95", tags = ["env:prod", "service:billing-api"] } }
-series = { fields = { "/metric" = "/metric" }, scope = "/scope", source_tags = "/tags", points = "/pointlist", interval = "/interval", source_points = "/points", timestamp_scale = 1000, start = "2026-10-29T09:00:00Z", end = "2026-10-29T09:10:00Z" }
+series = { fields = { "/metric" = "/metric" }, scope = "/scope", source_tags = "/tags", points = "/pointlist", interval = "/interval", max_rollup_interval = 3600, source_points = "/points", timestamp_scale = 1000, start = "2026-10-29T09:00:00Z", end = "2026-10-29T09:10:00Z" }
 action = { service = "argocd", method = "PUT", path_regex = "^/api/v1/applications/billing-api(/spec)?$" }
 
 [[expect.forbidden_calls]]
@@ -91,7 +99,7 @@ path_regex = "^/api/v1/applications/billing-(api-staging|worker)/(sync|rollback|
 
 [expect.preservation]
 allow = [
-  { pointer = "/services/argocd/applications/argocd~1billing-api/spec/source/targetRevision", matching = { spec = { source = { targetRevision = "v2.8.0" } } } },
+  { pointer = "/services/argocd/applications/argocd~1billing-api/spec/source/targetRevision", matching = { spec = { source = { targetRevision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/spec/syncPolicy/automated/enabled", matching = { spec = { syncPolicy = { automated = { enabled = true } } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/metadata/resourceVersion" },
   { pointer = "/services/argocd/applications/argocd~1billing-api/metadata/generation" },
@@ -100,11 +108,11 @@ allow = [
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/health" },
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/history", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$" } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/operation", matching = { operation = { sync = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } },
-  { pointer = "/services/argocd/applications/argocd~1billing-api/operation", kind = "remove_field", matching = { spec = { source = { targetRevision = "v2.8.0" } } } },
+  { pointer = "/services/argocd/applications/argocd~1billing-api/operation", kind = "remove_field", matching = { spec = { source = { targetRevision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/operation", kind = "remove_field", matching = { status = { operationState = { operation = { sync = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2", dryRun = true } } } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/operationState", matching = { status = { operationState = { syncResult = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/operationState", kind = "remove_field", matching = { operation = { sync = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } },
-  { pointer = "/services/argocd/sync_history/*", kind = "create", matching = { app = "argocd/billing-api", history = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2", source = { repoURL = "https://github.com/lumen-retail/billing-api-deploy.git", path = "overlays/production", targetRevision = "v2.8.0" } } }, count_scope = "per_commit" },
+  { pointer = "/services/argocd/sync_history/*", kind = "create", matching = { app = "argocd/billing-api", history = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2", source = { repoURL = "https://github.com/lumen-retail/billing-api-deploy.git", path = "overlays/production", targetRevision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } }, count_scope = "per_commit" },
   { pointer = "/services/argocd/resources/*/manifest/spec", initial_matching = { app = "argocd/billing-api", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$" } },
   { pointer = "/services/argocd/resources/*/manifest/metadata/labels/app.kubernetes.io~1version", initial_matching = { app = "argocd/billing-api", managed = true }, max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/annotations/deployment.kubernetes.io~1revision", initial_matching = { app = "argocd/billing-api", kind = "Deployment", name = "billing-api", namespace = "billing" } },
@@ -145,14 +153,18 @@ arguments = { from = 1793253600, to = 1793282400, query = "avg:billing.api.laten
 endpoint = "argocd"
 tool = "get_application"
 arguments = { applicationName = "billing-api" }
-capture = [{ name = "billing_spec", pointer = "/content/0/text", json_pointer = "/spec", constraint = { type = "object", required = ["source"] } }]
+# status.history[2] is the 09:02 release; history[1] is the release that ran before it.
+capture = [
+  { name = "billing_spec", pointer = "/content/0/text", json_pointer = "/spec", constraint = { type = "object", required = ["source"] } },
+  { name = "previous_release", pointer = "/content/0/text", json_pointer = "/status/history/1/revision", constraint = { type = "string", pattern = "^[0-9a-f]{40}$" } },
+]
 
 [[solution.call]]
 endpoint = "argocd"
 tool = "update_application_spec"
 template = true
 arguments = { applicationName = "billing-api", applicationNamespace = "argocd", spec = "${billing_spec}" }
-replacements = [{ pointer = "/spec/source/targetRevision", value = "v2.8.0" }]
+replacements = [{ pointer = "/spec/source/targetRevision", value = "${previous_release}" }]
 
 [[solution.call]]
 endpoint = "argocd"
