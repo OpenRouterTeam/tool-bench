@@ -17,6 +17,7 @@ use support::ContractTrial;
 const SCALE: &str = "ops/multi/checkout-saturation-scale-and-resolve";
 const MEMORY: &str = "ops/multi/oom-limit-and-sentry-resolve";
 const ROLLBACK: &str = "ops/multi/datadog-latency-argocd-rollback";
+const TRACE: &str = "ops/multi/sentry-release-commit-lookup";
 const INCIDENT: &str = "Q7CHKAP15PCT1D";
 const OTHER_INCIDENT: &str = "Q9CHKWEB5XX3VK";
 const ISSUE: &str = "REPORT-BUILDER-4T";
@@ -575,6 +576,100 @@ async fn memory_can_use_an_equivalent_representation_after_resolution() {
 }
 
 #[tokio::test]
+async fn memory_fix_rolls_out_and_does_not_authorize_deleting_pods_by_hand() {
+    let pods = |trial: &ContractTrial| -> Vec<(String, String, String)> {
+        trial.state()["pods"]
+            .as_object()
+            .unwrap()
+            .iter()
+            .filter(|(key, _)| key.starts_with("analytics/report-builder-"))
+            .map(|(_, pod)| {
+                let text = |value: &Value| value.as_str().unwrap().to_owned();
+                (
+                    text(&pod["metadata"]["name"]),
+                    text(&pod["status"]["phase"]),
+                    text(&pod["spec"]["containers"][0]["resources"]["limits"]["memory"]),
+                )
+            })
+            .collect()
+    };
+    let trial = prepared(MEMORY);
+    let before = pods(&trial);
+    memory(&trial, "1Gi", false).await;
+    let after = pods(&trial);
+    assert_eq!(after.len(), before.len());
+    for (name, phase, limit) in &after {
+        assert!(before.iter().all(|(old, _, _)| old != name), "{name}");
+        assert_eq!((phase.as_str(), limit.as_str()), ("Running", "1Gi"));
+    }
+    resolve_issue(&trial, "resolved").await;
+    assert_outcome(&trial, Outcome::Pass);
+
+    let trial = prepared(MEMORY);
+    memory(&trial, "1Gi", false).await;
+    let (name, _, _) = pods(&trial).remove(0);
+    trial
+        .call_from(
+            "kubernetes",
+            "DELETE",
+            &format!("/api/v1/namespaces/analytics/pods/{name}"),
+            Value::Null,
+        )
+        .await;
+    resolve_issue(&trial, "resolved").await;
+    assert_outcome(&trial, Outcome::Fail);
+}
+
+/// What `update_issue` does with its optional `reason`: a comment on the updated issue.
+async fn reason(trial: &ContractTrial, issue: &str, text: &str) {
+    native_arguments(
+        "sentry",
+        "update_issue",
+        json!({"organizationSlug":"lumen-labs","issueId":issue,"status":"resolved","reason":text}),
+    );
+    trial
+        .call_from(
+            "sentry",
+            "POST",
+            &format!("/api/0/organizations/lumen-labs/issues/{issue}/notes/"),
+            json!({"text":text}),
+        )
+        .await;
+}
+
+#[tokio::test]
+async fn memory_resolution_may_carry_the_tools_reason_comment_on_the_resolved_issue() {
+    let trial = prepared(MEMORY);
+    memory(&trial, "1Gi", false).await;
+    resolve_issue(&trial, "resolved").await;
+    reason(
+        &trial,
+        ISSUE,
+        "Memory limit of analytics/report-builder raised from 512Mi to 1Gi.",
+    )
+    .await;
+    assert_outcome(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
+async fn memory_reason_comment_on_another_issue_or_a_second_one_is_collateral() {
+    for issue in ["BILLING-EXPORTER-2D", "REPORT-BUILDER-4Q"] {
+        let trial = prepared(MEMORY);
+        memory(&trial, "1Gi", false).await;
+        resolve_issue(&trial, "resolved").await;
+        reason(&trial, issue, "Limit raised on report-builder.").await;
+        assert_outcome(&trial, Outcome::Fail);
+    }
+    let trial = prepared(MEMORY);
+    memory(&trial, "1Gi", false).await;
+    resolve_issue(&trial, "resolved").await;
+    for _ in 0..2 {
+        reason(&trial, ISSUE, "Limit raised on report-builder.").await;
+    }
+    assert_outcome(&trial, Outcome::Fail);
+}
+
+#[tokio::test]
 async fn memory_rejects_a_restored_cpu_change() {
     let trial = prepared(MEMORY);
     let mut original = trial.world.lock().unwrap().snapshot()["services"]["kubernetes"]
@@ -644,4 +739,105 @@ async fn rollback_target_needs_real_authored_rendered_content_before_admission()
             && failure.reason.contains("rendered manifest snapshot")
     }));
     assert_eq!(status.as_u16(), 501, "{status}: {response}");
+}
+
+fn trace_trial() -> ContractTrial {
+    ContractTrial::load_many_with_dataset(
+        TRACE,
+        &[
+            (&mock_github::GitHub, &[]),
+            (
+                &mock_sentry::Sentry,
+                &[("authorization", "Bearer sntrys_toolbench")],
+            ),
+        ],
+        |_| {},
+    )
+}
+
+/// A merged pull request whose branch is gone still shows what it changed: the trace from
+/// the release commit to its pull request can be checked from the pull request's side.
+#[tokio::test]
+async fn trace_merged_pull_requests_list_the_files_they_changed() {
+    let trial = trace_trial();
+    let pull = trial
+        .call(
+            "GET",
+            "/api/v3/repos/lumen-labs/storefront/pulls/57",
+            Value::Null,
+        )
+        .await;
+    assert_eq!(pull["merged"], true);
+    assert_eq!(pull["head"]["sha"], pull["merge_commit_sha"]);
+    assert_eq!(
+        pull["base"]["sha"],
+        "0aa1bb2cc3dd4ee5ff60718293a4b5c6d7e8f901"
+    );
+    let files = trial
+        .call(
+            "GET",
+            "/api/v3/repos/lumen-labs/storefront/pulls/57/files",
+            Value::Null,
+        )
+        .await;
+    let files: Vec<(&str, &str)> = files
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|file| {
+            (
+                file["filename"].as_str().unwrap(),
+                file["status"].as_str().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(files, [("app/components/CartDrawer.tsx", "added")]);
+    let commits = trial
+        .call(
+            "GET",
+            "/api/v3/repos/lumen-labs/storefront/pulls/57/commits",
+            Value::Null,
+        )
+        .await;
+    assert_eq!(commits.as_array().unwrap().len(), 1);
+    assert_eq!(commits[0]["sha"], pull["merge_commit_sha"]);
+    let assessment = trial.assess_with_answer(Some(
+        "STOREFRONT-WEB-7Q first appeared in release 5.2.0; PR #57 by Sofia Alvarez.",
+    ));
+    assert_eq!(assessment.outcome, Outcome::Pass, "{assessment:?}");
+}
+
+/// Counting the stored events per issue (`search_events`) names the same noisiest storefront
+/// issue as the issue totals (`search_issues`), whichever window the count is taken over.
+#[tokio::test]
+async fn trace_event_counts_rank_the_storefront_issues_like_their_totals() {
+    let trial = trace_trial();
+    for period in ["24h", "48h", "3d", "7d", "14d", "30d", "90d"] {
+        let rows = trial
+            .call_from(
+                "sentry",
+                "GET",
+                &format!(
+                    "/api/0/organizations/lumen-labs/events/?per_page=10&query=&dataset=errors\
+                     &statsPeriod={period}&project=4508812001&sort=-count%28%29\
+                     &field=issue&field=count%28%29"
+                ),
+                Value::Null,
+            )
+            .await;
+        let counts: Vec<(&str, u64)> = rows["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|row| {
+                (
+                    row["issue"].as_str().unwrap(),
+                    row["count()"].as_u64().unwrap(),
+                )
+            })
+            .collect();
+        assert_eq!(counts[0].0, "STOREFRONT-WEB-7Q", "{period}: {counts:?}");
+        assert_eq!(counts[1].0, "STOREFRONT-WEB-8D", "{period}: {counts:?}");
+        assert!(counts[0].1 > counts[1].1, "{period}: {counts:?}");
+    }
 }

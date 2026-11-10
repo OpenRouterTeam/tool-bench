@@ -896,7 +896,16 @@ current-record references. Baseline scopes remain distinct and frozen; current
 references are rejected on unsupported append rules. Default preservation protects
 all other resources, not just authored sentinels. Audit rows join the actual target
 issue and authenticated user, with per-commit bounds rather than a trial-wide
-retry cap. Optional reason comments are not silently authorized.
+retry cap. The comment that `update_issue` posts for its optional `reason` is
+authorized on the target issue where the request leaves room for one: the
+storefront triage (one per requested update) and the cross-system memory fix
+(one). The worker fix says to change nothing else, so a comment there, and a
+comment on any other issue, remains an unauthorized change.
+
+Project create and update refuse a platform Sentry does not list
+(`GETTING_STARTED_DOCS_PLATFORMS`; empty and `other` are accepted) with
+`{"platform": ["Invalid platform"]}`, as the upstream serializers do, so a guessed
+identifier such as `nodejs` is an error to recover from, not a stored value.
 
 Installed `@sentry/mcp-server 0.42.0` source extraction confirms Markdown project
 creation and structured `find_dsns` output. The reference captures that actual
@@ -1032,8 +1041,17 @@ embedded client modules and production uncertainty.
   owner UIDs and modeled fields. Direct child/status writes do not inherit those
   permissions. The replica still models one current matching ReplicaSet's scaling
   immediately and creates ready Pods deterministically; this is not production
-  scheduling/readiness, proportional rolling-update scaling, admission parity,
-  template rollout or asynchronous reconciliation conformance.
+  scheduling/readiness, proportional rolling-update scaling, admission parity or
+  asynchronous reconciliation conformance.
+- A pod-template change to a Deployment is rolled out to its end state in the same
+  write: a ReplicaSet for the new template (a new one, or the earlier one that
+  already holds it) becomes the newest revision with ready Pods, the ReplicaSet it
+  replaces is scaled to zero and loses its Pods, and the Deployment records the
+  revision and recounts its status. A quantity respelled with the same value
+  (`1Gi`, `1024Mi`) is the same template and starts nothing. Surge, readiness
+  gates, a failing new template, paused resumption and other workload kinds are
+  not modeled. The memory contracts authorize these effects only when the write to
+  the target Deployment causes them.
 - Cleanup requires the manifest Job/script absent and the target release either
   purged or retained with a latest `uninstalled` revision. Earlier superseded
   history may remain. Background dependents need not disappear before acceptance;

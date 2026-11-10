@@ -47,6 +47,136 @@ fn valid_project_slug(slug: &str) -> bool {
         })
 }
 
+/// Platform identifiers Sentry accepts for a project, besides none and `other`
+/// (`GETTING_STARTED_DOCS_PLATFORMS` in `sentry/models/project.py`).
+const PLATFORMS: [&str; 113] = [
+    "android",
+    "apple",
+    "apple-ios",
+    "apple-macos",
+    "bun",
+    "capacitor",
+    "cordova",
+    "dart",
+    "deno",
+    "dotnet",
+    "dotnet-aspnet",
+    "dotnet-aspnetcore",
+    "dotnet-awslambda",
+    "dotnet-gcpfunctions",
+    "dotnet-maui",
+    "dotnet-uwp",
+    "dotnet-winforms",
+    "dotnet-wpf",
+    "dotnet-xamarin",
+    "electron",
+    "elixir",
+    "flutter",
+    "go",
+    "go-echo",
+    "go-fasthttp",
+    "go-fiber",
+    "go-gin",
+    "go-http",
+    "go-iris",
+    "go-martini",
+    "go-negroni",
+    "godot",
+    "ionic",
+    "java",
+    "java-log4j2",
+    "java-logback",
+    "java-spring",
+    "java-spring-boot",
+    "javascript",
+    "javascript-angular",
+    "javascript-astro",
+    "javascript-ember",
+    "javascript-gatsby",
+    "javascript-nextjs",
+    "javascript-nuxt",
+    "javascript-react",
+    "javascript-react-router",
+    "javascript-remix",
+    "javascript-solid",
+    "javascript-solidstart",
+    "javascript-svelte",
+    "javascript-sveltekit",
+    "javascript-tanstackstart-react",
+    "javascript-vue",
+    "kotlin",
+    "minidump",
+    "native",
+    "native-qt",
+    "nintendo-switch",
+    "node",
+    "node-awslambda",
+    "node-azurefunctions",
+    "node-cloudflare-pages",
+    "node-cloudflare-workers",
+    "node-connect",
+    "node-eve",
+    "node-express",
+    "node-fastify",
+    "node-flue",
+    "node-gcpfunctions",
+    "node-hapi",
+    "node-hono",
+    "node-koa",
+    "node-mastra",
+    "node-nestjs",
+    "node-pi-durable",
+    "php",
+    "php-laravel",
+    "php-symfony",
+    "playstation",
+    "powershell",
+    "python",
+    "python-aiohttp",
+    "python-asgi",
+    "python-awslambda",
+    "python-bottle",
+    "python-celery",
+    "python-chalice",
+    "python-django",
+    "python-falcon",
+    "python-fastapi",
+    "python-flask",
+    "python-gcpfunctions",
+    "python-litestar",
+    "python-pylons",
+    "python-pymongo",
+    "python-pyramid",
+    "python-quart",
+    "python-rq",
+    "python-sanic",
+    "python-serverless",
+    "python-starlette",
+    "python-tornado",
+    "python-tryton",
+    "python-wsgi",
+    "react-native",
+    "ruby",
+    "ruby-rack",
+    "ruby-rails",
+    "rust",
+    "unity",
+    "unreal",
+    "xbox",
+];
+
+/// Sentry's `Project.is_valid_platform`: a missing or empty platform, `other`, or a listed one.
+/// The project serializers answer anything else with `{"platform": ["Invalid platform"]}`.
+fn valid_platform(platform: &Value) -> bool {
+    match platform {
+        Value::Null => true,
+        Value::String(name) => {
+            name.is_empty() || name == "other" || PLATFORMS.contains(&name.as_str())
+        }
+        _ => false,
+    }
+}
+
 // ---------------------------------------------------------------------------------------
 // Lookups shared with other modules
 // ---------------------------------------------------------------------------------------
@@ -617,6 +747,9 @@ pub async fn create_project(
     if !valid_project_slug(&slug) {
         return field_error("slug", INVALID_PROJECT_SLUG);
     }
+    if !valid_platform(&input["platform"]) {
+        return field_error("platform", "Invalid platform");
+    }
     if find_project(world, &slug).is_some() {
         return detail(
             StatusCode::CONFLICT,
@@ -669,6 +802,9 @@ pub async fn update_project(
     let new_slug = input["slug"].as_str().map(str::trim);
     if new_slug.is_some_and(|slug| !valid_project_slug(slug)) {
         return field_error("slug", INVALID_PROJECT_SLUG);
+    }
+    if !valid_platform(&input["platform"]) {
+        return field_error("platform", "Invalid platform");
     }
     if let Some(s) = new_slug
         && s != old_slug

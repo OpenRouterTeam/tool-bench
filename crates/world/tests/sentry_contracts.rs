@@ -485,3 +485,135 @@ async fn deactivating_the_only_delivered_key_cannot_produce_a_usable_dsn() {
     fail(&assessment);
     assert!(!assessment.answer_ok);
 }
+
+/// What `update_issue` does with its optional `reason`: a comment on the updated issue.
+async fn reason(trial: &ContractTrial, issue: &str, text: &str) {
+    let note = trial
+        .call(
+            "POST",
+            &format!("/api/0/organizations/lumen-labs/issues/{issue}/notes/"),
+            json!({"text":text}),
+        )
+        .await;
+    assert_eq!(note["type"], "note");
+}
+
+#[tokio::test]
+async fn storefront_triage_may_carry_the_tools_reason_comment_on_the_triaged_issue() {
+    let combined = prepared(STOREFRONT, |_| {});
+    update(
+        &combined,
+        "STOREFRONT-WEB-8D",
+        json!({"status":"resolvedInNextRelease","assignedTo":"team:4507214"}),
+    )
+    .await;
+    reason(
+        &combined,
+        "STOREFRONT-WEB-8D",
+        "Fix merged by Sofia; it ships with the next storefront deploy.",
+    )
+    .await;
+    pass(&combined.assess());
+
+    let split = prepared(STOREFRONT, |_| {});
+    update(&split, "6184421045", json!({"assignedTo":"team:4507214"})).await;
+    reason(&split, "6184421045", "Frontend Web owns the product grid.").await;
+    update(
+        &split,
+        "6184421045",
+        json!({"status":"resolvedInNextRelease"}),
+    )
+    .await;
+    reason(
+        &split,
+        "6184421045",
+        "Fix merged; goes out with the next deploy.",
+    )
+    .await;
+    pass(&split.assess());
+}
+
+#[tokio::test]
+async fn storefront_reason_comments_stay_on_the_triaged_issue_and_within_its_two_updates() {
+    for lookalike in ["STOREFRONT-WEB-7Q", "ADMIN-DASHBOARD-2M"] {
+        let trial = prepared(STOREFRONT, |_| {});
+        update(
+            &trial,
+            "STOREFRONT-WEB-8D",
+            json!({"status":"resolvedInNextRelease","assignedTo":"team:4507214"}),
+        )
+        .await;
+        reason(&trial, lookalike, "Same TypeError as STOREFRONT-WEB-8D.").await;
+        let assessment = trial.assess();
+        fail(&assessment);
+        assert!(!assessment.preservation_ok, "{assessment:?}");
+    }
+    let repeated = prepared(STOREFRONT, |_| {});
+    update(
+        &repeated,
+        "STOREFRONT-WEB-8D",
+        json!({"status":"resolvedInNextRelease","assignedTo":"team:4507214"}),
+    )
+    .await;
+    for _ in 0..3 {
+        reason(&repeated, "STOREFRONT-WEB-8D", "Fix merged.").await;
+    }
+    let assessment = repeated.assess();
+    fail(&assessment);
+    assert!(!assessment.preservation_ok, "{assessment:?}");
+}
+
+#[tokio::test]
+async fn worker_request_to_change_nothing_else_does_not_admit_a_comment() {
+    let trial = prepared(WORKER, |_| {});
+    resolve_worker(&trial).await;
+    reason(&trial, TARGET, "Fixed in payments-worker@1.15.0.").await;
+    let assessment = trial.assess();
+    fail(&assessment);
+    assert!(!assessment.preservation_ok, "{assessment:?}");
+}
+
+#[tokio::test]
+async fn a_platform_sentry_does_not_know_is_refused_and_the_retry_still_passes() {
+    let trial = prepared(CREATE, |_| {});
+    let before = trial.state();
+    for platform in ["nodejs", "javascript-node", "node.js", "react"] {
+        let (status, body) = trial
+            .request(
+                "POST",
+                "/api/0/teams/lumen-labs/payments/projects/",
+                json!({"name":"notification-service","platform":platform}),
+            )
+            .await;
+        assert_eq!(status.as_u16(), 400, "{platform}: {body}");
+        assert_eq!(body, json!({"platform":["Invalid platform"]}));
+        assert_eq!(trial.state(), before);
+    }
+    let dsn = create(&trial).await;
+    let (status, body) = trial
+        .request(
+            "PUT",
+            "/api/0/projects/lumen-labs/notification-service/",
+            json!({"platform":"nodejs"}),
+        )
+        .await;
+    assert_eq!(status.as_u16(), 400, "{body}");
+    pass(&trial.assess_with_answer(Some(&dsn)));
+}
+
+#[tokio::test]
+async fn a_known_platform_other_than_node_is_stored_and_is_not_the_requested_service() {
+    for platform in ["javascript", "node-express", "python"] {
+        let trial = prepared(CREATE, |_| {});
+        let project = trial
+            .call(
+                "POST",
+                "/api/0/teams/lumen-labs/payments/projects/",
+                json!({"name":"notification-service","platform":platform}),
+            )
+            .await;
+        assert_eq!(project["platform"], platform);
+        let dsn = dsn_for(&trial, project["slug"].as_str().unwrap()).await;
+        fail(&trial.assess_with_answer(Some(&dsn)));
+    }
+}

@@ -64,6 +64,11 @@ record = "release"
 field = "/version"
 kind = "identifier"
 
+# Sentry lists a `package@version` release under its short version, so `5.2.0` names the
+# same release. The wording is bound to that release and stops applying when the data changes.
+[expect.answer.record_facts.facts.release.wordings]
+"storefront@5.2.0" = ["5.2.0"]
+
 [expect.answer.record_facts.facts.pull_request]
 record = "pull"
 field = "/number"

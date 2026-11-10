@@ -52,11 +52,13 @@ by = "/item/0"
 measure = { sum = "/item/1" }
 pick = "largest"
 
+# The request fixes the unit ("write the peak value in milliseconds"), so a reply may give
+# the bare value. Another unit is still converted, and other points count as rival answers
+# only where they carry the unit.
 [expect.answer.record_facts.facts.peak]
 field = "/value"
 kind = "number"
 units = ["ms", "milliseconds"]
-require_unit = true
 
 [expect.answer.record_facts.facts.time]
 field = "/key"

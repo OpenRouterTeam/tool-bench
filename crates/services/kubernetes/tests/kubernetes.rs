@@ -575,34 +575,134 @@ async fn scale_counts_unready_pods_as_unavailable() {
     assert_eq!(dep["status"]["unavailableReplicas"], replicas - ready);
 }
 
+/// The ReplicaSets of production `payments-api` as `(name, revision, replicas, pods)`, oldest
+/// revision first.
+fn payments_api_sets(snap: &Value) -> Vec<(String, String, i64, usize)> {
+    let state = &snap["services"]["kubernetes"];
+    let mut sets: Vec<_> = state["replicasets.apps"]
+        .as_object()
+        .unwrap()
+        .values()
+        .filter(|rs| {
+            rs["metadata"]["namespace"] == "payments"
+                && rs["metadata"]["ownerReferences"][0]["name"] == "payments-api"
+        })
+        .map(|rs| {
+            let name = rs["metadata"]["name"].as_str().unwrap().to_owned();
+            let pods = state["pods"]
+                .as_object()
+                .unwrap()
+                .values()
+                .filter(|pod| pod["metadata"]["ownerReferences"][0]["name"] == name.as_str())
+                .count();
+            let revision = rs["metadata"]["annotations"]["deployment.kubernetes.io/revision"]
+                .as_str()
+                .unwrap()
+                .to_owned();
+            (
+                name,
+                revision,
+                rs["spec"]["replicas"].as_i64().unwrap(),
+                pods,
+            )
+        })
+        .collect();
+    sets.sort_by(|left, right| left.1.cmp(&right.1));
+    sets
+}
+
 #[tokio::test]
-async fn replica_change_with_new_template_is_not_reconciled() {
+async fn a_template_change_rolls_out_a_new_replica_set_and_a_respelled_quantity_does_not() {
     let w = world(CRASHLOOP);
     let app = service_app(w.clone(), &Kubernetes);
     let path = "/apis/apps/v1/namespaces/payments/deployments/payments-api";
-    let before = w.lock().unwrap().snapshot();
-    let pod_count = |snap: &Value| {
-        snap["services"]["kubernetes"]["pods"]
-            .as_object()
-            .unwrap()
-            .len()
+    let strategic = [("content-type", "application/strategic-merge-patch+json")];
+    let original = get(&app, path).await.body;
+    let container = original["spec"]["template"]["spec"]["containers"][0].clone();
+    let name = container["name"].as_str().unwrap();
+    let limit = |memory: &str| {
+        json!({"spec":{"template":{"spec":{"containers":[{
+            "name":name,"resources":{"limits":{"memory":memory}}
+        }]}}}})
+        .to_string()
+    };
+
+    // A new limit and a new replica count in one write: one rollout, already at five.
+    let mut patch: Value = serde_json::from_str(&limit("2Gi")).unwrap();
+    patch["spec"]["replicas"] = json!(5);
+    let r = send(&app, "PATCH", path, &strategic, &patch.to_string()).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.text);
+    let snap = w.lock().unwrap().snapshot();
+    let sets = payments_api_sets(&snap);
+    assert_eq!(sets.len(), 2, "{sets:?}");
+    assert_eq!(sets[0], ("payments-api-86zf47v9z".into(), "1".into(), 0, 0));
+    let (rolled, revision, replicas, pods) = sets[1].clone();
+    assert_ne!(rolled, "payments-api-86zf47v9z");
+    assert_eq!((revision.as_str(), replicas, pods), ("2", 5, 5));
+    let state = &snap["services"]["kubernetes"];
+    for pod in state["pods"].as_object().unwrap().values() {
+        if pod["metadata"]["ownerReferences"][0]["name"] == rolled.as_str() {
+            assert_eq!(pod["status"]["phase"], "Running");
+            assert_eq!(
+                pod["spec"]["containers"][0]["resources"]["limits"]["memory"],
+                "2Gi"
+            );
+            assert_eq!(
+                pod["metadata"]["labels"]["pod-template-hash"],
+                state["replicasets.apps"][format!("payments/{rolled}")]["metadata"]["labels"]["pod-template-hash"]
+            );
+        }
+    }
+    let dep = &state["deployments.apps"]["payments/payments-api"];
+    assert_eq!(
+        dep["metadata"]["annotations"]["deployment.kubernetes.io/revision"],
+        "2"
+    );
+    assert_eq!(
+        dep["metadata"]["generation"],
+        original["metadata"]["generation"].as_i64().unwrap() + 1
+    );
+    assert_eq!(
+        dep["status"]["observedGeneration"],
+        dep["metadata"]["generation"]
+    );
+    for field in [
+        "replicas",
+        "updatedReplicas",
+        "readyReplicas",
+        "availableReplicas",
+    ] {
+        assert_eq!(dep["status"][field], 5, "{field}");
+    }
+
+    // The same quantity spelled differently is the same template: nothing rolls.
+    let r = send(&app, "PATCH", path, &strategic, &limit("2048Mi")).await;
+    assert_eq!(r.status, StatusCode::OK, "{}", r.text);
+    assert_eq!(payments_api_sets(&w.lock().unwrap().snapshot()), sets);
+
+    // Going back to the first template reuses its ReplicaSet as the newest revision.
+    let memory = container["resources"]["limits"]["memory"].clone();
+    let back = if memory.is_null() {
+        json!([{"op":"remove","path":"/spec/template/spec/containers/0/resources/limits/memory"}])
+    } else {
+        json!([{"op":"replace","path":"/spec/template/spec/containers/0/resources/limits/memory","value":memory}])
     };
     let r = send(
         &app,
         "PATCH",
         path,
-        &[("content-type", "application/strategic-merge-patch+json")],
-        r#"{"spec":{"replicas":5,"template":{"metadata":{"annotations":{"x":"y"}}}}}"#,
+        &[("content-type", "application/json-patch+json")],
+        &back.to_string(),
     )
     .await;
     assert_eq!(r.status, StatusCode::OK, "{}", r.text);
-    let snap = w.lock().unwrap().snapshot();
-    assert_eq!(pod_count(&snap), pod_count(&before));
-    let dep = &snap["services"]["kubernetes"]["deployments.apps"]["payments/payments-api"];
-    assert_eq!(dep["spec"]["replicas"], 5);
-    assert_ne!(
-        dep["status"]["observedGeneration"],
-        dep["metadata"]["generation"]
+    let sets = payments_api_sets(&w.lock().unwrap().snapshot());
+    assert_eq!(
+        sets,
+        [
+            (rolled, "2".to_owned(), 0, 0),
+            ("payments-api-86zf47v9z".to_owned(), "3".to_owned(), 5, 5),
+        ]
     );
 }
 
