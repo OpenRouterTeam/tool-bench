@@ -181,7 +181,7 @@ realize the declared cell. No new file is generated: the cell is read from the b
 context binds their bytes. The report derives each trial's condition from them.
 
 ```
-bench-report <a> <b> [--information-treatment framing|workspace|exposure]
+bench-report --require-attested <a> <b> [--information-treatment framing|workspace|exposure]
 ```
 
 - Without a declared treatment, arms whose information differs are rejected and the

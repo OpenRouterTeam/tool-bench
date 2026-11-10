@@ -122,7 +122,7 @@ for variant in assign_atomic assign_premature assign_archived_owner assign_colla
   esac
   printf '%s\n' "$variant: Jira outcome, content disposition and admission passed"
 done
-if cargo run -q --locked -p report --bin bench-report -- \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested \
     "$OUT/bug_unreviewed" "$OUT/bug_short_summary" --allow-agent-difference --json \
     > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
   printf '%s\n' 'an unreviewed Jira content projection produced a final paired score' >&2

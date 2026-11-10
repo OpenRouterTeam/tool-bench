@@ -202,7 +202,7 @@ for variant do
   printf '%s\n' "$variant: Notion outcome, identity, complete content and preservation admission passed"
 done
 if [ -d "$OUT/runbook_restored" ] && [ -d "$OUT/runbook_reference" ]; then
-  if cargo run -q --locked -p report --bin bench-report -- "$OUT/runbook_restored" "$OUT/runbook_reference" \
+  if cargo run -q --locked -p report --bin bench-report -- --require-attested "$OUT/runbook_restored" "$OUT/runbook_reference" \
     --allow-agent-difference --json > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
     printf '%s\n' 'restored Notion contradiction produced a final comparison' >&2
     exit 1

@@ -899,9 +899,11 @@ Both prevent reward 1. An assessment containing only undecidable checks has
 retain their appropriate failure/integrity/environment/contract outcome even when
 another check remains unresolved.
 
-`bench-report` refuses a final paired comparison containing unresolved outcomes;
-it does not remove those attempts from the denominator or turn them into measured
-model failures. Empty/disjoint runs are invalid comparisons as well. A trusted,
+`bench-report --require-attested` refuses a final paired comparison containing
+unresolved outcomes; it does not remove those attempts from the denominator or turn
+them into measured model failures. Empty/disjoint runs are invalid comparisons as well.
+The default report for stock-Harbor runs (see the [runbook](runbook.md#4-read-results))
+still reports: it counts unresolved attempts beside the pass rate, never inside it. A trusted,
 prespecified adjudication workflow and final native-answer semantics remain
 separate release work; do not edit reward files or rerun selectively to make
 uncertainty disappear. External consumers must support these distinctions before

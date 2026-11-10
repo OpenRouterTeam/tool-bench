@@ -120,7 +120,7 @@ PROGRAM
     jq -e '.effective.answer_ok==true' "$OUT/$variant-effective.json" >/dev/null
   fi
   cmp "$trial/result.json" "$OUT/$variant-original-result.json"
-  if "$REPORT" "$trial" "$trial" --json > "$OUT/$variant-raw-comparison.json" \
+  if "$REPORT" --require-attested "$trial" "$trial" --json > "$OUT/$variant-raw-comparison.json" \
       2> "$OUT/$variant-raw-comparison.log"; then
     if [ "$variant" != collateral ]; then exit 1; fi
     test -s "$OUT/$variant-raw-comparison.json"

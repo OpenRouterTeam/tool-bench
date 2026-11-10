@@ -153,7 +153,7 @@ outputs are create-only. Output parents must already exist.
 6. Request reviewed reporting explicitly:
 
    ```sh
-   bench-report /study/run-a /study/run-b --json \
+   bench-report --require-attested /study/run-a /study/run-b --json \
      --review-policy /operator/policy.json --review-store /operator/reviews \
      --instructions-root /study/tasks
    ```

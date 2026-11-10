@@ -127,7 +127,7 @@ for variant in linear_refine linear_keyword escalation_alternative escalation_ke
       and .preservation_checked == 1 and .history_checked == 1' "$result" >/dev/null
   printf '%s\n' "$variant: collaboration outcome, preservation, text disposition and admission passed"
 done
-if cargo run -q --locked -p report --bin bench-report -- "$OUT/dm_denial" "$OUT/dm_minimal" \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested "$OUT/dm_denial" "$OUT/dm_minimal" \
     --allow-agent-difference --json > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
   printf '%s\n' 'unreviewed Slack wording produced a final paired score' >&2
   exit 1

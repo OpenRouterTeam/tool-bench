@@ -59,7 +59,7 @@ jq -e '.reward == 0 and .outcome_code == 6 and .adjudication_needed == 1
   and .runner_admission_checked == 1 and .runner_admission_ok == 1
   and .preservation_checked == 1 and .history_checked == 1' "$result" >/dev/null
 printf '%s\n' 'restoring the requested literal cannot erase a different committed delivery instruction'
-if cargo run -q --locked -p report --bin bench-report -- \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested \
     "$OUT/restored_claim" "$OUT/restored_claim" --json \
     > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
   printf '%s\n' 'unresolved committed communication produced a final paired score' >&2
