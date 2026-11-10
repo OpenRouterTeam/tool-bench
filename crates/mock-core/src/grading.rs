@@ -889,9 +889,16 @@ pub fn grade(input: &GradeInput) -> Grade {
     let proven_failure = failures
         .iter()
         .any(|failure| failure.disposition == CheckDisposition::Failed);
+    // A check that could not find its evidence makes the trial unassessable only when
+    // nothing else is proven wrong. An agent that also broke the task has failed it, and
+    // must not drop out of the score by damaging what the check reads.
+    let task_failure = failures.iter().any(|failure| {
+        failure.disposition == CheckDisposition::Failed
+            && !matches!(failure.check, CheckKind::Contract | CheckKind::Environment)
+    });
     let outcome = if !contract_ok {
         Outcome::InvalidContract
-    } else if !environment_ok {
+    } else if !environment_ok && !task_failure {
         Outcome::EnvironmentError
     } else if !integrity_ok {
         Outcome::IntegrityViolation

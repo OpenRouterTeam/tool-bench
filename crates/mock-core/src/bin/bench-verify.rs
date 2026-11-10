@@ -7,7 +7,7 @@ use std::{
 
 use mock_core::{
     evidence::WorldEvidence,
-    grading::{EVALUATOR_VERSION, Expect, GradeInput, grade},
+    grading::{EVALUATOR_VERSION, Expect, GradeInput, Outcome, grade},
     provenance::{DatasetSource, ExecutionManifest, TaskContext},
     runner::{RunnerAdmission, RunnerPolicy},
 };
@@ -548,7 +548,10 @@ fn verify(options: Options) -> Result<bool, Box<dyn Error>> {
         }
     }
     write_json(&options.output.join("assessment.json"), &assessment)?;
-    let assessable = assessment.contract_ok && assessment.environment_ok;
+    let assessable = !matches!(
+        assessment.outcome,
+        Outcome::InvalidContract | Outcome::EnvironmentError
+    );
     let reward = if assessable || !options.withhold_invalid_reward {
         "reward.json"
     } else {
