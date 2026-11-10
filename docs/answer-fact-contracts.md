@@ -251,7 +251,7 @@ What makes a claim, with the cue lists in `statements.rs`:
 - **Not a claim: set aside.** An alternative is set aside by a word anywhere in
   its sentence (`SET_ASIDE`: `excluding`, `compared with`, `the runner-up`,
   `previous`, `also`, `other`, `for context`, `staging`, `failed`, `if`,
-  `should`, `normally`, `stale`), by a word for hearsay (`rumour`,
+  `should`, `normally`, `still lists`), by a word for hearsay (`rumour`,
   `speculation`), by a question mark closing a quotation of it, or by
   a `contradictions` cue in the sentence. The source value is set aside by
   wording in its own clause, before it (`DEMOTED_BY`: `ruled out`, `rather

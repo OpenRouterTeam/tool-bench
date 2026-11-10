@@ -949,7 +949,7 @@ static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
         r"|doesn't count|does not count|staging|non-?prod\w*|sandbox|test environment|draft|caveat|note|aside",
         r"|if|unless|otherwise|would|could have|in that case|hypothetical\w*|discussed|considered|proposed|leaning",
         r"|should|expect\w*|regularly|normally|usually|ordinarily|typically",
-        r"|stale|out[- ]of[- ]date|not (?:yet )?(?:been )?updated|still (?:lists?|shows?|says?|reports?)",
+        r"|not (?:yet )?(?:been )?updated|still (?:lists?|shows?|says?|reports?)",
         r")\b"
     ))
     .expect("set-aside pattern")
