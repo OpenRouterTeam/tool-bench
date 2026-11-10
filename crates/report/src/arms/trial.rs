@@ -643,6 +643,8 @@ fn check(
     }
 }
 
+/// The exception Harbor records when the provider rejects a prompt for its length.
+const CONTEXT_EXCEPTION: &str = "ContextWindowExceededError";
 const VERIFIER_EXCEPTIONS: [&str; 6] = [
     "RewardFileNotFoundError",
     "RewardFileEmptyError",
@@ -801,6 +803,21 @@ pub(crate) fn load(root: &Path, directory: &Path) -> TrialRecord {
                 },
             )
         }
+    };
+
+    // Harbor's installed agents raise this when the provider rejects the prompt for
+    // length. With a tool set this large that is an outcome of the arm under test, so it
+    // is counted as a context overflow whether or not the verifier also ran.
+    let status = if exception
+        .as_ref()
+        .is_some_and(|exception| exception.kind == CONTEXT_EXCEPTION)
+        && matches!(
+            status,
+            Status::Fail | Status::HarnessException | Status::VerifierError
+        ) {
+        Status::ContextOverflow
+    } else {
+        status
     };
 
     let text = |value: &Value| value.as_str().map(str::to_owned);
