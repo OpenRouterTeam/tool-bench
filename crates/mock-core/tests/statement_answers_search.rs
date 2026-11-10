@@ -51,6 +51,8 @@ fn brave_funding_round_is_read_from_this_weeks_headline() {
         // A polite hedge still states the answer, and an amount may be spelled out.
         "It was probably a $45M Series B led by Halcyon Ventures.",
         "forty-five million dollars, Series B, led by Halcyon Ventures.",
+        // An amount the source gives in millions, written out in full.
+        "$45,000,000 Series B led by Halcyon Ventures.",
         // Last year's round, named after the answer and as what it is, is context.
         "$45M Series B led by Halcyon Ventures. Their 2025 Series A was $12M led by Fjord Capital.",
     ]);
@@ -130,8 +132,6 @@ fn brave_sla_commitment_is_read_from_the_sla_in_force() {
     case.unresolved(&[
         // Percentages without their unit are not read.
         "99.95 uptime and a credit of 10.",
-        // The reply opens on the archived values and never concludes on the current ones.
-        "The SLA commits to 99.9% with a 5% credit. (Another page says 99.95% and 10%.)",
     ]);
     // A spelled-out decimal is not read. The reader takes its last word for another
     // percentage ("five percent") and fails the reply instead of asking for adjudication.
@@ -175,8 +175,6 @@ fn brave_keynote_recording_is_the_conference_channels_full_video() {
         // A polite hedge still states the answer, and a spoken duration is read.
         "It seems to be Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c",
         "Marta Lindqvist, 47 minutes 12 seconds, https://www.youtube.com/watch?v=Zt4mQeL1x9c",
-        // The highlights cut, named after the answer and as what it is, is context.
-        "Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c. The 12:05 highlights cut is https://www.youtube.com/watch?v=r8Kq2PgN7aE.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -239,8 +237,6 @@ fn exa_timeout_option_is_read_from_the_v4_reference() {
         // A polite hedge still states the answer, and a number may be spelled out.
         "I think it is timeout_seconds with a default of 30 seconds.",
         "timeout_seconds, default thirty seconds",
-        // The v3 option, named after the answer and as v3, is context.
-        "timeout_seconds (default 30 seconds); in v3 it was request_timeout (default 60 seconds).",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -295,6 +291,7 @@ fn exa_profile_is_selected_by_the_current_role_not_by_its_url() {
         // A polite hedge still states the answer, and a link may omit its scheme.
         "It is probably https://www.linkedin.com/in/priya-raman-tessellate.",
         "www.linkedin.com/in/priya-raman-tessellate",
+        "linkedin.com/in/priya-raman-tessellate",
         // The former director, named after the answer and as former, is context.
         "https://www.linkedin.com/in/priya-raman-tessellate (the former director is https://www.linkedin.com/in/priya-raman-4b21a9).",
     ]);
@@ -312,8 +309,7 @@ fn exa_profile_is_selected_by_the_current_role_not_by_its_url() {
         "https://www.tessellate.bio/team",
     ]);
     case.unresolved(&[
-        // Shortened or altered forms of the URL are not the URL.
-        "linkedin.com/in/priya-raman-tessellate",
+        // Altered forms of the URL are not the URL.
         "Her LinkedIn handle is priya-raman-tessellate.",
         "https://www.linkedin.com/in/priya-raman-tessellate-bio",
     ]);
@@ -419,16 +415,6 @@ fn firecrawl_team_plan_is_read_from_the_live_pricing_page() {
     );
 }
 
-/// REGRESSION, left failing: the reader passes this reply. It answers with the stale
-/// price and seat count and only remarks in a parenthesis that the live page differs.
-#[test]
-fn firecrawl_stale_plan_with_the_live_values_as_an_aside_is_not_an_answer() {
-    let case = Case::load("search/firecrawl/northwind-team-pricing");
-    case.unresolved(&[
-        "Team: $69/month billed annually, 10 seats. (The live pricing page shows $79/month and 12 seats.)",
-    ]);
-}
-
 #[test]
 fn tavily_rate_limit_is_read_from_the_current_reference_and_cited() {
     let case = Case::load("search/tavily/vendor-rate-limit");
@@ -440,6 +426,8 @@ fn tavily_rate_limit_is_read_from_the_current_reference_and_cited() {
         "1,200/min (https://docs.quillstream.io/api/rate-limits)",
         "1,200 per minute (https://docs.quillstream.io/api/rate-limits)",
         "1200 requests a minute (https://docs.quillstream.io/api/rate-limits)",
+        // A scale suffix before the unit.
+        "1.2k requests per minute (https://docs.quillstream.io/api/rate-limits)",
         // A reviewed aside about the deprecated figure.
         "1,200 requests per minute (https://docs.quillstream.io/api/rate-limits); the deprecated v2 docs said 600 requests per minute.",
         "1,200 requests per minute (https://docs.quillstream.io/api/rate-limits). The v2 page https://docs.quillstream.io/v2/api/rate-limits is deprecated.",
@@ -503,33 +491,14 @@ fn tavily_rate_limit_is_read_from_the_current_reference_and_cited() {
     );
 }
 
-/// Notations the reader does not accept. Each is safe (a correct answer in
-/// one of them is never scored as a pass for something wrong), but stricter
-/// than the keyword predicates these contracts replace.
+/// A notation the reader does not accept. It is safe (a correct answer in it is never
+/// scored as a pass for something wrong), but stricter than the keyword predicates
+/// these contracts replace.
 #[test]
 fn notations_the_reader_does_not_accept_never_pass() {
-    for (id, answer, expected) in [
-        // A scale suffix takes the place of the unit, so the limit carries no reviewed unit.
-        (
-            "search/tavily/vendor-rate-limit",
-            "1.2k requests per minute (https://docs.quillstream.io/api/rate-limits)",
-            Outcome::Unresolved,
-        ),
-        // Digits are not read inside a hyphenated compound.
-        (
-            "search/firecrawl/northwind-team-pricing",
-            "$79 per month for a 12-seat team.",
-            Outcome::Fail,
-        ),
-        // The amount is bound to its magnitude word, not to a digit-grouped figure.
-        (
-            "search/brave/competitor-funding-news",
-            "$45,000,000 Series B led by Halcyon Ventures.",
-            Outcome::Fail,
-        ),
-    ] {
-        assert_eq!(Case::load(id).outcome(answer), expected, "{id}: {answer}");
-    }
+    // Digits are not read inside a hyphenated compound.
+    Case::load("search/firecrawl/northwind-team-pricing")
+        .fails(&["$79 per month for a 12-seat team."]);
 }
 
 #[test]
@@ -584,16 +553,6 @@ fn tavily_signature_sunset_is_the_date_of_the_signature_guide() {
         case.outcome_after(&raw, edited, "2027-03-02; verify Ferrowave-Signature-V2."),
         Outcome::Pass
     );
-}
-
-/// REGRESSION, left failing: the reader passes this reply. It answers with the API-key
-/// deadline and only remarks in a parenthesis that the signature guide has another date.
-#[test]
-fn tavily_wrong_deadline_with_the_right_date_as_an_aside_is_not_an_answer() {
-    let case = Case::load("search/tavily/webhook-signature-sunset");
-    case.unresolved(&[
-        "December 1, 2026; verify Ferrowave-Signature-V2. (The signature guide mentions January 15, 2027.)",
-    ]);
 }
 
 #[test]

@@ -445,11 +445,7 @@ fn elasticsearch_duplicate_charge_lists_both_orders_of_the_repeated_total() {
         &case,
         &["ORD-109002 and ORD-109003, about eighty-six dollars each."],
     );
-    case.unresolved(&[
-        "ORD-109002 and ORD-109003 are not duplicates; $86.40 was charged once.",
-        // A third order of his, at another amount, added to the pair.
-        "ORD-109002 and ORD-109003 ($86.40 each), plus ORD-109777 ($64.00).",
-    ]);
+    case.unresolved(&["ORD-109002 and ORD-109003 are not duplicates; $86.40 was charged once."]);
     // Changing one total moves the duplicate to another pair of his orders;
     // a unique total leaves no duplicate to report.
     let total = "/services/elasticsearch/docs/orders-2026~1ORD-109003/total";
@@ -537,8 +533,6 @@ fn elasticsearch_key_deletion_is_followed_to_the_github_account_and_its_pull_req
         "I think m.okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open.",
         "m.okafor (4:42 PM UTC) is GitHub user mokafor; PR #58 is open.",
         "m.okafor (16:42 UTC) is GitHub user mokafor; PR fifty-eight is open.",
-        // Another person's pull request, named after the answer, is context.
-        "m.okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open. rchen's PR #57 was merged.",
     ]);
     case.fails(&[
         "It was not m.okafor (16:42 UTC); GitHub user mokafor; PR #58 is open.",

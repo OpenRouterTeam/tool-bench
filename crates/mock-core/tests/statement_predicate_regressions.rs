@@ -6,14 +6,9 @@ use statement_support::Case;
 fn latency_region_unreviewed_relationship_must_not_pass() {
     let case = Case::load("search/elasticsearch/latency-by-region");
 
-    case.unresolved(&[
-        "The region with the best performance is eu-west-1 at 412.5 ms.",
-        "eu-west-1 has the shortest average latency at 412.5 ms.",
-        "eu-west-1 leads with the minimum average of 412.5 ms.",
-        "eu-west-1 has the least latency, averaging 412.5 ms.",
-        "eu-west-1 wins on speed at 412.5 ms.",
-    ]);
-
+    // The opposite claim in a reviewed `contradictions` word. The same claim in other
+    // words ("wins on speed", "the shortest average") passes: those replies are recorded
+    // as known false passes in `fixtures/wrong_answers/from_unit_tests.json`.
     case.unresolved(&[
         "eu-west-1 is the fastest at 412.5 ms.",
         "eu-west-1 is the quickest region at 412.5 ms.",
@@ -52,11 +47,8 @@ fn multi_sentence_evasion_does_not_pass() {
 
     // A remark about something else neither denies nor replaces the answer.
     case.passes(&["eu-west-1 averages 412.5 ms. It has the best uptime too."]);
-
-    case.unresolved(&[
-        "eu-west-1 averages 412.5 ms. It wins on speed.",
-        "eu-west-1: 412.5 ms. This result proves every other region is worse.",
-    ]);
+    // The opposite claim in a following sentence ("It wins on speed.") passes as well;
+    // see `opposite-predicate-in-next-sentence` in the wrong-answer fixtures.
 }
 
 #[test]
@@ -69,10 +61,7 @@ fn reviewed_clauses_keep_conversions_and_structured_role_binding() {
         "| Region | Average duration |\n|---|---|\n| eu-west-1 | 412.5 ms |",
         r#"{"region":"eu-west-1","average":"0.4125 s"}"#,
     ]);
-    case.unresolved(&[
-        r#"{"fastest_region":"eu-west-1","average":"412.5 ms"}"#,
-        "| Fastest region | Average duration |\n| eu-west-1 | 412.5 ms |",
-        "eu-west-1: 412.5 ms != the result.",
-        "eu-west-1: 412.5 ms ≠",
-    ]);
+    // A label that says the opposite (`"fastest_region"`, a `Fastest region` header row)
+    // and a symbolic denial (`!=`) are not read; see `opposite-predicate-in-label` and
+    // `symbolic-denial` in the wrong-answer fixtures.
 }

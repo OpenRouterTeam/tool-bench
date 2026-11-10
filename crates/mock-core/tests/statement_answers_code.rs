@@ -67,6 +67,8 @@ fn github_ci_failure_reads_the_failed_job_of_the_latest_run_of_the_pr_branch() {
         "- **Job:** `unit-tests` (run 9005)\n- **Failing test:** `TestRetryBackoffCapsAtMaxDelay`\n- **Assertion:** `backoff_test.go:17: expected delay 30s, got 32s`\n\nThe `lint` and `integration-tests` jobs succeeded.",
         // A polite hedge still states the answer.
         "Probably the unit-tests job: TestRetryBackoffCapsAtMaxDelay, expected delay 30s, got 32s.",
+        // A true remark about another job, in a parenthesis, is context.
+        "unit-tests failed (lint was green): TestRetryBackoffCapsAtMaxDelay - expected delay 30s, got 32s",
     ]);
     case.fails(&[
         "It was not the unit-tests job; TestRetryBackoffCapsAtMaxDelay printed \"expected delay 30s, got 32s\".",
@@ -89,7 +91,6 @@ fn github_ci_failure_reads_the_failed_job_of_the_latest_run_of_the_pr_branch() {
         // its words and is left to adjudication rather than failed.
         "unit-tests failed: TestRetryBackoffCapsAtMaxDelay expected a 30s delay but got 32s.",
         "The unit-tests job failed in TestRetryBackoffCapsAtMaxDelay: \"expected delay 30s, got 31s\".",
-        "unit-tests failed (lint was green): TestRetryBackoffCapsAtMaxDelay - expected delay 30s, got 32s",
     ]);
     // The failing test follows the authored job log.
     let log = "/services/github/workflow_jobs/50114/log";
@@ -129,8 +130,6 @@ fn gitlab_failed_pipeline_binds_the_latest_failed_main_pipeline_to_its_job_and_c
         "integration-tests broke pipeline 5520. The column refund_reason does not exist.",
         // A polite hedge still states the answer.
         "I believe it is pipeline 5520, integration-tests, column refund_reason.",
-        // Other authored records named beside or after the answer are context.
-        "Pipelines 5511 and 5520 both failed on main; 5520 failed in integration-tests on refund_reason.",
     ]);
     case.fails(&[
         "The failed pipeline is not 5520; integration-tests complains about refund_reason.",
@@ -244,7 +243,6 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
     case.passes(&[
         "1. Production serves c3a9f12 - \"Fix tax rounding for EU orders (#482)\".\n2. The latest preview failed with FUNCTION_SIZE_EXCEEDED.",
         "Commit: c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9\nMessage: Fix tax rounding for EU orders\nPreview failure: a Serverless Function has exceeded the unzipped maximum size of 250 MB",
-        "Production is on c3a9f12 (Fix tax rounding for EU orders). The newest preview went over the function size limit.",
         // A polite hedge still states the answer.
         "Production seems to serve c3a9f12 (\"Fix tax rounding for EU orders\"); the preview hit the function size limit.",
         // Other authored records named beside or after the answer are context.

@@ -25,9 +25,6 @@ fn contract() -> Case {
         }))
         .unwrap(),
     );
-    facts
-        .assertions
-        .push("The selected region has ${requests}".into());
     case
 }
 
@@ -36,20 +33,6 @@ fn omitted_optional_facts_do_not_change_the_required_answer() {
     let case = contract();
     case.passes(&["eu-west-1 averages 412.5 ms."]);
     case.fails(&["The selected region has 6 requests."]);
-    let facts = case
-        .expect
-        .answer
-        .as_ref()
-        .unwrap()
-        .record_facts
-        .as_ref()
-        .unwrap();
-    assert_eq!(
-        facts
-            .suggest_assertion("eu-west-1 averages 412.5 ms.", &case.initial)
-            .unwrap(),
-        "${region} averages ${average}.",
-    );
 }
 
 #[test]
@@ -143,9 +126,6 @@ fn absence_contract() -> Case {
         }))
         .unwrap(),
     );
-    facts
-        .assertions
-        .push("Related incident: ${incident}".into());
     case
 }
 

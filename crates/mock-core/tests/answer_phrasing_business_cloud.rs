@@ -122,8 +122,8 @@ fn hubspot_salesforce_owner_follows_a_closed_case() {
     );
 }
 
-// Fails at present: the reader requires the open case and does not object to a closed
-// one listed beside it.
+// Once one of the two cases is closed, a reply that still lists both as open has listed
+// another record beside the answer.
 #[test]
 fn hubspot_salesforce_owner_listing_a_closed_case_as_open_earns_no_reward() {
     let case = Case::load("business/multi/hubspot-largest-deal-salesforce-owner");

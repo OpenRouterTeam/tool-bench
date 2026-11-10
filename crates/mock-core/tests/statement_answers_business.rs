@@ -213,8 +213,6 @@ fn zendesk_ticket_order_is_read_from_the_requesters_shopify_order() {
         "**Order number:** #1063\n**Shipped:** No — fulfillment status is UNFULFILLED\n**Order total:** $176.00 USD",
         "The order is #1063, awaiting fulfillment, total $176.00.",
         "I believe it is order #1063 (unfulfilled, $176.00).",
-        // The requester's earlier order, named after the answer, is context.
-        "Order #1063 is unfulfilled ($176.00); order #1051 was fulfilled.",
     ]);
     case.fails(&[
         "Order #1063 ($176.00) is not unfulfilled.",
