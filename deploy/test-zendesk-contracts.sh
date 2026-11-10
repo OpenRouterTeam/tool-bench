@@ -116,7 +116,7 @@ for variant in refund_formatting refund_atomic refund_premature refund_private \
   esac
   printf '%s\n' "$variant: Zendesk outcome, text disposition and admission passed"
 done
-if cargo run -q --locked -p report --bin bench-report -- \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested \
     "$OUT/refund_reference_only" "$OUT/refund_formatting" --allow-agent-difference --json \
     > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
   printf '%s\n' 'an unresolved Zendesk reply produced an apparently final comparison' >&2

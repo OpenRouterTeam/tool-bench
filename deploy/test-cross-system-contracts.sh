@@ -183,7 +183,7 @@ if [ -d "$OUT/crm_restored" ] && [ -d "$OUT/crm_reference" ]; then
   reference="$(find "$OUT/crm_reference" -path '*/verifier/state.json' -print -quit)"
   restored="$(find "$OUT/crm_restored" -path '*/verifier/state.json' -print -quit)"
   jq -e --slurpfile reference "$reference" '.services == $reference[0].services' "$restored" >/dev/null
-  if cargo run -q --locked -p report --bin bench-report -- "$OUT/crm_restored" "$OUT/crm_reference" \
+  if cargo run -q --locked -p report --bin bench-report -- --require-attested "$OUT/crm_restored" "$OUT/crm_reference" \
     --allow-agent-difference --json > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
     printf '%s\n' 'restored sync contradiction produced a final comparison' >&2
     exit 1

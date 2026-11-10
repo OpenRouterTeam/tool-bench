@@ -159,7 +159,11 @@ impl Harness {
 
     fn report(&self, left: &Path, right: &Path, reviewed: bool) -> Output {
         let mut command = Command::new(env!("CARGO_BIN_EXE_bench-report"));
-        command.arg(left).arg(right).arg("--json");
+        command
+            .arg("--require-attested")
+            .arg(left)
+            .arg(right)
+            .arg("--json");
         if reviewed {
             command
                 .arg("--review-policy")
@@ -301,6 +305,7 @@ fn agent_controlled_approval_files_cached_summaries_and_internal_stores_are_not_
     let no_flag = harness.report(&trial, &trial, false);
     assert!(!no_flag.status.success() && no_flag.stdout.is_empty());
     let output = Command::new(env!("CARGO_BIN_EXE_bench-report"))
+        .arg("--require-attested")
         .arg(&trial)
         .arg(&trial)
         .arg("--json")
@@ -441,6 +446,7 @@ fn raw_and_review_assisted_conditions_cannot_be_mixed_or_share_a_release_label()
     assert!(raw_report.content_review.is_none());
     assert_eq!(reviewed_report.content_review.unwrap().reviewed_trials_a, 0);
     let partial = Command::new(env!("CARGO_BIN_EXE_bench-report"))
+        .arg("--require-attested")
         .arg(&root)
         .arg(&root)
         .arg("--json")

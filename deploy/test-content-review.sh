@@ -129,7 +129,7 @@ EOF
       and .effective.records_ok == true' "$OUT/$variant-effective.json" >/dev/null
   fi
   if [ "$variant" = forged_approval ]; then
-    if "$REPORT" "$OUT/jobs/$variant" "$OUT/jobs/$variant" --json \
+    if "$REPORT" --require-attested "$OUT/jobs/$variant" "$OUT/jobs/$variant" --json \
         --review-policy "$OUT/policy.json" --review-store "$OUT/reviews" --instructions-root "$OUT/tasks" \
         > "$OUT/forged-comparison.json" 2> "$OUT/forged-comparison.log"; then exit 1; fi
     test ! -s "$OUT/forged-comparison.json"
@@ -145,10 +145,10 @@ EOF
   cmp "$result" "$OUT/$variant-original-result.json"
   printf '%s\n' "$variant: source-bound signed review preserves raw results and required failure gates"
 done
-if "$REPORT" "$OUT/jobs/linked" "$OUT/jobs/wrong_link" --json \
+if "$REPORT" --require-attested "$OUT/jobs/linked" "$OUT/jobs/wrong_link" --json \
     --allow-agent-difference > "$OUT/raw-comparison.json" 2> "$OUT/raw-comparison.log"; then exit 1; fi
 test ! -s "$OUT/raw-comparison.json"
-"$REPORT" "$OUT/jobs/linked" "$OUT/jobs/collateral" --json --allow-agent-difference \
+"$REPORT" --require-attested "$OUT/jobs/linked" "$OUT/jobs/collateral" --json --allow-agent-difference \
   --review-policy "$OUT/policy.json" --review-store "$OUT/reviews" --instructions-root "$OUT/tasks" \
   > "$OUT/comparison.json"
 jq -e '.admission_level == "source_bound_scripted_review_controls_only"

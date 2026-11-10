@@ -34,7 +34,7 @@ for variant in valid weakened_contract mismatched_source; do
   printf '%s\n' "$variant: source binding and execution proof classified as required"
 done
 for variant in weakened_contract mismatched_source; do
-  if cargo run -q --locked -p report --bin bench-report -- "$OUT/$variant" "$OUT/valid" --json \
+  if cargo run -q --locked -p report --bin bench-report -- --require-attested "$OUT/$variant" "$OUT/valid" --json \
       > "$OUT/$variant-comparison.json" 2> "$OUT/$variant-comparison.log"; then
     printf '%s\n' 'source-incompatible assessment produced a final score' >&2
     exit 1
@@ -44,7 +44,7 @@ done
 cp -R "$OUT/valid" "$OUT/tampered"
 manifest="$(find "$OUT/tampered" -path '*/verifier/realized-manifest.json' -print -quit)"
 printf '%s\n' '{}' > "$manifest"
-if cargo run -q --locked -p report --bin bench-report -- "$OUT/tampered" "$OUT/valid" --json \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested "$OUT/tampered" "$OUT/valid" --json \
     > "$OUT/tampered-comparison.json" 2> "$OUT/tampered-comparison.log"; then
   printf '%s\n' 'tampered execution metadata produced a final score' >&2
   exit 1

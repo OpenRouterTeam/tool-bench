@@ -53,7 +53,7 @@ for variant in known_wording unreviewed_wording contradiction wrong_contact inve
       and .runner_admission_checked == 1 and .runner_admission_ok == 1' "$result" >/dev/null
   printf '%s\n' "$variant: Salesforce outcome, text disposition and admission passed"
 done
-if cargo run -q --locked -p report --bin bench-report -- \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested \
     "$OUT/unreviewed_wording" "$OUT/known_wording" --json \
     > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
   printf '%s\n' 'unreviewed natural wording produced an apparently final paired score' >&2

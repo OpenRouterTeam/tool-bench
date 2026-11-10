@@ -375,6 +375,7 @@ fn undeclared_treatments_and_synthetic_held_out_claims_are_rejected() {
 
 fn bench_report(arguments: &[&std::ffi::OsStr]) -> std::process::Output {
     std::process::Command::new(env!("CARGO_BIN_EXE_bench-report"))
+        .arg("--require-attested")
         .args(arguments)
         .output()
         .unwrap()

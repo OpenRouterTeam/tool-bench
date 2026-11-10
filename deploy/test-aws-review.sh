@@ -79,10 +79,10 @@ for variant in alarm_math alarm_output_default alarm_math_collateral; do
       "$OUT/$variant-effective.json" >/dev/null
   fi
   if [ "$variant" = alarm_math_collateral ]; then
-    "$REPORT" "$trial" "$trial" --json > "$OUT/$variant-raw-comparison.json"
+    "$REPORT" --require-attested "$trial" "$trial" --json > "$OUT/$variant-raw-comparison.json"
     jq -e '.mean_a==0 and .mean_b==0' "$OUT/$variant-raw-comparison.json" >/dev/null
   else
-    if "$REPORT" "$trial" "$trial" --json > "$OUT/$variant-raw-comparison.json" \
+    if "$REPORT" --require-attested "$trial" "$trial" --json > "$OUT/$variant-raw-comparison.json" \
         2> "$OUT/$variant-raw-comparison.log"; then exit 1; fi
     test ! -s "$OUT/$variant-raw-comparison.json"
     grep -q 'require adjudication' "$OUT/$variant-raw-comparison.log"

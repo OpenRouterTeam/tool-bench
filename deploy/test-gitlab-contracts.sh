@@ -198,7 +198,7 @@ for variant in merge_squash thread_individual creation_staged thread_minimal cre
   esac
   printf '%s\n' "$variant: GitLab outcome, identity, content, causal and preservation admission passed"
 done
-if cargo run -q --locked -p report --bin bench-report -- "$OUT/thread_restored_body" "$OUT/thread_minimal" \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested "$OUT/thread_restored_body" "$OUT/thread_minimal" \
     --allow-agent-difference --json > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
   printf '%s\n' 'restored GitLab reply produced a final paired score' >&2
   exit 1

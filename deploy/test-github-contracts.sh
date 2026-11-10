@@ -132,7 +132,7 @@ for variant in creation_minimal creation_fragment creation_duplicate creation_wr
   fi
   printf '%s\n' "$variant: GitHub outcome, preservation, ordering, content and admission passed"
 done
-if cargo run -q --locked -p report --bin bench-report -- "$OUT/merge_unreviewed" "$OUT/merge_review_text" \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested "$OUT/merge_unreviewed" "$OUT/merge_review_text" \
     --allow-agent-difference --json > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
   printf '%s\n' 'unreviewed optional review text produced a final paired score' >&2
   exit 1

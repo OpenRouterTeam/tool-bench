@@ -87,7 +87,7 @@ for variant in "$@"; do
   printf '%s\n' "$variant: source-backed communication and execution admission passed"
 done
 if [ -d "$OUT/unreviewed" ] && [ -d "$OUT/grounded" ]; then
-  if cargo run -q --locked -p report --bin bench-report -- \
+  if cargo run -q --locked -p report --bin bench-report -- --require-attested \
       "$OUT/unreviewed" "$OUT/grounded" --allow-agent-difference --json \
       > "$OUT/comparison.json" 2> "$OUT/comparison.log"; then
     printf '%s\n' 'unreviewed identity-backed prose produced a final paired score' >&2

@@ -1,0 +1,61 @@
+{
+  "schema_version": 3,
+  "scenario": "search/exa/find-vp-engineering-profile",
+  "evaluator_version": 45,
+  "contract_sha256": "sha256:249b04a1a08b83d433722f6f9140f49b073bd53bd68f8fc206747c491263268b",
+  "contract_semantic_sha256": "sha256:543fba08bfa42ff52bc3b74b83d8d6787f1413b65c19e197fe7e31226fe3244e",
+  "evidence_schema_version": 7,
+  "world_source": {
+    "schema_version": 1,
+    "scenario": "search/exa/find-vp-engineering-profile",
+    "scenario_sha256": "sha256:d85ddbfee4e2935e82d0c67fc40ea9f5a9e8cb759e8278dbcbfd91b9a286c60f",
+    "dataset_sha256": "sha256:e0da727a09c7ec44aada55d1bbb1bb4b6f2a0f0865e5ccc0cd21eaa77b9403e6",
+    "contract_sha256": "sha256:543fba08bfa42ff52bc3b74b83d8d6787f1413b65c19e197fe7e31226fe3244e"
+  },
+  "initial_state_sha256": "sha256:3a67e298b88066b13b6a822640e66115655a671687a1bab066fb9f923f405ae3",
+  "task_source_checked": true,
+  "task_source_sha256": "sha256:f6aff1c258dc304a759cf2c607cc37dd57f1bdb607fdc8b6611f745a93a10248",
+  "task_context_sha256": "sha256:3be2969a795118ffb3ac29115e940f1ecd4726b7df194c846da8bc7f564b63da",
+  "manifest_sha256": null,
+  "evidence_sha256": "sha256:bba305e400d87ed4f9074b2353bac0b8376e93bdcf7ee4ef75c965f630949dd1",
+  "answer_sha256": "sha256:781150695da3e16a4047c8e6d819803e8a1d022023f2f44a1d10888d28a55663",
+  "answer_source": "legacy_answer_file",
+  "graded_answer_sha256": "sha256:781150695da3e16a4047c8e6d819803e8a1d022023f2f44a1d10888d28a55663",
+  "inference_evidence_sha256": null,
+  "inference_classification": null,
+  "failure_class": {
+    "label": "unresolved",
+    "domain": "unresolved",
+    "inference": null
+  },
+  "context_overflow": false,
+  "runner_attested": false,
+  "runner_admission_checked": false,
+  "runner_admission_ok": true,
+  "runner_policy_sha256": "sha256:df2e183f16203fd7d7c2d8d41e722444dc28d21b10df14511dd63cf2b165fdbd",
+  "runner_admission_sha256": null,
+  "surface_audit": {
+    "status": "unqualified",
+    "reason": "no host surface capture was sealed",
+    "finding_count": null,
+    "missing": [],
+    "date_coherence": null,
+    "report_sha256": null,
+    "claim": "Lexical scan of host-captured agent-visible surfaces for known evaluator-owned markers. It does not establish that the model was unaware of being evaluated."
+  },
+  "information_condition": {
+    "framing": "neutral",
+    "base_instruction_sha256": "sha256:a84490fde408facfa30f5a8161f01f53dd857f01f6d2c7feaa00867895042c5a",
+    "rendered_instruction_sha256": "sha256:a84490fde408facfa30f5a8161f01f53dd857f01f6d2c7feaa00867895042c5a",
+    "workspace_profile": "minimal",
+    "workspace": "minimal",
+    "profile_files_sha256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "profile_files": [],
+    "profile_information": [],
+    "business_reference_time": null,
+    "exposure": "full_catalog",
+    "exposure_catalog_sha256": null,
+    "exposure_endpoints": null,
+    "exposure_tools": null
+  }
+}

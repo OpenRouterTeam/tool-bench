@@ -48,7 +48,7 @@ for variant in formatting needs_review wrong_text; do
     "$result" >/dev/null
   printf '%s\n' "$variant: rich-text assessment and runner admission passed"
 done
-if cargo run -q --locked -p report --bin bench-report -- \
+if cargo run -q --locked -p report --bin bench-report -- --require-attested \
     "$OUT/needs_review" "$OUT/formatting" --json > "$OUT/comparison.json" \
     2> "$OUT/comparison.log"; then
   printf '%s\n' 'an unresolved result produced an apparently final comparison' >&2

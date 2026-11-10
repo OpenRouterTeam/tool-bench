@@ -68,7 +68,7 @@ building concierge '
   fi
   printf '%s\n' "$variant: Shopify outcome, environment and runner checks passed"
 done
-cargo run -q --locked -p report --bin bench-report -- \
+cargo run -q --locked -p report --bin bench-report -- --require-attested \
     "$OUT/activation_only" "$OUT/activation_only" --json \
     > "$OUT/comparison.json" 2> "$OUT/comparison.log"
 jq -e '.paired_tasks == 1 and .mean_a == 0 and .mean_b == 0' "$OUT/comparison.json" >/dev/null

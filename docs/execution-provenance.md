@@ -77,6 +77,10 @@ and hardware-condition accounting remains open.
 
 ## Comparison admission
 
+This section describes `bench-report --require-attested`. Without that flag the tool
+reports stock-Harbor runs, which have no runner receipt or realized manifest, at a
+weaker and explicitly labelled tier; see the [runbook](runbook.md#4-read-results).
+
 Retain the whole trial export, including `artifacts/world/evidence.json`,
 the collected answer when present, and the separate verifier's exact input copies.
 `verification.json` identifies those raw bytes; its evidence hash does not refer
@@ -103,7 +107,7 @@ from the denominator.
 The only currently supported declared cross-arm difference is agent identity:
 
 ```sh
-cargo run --locked -p report --bin bench-report -- run-a run-b --json --allow-agent-difference
+cargo run --locked -p report --bin bench-report -- --require-attested run-a run-b --json --allow-agent-difference
 ```
 
 It is recorded in JSON and Markdown and does not permit other condition changes.

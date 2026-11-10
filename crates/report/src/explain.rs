@@ -83,7 +83,36 @@ fn source(location: &str) -> &'static str {
     }
 }
 
-fn failed_checks(assessment: &Grade) -> Vec<FailedCheck> {
+/// Failed checks as the verifier saved them, for an assessment this tool did not re-run.
+pub(crate) fn saved_failed_checks(saved: &Value) -> Vec<FailedCheck> {
+    let numbers = |value: &Value| -> Vec<u64> {
+        value
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(Value::as_u64)
+            .collect()
+    };
+    saved["failures"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .map(|failure| {
+            let location = failure["location"].as_str().unwrap_or_default().to_owned();
+            FailedCheck {
+                check: failure["check"].clone(),
+                disposition: failure["disposition"].clone(),
+                evidence_source: source(&location),
+                location,
+                reason: failure["reason"].as_str().unwrap_or_default().to_owned(),
+                journal_evidence: numbers(&failure["evidence"]),
+                event_evidence: numbers(&failure["event_evidence"]),
+            }
+        })
+        .collect()
+}
+
+pub(crate) fn failed_checks(assessment: &Grade) -> Vec<FailedCheck> {
     assessment
         .failures
         .iter()

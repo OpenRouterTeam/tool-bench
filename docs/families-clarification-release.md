@@ -151,7 +151,8 @@ task set. The single `external_bundle_seals` entry is flagged
 held-out claim. A manifest with held-out tasks but only a synthetic seal does
 not validate, and the report refuses a held-out comparison against it.
 
-`bench-report <a> <b> --release <manifest>` admits both arms before pairing.
+`bench-report --require-attested <a> <b> --release <manifest>` admits both arms
+before pairing.
 It rejects a trial whose task is outside the release, whose contract, scenario
 source (which carries the family assignment), dataset or evaluator differs
 from the frozen value, or which lacks verified provenance; counted attempts
