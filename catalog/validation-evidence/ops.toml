@@ -82,11 +82,16 @@ collateral_change = [
 
 [[scenario]]
 id = "ops/kubernetes/oomkilled-memory-limit"
+valid_alternative = [
+  "crates/world/tests/kubernetes_contracts.rs::a_corrected_or_restored_limit_rolls_out_again_without_becoming_collateral",
+  "crates/world/tests/kubernetes_contracts.rs::the_memory_fix_rolls_out_when_the_fetched_manifest_is_applied_back",
+]
 
 [scenario.near_miss]
 collateral_change = [
   "crates/world/tests/kubernetes_contracts.rs::memory_fix_cannot_include_an_unrequested_replica_change",
   "crates/world/tests/kubernetes_contracts.rs::memory_permission_does_not_authorize_command_cpu_or_request_changes",
+  "crates/world/tests/kubernetes_contracts.rs::rollout_permissions_do_not_authorize_direct_pod_or_replica_set_writes",
 ]
 undone_prohibited_change = [
   "crates/world/tests/kubernetes_contracts.rs::temporary_unrelated_memory_changes_remain_visible_after_restoration",
@@ -141,6 +146,7 @@ valid_alternative = [
 
 [scenario.near_miss]
 collateral_change = [
+  "crates/world/tests/ops_multi_contracts.rs::memory_fix_rolls_out_and_does_not_authorize_deleting_pods_by_hand",
   "crates/world/tests/ops_multi_contracts.rs::memory_reason_comment_on_another_issue_or_a_second_one_is_collateral",
 ]
 

@@ -50,6 +50,99 @@ cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/ap
 pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/managedFields"
 cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
 
+# Changing the pod template starts a rollout, and the Deployment controller's part of it is
+# not the agent's doing: the Deployment records a new revision and recounts its pods, a
+# ReplicaSet for the new template appears and runs them, and the ReplicaSet of the old
+# template is scaled to zero and loses its pods. Only the write to this Deployment may
+# cause any of it; deleting pods or editing a ReplicaSet directly stays unauthorized.
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/annotations/deployment.kubernetes.io~1revision"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/status"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+# One write creates at most one ReplicaSet and scales down the one it replaces.
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/*"
+kind = "create"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/apiVersion"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/kind"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/spec/replicas"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/status"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/resourceVersion"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/generation"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/annotations"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "delete"
+matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", name = "report-builder-t2h6vx4p7r", uid = "e023e374-4901-434f-a316-f43449a6f943", controller = true }] } }
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "create"
+matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", controller = true }] } }
+references = [{ source_field = "/metadata/ownerReferences/0/uid", target = { collection = "/services/kubernetes/replicasets.apps", created = true, matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } } }, target_field = "/metadata/uid" }]
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+# A limit that is set and then corrected rolls out twice, and one that is put back returns to
+# the old ReplicaSet: the pods of an intermediate revision go, and the old one runs pods again.
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "delete"
+matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", controller = true }] } }
+references = [{ source_field = "/metadata/ownerReferences/0/uid", target = { collection = "/services/kubernetes/replicasets.apps", created = true, matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } } }, target_field = "/metadata/uid" }]
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "create"
+matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", name = "report-builder-t2h6vx4p7r", uid = "e023e374-4901-434f-a316-f43449a6f943", controller = true }] } }
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
 [[solution.call]]
 endpoint = "kubernetes"
 tool = "pods_list_in_namespace"

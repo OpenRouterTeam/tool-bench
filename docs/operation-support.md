@@ -1037,8 +1037,17 @@ embedded client modules and production uncertainty.
   owner UIDs and modeled fields. Direct child/status writes do not inherit those
   permissions. The replica still models one current matching ReplicaSet's scaling
   immediately and creates ready Pods deterministically; this is not production
-  scheduling/readiness, proportional rolling-update scaling, admission parity,
-  template rollout or asynchronous reconciliation conformance.
+  scheduling/readiness, proportional rolling-update scaling, admission parity or
+  asynchronous reconciliation conformance.
+- A pod-template change to a Deployment is rolled out to its end state in the same
+  write: a ReplicaSet for the new template (a new one, or the earlier one that
+  already holds it) becomes the newest revision with ready Pods, the ReplicaSet it
+  replaces is scaled to zero and loses its Pods, and the Deployment records the
+  revision and recounts its status. A quantity respelled with the same value
+  (`1Gi`, `1024Mi`) is the same template and starts nothing. Surge, readiness
+  gates, a failing new template, paused resumption and other workload kinds are
+  not modeled. The memory contracts authorize these effects only when the write to
+  the target Deployment causes them.
 - Cleanup requires the manifest Job/script absent and the target release either
   purged or retained with a latest `uninstalled` revision. Earlier superseded
   history may remain. Background dependents need not disappear before acceptance;

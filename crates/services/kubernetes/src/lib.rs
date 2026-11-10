@@ -895,21 +895,196 @@ impl Kube<'_> {
         }
         next["metadata"]["resourceVersion"] = json_value!(self.next_rv());
         let key = Self::key(rt, ns, name);
-        let rescaled = rt.group == "apps"
-            && rt.plural == "deployments"
-            && !current.is_null()
-            && next["spec"]["replicas"] != current["spec"]["replicas"];
+        let deployment = rt.group == "apps" && rt.plural == "deployments" && !current.is_null();
+        let rescaled = deployment && next["spec"]["replicas"] != current["spec"]["replicas"];
+        let retemplated = deployment
+            && !resources::same_template(&next["spec"]["template"], &current["spec"]["template"]);
         self.save(rt, &key, next.clone());
+        if retemplated {
+            self.rollout_deployment(rt, ns, name);
+        }
         if rescaled {
             self.reconcile_deployment(rt, ns, name);
+        }
+        if retemplated || rescaled {
             return json(StatusCode::OK, self.fetch(rt, ns, name).unwrap_or(next));
         }
         json(StatusCode::OK, next)
     }
 
+    /// Does what the Deployment controller would after a pod-template change, taken to its end
+    /// state: a ReplicaSet for the new template (a new one, or the earlier one that already has
+    /// it) becomes the newest revision and runs the desired pods, and every other ReplicaSet of
+    /// the Deployment is scaled to zero and loses its pods. A paused Deployment, or one whose
+    /// ReplicaSets are not in the dataset, is left as it is.
+    fn rollout_deployment(&mut self, rt: &ResType, ns: Option<&str>, name: &str) {
+        let Some(deploy) = self.fetch(rt, ns, name) else {
+            return;
+        };
+        let (Some(rs_rt), Some(pod_rt)) = (
+            find(&self.types, "apps", "v1", "replicasets").cloned(),
+            find(&self.types, "", "v1", "pods").cloned(),
+        ) else {
+            return;
+        };
+        if deploy["spec"]["paused"] == true {
+            return;
+        }
+        let revision = |rs: &Value| {
+            rs["metadata"]["annotations"]["deployment.kubernetes.io/revision"]
+                .as_str()
+                .and_then(|r| r.parse::<i64>().ok())
+                .unwrap_or(0)
+        };
+        let template_of = |rs: &Value| {
+            let mut template = rs["spec"]["template"].clone();
+            if let Some(labels) = template
+                .pointer_mut("/metadata/labels")
+                .and_then(Value::as_object_mut)
+            {
+                labels.remove("pod-template-hash");
+            }
+            template
+        };
+        let owned: Vec<Value> = self
+            .stored(&rs_rt)
+            .into_iter()
+            .map(|(_, r)| r)
+            .filter(|r| ownership::controlled_by(r, &deploy))
+            .collect();
+        let Some(newest) = owned.iter().max_by_key(|r| revision(r)).cloned() else {
+            return;
+        };
+        let template = &deploy["spec"]["template"];
+        if resources::same_template(&template_of(&newest), template) {
+            return;
+        }
+        let replicas = deploy["spec"]["replicas"].as_i64().unwrap_or(1).max(0);
+        let next_revision = (revision(&newest) + 1).to_string();
+        let placement = owned
+            .iter()
+            .find_map(|rs| self.pods_of(&pod_rt, rs).into_iter().next())
+            .map(|(_, pod)| pod);
+
+        // Everything that ran the old templates goes away.
+        for old in &owned {
+            for (key, _) in self.pods_of(&pod_rt, old) {
+                self.remove(&pod_rt, &key);
+            }
+        }
+        let reused = owned
+            .iter()
+            .find(|rs| resources::same_template(&template_of(rs), template))
+            .cloned();
+        let target_name = match &reused {
+            Some(rs) => rs["metadata"]["name"]
+                .as_str()
+                .unwrap_or_default()
+                .to_owned(),
+            None => {
+                let hash = name_suffix(&format!("{name}/{next_revision}/{template}"), 10);
+                let rs_name = format!("{name}-{hash}");
+                let mut pod_template = template.clone();
+                pod_template["metadata"]["labels"]["pod-template-hash"] = json_value!(hash);
+                let mut selector = deploy["spec"]["selector"].clone();
+                selector["matchLabels"]["pod-template-hash"] = json_value!(hash);
+                let mut rs = json_value!({
+                    "metadata": {
+                        "name": rs_name,
+                        "labels": pod_template["metadata"]["labels"],
+                        "annotations": newest["metadata"]["annotations"],
+                        "ownerReferences": [{
+                            "apiVersion": "apps/v1",
+                            "kind": "Deployment",
+                            "name": name,
+                            "uid": deploy["metadata"]["uid"],
+                            "controller": true,
+                            "blockOwnerDeletion": true,
+                        }],
+                    },
+                    "spec": {"replicas": 0, "selector": selector, "template": pod_template},
+                    "status": {"replicas": 0, "observedGeneration": 1},
+                });
+                self.initialize(&rs_rt, ns, &rs_name, &mut rs);
+                self.save(&rs_rt, &Self::key(&rs_rt, ns, &rs_name), rs);
+                rs_name
+            }
+        };
+        for old in &owned {
+            let old_name = old["metadata"]["name"].as_str().unwrap_or_default();
+            if old_name == target_name || old["spec"]["replicas"].as_i64().unwrap_or(0) == 0 {
+                continue;
+            }
+            let mut scaled = old.clone();
+            scaled["spec"]["replicas"] = json_value!(0);
+            scaled["status"] = json_value!({
+                "replicas": 0,
+                "observedGeneration": old["metadata"]["generation"].as_i64().unwrap_or(1) + 1,
+            });
+            self.commit(&rs_rt, ns, old_name, old, scaled);
+        }
+        let Some(target) = self.fetch(&rs_rt, ns, &target_name) else {
+            return;
+        };
+        let mut running = target.clone();
+        running["metadata"]["annotations"]["deployment.kubernetes.io/revision"] =
+            json_value!(next_revision);
+        running["metadata"]["annotations"]["deployment.kubernetes.io/desired-replicas"] =
+            json_value!(replicas.to_string());
+        running["spec"]["replicas"] = json_value!(replicas);
+        for _ in 0..replicas {
+            self.create_running_pod(&pod_rt, ns, &running, placement.as_ref());
+        }
+        let generation = target["metadata"]["generation"].as_i64().unwrap_or(1)
+            + i64::from(target["spec"]["replicas"].as_i64() != Some(replicas));
+        running["status"] = json_value!({
+            "replicas": replicas,
+            "fullyLabeledReplicas": replicas,
+            "readyReplicas": replicas,
+            "availableReplicas": replicas,
+            "observedGeneration": generation,
+        });
+        self.commit(&rs_rt, ns, &target_name, &target, running);
+
+        // The Deployment records the new revision and counts the new pods. This is the
+        // controller's own write: it changes no spec, so the generation stays.
+        let mut next = deploy.clone();
+        next["metadata"]["annotations"]["deployment.kubernetes.io/revision"] =
+            json_value!(next_revision);
+        next["status"]["observedGeneration"] = deploy["metadata"]["generation"].clone();
+        for field in [
+            "replicas",
+            "updatedReplicas",
+            "readyReplicas",
+            "availableReplicas",
+        ] {
+            next["status"][field] = json_value!(replicas);
+        }
+        if let Some(status) = next["status"].as_object_mut() {
+            status.remove("unavailableReplicas");
+        }
+        let now = self.now_str();
+        for condition in next
+            .pointer_mut("/status/conditions")
+            .and_then(Value::as_array_mut)
+            .into_iter()
+            .flatten()
+            .filter(|condition| condition["type"] == "Progressing")
+        {
+            condition["status"] = json_value!("True");
+            condition["reason"] = json_value!("NewReplicaSetAvailable");
+            condition["message"] = json_value!(format!(
+                "ReplicaSet \"{target_name}\" has successfully progressed."
+            ));
+            condition["lastUpdateTime"] = json_value!(now);
+        }
+        next["metadata"]["resourceVersion"] = json_value!(self.next_rv());
+        self.save(rt, &Self::key(rt, ns, name), next);
+    }
+
     /// Does what the Deployment and ReplicaSet controllers would after a replica change: the newest
     /// ReplicaSet and its pods follow the new count, and both statuses are recounted from the pods.
-    /// A change that also edits the pod template is a rollout, which is not simulated.
+    /// A pod-template change is rolled out first, by `rollout_deployment`.
     fn reconcile_deployment(&mut self, rt: &ResType, ns: Option<&str>, name: &str) {
         let Some(deploy) = self.fetch(rt, ns, name) else {
             return;

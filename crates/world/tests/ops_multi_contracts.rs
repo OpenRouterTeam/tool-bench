@@ -575,6 +575,51 @@ async fn memory_can_use_an_equivalent_representation_after_resolution() {
     assert_outcome(&trial, Outcome::Pass);
 }
 
+#[tokio::test]
+async fn memory_fix_rolls_out_and_does_not_authorize_deleting_pods_by_hand() {
+    let pods = |trial: &ContractTrial| -> Vec<(String, String, String)> {
+        trial.state()["pods"]
+            .as_object()
+            .unwrap()
+            .iter()
+            .filter(|(key, _)| key.starts_with("analytics/report-builder-"))
+            .map(|(_, pod)| {
+                let text = |value: &Value| value.as_str().unwrap().to_owned();
+                (
+                    text(&pod["metadata"]["name"]),
+                    text(&pod["status"]["phase"]),
+                    text(&pod["spec"]["containers"][0]["resources"]["limits"]["memory"]),
+                )
+            })
+            .collect()
+    };
+    let trial = prepared(MEMORY);
+    let before = pods(&trial);
+    memory(&trial, "1Gi", false).await;
+    let after = pods(&trial);
+    assert_eq!(after.len(), before.len());
+    for (name, phase, limit) in &after {
+        assert!(before.iter().all(|(old, _, _)| old != name), "{name}");
+        assert_eq!((phase.as_str(), limit.as_str()), ("Running", "1Gi"));
+    }
+    resolve_issue(&trial, "resolved").await;
+    assert_outcome(&trial, Outcome::Pass);
+
+    let trial = prepared(MEMORY);
+    memory(&trial, "1Gi", false).await;
+    let (name, _, _) = pods(&trial).remove(0);
+    trial
+        .call_from(
+            "kubernetes",
+            "DELETE",
+            &format!("/api/v1/namespaces/analytics/pods/{name}"),
+            Value::Null,
+        )
+        .await;
+    resolve_issue(&trial, "resolved").await;
+    assert_outcome(&trial, Outcome::Fail);
+}
+
 /// What `update_issue` does with its optional `reason`: a comment on the updated issue.
 async fn reason(trial: &ContractTrial, issue: &str, text: &str) {
     native_arguments(
