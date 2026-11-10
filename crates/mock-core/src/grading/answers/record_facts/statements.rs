@@ -407,7 +407,11 @@ static TRAILING_DENIAL: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
         r#"^[\s"')\]]*(?:,\s*(?:which|who|that)\s+)?(?:"#,
         r"(?:is|was|are|were)(?:\s+not|n't)\s+(?:the|a|an|it|correct|right|true|accurate|our|that|what|who|where|one|actually|really|on call)\b",
-        r"|(?:(?:is|was|are|were|has been|had been|have been)\s+)?(?:also\s+|now\s+|since\s+)?(?:incorrect|wrong|false|inaccurate|ruled out|excluded|eliminated|discarded|superseded|outdated|deprecated)\b",
+        r"|(?:is|was|are|were|has been|had been|have been)\s+(?:also\s+|now\s+|since\s+)?(?:incorrect|wrong|false|inaccurate|ruled out|excluded|eliminated|discarded|superseded|outdated|deprecated)\b",
+        r"|(?:also\s+|now\s+|since\s+)?(?:incorrect|wrong|false|inaccurate|outdated)\b",
+        // Without a copula a participle is a denial only where it reads as passive
+        // ("X, superseded by Y"); "X superseded it" says what X did.
+        r"|(?:also\s+|now\s+|since\s+)?(?:ruled out|excluded|eliminated|discarded|superseded|deprecated)(?:\s+by\b|\s*(?:$|[.,;:)\]]))",
         r")"
     ))
     .expect("trailing denial pattern")
