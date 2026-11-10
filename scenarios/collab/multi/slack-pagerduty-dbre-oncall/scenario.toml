@@ -17,7 +17,9 @@ rationale = "Slack thread first guesses the staging DB alert, then corrects to p
 # The thread starts by guessing the staging DB alert (Database Reliability - Staging, Sam
 # Okafor only), then Sam Ortiz corrects it: production inventory-db, PD #4813, the production
 # DBRE rotation. Database Reliability (PEPDBRE): level 1 is the daily DBRE Primary schedule,
-# Dana Nguyen on 2026-10-30; level 2 is Sam Okafor.
+# Dana Nguyen on 2026-10-30; level 2 is Sam Okafor. PagerDuty agrees with the thread: the
+# inventory-db service and incident #4813 use that policy and the incident is assigned to
+# Dana, so resolving the on-call from the incident's own routing names the same two people.
 [expect]
 version = 2
 audit_history = true

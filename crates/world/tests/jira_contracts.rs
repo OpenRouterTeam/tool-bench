@@ -408,6 +408,24 @@ async fn shipment_comment_can_precede_or_share_the_transition() {
 }
 
 #[tokio::test]
+async fn shipment_tolerates_setting_the_resolution_again_after_the_transition() {
+    // The transition tool's reply does not show the resolution, so an agent may set it again
+    // to be sure. The same value is harmless; another one is not what was asked.
+    let trial = Trial::new("ship-refund-retries");
+    trial.ship().await;
+    trial
+        .edit("PAY-121", json!({"resolution": {"name": "Done"}}))
+        .await;
+    passed(&trial.assess());
+    let trial = Trial::new("ship-refund-retries");
+    trial.ship().await;
+    trial
+        .edit("PAY-121", json!({"resolution": {"name": "Won't Do"}}))
+        .await;
+    failed(&trial.assess());
+}
+
+#[tokio::test]
 async fn shipment_requires_a_new_comment_on_the_correct_issue_and_correct_resolution() {
     for (key, resolution) in [("PAY-122", "Done"), ("PAY-121", "Won't Do")] {
         let trial = Trial::new("ship-refund-retries");

@@ -269,6 +269,43 @@ async fn launch_updates_preserve_other_fields_and_restored_old_launch_changes() 
 }
 
 #[tokio::test]
+async fn launch_delay_may_add_the_reason_to_notes_but_not_lose_the_existing_note() {
+    let delayed = json!({"Status":{"status":{"name":"Delayed"}},"Launch date":{"date":{"start":"2026-11-10"}}});
+    let with_notes = |notes: &str| {
+        let mut properties = delayed.clone();
+        properties["Notes"] = json!({"rich_text":[text(notes)]});
+        properties
+    };
+    // The request states why the launch slipped; the tracker has a Notes column for it.
+    for notes in [
+        "Release notes screenshots by Alex. Slipped a week because of the payments SDK regression.",
+        "Delayed one week (payments SDK regression). Release notes screenshots by Alex.",
+    ] {
+        let trial = Trial::new("delay-web-launch");
+        trial.patch(LAUNCH, with_notes(notes)).await;
+        pass(&trial.assess());
+    }
+    // Replacing or clearing the note that was there is not part of the request.
+    for notes in ["Slipped a week because of the payments SDK regression.", ""] {
+        let trial = Trial::new("delay-web-launch");
+        trial.patch(LAUNCH, with_notes(notes)).await;
+        let grade = trial.assess();
+        fail(&grade);
+        assert!(!grade.adjudication_needed, "{grade:?}");
+    }
+    // The permission is for this row's Notes only.
+    let trial = Trial::new("delay-web-launch");
+    trial.patch(LAUNCH, delayed.clone()).await;
+    trial
+        .patch(
+            OLD_LAUNCH,
+            json!({"Notes":{"rich_text":[text("Slipped a week.")]}}),
+        )
+        .await;
+    fail(&trial.assess());
+}
+
+#[tokio::test]
 async fn runbook_updates_accept_split_passive_formatting_and_targeted_markdown() {
     let split = Trial::new("update-current-runbook");
     let mut name = text("Sam Ortiz");
@@ -297,6 +334,28 @@ async fn runbook_updates_accept_split_passive_formatting_and_targeted_markdown()
         )
         .await;
     pass(&markdown.assess());
+}
+
+#[tokio::test]
+async fn runbook_whole_page_markdown_rewrite_edits_the_contact_line_in_place() {
+    // The Markdown tool's description recommends `replace_content`; a rewrite that changes
+    // one line must not turn the whole page into new blocks.
+    let trial = Trial::new("update-current-runbook");
+    let page = trial
+        .call("GET", &format!("/v1/pages/{RUNBOOK}/markdown"), Value::Null)
+        .await;
+    let rewritten = page["markdown"]
+        .as_str()
+        .unwrap()
+        .replace("Marcus Webb, +1 555-0100", "Sam Ortiz, +1 555-0142");
+    trial
+        .call(
+            "PATCH",
+            &format!("/v1/pages/{RUNBOOK}/markdown"),
+            json!({"type":"replace_content","replace_content":{"new_str":rewritten}}),
+        )
+        .await;
+    pass(&trial.assess());
 }
 
 #[tokio::test]

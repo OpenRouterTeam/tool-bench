@@ -389,6 +389,23 @@ async fn an_extra_guest_is_not_authorized_by_the_two_requested_names() {
 }
 
 #[tokio::test]
+async fn listing_the_organizer_among_the_attendees_invites_nobody_new() {
+    // The meeting goes on the requester's own calendar, so they are its organizer whether
+    // or not their address is also written into the attendee list.
+    let trial = prepared(PLAN, |_| {});
+    meeting(
+        &trial,
+        json!({"attendees":[PRIYA,MARCUS,"ops@octo-corp.example"]}),
+    )
+    .await;
+    assessment(&trial, Outcome::Pass);
+    // The organizer's entry does not make up for a guest who was left out.
+    let trial = prepared(PLAN, |_| {});
+    meeting(&trial, json!({"attendees":[PRIYA,"ops@octo-corp.example"]})).await;
+    assessment(&trial, Outcome::Fail);
+}
+
+#[tokio::test]
 async fn mentioning_the_title_inside_a_contradictory_title_is_not_exact() {
     let trial = prepared(PLAN, |_| {});
     meeting(

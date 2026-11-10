@@ -88,6 +88,16 @@ pointer = "/services/cloudflare/dns_records/5b2d7a1f0e3c8b6d4f9a2e1c7b0d3f58/tag
 pointer = "/services/linear/issues/PLAT-241/stateId"
 value_equals = "4ed11568-6dd0-5b94-bf4e-ba05dd563850"
 
+# PLAT-241 is already assigned to the requester, so picking it up first is ordinary ticket
+# workflow: it may pass through the Platform team's In Progress on its way to Done. The
+# final state is still required to be Done, and no other state is permitted on the way.
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/PLAT-241/stateId"
+value_equals = "1bf2e271-f765-5dce-bbdd-56b9366aacc6"
+
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/PLAT-241/startedAt"
+
 [[expect.preservation.allow]]
 pointer = "/services/linear/issues/PLAT-241/completedAt"
 

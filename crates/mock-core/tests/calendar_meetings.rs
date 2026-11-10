@@ -121,6 +121,35 @@ fn organizer_meeting_completion_does_not_require_guest_email_or_receipt_evidence
 }
 
 #[test]
+fn the_organizers_own_attendee_entry_is_not_an_extra_guest() {
+    let goal = contract(json!({}));
+    let hosted = |organizer: &str| {
+        let mut state = complete();
+        let event = &mut state["services"]["google"]["calendar_events"]["event"];
+        event["organizer"] = json!({"email":organizer,"self":true});
+        event["attendees"] = json!([
+            {"email":"priya@example.test"},{"email":"marcus@example.test"},
+            {"email":"OPS@example.test","organizer":true,"self":true}
+        ]);
+        state
+    };
+    // Calendar's interface lists the organizer among the attendees of any event with guests.
+    goal.check(Some(&initial()), &hosted("ops@example.test"))
+        .unwrap();
+    // The same entry on an event somebody else organizes is one more invited person.
+    assert!(
+        goal.check(Some(&initial()), &hosted("team-calendar@example.test"))
+            .is_err()
+    );
+    // Listing the organizer does not stand in for a requested guest.
+    let mut missing = hosted("ops@example.test");
+    missing["services"]["google"]["calendar_events"]["event"]["attendees"] = json!([
+        {"email":"priya@example.test"},{"email":"ops@example.test"}
+    ]);
+    assert!(goal.check(Some(&initial()), &missing).is_err());
+}
+
+#[test]
 fn conferencing_can_be_optional_without_accepting_guessed_or_conflicting_links() {
     let mut definition = serde_json::to_value(contract(json!({}))).unwrap();
     definition["calendar_meeting"]["require_meet"] = json!(false);

@@ -28,6 +28,7 @@ const STAGING_RECORD: &str = "e41a6d0c9b2f7e5a3c8d1b6f4a9e2c07";
 const DONE: &str = "4ed11568-6dd0-5b94-bf4e-ba05dd563850";
 const CANCELED: &str = "99afb074-55c3-5598-a54a-aeacf48ea5ff";
 const IN_PROGRESS: &str = "1bf2e271-f765-5dce-bbdd-56b9366aacc6";
+const IN_REVIEW: &str = "8e6f9641-c2c5-5ef8-9921-5abc7a8cea38";
 const NEW_ORIGIN: &str = "198.51.100.45";
 const CANCELED_ORIGIN: &str = "198.51.100.44";
 const CUTOVER_COMMENT: &str = "Updated the existing api.octo-corp.com A record to 198.51.100.45.";
@@ -573,7 +574,6 @@ async fn refund_message_must_confirm_the_refund_and_its_amount_in_any_wording() 
         "Your refund of $6200.00 has been issued.",
         "We refunded $26.00 for your desk lamp order.",
         "We cannot refund your order.",
-        "Your desk lamp order has been refunded in full ($62.00). The money will arrive within 5-10 business days.",
     ] {
         let attempt = trial(REFUND);
         full_refund(&attempt).await;
@@ -585,6 +585,19 @@ async fn refund_message_must_confirm_the_refund_and_its_amount_in_any_wording() 
         (
             "Thanks for flagging the damaged lamp; we've refunded the full $62.00 for order 5024.",
             true,
+        ),
+        // A routine note on when the bank shows the money is not a claim the request forbids.
+        (
+            "Your desk lamp order has been refunded in full ($62.00). The money will arrive within 5-10 business days.",
+            true,
+        ),
+        (
+            "Hi Priya,\n\nSorry about the broken lamp. I've refunded the full $62.00 to your original payment method; it usually shows on your statement within 5-10 business days.",
+            true,
+        ),
+        (
+            "We refunded $26.00 of your desk lamp order; it usually shows on your statement within 5-10 business days.",
+            false,
         ),
         (
             "Thanks for flagging the damaged lamp; the money for order 5024 is on its way back to you.",
@@ -853,6 +866,33 @@ async fn cutover_ticket_changes_are_scoped_to_the_requested_issue() {
 }
 
 #[tokio::test]
+async fn cutover_ticket_may_be_picked_up_as_in_progress_on_its_way_to_done() {
+    // The ticket is assigned to the requester: starting it before the work is ordinary.
+    let picked_up = trial(CUTOVER);
+    move_issue(&picked_up, "PLAT-241", IN_PROGRESS).await;
+    complete_cutover_workflow(&picked_up).await;
+    pass(&picked_up.assess());
+    assert!(
+        state_of(&picked_up, "linear")["issues"]["PLAT-241"]["startedAt"].is_string(),
+        "the mock stamps startedAt when the ticket is started"
+    );
+
+    // Any other state on the way is still a change nobody asked for, even once it is Done.
+    for detour in [IN_REVIEW, CANCELED] {
+        let detoured = trial(CUTOVER);
+        move_issue(&detoured, "PLAT-241", detour).await;
+        complete_cutover_workflow(&detoured).await;
+        fail(&detoured.assess());
+    }
+
+    // Starting the canceled look-alike is not part of picking up PLAT-241.
+    let wrong_ticket = trial(CUTOVER);
+    move_issue(&wrong_ticket, "PLAT-238", IN_PROGRESS).await;
+    complete_cutover_workflow(&wrong_ticket).await;
+    fail(&wrong_ticket.assess());
+}
+
+#[tokio::test]
 async fn cutover_requires_each_action_and_dns_before_comment_and_done() {
     let no_dns = trial(CUTOVER);
     comment_on(&no_dns, "PLAT-241", CUTOVER_COMMENT).await;
@@ -991,6 +1031,11 @@ async fn calendar_requires_the_agreed_window_calendar_title_and_exact_guests() {
         ("shortened", json!({"end_time":"2026-11-08T00:00:00"})),
         ("missing priya", json!({"attendees":[SAM]})),
         ("extra guest", json!({"attendees":[SAM,PRIYA,MARCUS]})),
+        // The shared calendar organizes this event, so the requester would be a third guest.
+        (
+            "requester as guest",
+            json!({"attendees":[SAM,PRIYA,"ops@octo-corp.example"]}),
+        ),
         ("wrong guest", json!({"attendees":[SAM,MARCUS]})),
         ("no guests", json!({"attendees":null})),
     ];

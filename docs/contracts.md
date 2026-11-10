@@ -518,7 +518,9 @@ but rejects a committed wrong date even when the final value is restored.
 `calendar_meeting` requires the complete created-event collection, exact title,
 calendar and nanosecond instants, a confirmed non-recurring event, the complete
 case-equivalent guest set and one usable Google Meet URI backed by a successful
-modeled provider resource. A known URI in `location` is a valid representation;
+modeled provider resource. The organizer's own entry in the attendee list is the
+host, not a guest: it neither counts as an unrequested guest nor stands in for a
+requested one. A known URI in `location` is a valid representation;
 redundant convenience fields are not mandatory. A provider type label or guessed
 URL is not provisioning evidence. A link quoted inside the description's prose is
 neither: it does not supply a required video link and does not fail an event that
