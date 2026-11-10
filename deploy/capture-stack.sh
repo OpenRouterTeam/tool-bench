@@ -47,7 +47,11 @@ docker run --rm --network $NET -e ONLY="$ONLY" -v "$OUT:/out" --entrypoint sh "$
     if [ -n "$ONLY" ] && ! echo " $ONLY " | grep -q " $id "; then continue; fi
     port=$(catalog --file /etc/tool-bench/services.toml port "$id")
     for i in $(seq 1 60); do curl -s -o /dev/null http://tools:$port/mcp && break; sleep 0.5; done
-    if ! toolmeter capture --name "$id" --out /out --http "http://tools:$port/mcp"; then
+    # A replica serves its own committed snapshot, which comes from its source server
+    # (servers/capture/replicas.sh). List it for the startup journal; keep its file.
+    out=/out; [ "$runtime" = replica ] && out=/tmp/replica-capture
+    mkdir -p "$out"
+    if ! toolmeter capture --name "$id" --out "$out" --http "http://tools:$port/mcp"; then
       echo "$id: FAILED"; failures=$((failures + 1))
     fi
   done <<EOF

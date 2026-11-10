@@ -178,10 +178,7 @@ requests the servers make on their own, which grading leaves out of `api_calls`.
 does so wherever the snapshots are written. A capture of named endpoints leaves that
 file alone.
 
-A replica endpoint serves the snapshot its `tools` image was built with, so capturing
-one finds no new tools. Its file can still change: `protocol_version` becomes the version
-`toolmeter` asked for, and `server_info` keeps only the name and version, which loses
-the `source` note in `slack.json` and `stripe.json`. Restore a replica's file with
-`git checkout` after a capture into `servers/snapshots`. Replica tool lists come from
-their source servers through `servers/capture/replicas.sh` and
+A replica endpoint serves the snapshot its `tools` image was built with, so the script
+lists it (its startup requests still count) and leaves its file alone. Replica tool
+lists come from their source servers through `servers/capture/replicas.sh` and
 `servers/capture/cloudflare/run.sh`.
