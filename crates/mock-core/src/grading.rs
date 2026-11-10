@@ -889,18 +889,13 @@ pub fn grade(input: &GradeInput) -> Grade {
     let proven_failure = failures
         .iter()
         .any(|failure| failure.disposition == CheckDisposition::Failed);
-    // A check that could not find its evidence makes the trial unassessable only when
-    // nothing else is proven wrong. An agent that also broke the task has failed it, and
-    // must not drop out of the score by damaging what the check reads. A fault the
-    // contract itself declares is no agent's doing, so it is never a failure.
-    let task_failure = failures.iter().any(|failure| {
-        failure.disposition == CheckDisposition::Failed
-            && !matches!(failure.check, CheckKind::Contract | CheckKind::Environment)
-    });
-    let declared_fault = !input.expect.environment_faults.is_empty();
+    // An environment fault means the mock world could not serve the trial faithfully
+    // (a declared unsupported setup, an operation it does not model, evidence it could
+    // not produce). Such a trial is void whatever else happened in it: scoring only the
+    // failures among them would count the mock's limits against the agent.
     let outcome = if !contract_ok {
         Outcome::InvalidContract
-    } else if !environment_ok && (declared_fault || !task_failure) {
+    } else if !environment_ok {
         Outcome::EnvironmentError
     } else if !integrity_ok {
         Outcome::IntegrityViolation
