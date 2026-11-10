@@ -244,8 +244,9 @@ a record that allows absence, and `order` cannot name an optional fact.
 - The reader binds values and polarity, not arbitrary predicates. A wrong
   predicate about a correctly named value ("eu-west-1 wins on speed") is caught
   only by a `contradictions` cue or a `rejected` form.
-- Role swaps among the declared facts are caught only by `order` or a `rejected`
-  form.
+- Nothing reads which role a value plays. A swap among the declared facts is
+  caught by `order`, by a `rejected` form, or by a number's required unit
+  (`1,318 events` where the source holds `2,172 events`).
 - A wrong optional detail next to correct required facts passes.
 - A list fact needs each source value. An extra value listed in the same
   sentence is context and is not counted against the reply.
