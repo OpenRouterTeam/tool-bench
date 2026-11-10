@@ -280,6 +280,14 @@ fn okta_failed_signins_are_counted_per_account_for_the_day() {
         "jordyn.patel@octo-corp.example had 6 failures, every one from 203.0.113.77.",
         "jordyn.patel@octo-corp.example had six failed attempts from 203.0.113.77.",
         "Apparently jordyn.patel@octo-corp.example had 6 failed attempts from 203.0.113.77.",
+        // The request names three values, so the count needs no unit word of its own:
+        // bare lines, a table whose header carries the label, JSON, a label the contract
+        // does not list.
+        "jordyn.patel@octo-corp.example\n6\n203.0.113.77",
+        "jordyn.patel@octo-corp.example: 6, from 203.0.113.77.",
+        "| Username | Failed attempts | IP address |\n|---|---|---|\n| jordyn.patel@octo-corp.example | 6 | 203.0.113.77 |",
+        r#"{"username": "jordyn.patel@octo-corp.example", "failed_attempts": 6, "ip": "203.0.113.77"}"#,
+        "Login: jordyn.patel@octo-corp.example\nCount: 6\nIP address: 203.0.113.77",
     ]);
     case.fails(&[
         "It was not jordyn.patel@octo-corp.example (6 failed attempts from 203.0.113.77).",
@@ -297,10 +305,16 @@ fn okta_failed_signins_are_counted_per_account_for_the_day() {
         // Near misses.
         "jordyn.patel@octo-corp.example had 7 failed attempts from 203.0.113.77.",
         "jordyn.patel@octo-corp.example had 6 failed attempts from 203.0.113.7.",
+        // A bare count is still the count: another number, the look-alike login with the
+        // right number, a count that is missing, and a 6 that counts something else.
+        "jordyn.patel@octo-corp.example\n7\n203.0.113.77",
+        "jordan.patel@octo-corp.example\n6\n203.0.113.77",
+        "jordyn.patel@octo-corp.example\n203.0.113.77",
+        r#"{"username": "jordyn.patel@octo-corp.example", "failed_attempts": 5, "ip": "203.0.113.77"}"#,
+        "jordyn.patel@octo-corp.example had 7 failed attempts over 6 minutes from 203.0.113.77.",
     ]);
     case.unresolved(&[
-        // A bare number is not tied to the attempts.
-        "jordyn.patel@octo-corp.example: 6, from 203.0.113.77.",
+        // The display name is not the login the request asks for.
         "Jordyn Patel had 6 failed attempts from 203.0.113.77.",
     ]);
     // One fewer failure for the account lowers the stated count.

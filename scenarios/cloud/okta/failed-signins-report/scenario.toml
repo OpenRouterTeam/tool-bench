@@ -43,8 +43,9 @@ kind = "identifier"
 [expect.answer.record_facts.facts.attempts]
 field = "/value"
 kind = "number"
+# The request asks for three values, so a table row, a JSON object or three bare lines is a
+# complete reply: the count needs no unit word. The units still mark another account's count.
 units = ["attempts", "attempt", "failed", "failures", "failure", "fails", "unsuccessful", "times", "sign-ins", "sign-in", "logins", "login"]
-require_unit = true
 
 [expect.answer.record_facts.facts.ip]
 field = "/member/client/ipAddress"
