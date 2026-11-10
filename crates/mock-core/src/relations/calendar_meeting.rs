@@ -166,15 +166,9 @@ impl CalendarMeeting {
         if complete && present != wanted {
             return Err(failed("meeting lacks the complete requested guest set"));
         }
+        // A link quoted in the description's prose is not a provisioned conference: it neither
+        // satisfies a required video link nor fails an event that needs none.
         let Some(uri) = meeting_uri(record) else {
-            if record["description"]
-                .as_str()
-                .is_some_and(|text| text.contains("https://meet.google.com/"))
-            {
-                return Err(RecordCheckError::NeedsAdjudication(
-                    "unreviewed meeting-link wording requires adjudication".into(),
-                ));
-            }
             let claimed = record["hangoutLink"]
                 .as_str()
                 .is_some_and(|link| !link.is_empty())

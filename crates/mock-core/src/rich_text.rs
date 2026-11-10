@@ -22,12 +22,46 @@ struct FormattingSink {
     state: RefCell<TextState>,
 }
 
+/// Elements that only lay visible text out: paragraphs, lists, headings and quotes.
 fn block(name: &str) -> bool {
-    matches!(name, "div" | "p")
+    matches!(name, "div" | "p" | "ul" | "ol" | "li" | "blockquote") || heading(name)
 }
 
 fn inline(name: &str) -> bool {
-    matches!(name, "span" | "b" | "strong" | "i" | "em" | "u")
+    matches!(
+        name,
+        "span" | "b" | "strong" | "i" | "em" | "u" | "code" | "a"
+    )
+}
+
+fn heading(name: &str) -> bool {
+    matches!(name, "h1" | "h2" | "h3" | "h4" | "h5" | "h6")
+}
+
+fn void(name: &str) -> bool {
+    matches!(name, "br" | "hr")
+}
+
+/// A link to a web page shows its label; the page it cites is not a claim. Links that act on a
+/// contact or run code (`tel:`, `mailto:`, `javascript:`) are not passive.
+pub(crate) fn web_link(target: &str) -> bool {
+    let target = target.trim().to_ascii_lowercase();
+    target.starts_with("https://") || target.starts_with("http://")
+}
+
+/// Only a web link's own attributes are passive.
+fn passive_attributes(tag: &html5ever::tokenizer::Tag) -> bool {
+    tag.attrs.is_empty()
+        || (&*tag.name == "a"
+            && tag.kind == TagKind::StartTag
+            && tag
+                .attrs
+                .iter()
+                .all(|attribute| match &*attribute.name.local {
+                    "href" => web_link(&attribute.value),
+                    "target" | "rel" => true,
+                    _ => false,
+                }))
 }
 
 pub(crate) fn unsupported_control(character: char) -> bool {
@@ -69,13 +103,13 @@ impl TokenSink for FormattingSink {
             Token::CommentToken(_) => {}
             Token::TagToken(tag) => {
                 let name = tag.name.as_ref();
-                if !tag.attrs.is_empty()
+                if !passive_attributes(&tag)
                     || tag.had_duplicate_attributes
-                    || !(block(name) || inline(name) || name == "br")
+                    || !(block(name) || inline(name) || void(name))
                 {
                     state.unsupported =
                         Some("rich-text markup is outside the passive formatting contract".into());
-                } else if name == "br" {
+                } else if void(name) {
                     if tag.kind == TagKind::StartTag {
                         state.text.push('\n');
                     } else {
@@ -101,7 +135,7 @@ impl TokenSink for FormattingSink {
                     && state
                         .elements
                         .iter()
-                        .any(|parent| parent == "p" || inline(parent))
+                        .any(|parent| parent == "p" || inline(parent) || heading(parent))
                 {
                     state.unsupported =
                         Some("rich-text block nesting requires unsupported HTML recovery".into());
@@ -197,13 +231,25 @@ pub(crate) fn notion_text(source: &Value) -> Result<String, String> {
         let payload = segment["text"]
             .as_object()
             .ok_or("Notion text payload is missing")?;
+        // A web link shows its label, so the label is content; the page it cites is not.
+        let web = |target: &Value| target.as_str().is_some_and(web_link);
         if payload
             .keys()
             .any(|key| !matches!(key.as_str(), "content" | "link"))
-            || payload.get("link").is_some_and(|value| !value.is_null())
-            || segment.get("href").is_some_and(|value| !value.is_null())
+            || payload.get("link").is_some_and(|link| {
+                !link.is_null()
+                    && !link
+                        .as_object()
+                        .is_some_and(|link| link.len() == 1 && link.get("url").is_some_and(web))
+            })
+            || segment
+                .get("href")
+                .is_some_and(|href| !href.is_null() && !web(href))
         {
-            return Err("Notion links or unknown text metadata require adjudication".into());
+            return Err(
+                "Notion contact or script links and unknown text metadata require adjudication"
+                    .into(),
+            );
         }
         let content = segment["text"]["content"]
             .as_str()

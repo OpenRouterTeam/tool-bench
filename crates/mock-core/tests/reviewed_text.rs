@@ -72,7 +72,7 @@ fn missing_or_nontext_content_is_a_known_violation_of_a_required_note() {
 }
 
 #[test]
-fn optional_reviewed_text_does_not_require_narration_but_still_checks_any_supplied_claims() {
+fn optional_reviewed_text_does_not_require_narration_and_fails_only_known_incorrect_claims() {
     let mut definition = contract();
     definition["reviewed_text"]["/body"]["optional"] = json!(true);
     let optional: RecordCheck = serde_json::from_value(definition).unwrap();
@@ -90,15 +90,32 @@ fn optional_reviewed_text_does_not_require_narration_but_still_checks_any_suppli
         optional.check(Some(&initial()), &state(json!(42))),
         Err(RecordCheckError::Failed(_))
     ));
-    assert!(matches!(
-        optional.check(
+    // Narration the user did not ask for has no required content, so other wording passes.
+    optional
+        .check(
             Some(&initial()),
-            &state(json!(
-                "Dana did NOT request a three-year renewal quote by May 22, 2026."
-            ))
-        ),
-        Err(RecordCheckError::NeedsAdjudication(_))
-    ));
+            &state(json!("Logged after the renewal pricing call.")),
+        )
+        .unwrap();
+    let mut definition = contract();
+    definition["reviewed_text"]["/body"]["optional"] = json!(true);
+    definition["reviewed_text"]["/body"]["rejected"] =
+        json!(["Dana did NOT request a three-year renewal quote by May 22, 2026."]);
+    definition["reviewed_text"]["/body"]["forbids"] = json!(["five-year"]);
+    let guarded: RecordCheck = serde_json::from_value(definition).unwrap();
+    guarded.validate().unwrap();
+    for body in [
+        "Dana did NOT request a three-year renewal quote by May 22, 2026.",
+        "Dana asked for a five-year renewal quote.",
+    ] {
+        assert!(
+            matches!(
+                guarded.check(Some(&initial()), &state(json!(body))),
+                Err(RecordCheckError::Failed(_))
+            ),
+            "{body}"
+        );
+    }
     assert!(
         serde_json::to_value(check()).unwrap()["reviewed_text"]["/body"]
             .get("optional")

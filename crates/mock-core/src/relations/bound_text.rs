@@ -24,7 +24,7 @@ pub struct IdentitySource {
     pub separator: Option<String>,
 }
 
-enum Part<'source> {
+pub(super) enum Part<'source> {
     Literal(&'source str),
     Identity(&'source str),
 }
@@ -78,7 +78,7 @@ fn valid_name(name: &str) -> bool {
         && characters.all(|character| character.is_ascii_alphanumeric() || character == '_')
 }
 
-fn parts(template: &str) -> Result<Vec<Part<'_>>, String> {
+pub(super) fn parts(template: &str) -> Result<Vec<Part<'_>>, String> {
     let mut result = Vec::new();
     let mut remaining = template;
     while let Some(start) = remaining.find("${") {
@@ -224,6 +224,18 @@ impl BoundText {
             }
         }
         Ok(())
+    }
+
+    /// Every declared identity's actual values in `state`, for `${name}` slots in mentions.
+    pub(super) fn identity_values(
+        &self,
+        initial: Option<&Value>,
+        state: &Value,
+    ) -> Result<BTreeMap<&str, Vec<String>>, RecordCheckError> {
+        self.identities
+            .iter()
+            .map(|(name, source)| Ok((name.as_str(), source.values(initial, state)?)))
+            .collect()
     }
 
     pub(super) fn matches(

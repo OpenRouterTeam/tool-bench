@@ -181,9 +181,28 @@ fn alias_cycles_period_changes_and_nondefault_missing_data_are_not_proved_equiva
     let mut alarm = queries();
     alarm["Metrics"][0]["Period"] = json!(60);
     unresolved(alarm);
-    let mut alarm = direct();
-    alarm["TreatMissingData"] = json!("breaching");
-    unresolved(alarm);
+}
+
+#[test]
+fn missing_data_policies_pass_only_when_the_alarm_still_needs_real_breaching_datapoints() {
+    for policy in ["missing", "notBreaching", "ignore"] {
+        let mut alarm = direct();
+        alarm["TreatMissingData"] = json!(policy);
+        assess(alarm).unwrap_or_else(|error| panic!("{policy}: {error}"));
+    }
+    for policy in [
+        json!("breaching"),
+        json!("sometimes"),
+        json!(null),
+        json!(1),
+    ] {
+        let mut alarm = direct();
+        alarm["TreatMissingData"] = policy.clone();
+        assert!(
+            matches!(assess(alarm), Err(RecordCheckError::Failed(_))),
+            "{policy}"
+        );
+    }
 }
 
 #[test]

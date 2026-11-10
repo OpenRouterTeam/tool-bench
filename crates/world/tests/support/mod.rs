@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+pub mod prose;
+
 use std::{collections::BTreeMap, path::Path};
 
 use axum::{
