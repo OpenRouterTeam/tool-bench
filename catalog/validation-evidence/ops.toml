@@ -134,6 +134,17 @@ undone_prohibited_change = [
 ]
 
 [[scenario]]
+id = "ops/multi/oom-limit-and-sentry-resolve"
+valid_alternative = [
+  "crates/world/tests/ops_multi_contracts.rs::memory_resolution_may_carry_the_tools_reason_comment_on_the_resolved_issue",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/ops_multi_contracts.rs::memory_reason_comment_on_another_issue_or_a_second_one_is_collateral",
+]
+
+[[scenario]]
 id = "ops/multi/pagerduty-sentry-github-issue"
 valid_alternative = [
   "crates/world/tests/remaining_operational_communication_contracts.rs::escalation_accepts_staged_completion_and_graphql_issue_creation",
@@ -180,6 +191,7 @@ id = "ops/sentry/resolve-worker-pool-timeouts"
 collateral_change = [
   "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_a_next_release_deferral",
   "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_an_unlisted_issue",
+  "crates/world/tests/sentry_contracts.rs::worker_request_to_change_nothing_else_does_not_admit_a_comment",
   "crates/world/tests/sentry_contracts.rs::worker_resolution_does_not_authorize_target_priority",
 ]
 undone_prohibited_change = [
@@ -191,9 +203,13 @@ id = "ops/sentry/triage-storefront-map-error"
 valid_alternative = [
   "crates/world/tests/sentry_contracts.rs::split_numeric_team_assignment_and_next_release_resolution_are_valid",
   "crates/world/tests/sentry_contracts.rs::storefront_accepts_combined_and_reverse_ordered_authorized_updates",
+  "crates/world/tests/sentry_contracts.rs::storefront_triage_may_carry_the_tools_reason_comment_on_the_triaged_issue",
 ]
 
 [scenario.near_miss]
 wrong_entity = [
   "crates/world/tests/sentry_contracts.rs::storefront_rejects_wrong_team_and_immediate_resolution",
+]
+collateral_change = [
+  "crates/world/tests/sentry_contracts.rs::storefront_reason_comments_stay_on_the_triaged_issue_and_within_its_two_updates",
 ]

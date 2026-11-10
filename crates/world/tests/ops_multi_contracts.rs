@@ -574,6 +574,55 @@ async fn memory_can_use_an_equivalent_representation_after_resolution() {
     assert_outcome(&trial, Outcome::Pass);
 }
 
+/// What `update_issue` does with its optional `reason`: a comment on the updated issue.
+async fn reason(trial: &ContractTrial, issue: &str, text: &str) {
+    native_arguments(
+        "sentry",
+        "update_issue",
+        json!({"organizationSlug":"lumen-labs","issueId":issue,"status":"resolved","reason":text}),
+    );
+    trial
+        .call_from(
+            "sentry",
+            "POST",
+            &format!("/api/0/organizations/lumen-labs/issues/{issue}/notes/"),
+            json!({"text":text}),
+        )
+        .await;
+}
+
+#[tokio::test]
+async fn memory_resolution_may_carry_the_tools_reason_comment_on_the_resolved_issue() {
+    let trial = prepared(MEMORY);
+    memory(&trial, "1Gi", false).await;
+    resolve_issue(&trial, "resolved").await;
+    reason(
+        &trial,
+        ISSUE,
+        "Memory limit of analytics/report-builder raised from 512Mi to 1Gi.",
+    )
+    .await;
+    assert_outcome(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
+async fn memory_reason_comment_on_another_issue_or_a_second_one_is_collateral() {
+    for issue in ["BILLING-EXPORTER-2D", "REPORT-BUILDER-4Q"] {
+        let trial = prepared(MEMORY);
+        memory(&trial, "1Gi", false).await;
+        resolve_issue(&trial, "resolved").await;
+        reason(&trial, issue, "Limit raised on report-builder.").await;
+        assert_outcome(&trial, Outcome::Fail);
+    }
+    let trial = prepared(MEMORY);
+    memory(&trial, "1Gi", false).await;
+    resolve_issue(&trial, "resolved").await;
+    for _ in 0..2 {
+        reason(&trial, ISSUE, "Limit raised on report-builder.").await;
+    }
+    assert_outcome(&trial, Outcome::Fail);
+}
+
 #[tokio::test]
 async fn memory_rejects_a_restored_cpu_change() {
     let trial = prepared(MEMORY);
