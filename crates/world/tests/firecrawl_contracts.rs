@@ -112,6 +112,39 @@ async fn crawl(trial: &ContractTrial, changes: Value) -> Value {
     trial.call("POST", "/v2/crawl", body).await
 }
 
+/// Polls a started crawl to its terminal state, as the MCP crawl tool does.
+async fn collect(trial: &ContractTrial, started: &Value) -> Value {
+    let identity = started["id"].as_str().unwrap();
+    let mut result = Value::Null;
+    for _ in 0..2 {
+        native_arguments("firecrawl_check_crawl_status", json!({"id":identity}));
+        result = trial
+            .call("GET", &format!("/v2/crawl/{identity}"), Value::Null)
+            .await;
+    }
+    assert_eq!(result["status"], "completed");
+    result
+}
+
+/// A site-root seed that its own `includePaths` filter excludes: the job collects nothing.
+async fn empty_crawl(trial: &ContractTrial, include: &str) {
+    let started = crawl(
+        trial,
+        json!({"url":"https://docs.lumenpay.dev","crawlEntireDomain":false,
+            "includePaths":[include],"limit":100}),
+    )
+    .await;
+    let result = collect(trial, &started).await;
+    assert_eq!(result["data"], json!([]));
+    let job = &trial.state()["crawls"][started["id"].as_str().unwrap()];
+    for counter in ["total", "completed", "creditsUsed"] {
+        assert_eq!(job[counter], 0, "{counter}");
+    }
+    for pages in ["plannedPages", "pages", "scrapeIds"] {
+        assert_eq!(job[pages], json!([]), "{pages}");
+    }
+}
+
 async fn monitor(trial: &ContractTrial, changes: Value) -> Value {
     let mut body = json!({
         "name":"Fabrikam pricing",
@@ -198,6 +231,83 @@ async fn additional_unrequested_crawls_fail_preservation() {
     )
     .await;
     assessment(&trial, Outcome::Fail);
+}
+
+#[tokio::test]
+async fn the_reference_solution_passes_at_admission_and_once_collected() {
+    let trial = prepared(CRAWL);
+    let site = json!({"url":"https://docs.lumenpay.dev"});
+    native_arguments("firecrawl_map", site.clone());
+    trial.call("POST", "/v2/map", site).await;
+    let started = crawl(&trial, json!({})).await;
+    assessment(&trial, Outcome::Pass);
+    assert_eq!(collect(&trial, &started).await["completed"], 5);
+    assessment(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
+async fn root_seeded_attempts_that_collected_nothing_do_not_fail_the_scoped_crawl() {
+    let trial = prepared(CRAWL);
+    for include in ["^/api/.*", "api/.*"] {
+        empty_crawl(&trial, include).await;
+        assessment(&trial, Outcome::Fail);
+    }
+    let started = crawl(&trial, json!({"limit":100})).await;
+    assessment(&trial, Outcome::Pass);
+    assert_eq!(collect(&trial, &started).await["completed"], 5);
+    assessment(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
+async fn a_second_crawl_that_collected_any_page_still_fails() {
+    for (attempts, second) in [
+        (0, json!({})),
+        (1, json!({"limit":1})),
+        (1, json!({"url":"https://lumenpay.dev","includePaths":[]})),
+    ] {
+        let trial = prepared(CRAWL);
+        for _ in 0..attempts {
+            empty_crawl(&trial, "^/api/.*").await;
+        }
+        for changes in [json!({}), second] {
+            let started = crawl(&trial, changes).await;
+            assert_ne!(collect(&trial, &started).await["completed"], 0);
+        }
+        assessment(&trial, Outcome::Fail);
+    }
+}
+
+#[tokio::test]
+async fn attempts_that_collected_nothing_do_not_excuse_a_wrongly_scoped_crawl() {
+    for attempts in 0..2 {
+        let trial = prepared(CRAWL);
+        for _ in 0..attempts {
+            empty_crawl(&trial, "^/api/.*").await;
+        }
+        let started = crawl(
+            &trial,
+            json!({"url":"https://docs.lumenpay.dev","includePaths":[]}),
+        )
+        .await;
+        assert_eq!(collect(&trial, &started).await["completed"], 10);
+        assessment(&trial, Outcome::Fail);
+    }
+}
+
+#[tokio::test]
+async fn the_allowance_for_attempts_that_collected_nothing_is_bounded() {
+    let trial = prepared(CRAWL);
+    let started = crawl(&trial, json!({})).await;
+    collect(&trial, &started).await;
+    for attempt in 1..=4 {
+        empty_crawl(&trial, "^/api/.*").await;
+        let expected = if attempt <= 3 {
+            Outcome::Pass
+        } else {
+            Outcome::Fail
+        };
+        assessment(&trial, expected);
+    }
 }
 
 #[tokio::test]

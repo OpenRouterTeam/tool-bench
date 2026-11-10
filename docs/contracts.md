@@ -549,6 +549,40 @@ proof of hosted precision. Source checks alone do not admit runtime; the
 separately retained corrected 40B campaign qualifies only its declared scripted
 selected-replica condition.
 
+### Firecrawl goals and attempts that collected nothing
+
+`firecrawl_crawl` and `firecrawl_monitor` judge exactly one created resource
+(`created = true`, `equals = 1`). The selector takes no subset matcher, reference or
+key filter, but `field_patterns` may narrow the created resources to the one the
+goal describes. The goal does not judge the records the patterns set aside; in a
+version-2 contract they still need a creation rule of their own, with its own bound:
+
+```toml
+[[expect.records]]
+selector = { collection = "/services/firecrawl/crawls", created = true, field_patterns = { "/plannedPages/0" = "^https?://" } }
+equals = 1
+firecrawl_crawl = { origin = "https://docs.lumenpay.dev", path_prefix = "/api/" }
+
+[[expect.preservation.allow]]
+pointer = "/services/firecrawl/crawls/*"
+kind = "create"
+field_patterns = { "/plannedPages/0" = "^https?://" }
+
+[[expect.preservation.allow]]
+pointer = "/services/firecrawl/crawls/*"
+kind = "create"
+matching = { total = 0, completed = 0, creditsUsed = 0 }
+array_lengths = { "/plannedPages" = 0, "/pages" = 0 }
+max_count = 3
+```
+
+One new crawl may plan pages and must plan exactly the section; up to three that
+planned and collected nothing may accompany it, because Firecrawl tests the start URL
+against `includePaths` and a job cannot be removed. A second crawl that plans any
+page fails. Keep such rules disjoint: a record counts against every rule it matches.
+A subset matcher's `[]` is contained in every array, so `array_lengths` is what
+requires an empty one.
+
 ### Aggregate and structured predicates
 
 `totals` sums integer fields across all selected records; `integer_bounds` checks
