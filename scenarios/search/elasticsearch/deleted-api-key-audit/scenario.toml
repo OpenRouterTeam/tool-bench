@@ -23,17 +23,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "Name the actor of the successful api_key.delete audit event for the key ci-deploy-bot on 2026-10-29 UTC, and state the UTC time (hour and minute) of that event."
 mode = "statements"
-assertions = [
-  "- User: ${user} - Deleted at: ${time} UTC",
-  "The key was deleted by ${user} at ${time} UTC.",
-  "${user} deleted the key at ${time} UTC.",
-  "${user} at ${time} UTC",
-  "User: ${user} Deleted at: ${time}",
-  "User: ${user}",
-  "Deleted at: ${time}",
-  "The key was deleted by ${user} at ${time} UTC",
-  "${user} deleted it at ${time} UTC",
-]
 context = [
   "on October 29",
   "then created ${replacement_key} at ${replacement_time}",

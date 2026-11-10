@@ -29,19 +29,6 @@ requirement = "Give the ID of the latest run of the payments-api-prod workspace,
 mode = "statements"
 # The text of the AWS error, not a denial of the error code.
 predicates = ["Cannot upgrade postgres"]
-assertions = [
-  "Run: ${run}",
-  "${run}",
-  "${run} errored",
-  "${run} failed",
-  "Failed resource: ${resource}",
-  "${resource}",
-  "${error_code}",
-  "Plan: ${to_add} to add, ${to_change} to change, ${to_destroy} to destroy",
-  "${to_add} to add, ${to_change} to change, ${to_destroy} to destroy",
-  "${run} errored while applying ${resource}: ${error_code}",
-  "${run} failed applying ${resource} with ${error_code}",
-]
 context = [
   "the apply got as far as 1 added, 0 changed, 0 destroyed",
   "Its plan was",

@@ -27,23 +27,6 @@ mode = "statements"
 selection = { largest = { field = "/id" } }
 # The answer is a column that does not exist, so these negatives are true of it.
 predicates = ["has no", "there is no", "no such column", "is missing", "missing", "does not exist", "doesn't exist", "not found", "does not have", "doesn't have", "lacks"]
-assertions = [
-  "Pipeline ${pipeline}",
-  "Pipeline #${pipeline}",
-  "${job}",
-  "job ${job}",
-  "${job} broke pipeline ${pipeline}",
-  "${job} failed",
-  "column ${column}",
-  "| Pipeline | ${pipeline} |",
-  "| Job | ${job} |",
-  "| Column | ${column} |",
-  "the column ${column} does not exist",
-  'column "${column}" of relation "refunds" does not exist',
-  "Pipeline ${pipeline} failed in ${job}",
-  "Pipeline #${pipeline} failed in ${job}",
-  "Pipeline ${pipeline}, job ${job}, column ${column}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/gitlab/pipelines"

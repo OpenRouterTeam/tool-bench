@@ -27,12 +27,6 @@ audit_history = true
  mode = "statements"
  order = ["oncall1", "oncall2"]
 rejected = ["${oncall2} is on call and ${oncall1} is the backup", "${oncall2} and ${oncall1}"]
-assertions = [
-  "On call: ${oncall1}, backup: ${oncall2}",
-  "${oncall1} and ${oncall2}",
-  "Level 1: ${oncall1}. Level 2: ${oncall2}",
-  "Primary: ${oncall1}, secondary: ${oncall2}",
-]
  context = [
    "covering Riya Patel via a schedule override",
    "covering Riya Patel",

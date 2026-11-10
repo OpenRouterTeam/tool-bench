@@ -7,13 +7,14 @@
 //! natural-prose answer is then read conservatively (`statements`).
 //!
 //! ## Semantics
-//! - **Pass**: every fact is affirmed in a reviewed notation and nothing in
-//!   the answer competes with it.
-//! - **Fail**: a fact is denied, another authored record's value is asserted
-//!   in its place, a value with the reviewed unit or currency differs, a
-//!   reviewed incorrect form matches, or the fact is absent.
-//! - **Unresolved**: wording the reader cannot classify (hedges, unreviewed
-//!   notations, disputed or competing statements); needs adjudication.
+//! - **Pass**: every required fact is affirmed, none is denied or disputed,
+//!   and no other authored record competes with it as the reply's answer.
+//! - **Fail**: a required fact is denied, another authored record's value is
+//!   stated in its place, a value with the reviewed unit or currency differs,
+//!   a reviewed incorrect form matches, or the fact is absent.
+//! - **Unresolved**: a fact is both stated and disputed, the reply leaves its
+//!   answer unclear between authored records, facts are stated against the
+//!   declared `order`, or a notation cannot be read; needs adjudication.
 //! - **EnvironmentError**: a source record, field, join or capture is
 //!   missing from the initial state.
 //!
@@ -86,10 +87,6 @@ pub struct RecordFacts {
     /// stated in the same sentence as one of them is disputed, never affirmed.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub contradictions: Vec<String>,
-    /// Reviewed affirmative clauses. Slots bind typed source facts, not fixed
-    /// expected values; unsupported additional clauses require adjudication.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub assertions: Vec<String>,
     /// Facts of the same kind whose roles a reply could swap (the level-1 and level-2
     /// on-call). The reply must first state them in this order.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -122,8 +119,8 @@ pub struct RecordFact {
     pub field: String,
     /// How to interpret the field value when reading the answer.
     pub kind: RecordFactKind,
-    /// Omission is allowed; any stated value still needs source binding and
-    /// reviewed affirmative clauses.
+    /// Context only: stating, omitting or misstating it never decides the
+    /// verdict.  Its source must still exist unless its record allows absence.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub optional: bool,
     /// Name of the related record to read; absent means the primary record.
@@ -252,13 +249,6 @@ fn parse_template(template: &str) -> Result<Vec<Part>, String> {
 // ---------------------------------------------------------------------------
 
 impl RecordFacts {
-    /// Proposes a typed clause template for author review. This verifies value
-    /// bindings only; it never certifies that the candidate's prose is true.
-    pub fn suggest_assertion(&self, answer: &str, initial: &Value) -> Result<String, String> {
-        self.validate()?;
-        statements::suggest_assertion(self, answer, initial).map_err(|error| format!("{error:?}"))
-    }
-
     pub(crate) fn validate(&self) -> Result<(), String> {
         if self.requirement.trim().is_empty() {
             return Err("record fact answers require a nonempty requirement".into());
@@ -346,16 +336,11 @@ impl RecordFacts {
                 "reviewed predicates and contradictions must be nonempty literal phrases".into(),
             );
         }
-        if self.rejected.len() + self.context.len() + self.assertions.len() > MAX_FORMS {
+        if self.rejected.len() + self.context.len() > MAX_FORMS {
             return Err("too many reviewed forms".into());
         }
         let mut seen = BTreeSet::new();
-        for template in self
-            .rejected
-            .iter()
-            .chain(&self.context)
-            .chain(&self.assertions)
-        {
+        for template in self.rejected.iter().chain(&self.context) {
             if template.chars().any(unsupported_control)
                 || !seen.insert(statements::fold(template, false))
             {
@@ -372,16 +357,8 @@ impl RecordFacts {
                     Part::Literal(text) => literal |= text.chars().any(char::is_alphanumeric),
                 }
             }
-            if !literal && !self.assertions.contains(template) {
+            if !literal {
                 return Err("reviewed forms must contain literal wording".into());
-            }
-        }
-        for assertion in &self.assertions {
-            if !parse_template(assertion)?
-                .iter()
-                .any(|part| matches!(part, Part::Slot(_)))
-            {
-                return Err("reviewed assertions must bind at least one source fact".into());
             }
         }
         Ok(())

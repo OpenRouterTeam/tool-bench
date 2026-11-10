@@ -28,26 +28,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "Name the actor of the successful api_key.delete audit event for the key ci-deploy-bot on 2026-10-29 UTC and the UTC time (hour and minute) of that event, the login of the GitHub user whose email local part is that actor, the number of the pull request that user opened, and whether it is merged or still open."
 mode = "statements"
-assertions = [
-  "User: ${user} Deleted at: ${time} UTC GitHub username: ${login} Pull request: #${pull_request} (${merged})",
-  "${user} deleted the key at ${time} UTC. On GitHub she is ${login}, and her PR #${pull_request} has ${merged}.",
-  "${user} deleted the key at ${time} UTC. On GitHub she is ${login}, and her PR #${pull_request} has ${merged} yet.",
-  "| User | Time | GitHub | PR | Status | |---|---|---|---|---| | ${user} | ${time} UTC | ${login} | #${pull_request} | ${merged} |",
-  "${user} (${time} UTC) is GitHub user ${login}; pull request #${pull_request}; ${merged}.",
-  "User: ${user} Deleted at: ${time} GitHub username: ${login} Pull request: #${pull_request} (${merged})",
-  "${user} (${time} UTC) is GitHub user ${login}; pull request number ${pull_request}; ${merged}",
-  "${user} (${time} UTC) is GitHub user ${login}; PR #${pull_request} is ${merged}",
-  "User: ${user}",
-  "Deleted at: ${time}",
-  "GitHub username: ${login}",
-  "Pull request: #${pull_request} (${merged}, ${merged})",
-  "${merged} (${merged})",
-  "| ${user} | ${time} UTC | ${login} | #${pull_request} | ${merged} (${merged}) |",
-  "${user} (${time} UTC) is GitHub user ${login}",
-  "pull request number ${pull_request}",
-  "${merged}",
-  "PR #${pull_request} has been ${merged}",
-]
 context = [
   "| User | Time | GitHub | PR | Status |",
   "not ${namesake_login}",

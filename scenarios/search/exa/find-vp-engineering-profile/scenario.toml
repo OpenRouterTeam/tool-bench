@@ -30,12 +30,6 @@ context = [
   "not https://www.linkedin.com/in/priya-raman-4b21a9",
   "team page: ${team_page_url}",
 ]
-assertions = [
-  "${url}",
-  "Profile: ${url}",
-  "Profile: [Priya Raman](${url}/)",
-  "Profile: [Priya Raman](${url})",
-]
 # The company's team page corroborates the role; it is not a profile.
 
 [expect.answer.record_facts.selector]

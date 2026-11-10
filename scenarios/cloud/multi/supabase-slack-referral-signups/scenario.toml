@@ -26,14 +26,6 @@ audit_history = true
  [expect.answer.record_facts]
  requirement = "State the number of FALL26 referral customers (excluding QA accounts) in the production storefront and their total non-cancelled order spend in dollars."
  mode = "statements"
-assertions = [
-  "${customer_count} customers have signed up, spending ${total_spend} in total.",
-  "Customers: ${customer_count}\nTotal spend: ${total_spend}",
-  "${customer_count} referral sign-ups, ${total_spend} total spend.",
-  "${customer_count} customers, ${total_spend} total spend.",
-  "${customer_count} customers, ${total_spend} total.",
-  "There are ${customer_count} FALL26 referral sign-ups and they have spent ${total_spend}.",
-]
 
  [expect.answer.record_facts.selector]
  collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers"

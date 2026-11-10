@@ -31,11 +31,6 @@ contradictions = ["is fine", "is okay"]
 context = [
   "(A record, proxied, content 203.0.113.40)",
 ]
-assertions = [
-  "${hostname}",
-  "The hostname is ${hostname}.",
-  "Hostname: ${hostname}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/cloudflare/dns_records"

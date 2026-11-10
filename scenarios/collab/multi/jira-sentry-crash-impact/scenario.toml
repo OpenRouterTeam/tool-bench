@@ -30,23 +30,6 @@ requirement = "For the Sentry issue linked from the open WEB bug about the produ
 mode = "statements"
 # The title of the Sentry issue, not a denial of it.
 predicates = ["Cannot read properties of undefined"]
-assertions = [
-  "Sentry issue: ${issue}",
-  "${issue}",
-  "Events: ${events}",
-  "${events} events",
-  "Affected users: ${users}",
-  "${users} users",
-  "${users} affected users",
-  "First release: storefront@${release}",
-  "first release storefront@${release}",
-  "first seen in ${release}",
-  "storefront@${release}",
-  "${issue}: ${events} events, ${users} users, first seen in ${release}",
-  "${issue} has ${events} events affecting ${users} users",
-  "${issue} (${events} events, ${users} users, first seen in ${release})",
-  "${events} events and ${users} users, first seen in ${release}",
-]
 context = [
   "last seen in storefront@${last_release}",
   "unlike STOREFRONT-WEB-7Q with 2,600 events",

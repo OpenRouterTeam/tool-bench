@@ -25,20 +25,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "State the launch date and the owner that the live (not trashed) Payments v2 GA row of the Product launches tracker currently shows."
 mode = "statements"
-assertions = [
-  "Launch date: ${date}",
-  "launches on ${date}",
-  "scheduled for ${date}",
-  "${date}",
-  "Owner: ${owner}",
-  "owner is ${owner}",
-  "owned by ${owner}",
-  "${owner} owns",
-  "${owner}",
-  "and is owned by ${owner}",
-  "Payments v2 GA launches on ${date} and is owned by ${owner}",
-  "| ${date} | ${owner} |",
-]
 context = [
   "Payments v2 GA",
   "which",

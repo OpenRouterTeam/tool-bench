@@ -1,33 +1,34 @@
-# Source-bound answer facts (`record_facts`, statements mode)
+# Source-bound answer facts (`record_facts`)
 
-Lookup tasks are graded on what the agent tells the user. A keyword predicate
-(`contains`, `regex`) cannot tell "it is Northwind" from "it is not Northwind",
-and it accepts the right number attached to the wrong company. Statements mode
-replaces those predicates with facts **derived from the authored baseline
-data** and a conservative reading of natural prose.
+Lookup tasks are graded on the reply the agent writes to the user. A
+`record_facts` contract names facts **derived from the authored baseline data**,
+and the reader checks that the reply states each required fact, does not deny it,
+and makes clear which record is its answer. The reply is free prose: there is no
+list of accepted sentences.
 
-Code: `crates/mock-core/src/grading/answers/record_facts.rs` and its
-submodules `derive.rs` (where facts come from), `statements.rs` (how an answer
-is read) and `numbers.rs` (exact quantities and dates). Tests:
-`crates/mock-core/tests/statement_answers_*.rs`.
+Code: `crates/mock-core/src/grading/answers/record_facts.rs` and its submodules
+`derive.rs` (where facts come from), `statements.rs` (how a reply is read) and
+`numbers.rs` (exact quantities and dates).
 
 ## Verdicts
 
+Only a pass earns reward.
+
 | Outcome | When |
 |---|---|
-| Pass | Every declared fact is *affirmed*, nothing competes with it, and any declared affirmative grammar covers the reply. |
-| Fail | A fact is denied (`not X`, `rather than X`), another authored record's value is asserted in its place, a number with the reviewed unit or currency differs, a `rejected` form matches, or the fact is absent. |
-| Unresolved | The reader cannot classify the answer: a hedge or retraction, an unreviewed notation (number words, `11/12/2026`, a bare number where a unit is required), a partial name, a fact both asserted and disputed, or a correct fact next to another record's value. |
-| Environment error | The source record, field, join or capture is missing from the initial state. A tie in a ranking is unresolved. |
+| Pass | Every required fact is affirmed, none is denied or disputed, no other authored record competes with it as the reply's answer, and facts named in `order` are stated in that order. |
+| Fail | The reply is empty; a `rejected` form matches; or a required fact is never affirmed and is denied, replaced by another authored record's value, stated with a different value in the reviewed unit or currency, or simply absent. |
+| Unresolved | A required fact is affirmed in one place and denied or disputed in another; it appears only in disputed statements; the reply leaves its answer unclear between authored records; `order` is violated; a missing fact may be present in a notation the reader cannot type; or the reply is longer than 65,536 bytes or holds invisible control characters. |
+| Environment error | A source record, field, join or capture is missing from the initial state. |
 
-The reader never invents a score: anything it does not understand is
-Unresolved, and a missing source is an environment fault.
+A fail on any required fact outranks an unresolved finding on another. A tie in
+a ranking is unresolved.
 
 ## Where facts come from
 
 Facts are read from the **initial business state** only. A contract never
 restates the expected answer: changing the authored data changes the graded
-fact (each test file proves this with `outcome_after`).
+fact.
 
 ```toml
 [expect.answer.record_facts]
@@ -67,7 +68,9 @@ on = { "/id" = "/fromObjectId" }
 # pick = { largest = "/created_at_epoch" }       # default "only": exactly one match
 # pick = "all"                                   # keep every match (1-16): a fact read from
 #                                                # it lists one value per record, and the
-#                                                # answer must state each of them
+#                                                # reply must state each of them
+# allow_absence = true                           # no match is allowed; every fact read from
+#                                                # it must be optional
 ```
 
 If the `from` field is an array, the join matches any element. Values compare
@@ -107,7 +110,7 @@ pick = "largest"               # only | largest | smallest
 The primary record is then `{ key, value, count }`: `/key` is the group key,
 `/value` the exact measure. `/member/<field>` reads a field every row of the
 chosen group shares (an environment error if they disagree); `/members/<field>`
-lists that field of every row, and the answer must state each value. Arithmetic is
+lists that field of every row, and the reply must state each value. Arithmetic is
 exact rational arithmetic; there is no floating point.
 
 ### Facts
@@ -116,7 +119,8 @@ exact rational arithmetic; there is no floating point.
 [expect.answer.record_facts.facts.rep]
 record = "rep"                 # a related record; omit for the primary record
 field = "/Name"
-kind = "text"                  # text | identifier | number | money | date
+kind = "text"                  # text | identifier | number | money | date | utc_date | phone | time_of_day
+# optional = true              # context only; see "Optional facts"
 # append = ["/lastName"]       # joined with one space
 # also = ["/login"]            # other fields of the same record that name it
 # capture = '--- FAIL: (\S+)'  # one capture group, exactly one distinct value, for logs/pages
@@ -128,8 +132,8 @@ kind = "text"                  # text | identifier | number | money | date
 # min_prefix = 7               # accept a short commit hash
 ```
 
-Reviewed wordings of a coded source value are bound to that value, so they
-stop applying when the authored record changes:
+Wordings of a coded source value are bound to that value, so they stop applying
+when the authored record changes:
 
 ```toml
 [expect.answer.record_facts.facts.status.wordings]
@@ -137,169 +141,150 @@ UNFULFILLED = ["has not shipped", "hasn't shipped", "not yet shipped"]
 FULFILLED = ["has shipped", "was shipped"]
 ```
 
-A `date` fact reads an ISO date or timestamp, or a field that holds exactly
-one full prose date ("January 15, 2027"). Expected fact values belong in the
-authored data, not literal prose in a checker.
+A `date` fact reads an ISO date or timestamp, or a field that holds exactly one
+full prose date ("January 15, 2027"). A `utc_date` fact derives a calendar day
+from integer Unix seconds or an RFC 3339 timestamp after resolving its offset to
+UTC. Both validate the actual calendar; an impossible source date is an
+environment error. A text fact with `clock = true` renders the same validated
+timestamp as `HH:MM` in UTC, and also binds the exact seconds and the full UTC
+RFC 3339 form.
 
-A `utc_date` fact derives a calendar day from integer Unix seconds or an RFC
-3339 timestamp after resolving its offset to UTC. It does not guess milliseconds,
-fractional epoch units or ambiguous local timestamps. Both date kinds validate
-the actual calendar, including leap days; impossible source dates are environment
-errors.
+## How a reply is read
 
-Text facts with `clock = true` use that same validated timestamp interpretation
-before rendering `HH:MM` in UTC. An equivalent RFC 3339 offset is accepted;
-an impossible date or unsupported epoch is not reduced to an apparently valid
-clock time. Exact seconds and full UTC RFC 3339 forms also bind the actual
-timestamp. They are not accepted by stripping a seeded date or a fixed `:00`
-suffix.
+1. A `rejected` form (a template with `${fact}` slots, such as
+   `${blocker} is blocked by ${blocked}`) fails the reply outright.
+2. `context` forms are set aside before reading. `predicates` are negative
+   phrases that are true of the facts (`does not match the expected scopes`) and
+   are not read as denials. `contradictions` are words that say the opposite of
+   what the task asks (`fastest` for a slowest-region task): a fact in the same
+   sentence is disputed.
+3. The reply is split into sentences (lines, table cells, `;` and sentence
+   punctuation), and every statement of each fact's source value is located.
+4. Each statement is classified:
+   - **denied**: a negator reaches it through function words and label nouns
+     only (`not X`, `isn't the order X`, `no longer X`, `not owned by X`,
+     `rather than X`);
+   - **disputed**: a negator reaches it across one other word (`did not pick
+     X`); a denial follows it (`X did not delete …`, `X is not the …`, `X was
+     ruled out`, `X's deal is not the largest`); the sentence holds a retraction
+     (`at first it looked like …`) or a `contradictions` cue; or the next
+     sentence takes it back (`That was not the final pick.`);
+   - **affirmed**: anything else. A hedged statement (`it appears to be X`,
+     `probably X`) counts as affirmed.
 
-## How an answer is read
+   A short closed list of negative predicates leaves its subject or object
+   correctly identified and is not a dispute (`column X does not exist`, `PR X
+   has not been merged`, `could not pull X`); anything else needs a `predicates`
+   entry.
+5. The verdict follows the table above, fact by fact. A fact with several source
+   values (a `pick = "all"` join, `/members/<field>`) needs each value affirmed.
 
-1. `rejected` forms (templates with `${fact}` slots) fail the answer outright;
-   use them for role swaps such as `${blocker} is blocked by ${blocked}`.
-2. `context` forms are reviewed neutral remarks; they are set aside before
-   reading. `predicates` are reviewed negative predicates that are true of the
-   facts (`does not match the expected scopes`) and are not read as denials.
-   `contradictions` are reviewed words that say the opposite of what the task
-   asks (`fastest` for a slowest-region task): a fact in the same sentence is
-   disputed.
-3. The answer is split into sentences. Each fact is located with typed
-   matching:
-   - text and identifiers match whole names only (`checkout-web` is not found
-     inside `checkout-web-7f8b9c6d5`);
-   - numbers are standalone tokens (not digits inside an identifier, version,
-     date, time or address), compared exactly; `1,234.50`, `1234.5` and
-     `$1.2345k` are equal, `1,234.49` is not; ms/s/min/h convert exactly;
-     a foreign currency or an inconvertible unit never matches;
-   - dates accept ISO, `Nov 12, 2026`, `12 November 2026` and a year-less
-     `Nov 12`.
-4. Each mention is *denied* (a negator reaches it through function words and
-   label nouns only: `not X`, `isn't the order X`, `no longer X`, `not owned
-   by X`, `rather than X`), *disputed* (a negator reaches it across one other
-   word, `did not pick X`; a negated verb follows it, `X did not delete …`,
-   `X is not the …`, `X was ruled out`; a retraction, `at first it looked
-   like …`; or a reviewed contradiction cue), *hedged* (`probably`, `I
-   think`, `may be`) or *affirmed*. A short closed list of negative predicates
-   that leave their subject or object correctly identified is not disputed
-   (`column X does not exist`, `PR X has not been merged`, `could not pull
-   X`); anything else needs a reviewed `predicates` entry.
-5. Alternatives are the same fact read from the other records of the same
-   collection (other groups for aggregates). Asserting one instead of the
-   source fact fails; asserting one next to it is unresolved, unless the
-   sentence is a reviewed `context` form or denies the alternative.
-6. With `assertions`, the complete reply must be covered by reviewed affirmative
-   clauses and neutral context. Typed slots bind the actual source values,
-   including supported conversions and notations. Unknown extra predicates,
-   cross-sentence commentary and unreviewed structural headers are unresolved,
-   even when all required values appear.
+### Notations accepted
 
-### Reviewed affirmative clauses
+| Fact | Read as equal |
+|---|---|
+| Any | Case, typographic dashes and quotes, and Markdown emphasis or backticks do not matter. |
+| Text, identifier | Whole names only: `checkout-web` is not found inside `checkout-web-7f8b9c6d5`. A link also matches without its scheme or trailing slash. `also` fields, `wordings` and a `min_prefix` abbreviation count as the value. |
+| Number, money | Standalone tokens (not digits inside an identifier, version, date, time or address), compared exactly: `1,234.50`, `1234.5` and `$1.2345k` are equal, `1,234.49` is not. Counts in words from zero to ninety-nine are read (`six attempts`). `k`, `thousand`, `million`, `mn`, `billion`, `bn` scale any number; `m` and `b` scale money. ms/s/min/h convert exactly; `%`, `percent` and `pct` are one unit. With `rounding`, a correct rounding is equal. Another currency or an inconvertible unit never matches. |
+| Unit | Attached to the number, the word after or before it, or the label it answers (`Failed sign-ins on 13 March: 6`), within the same sentence. `$` is the unit of a money fact. |
+| Date | ISO, `Nov 12, 2026`, `November 12th`, `12 November 2026`; the year may be left out. `11/12/2026` is not read. |
+| Clock time, duration | `9 a.m.` and `2:30 pm` are read as `09:00` and `14:30`; `47 min 12 s` as `47:12`. |
+| Phone, time of day | Common display variants of the source value (dashes, dots, parentheses, country prefix; 12-hour and 24-hour). |
+
+A value that is never affirmed but may be present in another notation (a bare
+number where a unit is required, part of a name, other number words, a numeric
+date) is unresolved rather than failed.
+
+### Other records
+
+The alternatives to a fact are the same fact read from the other records of the
+collection (other groups for an aggregate). A number counts as an alternative
+only when it carries the reviewed unit or currency. A denied or disputed
+alternative (`not Globex`) and a value that equals a required fact are ignored.
+
+- If the source value is never affirmed, stating an alternative fails.
+- If the source value is affirmed, an alternative is context when it appears in
+  a sentence that also affirms a required fact, in a sentence that sets it aside
+  (`excluding`, `compared with`, `the runner-up`, `the previous`, `also`, `for
+  context`, `staging`), or between the first and the last statement of the
+  source value.
+- An alternative stated on its own **after** the last statement of the source
+  value is unresolved when that sentence presents it as the answer (`actually`,
+  `in fact`, `instead`, `the answer`, `final`, `largest`).
+- An alternative stated on its own **before** the first statement of the source
+  value requires the reply to conclude on the source value: it is unresolved
+  when the last statement of the source value is a list item, or is worded as a
+  lesser item (`second`, `next`, `also`, `another`, `previous`), and carries no
+  concluding cue (`so`, `therefore`, `the answer`, `in summary`, `actually`,
+  `largest`, `→`).
+- Alternatives stated on their own both before and after are unresolved.
+
+### Statement order: `order`
 
 ```toml
 [expect.answer.record_facts]
-assertions = [
-  "${region} is the slowest, averaging ${average}",
-  "${region} averages ${average}",
-  "Slowest region: ${region}",
-  "Average duration: ${average}",
-]
+order = ["oncall1", "oncall2"]
 ```
 
-These are typed clause forms, not frozen answer strings. The same form binds a
-new winning region or a changed average, and supported ms/seconds conversions
-remain valid. Negations, contradictions, missing facts and incompatible units
-are still checked before clause coverage. Every extra clause must be reviewed;
-an asserted fact in one sentence does not license an unsupported claim in the
-next. Literal numeric and entity claims must not be smuggled into the forms:
-they need their own source bindings.
+`order` names two or more required facts of the same kind whose roles a reply
+could swap, such as the level-1 and level-2 on-call. The reply must first state
+them in this order; a later-listed fact stated first is unresolved. Where a swap
+has a fixed wording, a `rejected` form fails it outright.
 
-An extra explanatory fact may declare `optional = true`. Its source must still
-exist, its value is checked whenever stated, and any clause containing it must
-be reviewed. Omission alone is allowed. At least one fact must remain required;
-optional facts are invalid without affirmative clauses. This supports, for
-example, an optional source-derived event count without requiring every reply
-to include it or freezing that count inside a literal sentence.
+### Optional facts
 
-A related selector may explicitly set `allow_absence = true` when an optional
-explanation has no matching record in a valid authored collection. All facts
-read from it must be optional, as must descendants joined from it. Absence
-supplies no matchable value: a stale explanation still cannot pass clause
-coverage. This does not excuse missing collections, invalid fields on a
-matched record, ambiguous matches or missing required facts.
+A fact with `optional = true` is context. Stating it, omitting it or misstating
+it never decides the verdict. Its source must still exist, unless its related
+record sets `allow_absence = true`. Its value can fill a slot of a `context` or
+`rejected` form. At least one fact must be required, a required fact cannot read
+a record that allows absence, and `order` cannot name an optional fact.
 
-Context and rejected-form slots use the same typed matching as affirmative
-clauses. They do not synthesize a second, weaker set of number or date spellings;
-source-bound currency, unit conversions and identifier prefixes remain valid
-in those slots too. Unreviewed compound-rate denominators and unsupported
-microsecond/nanosecond conversions require adjudication, rather than being
-treated as a confidently different value.
+## Known limits
 
-Optional values do not establish that a required value was stated. Conversely,
-a mention of some other record does not by itself assert an unasked optional
-field. Extra text must still pass reviewed clause coverage. A negative optional
-context cannot be stripped when its value also denotes a required fact; it must
-not hide a denial after source values converge.
-
-`bench-answer-forms SCENARIO_DIRECTORY CANDIDATE_ANSWERS_JSON` proposes slot
-bindings for author review. It does **not** certify the prose's meaning and
-never changes a scenario or approves validation evidence. Inspect every
-proposal against the request and data, including any remaining literal
-quantities. A proposal can bind the right values inside a false claim; such a
-claim must not become an approved assertion.
-
-Adding this interface does not migrate contracts automatically. Contracts
-without `assertions` retain the predicate/role limitations below and are not
-thereby semantically complete. The coverage inventory reports
-`answer_assertion_grammar_missing` for such a contract rather than labeling its
-relationships reviewed merely because its values are source-bound.
-
-Known limits, stated so nobody over-reads a pass:
-
-- Without affirmative clause coverage, the reader binds values and polarity, not arbitrary predicates. A wrong
-  predicate about a correctly named value ("eu-west-1 is the fastest") is only
-  caught by a reviewed `contradictions` cue or `rejected` form.
-- Without affirmative clause coverage, role swaps among the declared facts
-  themselves are only caught by `rejected` forms.
+- The reader binds values and polarity, not arbitrary predicates. A wrong
+  predicate about a correctly named value ("eu-west-1 wins on speed") is caught
+  only by a `contradictions` cue or a `rejected` form.
+- Role swaps among the declared facts are caught only by `order` or a `rejected`
+  form.
+- A wrong optional detail next to correct required facts passes.
+- A list fact needs each source value. An extra value listed in the same
+  sentence is context and is not counted against the reply.
 - A bare number without declared `units` matches any equal standalone number;
   declare `units` (and `require_unit`) for counts.
-- Hedge and retraction cues are sentence-level and deliberately broad; they
-  cost adjudication, never a wrong score.
+- Retraction cues are sentence-level and broad; they cost adjudication.
 - A paraphrase of a captured free-text fact that shares no word with it reads
-  as absent (Fail), as it did under the keyword predicate. Shared words make
-  it Unresolved.
-- Units next to a number are read from the same sentence only: a table whose
-  unit sits in the header row leaves the cell number unlabeled (Unresolved).
+  as absent (Fail). Shared words make it Unresolved.
+- A unit is read from the number's own sentence: a table whose unit sits in the
+  header row leaves the cell number unlabeled.
 
 ## What still cannot be bound
 
-The current derivations include bounded per-row joins, second-level aggregates,
-interval-normalized arithmetic and the reviewed on-call rotation/override
-fixtures. Those capabilities do not establish arbitrary query, scheduling or
-free-text semantics.
+The derivations cover bounded per-row joins, second-level aggregates,
+interval-normalized arithmetic and the reviewed on-call rotation and override
+fixtures. They do not establish arbitrary query, scheduling or free-text
+semantics.
 
 Leave a scenario on the legacy predicate, and say why, when its answer needs
 unsupported derivation, judgment over unfamiliar free text, or a value that is
-not in the authored data at all (an API-generated error code).
-`legacy_answer_semantics` in the coverage inventory stays open for those.
+not in the authored data at all. `legacy_answer_semantics` in the coverage
+inventory stays open for those. Today that is one unscored scenario, enforced in
+`crates/mock-core/tests/statement_answers_inventory.rs`:
 
-Scenarios left on keyword predicates today (the same ledger is enforced in
-`crates/mock-core/tests/statement_answers_inventory.rs`):
-
-| Scenario | What binding it would need |
+| Scenario | Why |
 |---|---|
-| `business/stripe/customer-mrr` | A per-item join to prices inside the aggregate, plus cents-to-dollars and yearly-to-monthly normalization. |
-| `cloud/multi/supabase-slack-referral-signups` | Two independent aggregates (a customer count and the sum of those customers' orders) and a negative text filter. |
-| `search/elasticsearch/checkout-errors-last-hour` | A second-level aggregate: the most frequent message within the winning service. |
-| `collab/multi/slack-pagerduty-dbre-oncall`, `ops/pagerduty/payments-oncall-now`, `ops/multi/crashloop-oncall-lookup` | The PagerDuty rotation (and override) rendered against the business clock. |
-| `search/brave/caterer-saturday-hours` | Phone-number and opening-hours notations (time ranges). |
-| `example/aws/missing-bucket-policy` (unscored) | The expected API error code is produced by the service; it is not in the authored data. |
+| `example/aws/missing-bucket-policy` | The expected API error code is produced by the service; it is not in the authored data. |
 
 ## Tests
 
-`crates/mock-core/tests/statement_support/mod.rs` loads the scenario's real
-contract and dataset and grades through `mock_core::grading::grade`. Every
-migrated scenario has: the reference answer passing, an independently worded
-valid answer, negated / rejected-alternative / wrong-entity / near-miss
-failures, unreviewed wording left unresolved, a missing source as an
-environment error, and a data edit showing the fact follows the source.
+`crates/mock-core/tests/statement_support/mod.rs` loads a scenario's real
+contract and dataset and grades through `mock_core::grading::grade`.
+
+- `natural_answers.rs` grades the corpus in `tests/fixtures/natural_answers/`:
+  replies as agents write them, each marked `pass` or `reject` (fail or
+  unresolved), for the `record_facts` scenarios.
+- `answer_phrasing_*.rs` and `statement_answers_*.rs` hold per-scenario cases:
+  alternative phrasings that pass; denied, wrong-record, role-swapped and stale
+  replies that earn no reward; a missing source as an environment error; and
+  data edits showing the fact follows the source.
+- `bench-answer-probe SCENARIOS_ROOT CORPUS_JSON` grades a corpus file from the
+  command line and prints one JSON line per reply.

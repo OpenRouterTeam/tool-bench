@@ -78,8 +78,7 @@ pub fn write_environment_error(directory: &Path, trial: &str, task: &str) {
                     "collection": "/services/github/issues",
                     "matching": {"number": 1}
                 },
-                "facts": {"value": {"field": "/unavailable_fact", "kind": "identifier"}},
-                "assertions": ["The fact is ${value}"]
+                "facts": {"value": {"field": "/unavailable_fact", "kind": "identifier"}}
             }}
         }),
         b"Maya",

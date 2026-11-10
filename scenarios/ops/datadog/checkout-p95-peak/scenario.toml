@@ -29,16 +29,6 @@ mode = "statements"
 # The task asks for the highest point; these words say the opposite of the same value.
 contradictions = ["lowest", "minimum", "smallest"]
 context = ["not the ${staging_peak} staging peak", "on 2026-10-29"]
-assertions = [
-  "Peak: ${peak} at ${time} UTC",
-  "| Peak p95 | ${peak} | | Time (UTC) | ${time} |",
-  "The highest p95 was ${peak}, reached at ${time} UTC",
-  "The highest p95 was ${peak}, ${time}",
-  "The highest p95 was ${peak}, reached at ${time}",
-  "${peak} at ${time} UTC",
-  "${peak} at ${time}",
-  "The production checkout API p95 latency peaked at ${peak} at ${time} UTC",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/datadog/metrics"

@@ -74,30 +74,6 @@ context = [
   "it supersedes the unmerged PR",
   "${commenter} only left a comment",
 ]
-assertions = [
-  "Commit: ${commit}",
-  "Commit ${commit}",
-  "Production serves ${commit}",
-  "PR #${pr}",
-  "written by ${author}",
-  "author ${author}",
-  "Author: ${author}",
-  "${author} wrote it",
-  "approved by ${approver}",
-  "Approved by: ${approver}",
-  "approver ${approver}",
-  "${approver} approved it",
-  "merged by ${merger}",
-  "Merged by: ${merger}",
-  "merger ${merger}",
-  "${merger} merged it",
-  "Production serves ${commit} from PR #${pr}, written by ${author}, approved by ${approver} and merged by ${merger}",
-  "| Commit | ${commit} |",
-  "| PR | #${pr} |",
-  "| Author | ${author} |",
-  "| Approved by | ${approver} |",
-  "| Merged by | ${merger} |",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/vercel/deployments"

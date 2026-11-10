@@ -23,13 +23,6 @@ audit_history = true
 [expect.answer.record_facts]
 requirement = "Among the orders of jordan.lee@example.com, state the order ID of every order that shares the one total charged more than once, and state that total in US dollars."
 mode = "statements"
-assertions = [
-  "Duplicate orders: ${orders}, ${orders} Amount charged twice: ${amount}",
-  "${orders} duplicates ${orders}; each was charged ${amount}.",
-  "${orders} and ${orders}: ${amount} each",
-  "The double charge is ${orders} and ${orders}, both ${amount}.",
-  "${orders} and ${orders}, ${amount} each.",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/elasticsearch/docs"

@@ -34,20 +34,6 @@ context = [
   "the deprecated v2 docs say ${v2_limit} requests per minute",
   "the deprecated v2 docs list ${v2_limit} requests per minute",
 ]
-assertions = [
-  "${limit}/min for Business, from ${source}",
-  "Business plan: ${limit}. Found at [Rate limits](${source}).",
-  "${limit}/min (${source})",
-  "${limit} per minute (${source})",
-  "${limit} a minute (${source})",
-  "${limit} req/min (${source})",
-  "${limit} requests/min for Business, from ${source}",
-  "Business plan: ${limit} rpm. Found at [Rate limits](${source}).",
-  "${limit} requests per minute (${source})",
-  "${limit} requests a minute (${source})",
-  "${limit} requests per minute, from ${source}",
-  "${limit}/min, from ${source}",
-]
 # The deprecated v2 page lists a lower limit; saying so is a true aside.
 
 

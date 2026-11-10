@@ -30,13 +30,6 @@ contradictions = ["fewest", "least frequent", "least noisy", "quietest"]
 context = [
   "not ${distractor_id}, which is ${distractor_status}",
 ]
-assertions = [
-  "${issue_id} - ${title}",
-  "${issue_id}: ${title}",
-  "Short ID: ${issue_id} Title: \"${title}\"",
-  "| Short ID | Title | |---|---| | ${issue_id} | ${title} |",
-  "${issue_id}, titled ${title}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/sentry/issues"

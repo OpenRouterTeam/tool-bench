@@ -35,14 +35,6 @@ context = [
   '(single commit ${commit_sha}, "${commit_message}")',
  'commit title: "${commit_title}"',
 ]
-assertions = [
-  "Issue ${issue_id} first appeared in release ${release}. It was introduced by PR #${pull_request}, authored by ${author}.",
-  "${issue_id}, ${release}, pull request ${pull_request} by @${author}",
-  "${issue_id}, ${release}, PR #${pull_request}, ${author}",
-  "${issue_id} first appeared in ${release}; PR #${pull_request} by ${author}",
-  "| Sentry issue | ${issue_id} | | First release | ${release} | | Pull request | #${pull_request} | | Author | ${author} |",
-  "- Sentry issue: ${issue_id} - First seen in release: ${release} - Pull request: #${pull_request} - Author: ${author}",
-]
 
 [expect.answer.record_facts.selector]
 collection = "/services/sentry/issues"

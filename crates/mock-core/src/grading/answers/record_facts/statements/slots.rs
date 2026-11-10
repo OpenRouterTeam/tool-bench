@@ -1,12 +1,9 @@
-use std::collections::BTreeMap;
-
-use regex::Regex;
+//! The text a `${slot}` of a reviewed `rejected` or `context` form binds: every notation
+//! in which the answer states that fact's source value.
 
 use super::{
-    DerivedFact, Notes, NumberToken, Part, RecordFact, RecordFactKind, RecordFacts, Typed,
-    find_text, fold, numbers, parse_template, spans,
+    DerivedFact, Notes, NumberToken, RecordFact, RecordFactKind, Typed, fold, numbers, spans,
 };
-use crate::relations::RecordCheckError;
 
 fn literal(text: &str) -> String {
     fold(text, false)
@@ -85,50 +82,4 @@ pub(super) fn bound_form(form: &str) -> String {
         literal(form),
         if after { r"\b" } else { "" }
     )
-}
-
-pub(super) fn suggest(
-    contract: &RecordFacts,
-    facts: &BTreeMap<String, DerivedFact>,
-    answer: &str,
-) -> Result<String, RecordCheckError> {
-    let text = fold(answer, false);
-    let mut matches = Vec::new();
-    for (name, fact) in &contract.facts {
-        let choices = forms(fact, &facts[name], &text);
-        if choices.is_empty() {
-            if fact.optional {
-                continue;
-            }
-            return Err(RecordCheckError::NeedsAdjudication(format!(
-                "the candidate does not expose a binding for {name}"
-            )));
-        }
-        for choice in choices {
-            for (start, end) in find_text(&text, &choice) {
-                matches.push((start, end, name.clone()));
-            }
-        }
-    }
-    matches.sort_by_key(|(start, end, _)| (*start, std::cmp::Reverse(end - start)));
-    let mut selected: Vec<(usize, usize, String)> = Vec::new();
-    for found in matches {
-        if let Some(previous) = selected.last()
-            && found.0 < previous.1
-        {
-            if found.0 == previous.0 && found.1 == previous.1 && found.2 != previous.2 {
-                return Err(RecordCheckError::NeedsAdjudication(format!(
-                    "the candidate ambiguously binds {} and {}",
-                    previous.2, found.2
-                )));
-            }
-            continue;
-        }
-        selected.push(found);
-    }
-    let mut template = text;
-    for (start, end, name) in selected.into_iter().rev() {
-        template.replace_range(start..end, &format!("${{{name}}}"));
-    }
-    Ok(template)
 }
