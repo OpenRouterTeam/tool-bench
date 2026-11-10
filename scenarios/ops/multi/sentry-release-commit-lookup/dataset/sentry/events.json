@@ -1698,6 +1698,174 @@
     }
   },
   {
+    "_key": "b9dfdaf71ea854fed91a25cc06bf62b0",
+    "eventID": "b9dfdaf71ea854fed91a25cc06bf62b0",
+    "groupID": "6184420122",
+    "project": "storefront-web",
+    "dateCreated": "2026-10-18T09:30:00Z",
+    "title": "TypeError: Cannot read properties of undefined (reading 'map')",
+    "message": "",
+    "level": "error",
+    "culprit": "CartDrawer(app/components/CartDrawer)",
+    "platform": "javascript",
+    "release": "storefront@5.3.0",
+    "environment": "production",
+    "user": {
+      "id": "u_65502",
+      "email": "hannah.voss@example.org",
+      "ip_address": "198.51.100.203"
+    },
+    "exception": {
+      "type": "TypeError",
+      "value": "Cannot read properties of undefined (reading 'map')",
+      "mechanism": {
+        "type": "generic",
+        "handled": false
+      },
+      "frames": [
+        {
+          "filename": "webpack:///./node_modules/react-dom/cjs/react-dom.production.min.js",
+          "function": "renderWithHooks",
+          "lineNo": 160,
+          "inApp": false,
+          "colNo": 137
+        },
+        {
+          "filename": "webpack:///./app/components/CartDrawer.tsx",
+          "function": "CartDrawer",
+          "lineNo": 27,
+          "inApp": true,
+          "colNo": 24,
+          "context": [
+            [
+              26,
+              "  const cart = useCart();"
+            ],
+            [
+              27,
+              "  const rows = cart.lineItems.map(renderLine);"
+            ]
+          ]
+        }
+      ]
+    },
+    "tags": {
+      "browser": "Safari 18.0"
+    }
+  },
+  {
+    "_key": "a20df4d5e00acee5567d63fe058cff18",
+    "eventID": "a20df4d5e00acee5567d63fe058cff18",
+    "groupID": "6184420122",
+    "project": "storefront-web",
+    "dateCreated": "2026-10-19T11:15:00Z",
+    "title": "TypeError: Cannot read properties of undefined (reading 'map')",
+    "message": "",
+    "level": "error",
+    "culprit": "CartDrawer(app/components/CartDrawer)",
+    "platform": "javascript",
+    "release": "storefront@5.3.1",
+    "environment": "production",
+    "user": {
+      "id": "u_91147",
+      "email": "tomas.silva@example.com",
+      "ip_address": "192.0.2.77"
+    },
+    "exception": {
+      "type": "TypeError",
+      "value": "Cannot read properties of undefined (reading 'map')",
+      "mechanism": {
+        "type": "generic",
+        "handled": false
+      },
+      "frames": [
+        {
+          "filename": "webpack:///./node_modules/react-dom/cjs/react-dom.production.min.js",
+          "function": "renderWithHooks",
+          "lineNo": 160,
+          "inApp": false,
+          "colNo": 137
+        },
+        {
+          "filename": "webpack:///./app/components/CartDrawer.tsx",
+          "function": "CartDrawer",
+          "lineNo": 27,
+          "inApp": true,
+          "colNo": 24,
+          "context": [
+            [
+              26,
+              "  const cart = useCart();"
+            ],
+            [
+              27,
+              "  const rows = cart.lineItems.map(renderLine);"
+            ]
+          ]
+        }
+      ]
+    },
+    "tags": {
+      "browser": "Chrome 130.0"
+    }
+  },
+  {
+    "_key": "b010504481f680195e9bce7c6cfcd5d0",
+    "eventID": "b010504481f680195e9bce7c6cfcd5d0",
+    "groupID": "6184420122",
+    "project": "storefront-web",
+    "dateCreated": "2026-10-20T07:40:00Z",
+    "title": "TypeError: Cannot read properties of undefined (reading 'map')",
+    "message": "",
+    "level": "error",
+    "culprit": "CartDrawer(app/components/CartDrawer)",
+    "platform": "javascript",
+    "release": "storefront@5.3.1",
+    "environment": "production",
+    "user": {
+      "id": "u_53380",
+      "email": "keiko.tanaka@example.net",
+      "ip_address": "203.0.113.61"
+    },
+    "exception": {
+      "type": "TypeError",
+      "value": "Cannot read properties of undefined (reading 'map')",
+      "mechanism": {
+        "type": "generic",
+        "handled": false
+      },
+      "frames": [
+        {
+          "filename": "webpack:///./node_modules/react-dom/cjs/react-dom.production.min.js",
+          "function": "renderWithHooks",
+          "lineNo": 160,
+          "inApp": false,
+          "colNo": 137
+        },
+        {
+          "filename": "webpack:///./app/components/CartDrawer.tsx",
+          "function": "CartDrawer",
+          "lineNo": 27,
+          "inApp": true,
+          "colNo": 24,
+          "context": [
+            [
+              26,
+              "  const cart = useCart();"
+            ],
+            [
+              27,
+              "  const rows = cart.lineItems.map(renderLine);"
+            ]
+          ]
+        }
+      ]
+    },
+    "tags": {
+      "browser": "Chrome 130.0"
+    }
+  },
+  {
     "_key": "75735545772afb26cfa97adaeb321af2",
     "eventID": "75735545772afb26cfa97adaeb321af2",
     "groupID": "6184420122",

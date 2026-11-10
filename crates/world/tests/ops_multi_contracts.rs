@@ -17,6 +17,7 @@ use support::ContractTrial;
 const SCALE: &str = "ops/multi/checkout-saturation-scale-and-resolve";
 const MEMORY: &str = "ops/multi/oom-limit-and-sentry-resolve";
 const ROLLBACK: &str = "ops/multi/datadog-latency-argocd-rollback";
+const TRACE: &str = "ops/multi/sentry-release-commit-lookup";
 const INCIDENT: &str = "Q7CHKAP15PCT1D";
 const OTHER_INCIDENT: &str = "Q9CHKWEB5XX3VK";
 const ISSUE: &str = "REPORT-BUILDER-4T";
@@ -693,4 +694,105 @@ async fn rollback_target_needs_real_authored_rendered_content_before_admission()
             && failure.reason.contains("rendered manifest snapshot")
     }));
     assert_eq!(status.as_u16(), 501, "{status}: {response}");
+}
+
+fn trace_trial() -> ContractTrial {
+    ContractTrial::load_many_with_dataset(
+        TRACE,
+        &[
+            (&mock_github::GitHub, &[]),
+            (
+                &mock_sentry::Sentry,
+                &[("authorization", "Bearer sntrys_toolbench")],
+            ),
+        ],
+        |_| {},
+    )
+}
+
+/// A merged pull request whose branch is gone still shows what it changed: the trace from
+/// the release commit to its pull request can be checked from the pull request's side.
+#[tokio::test]
+async fn trace_merged_pull_requests_list_the_files_they_changed() {
+    let trial = trace_trial();
+    let pull = trial
+        .call(
+            "GET",
+            "/api/v3/repos/lumen-labs/storefront/pulls/57",
+            Value::Null,
+        )
+        .await;
+    assert_eq!(pull["merged"], true);
+    assert_eq!(pull["head"]["sha"], pull["merge_commit_sha"]);
+    assert_eq!(
+        pull["base"]["sha"],
+        "0aa1bb2cc3dd4ee5ff60718293a4b5c6d7e8f901"
+    );
+    let files = trial
+        .call(
+            "GET",
+            "/api/v3/repos/lumen-labs/storefront/pulls/57/files",
+            Value::Null,
+        )
+        .await;
+    let files: Vec<(&str, &str)> = files
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|file| {
+            (
+                file["filename"].as_str().unwrap(),
+                file["status"].as_str().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(files, [("app/components/CartDrawer.tsx", "added")]);
+    let commits = trial
+        .call(
+            "GET",
+            "/api/v3/repos/lumen-labs/storefront/pulls/57/commits",
+            Value::Null,
+        )
+        .await;
+    assert_eq!(commits.as_array().unwrap().len(), 1);
+    assert_eq!(commits[0]["sha"], pull["merge_commit_sha"]);
+    let assessment = trial.assess_with_answer(Some(
+        "STOREFRONT-WEB-7Q first appeared in release 5.2.0; PR #57 by Sofia Alvarez.",
+    ));
+    assert_eq!(assessment.outcome, Outcome::Pass, "{assessment:?}");
+}
+
+/// Counting the stored events per issue (`search_events`) names the same noisiest storefront
+/// issue as the issue totals (`search_issues`), whichever window the count is taken over.
+#[tokio::test]
+async fn trace_event_counts_rank_the_storefront_issues_like_their_totals() {
+    let trial = trace_trial();
+    for period in ["24h", "48h", "3d", "7d", "14d", "30d", "90d"] {
+        let rows = trial
+            .call_from(
+                "sentry",
+                "GET",
+                &format!(
+                    "/api/0/organizations/lumen-labs/events/?per_page=10&query=&dataset=errors\
+                     &statsPeriod={period}&project=4508812001&sort=-count%28%29\
+                     &field=issue&field=count%28%29"
+                ),
+                Value::Null,
+            )
+            .await;
+        let counts: Vec<(&str, u64)> = rows["data"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|row| {
+                (
+                    row["issue"].as_str().unwrap(),
+                    row["count()"].as_u64().unwrap(),
+                )
+            })
+            .collect();
+        assert_eq!(counts[0].0, "STOREFRONT-WEB-7Q", "{period}: {counts:?}");
+        assert_eq!(counts[1].0, "STOREFRONT-WEB-8D", "{period}: {counts:?}");
+        assert!(counts[0].1 > counts[1].1, "{period}: {counts:?}");
+    }
 }
