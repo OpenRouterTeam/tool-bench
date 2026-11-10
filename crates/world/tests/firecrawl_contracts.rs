@@ -430,6 +430,32 @@ async fn a_check_of_the_broken_or_the_look_alike_monitor_fails_in_either_order()
     assessment(&trial, Outcome::Fail);
 }
 
+/// The update tool takes a free-form body, so the pause field has to be guessed. A rejected
+/// guess changes nothing and is not held against the pause that follows.
+#[tokio::test]
+async fn rejected_guesses_at_the_pause_field_do_not_fail_the_pause_that_follows() {
+    let trial = prepared(PAUSE);
+    for guess in [
+        json!({"active":false}),
+        json!({"paused":true}),
+        json!({"state":"paused"}),
+        json!({"status":"pause"}),
+    ] {
+        native_arguments(
+            "firecrawl_monitor_update",
+            json!({"id":BROKEN,"body":guess}),
+        );
+        let (status, _) = trial
+            .request("PATCH", &format!("/v2/monitor/{BROKEN}"), guess)
+            .await;
+        assert_eq!(status, axum::http::StatusCode::BAD_REQUEST);
+    }
+    assert_eq!(trial.state()["monitors"][BROKEN]["status"], "active");
+    pause(&trial, json!({})).await;
+    run(&trial, HEALTHY).await;
+    assessment(&trial, Outcome::Pass);
+}
+
 #[tokio::test]
 async fn multiple_distinct_manual_checks_are_not_one_requested_check() {
     let trial = prepared(PAUSE);
