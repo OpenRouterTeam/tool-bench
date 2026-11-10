@@ -113,6 +113,12 @@ fn sentry_release_is_traced_to_its_pull_request_and_author_by_joins() {
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; pull request fifty-seven by Sofia Alvarez.",
         // The open fix attempt, named after the answer and as what it is, is context.
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #57 by Sofia Alvarez. PR #70 by marcus is an open fix.",
+        // Sentry lists the release under its short version, which names the same release.
+        "STOREFRONT-WEB-7Q first appeared in release 5.2.0; PR #57 by Sofia Alvarez.",
+        "STOREFRONT-WEB-7Q first appeared in storefront 5.2.0; PR #57 by Sofia Alvarez.",
+        "- Sentry issue: STOREFRONT-WEB-7Q\n- First release: 5.2.0\n- Pull request: #57\n- Author: sofia",
+        // The release the issue was last seen in, named in its short form, is context.
+        "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #57 by Sofia Alvarez. The latest event is tagged 5.3.1, which is only where it is still happening.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -129,6 +135,11 @@ fn sentry_release_is_traced_to_its_pull_request_and_author_by_joins() {
         // The right issue with the look-alike's release, the open fix attempt
         // instead of the introducing pull request, and the wrong author.
         "STOREFRONT-WEB-7Q first appeared in storefront@5.3.0; PR #57 by Sofia Alvarez.",
+        // The short version of another release, and near misses of the right one.
+        "STOREFRONT-WEB-7Q first appeared in release 5.3.1; PR #57 by Sofia Alvarez.",
+        "STOREFRONT-WEB-7Q first appeared in release 5.3.0; PR #57 by Sofia Alvarez.",
+        "STOREFRONT-WEB-7Q first appeared in release 5.2.1; PR #57 by Sofia Alvarez.",
+        "STOREFRONT-WEB-7Q first appeared in release 15.2.0; PR #57 by Sofia Alvarez.",
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #70 by Sofia Alvarez.",
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #57 by Marcus Chen.",
         // Near-miss pull request number.
@@ -138,9 +149,8 @@ fn sentry_release_is_traced_to_its_pull_request_and_author_by_joins() {
     case.unresolved(&[
         // A bare number is not a pull request reference.
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; 57, Sofia Alvarez.",
-        // A partial author name and a partial release name.
+        // A partial author name.
         "STOREFRONT-WEB-7Q first appeared in storefront@5.2.0; PR #57 by S. Alvarez.",
-        "STOREFRONT-WEB-7Q first appeared in storefront 5.2.0; PR #57 by Sofia Alvarez.",
         // A negated verb after the author.
         "STOREFRONT-WEB-7Q, storefront@5.2.0, PR #57. Sofia Alvarez did not write it.",
         // The right issue under the opposite ranking.
@@ -208,6 +218,13 @@ fn datadog_peak_is_the_highest_production_point_inside_the_hour() {
         // this from "did not reach 1843 ms", which passes too: see
         // `negated-verb-before-measured-value` in the wrong-answer fixtures.
         "Production did not exceed 1843 ms, reached at 14:35 UTC.",
+        // The request fixes the unit ("the peak value in milliseconds"), so the value may
+        // stand without it: bare, under a label, as JSON, or under a table header.
+        "1843 at 14:35 UTC",
+        "1843\n14:35",
+        "Peak p95 latency: 1843\nTime of peak (UTC): 14:35",
+        "{\"peak_ms\": 1843, \"peak_time_utc\": \"14:35\"}",
+        "| Peak p95 (ms) | Time (UTC) |\n|---|---|\n| 1843 | 14:35 |",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -226,12 +243,15 @@ fn datadog_peak_is_the_highest_production_point_inside_the_hour() {
         // Near misses.
         "1834 ms at 14:35 UTC",
         "1843 ms at 14:53 UTC",
+        // Without a unit the staging peak, another point and a near miss are still not it.
+        "2210\n14:15",
+        "1701\n14:40",
+        "1834 at 14:35 UTC",
+        "1843 at 14:15 UTC",
     ]);
     case.unresolved(&[
         // A rounded value in words is not the peak.
         "about eighteen hundred ms at 14:35",
-        // A value without its unit is not read.
-        "1843 at 14:35 UTC",
         // The right point under the opposite ranking.
         "The lowest p95 of the hour was 1843 ms at 14:35 UTC.",
     ]);
@@ -268,6 +288,10 @@ fn kubernetes_crashloop_error_is_read_from_the_log_joined_by_record_key() {
         "It is probably ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user \"ledger\".",
         // The healthy sibling, named after the answer and as what it is, is context.
         "ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user \"ledger\". The other replica ledger-worker-zx4mrndj8b-dwvg9 is healthy.",
+        // The log quotes the user name; the error is the same one however a reply quotes it.
+        "ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user ledger",
+        "ledger-worker-zx4mrndj8b-gdg8j: pq: password authentication failed for user 'ledger'",
+        "{\"pod\": \"ledger-worker-zx4mrndj8b-gdg8j\", \"error\": \"pq: password authentication failed for user \\\"ledger\\\"\"}",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -282,14 +306,15 @@ fn kubernetes_crashloop_error_is_read_from_the_log_joined_by_record_key() {
         "ledger-worker-c64m9bbw8-v45ss: password authentication failed for user \"ledger\"",
         "ledger-worker-zx4mrndj8b-gdg8j: panic: invalid config: unknown field \"retryBackoffMs\" in kafka section",
         "ledger-worker-zx4mrndj8b-gdg8j: OOMKilled",
+        // The line after the error, which reports the exit and not its cause.
+        "ledger-worker-zx4mrndj8b-gdg8j: FATAL could not initialise ledger store, exiting (exit code 1)",
     ]);
     case.unresolved(&[
-        // A truncated pod name, the workload name alone, and a shortened or
-        // unquoted error are not the authored values.
+        // A truncated pod name, the workload name alone, and a shortened error are
+        // not the authored values.
         "ledger-worker-zx4mrndj8b-gdg8: password authentication failed for user \"ledger\"",
         "ledger-worker: password authentication failed for user \"ledger\"",
         "ledger-worker-zx4mrndj8b-gdg8j: password authentication failed",
-        "ledger-worker-zx4mrndj8b-gdg8j: password authentication failed for user ledger",
         // Unreviewed negative predicates about the right pod.
         "ledger-worker-zx4mrndj8b-gdg8j does not crash-loop: password authentication failed for user \"ledger\".",
         "ledger-worker-zx4mrndj8b-gdg8j is not the crash-looping pod: password authentication failed for user \"ledger\".",

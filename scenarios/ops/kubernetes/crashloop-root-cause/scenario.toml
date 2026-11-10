@@ -20,7 +20,9 @@ audit_history = true
 
 # The pod is the one in the payments namespace whose container waits in CrashLoopBackOff.
 # Its log record is keyed "<namespace>/<pod>/<container>"; the error is the innermost
-# message (the text after the last colon) of the ERROR line of the crashed instance.
+# message (the text after the last colon) of the ERROR line of the crashed instance, up to
+# the argument the log puts in quotes: a reply may quote that argument differently or not
+# at all (`user "ledger"`, `user 'ledger'`, `user \"ledger\"` in JSON, `user ledger`).
 [expect.answer.record_facts]
 requirement = "Name the pod in the payments namespace whose container is in CrashLoopBackOff, and quote the error message that the ERROR line of its crashed container's log ends with."
 mode = "statements"
@@ -75,7 +77,7 @@ kind = "identifier"
 record = "logs"
 field = "/previous/0"
 append = ["/previous/1", "/previous/2", "/previous/3"]
-capture = 'ERROR .*?: ([^:]+?)(?: \d{4}-\d{2}-\d{2}T|$)'
+capture = 'ERROR .*?: ([^:"]+?)(?: "| \d{4}-\d{2}-\d{2}T|$)'
 kind = "text"
 
 [expect.answer.record_facts.facts.restarts]
