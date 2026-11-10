@@ -1,17 +1,21 @@
-//! Conservative reading of a natural-prose answer against derived facts.
+//! Reading of a natural-prose answer against derived facts.
 //!
-//! The reader never scores by keyword presence.  Every source fact must be
-//! *affirmed*: stated in a reviewed notation, outside a denial, a retraction
-//! or a hedge.  The possible verdicts are:
+//! The reader never scores by keyword presence.  Every required source fact must be
+//! *affirmed* (stated in a reviewed notation and not denied or retracted), and the
+//! reply's answer for it must be the source value: the statements of the source value
+//! and of other authored records' values are collected as ordered *claims*, and the
+//! reader follows which one the reply ends on (`Evidence::contested`).  The verdicts:
 //!
-//! - **Pass**: every fact is affirmed and nothing in the answer competes.
-//! - **Fail**: a fact is provably not established — it is denied, another
-//!   authored record's value is asserted in its place, a typed value with the
-//!   reviewed unit or currency differs, a reviewed incorrect form matches, or
-//!   the fact is simply absent.
-//! - **Unresolved**: anything the reader cannot classify — hedges, unreviewed
-//!   notations, partial names, or a correct fact stated next to another
-//!   record's value.
+//! - **Pass**: every required fact is affirmed and is the reply's answer.
+//! - **Fail**: a fact is provably not established: it is denied, another authored
+//!   record's value is stated in its place, a typed value with the reviewed unit or
+//!   currency differs, the reply makes a reviewed incorrect claim, or the fact is
+//!   absent.
+//! - **Unresolved**: the reader cannot tell: the fact is both affirmed and disputed,
+//!   the reply ends on another record or on a list, or the value may be present in a
+//!   notation the reader does not type.
+//!
+//! `docs/answer-fact-contracts.md` states the policy and its measured limits.
 
 use std::{collections::BTreeMap, sync::LazyLock};
 
