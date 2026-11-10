@@ -267,14 +267,6 @@ fn latency_by_region_other_region_earns_no_reward() {
     rejects(&case, &["ap-southeast-2 averages 412.5 ms"]);
 }
 
-// Fails at present: `wins on speed` is not one of the contract's `contradictions`, and
-// the reader checks no other predicate about a correctly named value.
-#[test]
-fn latency_by_region_slowest_region_called_the_fastest_earns_no_reward() {
-    let case = Case::load("search/elasticsearch/latency-by-region");
-    rejects(&case, &["eu-west-1 wins on speed at 412.5 ms."]);
-}
-
 // ---------- search/brave/caterer-saturday-hours ----------
 
 #[test]

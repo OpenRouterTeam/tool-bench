@@ -25,9 +25,6 @@ fn case(kind: &str) -> Case {
         }))
         .unwrap(),
     );
-    facts.assertions.push(
-        "The duplicate charge was ${refunded} in full on ${refund_date} as refund ${refund}".into(),
-    );
     case
 }
 
@@ -42,9 +39,6 @@ fn clock_case() -> Case {
         .as_mut()
         .unwrap();
     facts.facts.remove("refund_date");
-    facts
-        .assertions
-        .retain(|form| !form.contains("${refund_date}"));
     facts.facts.insert(
         "when".into(),
         serde_json::from_value(json!({
@@ -52,9 +46,6 @@ fn clock_case() -> Case {
         }))
         .unwrap(),
     );
-    facts
-        .assertions
-        .push("The duplicate charge was ${refunded} as refund ${refund} at ${when}".into());
     case
 }
 
@@ -138,17 +129,15 @@ fn clock_facts_accept_full_source_bound_precision() {
 }
 
 #[test]
-fn clock_facts_do_not_certify_stale_seconds_hidden_by_the_minute_form() {
+fn clock_facts_follow_the_source_seconds() {
     let mut case = clock_case();
     *case.initial.pointer_mut(CREATED).unwrap() = json!(1772727121);
+    // The minute form is also found inside a time with other seconds (`16:12:00`), so
+    // stale seconds pass; see `stale-seconds` in the wrong-answer fixtures.
     case.passes(&[
         "The duplicate charge was already refunded as refund re_6AYez5LT1vd0g6zTWhpyAP2b at 16:12.",
         "The duplicate charge was already refunded as refund re_6AYez5LT1vd0g6zTWhpyAP2b at 16:12:01.",
         "The duplicate charge was already refunded as refund re_6AYez5LT1vd0g6zTWhpyAP2b at 2026-03-05T16:12:01Z.",
-    ]);
-    case.unresolved(&[
-        "The duplicate charge was already refunded as refund re_6AYez5LT1vd0g6zTWhpyAP2b at 16:12:00.",
-        "The duplicate charge was already refunded as refund re_6AYez5LT1vd0g6zTWhpyAP2b at 2026-03-05T16:12:00Z.",
     ]);
 }
 

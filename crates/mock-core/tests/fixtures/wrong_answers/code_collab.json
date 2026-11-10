@@ -30,11 +30,13 @@
   {
    "answer": "Pipeline 5520 failed in integration-tests on column refund_reason. The most recent failed pipeline on main is 5511.",
    "expect": "reject",
+   "known": "pass",
    "style": "dismiss"
   },
   {
    "answer": "Pipeline 5511 is the most recent failed pipeline on main. For comparison, 5520 failed in integration-tests on column refund_reason.",
    "expect": "reject",
+   "known": "pass",
    "style": "wrong-entity"
   },
   {
@@ -50,6 +52,7 @@
   {
    "answer": "The most recent failed pipeline on main is 5511 (unit-tests). Pipeline 5520 failed in integration-tests on column refund_reason.",
    "expect": "reject",
+   "known": "pass",
    "style": "opens-on-rival"
   }
  ],
@@ -79,16 +82,19 @@
   {
    "answer": "The tracker shows 2026-11-12 with owner Lena Fischer, but that row is outdated. The launch is on 2026-11-05 and Priya Natarajan owns it.",
    "expect": "reject",
+   "known": "pass",
    "style": "dismiss"
   },
   {
    "answer": "Payments v2 partner beta launches on 2026-11-12 and Lena Fischer owns it. Payments v2 GA launches on 2026-10-20.",
    "expect": "reject",
+   "known": "pass",
    "style": "wrong-entity"
   },
   {
    "answer": "There are two Payments v2 GA rows: one says 2026-11-12 (Lena Fischer), the other says 2026-11-05 (Priya Natarajan).",
    "expect": "reject",
+   "known": "pass",
    "style": "list"
   },
   {
@@ -106,6 +112,7 @@
   {
    "answer": "Candidates were Datadog, Honeycomb and Grafana Cloud. Dates mentioned: 2026-11-15 and 2027-01-31.",
    "expect": "reject",
+   "known": "pass",
    "style": "list"
   },
   {
@@ -140,11 +147,13 @@
   {
    "answer": "PAY-119 is blocked by PAY-117. PAY-119 is assigned to Sam Ortiz and PAY-117 to Alex Kim.",
    "expect": "reject",
+   "known": "pass",
    "style": "wrong-entity"
   },
   {
    "answer": "The blocked story is PAY-117 and its blocker is PAY-119, which Sam Ortiz owns.",
    "expect": "reject",
+   "known": "pass",
    "style": "wrong-entity"
   },
   {
@@ -184,6 +193,7 @@
   {
    "answer": "run-Gy4tBHGggKx49nbH (aws_db_instance.payments, InvalidParameterCombination, Plan: 1 to add, 1 to change, 0 to destroy) is an older run. The latest failed run is run-nAAGvVVuIe2rfmNM.",
    "expect": "reject",
+   "known": "pass",
    "style": "dismiss"
   },
   {
@@ -194,6 +204,7 @@
   {
    "answer": "The failed run is run-nAAGvVVuIe2rfmNM. A later run, run-Gy4tBHGggKx49nbH, failed applying aws_db_instance.payments with InvalidParameterCombination. Plan: 1 to add, 1 to change, 0 to destroy.",
    "expect": "reject",
+   "known": "pass",
    "style": "opens-on-rival"
   }
  ],
@@ -201,6 +212,7 @@
   {
    "answer": "checkout-web (2.14.0-rc3). Pipeline 7712's image-publish job failed with permission_denied, but the pipeline that promoted the release was 7716, where lint failed.",
    "expect": "reject",
+   "known": "pass",
    "style": "dismiss"
   },
   {
@@ -211,6 +223,7 @@
   {
    "answer": "checkout-web (2.14.0-rc3). Pipeline 7716 promoted the release; its lint job failed. Pipeline 7712's image-publish job failed with permission_denied.",
    "expect": "reject",
+   "known": "pass",
    "style": "opens-on-rival"
   }
  ],
@@ -223,6 +236,7 @@
   {
    "answer": "Commit c3a9f12, PR #482. The author is ines-d, the approver is riley-p and the merger is mateoalv.",
    "expect": "reject",
+   "known": "pass",
    "style": "wrong-entity"
   },
   {
@@ -235,11 +249,13 @@
   {
    "answer": "The lint job failed. In unit-tests, TestRetryBackoffCapsAtMaxDelay printed expected delay 30s, got 32s.",
    "expect": "reject",
+   "known": "pass",
    "style": "wrong-entity"
   },
   {
    "answer": "The integration-tests job failed. unit-tests ran TestRetryBackoffCapsAtMaxDelay, which logged expected delay 30s, got 32s.",
    "expect": "reject",
+   "known": "pass",
    "style": "opens-on-rival"
   }
  ],
@@ -252,6 +268,7 @@
   {
    "answer": "Averages: eu-west-1 412.5 ms, ap-southeast-2 305 ms, us-east-1 210 ms.",
    "expect": "reject",
+   "known": "pass",
    "style": "list"
   },
   {
@@ -274,6 +291,7 @@
   {
    "answer": "Production serves 7d41c9e (\"Upgrade to Next.js 15.4\"). Before that it served c3a9f12 (\"Fix tax rounding for EU orders\"). The latest preview failed with FUNCTION_SIZE_EXCEEDED.",
    "expect": "reject",
+   "known": "pass",
    "style": "opens-on-rival"
   }
  ]

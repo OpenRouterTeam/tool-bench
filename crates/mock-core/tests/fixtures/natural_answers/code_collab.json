@@ -317,6 +317,7 @@
     {
       "style": "context",
       "expect": "pass",
+      "known": "unresolved",
       "answer": "PO number: PO-48213\nAmount due: $12,480.00 (USD 12,480)\nDue: 2026-11-20 (Friday, 20 November 2026)\n\nSource: \"Invoice INV-20931 for October services\" from billing@northwind.example, received Tue 27 Oct 2026 with INV-20931.pdf attached. The email says the amount replaces the draft figure of $11,900.00 from the call. The PO matches the one we sent them on 20 October, and there is already a \"Pay Northwind invoice\" task due the same day."
     },
     {

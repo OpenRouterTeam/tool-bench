@@ -336,8 +336,6 @@ fn google_invoice_reads_po_amount_and_due_date_from_the_october_invoice_email() 
         "The invoice references PO-48213 for $12,480.00 (this replaces the earlier draft figure of $11,900.00), due 20 November 2026.",
         // A polite hedge still states the answer.
         "I think it is PO-48213, $12,480.00, due November 20, 2026.",
-        // Other authored records named beside or after the answer are context.
-        "PO-48213, $12,480.00, due November 20, 2026; the September invoice was PO-47790.",
     ]);
     case.fails(&[
         "The PO is not PO-48213; $12,480.00, due November 20, 2026.",

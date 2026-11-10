@@ -3,8 +3,13 @@
 Lookup tasks are graded on the reply the agent writes to the user. A
 `record_facts` contract names facts **derived from the authored baseline data**,
 and the reader checks that the reply states each required fact, does not deny it,
-and makes clear which record is its answer. The reply is free prose: there is no
+and gives the source value as its answer. The reply is free prose: there is no
 list of accepted sentences.
+
+The reader is a deterministic heuristic over sentences, clauses and cue words. It
+does not parse sentences. It is tuned to accept correct replies written in
+ordinary prose and is measured against corpora of such replies; see
+[Known limits](#known-limits) for what it gets wrong.
 
 Code: `crates/mock-core/src/grading/answers/record_facts.rs` and its submodules
 `derive.rs` (where facts come from), `statements.rs` (how a reply is read) and
@@ -16,13 +21,22 @@ Only a pass earns reward.
 
 | Outcome | When |
 |---|---|
-| Pass | Every required fact is affirmed, none is denied or disputed, no other authored record competes with it as the reply's answer, and facts named in `order` are stated in that order. |
+| Pass | Every required fact is affirmed, none is denied or disputed, the reply's answer for each fact is the source value (see [The reply's answer](#the-replys-answer)), and facts named in `order` are stated in that order. |
 | Fail | The reply is empty; a `rejected` form matches; or a required fact is never affirmed and is denied, replaced by another authored record's value, stated with a different value in the reviewed unit or currency, or simply absent. |
-| Unresolved | A required fact is affirmed in one place and denied or disputed in another; it appears only in disputed statements; the reply leaves its answer unclear between authored records; `order` is violated; a missing fact may be present in a notation the reader cannot type; or the reply is longer than 65,536 bytes or holds invisible control characters. |
+| Unresolved | A required fact is affirmed in one place and denied or disputed in another; it appears only in disputed statements; the reply's answer for it is another authored record, a list of records, or never given (the source value appears only where the reply sets it aside); `order` is violated; a missing fact may be present in a notation the reader cannot type; or the reply is longer than 65,536 bytes or holds invisible control characters. |
 | Environment error | A source record, field, join or capture is missing from the initial state. |
 
 A fail on any required fact outranks an unresolved finding on another. A tie in
 a ranking is unresolved.
+
+In one paragraph: a reply passes when every required fact is affirmed and not
+denied, and for each fact the reply's answer is the source value. The answer is
+read as an ordered sequence of claims. The first record the reply commits to
+takes it. Another authored record takes it over only by strong wording ("the
+most recent is 5511", "the real peak was"). The source value takes it back only
+by concluding wording ("so the app is X", "Owner: X"). The source value listed
+with another record by a bare conjunction is not an answer. A record that is
+denied or set aside in its own clause or sentence is not a claim.
 
 ## Where facts come from
 
@@ -157,7 +171,7 @@ RFC 3339 form.
    phrases that are true of the facts (`does not match the expected scopes`) and
    are not read as denials. `contradictions` are words that say the opposite of
    what the task asks (`fastest` for a slowest-region task): a fact in the same
-   sentence is disputed.
+   clause is disputed.
 3. The reply is split into sentences (lines, table cells, `;` and sentence
    punctuation), and every statement of each fact's source value is located.
 4. Each statement is classified:
@@ -167,8 +181,8 @@ RFC 3339 form.
    - **disputed**: a negator reaches it across one other word (`did not pick
      X`); a denial follows it (`X did not delete …`, `X is not the …`, `X was
      ruled out`, `X's deal is not the largest`); the sentence holds a retraction
-     (`at first it looked like …`) or a `contradictions` cue; or the next
-     sentence takes it back (`That was not the final pick.`);
+     (`at first it looked like …`); its clause holds a `contradictions` cue; or
+     the next sentence takes it back (`That was not the final pick.`);
    - **affirmed**: anything else. A hedged statement (`it appears to be X`,
      `probably X`) counts as affirmed.
 
@@ -176,7 +190,10 @@ RFC 3339 form.
    correctly identified and is not a dispute (`column X does not exist`, `PR X
    has not been merged`, `could not pull X`); anything else needs a `predicates`
    entry.
-5. The verdict follows the table above, fact by fact. A fact with several source
+5. For each fact that is affirmed and nowhere denied or disputed, the reply's
+   answer is read from its claims, in order (see
+   [The reply's answer](#the-replys-answer)).
+6. The verdict follows the table above, fact by fact. A fact with several source
    values (a `pick = "all"` join, `/members/<field>`) needs each value affirmed.
 
 ### Notations accepted
@@ -195,29 +212,57 @@ A value that is never affirmed but may be present in another notation (a bare
 number where a unit is required, part of a name, other number words, a numeric
 date) is unresolved rather than failed.
 
-### Other records
+### The reply's answer
 
 The alternatives to a fact are the same fact read from the other records of the
 collection (other groups for an aggregate). A number counts as an alternative
-only when it carries the reviewed unit or currency. A denied or disputed
-alternative (`not Globex`) and a value that equals a required fact are ignored.
+only when it carries the reviewed unit or currency. A value that equals a
+required fact is not an alternative.
 
-- If the source value is never affirmed, stating an alternative fails.
-- If the source value is affirmed, an alternative is context when it appears in
-  a sentence that also affirms a required fact, in a sentence that sets it aside
-  (`excluding`, `compared with`, `the runner-up`, `the previous`, `also`, `for
-  context`, `staging`), or between the first and the last statement of the
-  source value.
-- An alternative stated on its own **after** the last statement of the source
-  value is unresolved when that sentence presents it as the answer (`actually`,
-  `in fact`, `instead`, `the answer`, `final`, `largest`).
-- An alternative stated on its own **before** the first statement of the source
-  value requires the reply to conclude on the source value: it is unresolved
-  when the last statement of the source value is a list item, or is worded as a
-  lesser item (`second`, `next`, `also`, `another`, `previous`), and carries no
-  concluding cue (`so`, `therefore`, `the answer`, `in summary`, `actually`,
-  `largest`, `→`).
-- Alternatives stated on their own both before and after are unresolved.
+If the source value is never affirmed, stating an alternative fails. Otherwise
+the reader collects **claims** for the fact and reads them in the order they
+appear. The answer starts open.
+
+| Claim | When | Effect on the answer |
+|---|---|---|
+| Source | The source value is affirmed and not set aside. | Takes an open answer and keeps its own. Takes the answer back from another record or from a list only when *concluding*. |
+| Other | Another authored record's value is stated and is not denied, disputed or set aside. | *Strong*: takes the answer wherever it appears. *Opening*: takes an open answer. Otherwise it is named in passing and changes nothing. |
+| Listed | The source value and another record's value are joined by nothing but a comma, a slash or a conjunction (`X and Y`, `X, Y`, `X or Y`). | Makes an open or source answer a list. |
+
+The reply's answer must end on the source value. An answer that ends on another
+record, on a list, or still open is unresolved.
+
+What makes a claim, with the cue lists in `statements.rs`:
+
+- **Not a claim: denied.** A denied or disputed alternative (`not Globex`,
+  `Globex was ruled out`) is ignored.
+- **Not a claim: set aside.** An alternative is set aside by a word anywhere in
+  its sentence (`SET_ASIDE`: `excluding`, `compared with`, `the runner-up`,
+  `previous`, `also`, `other`, `for context`, `staging`, `failed`, `if`), or by
+  a `contradictions` cue in the sentence. The source value is set aside by
+  wording in its own clause, before it (`DEMOTED_BY`: `ruled out`, `rather
+  than`, `ahead of`, `behind`, `over`) or after it (`DEMOTED_AS`: `is a red
+  herring`, `is outdated`, `was considered`, `for comparison`). A reply that
+  states the source value only where it is set aside has not answered.
+- **Concluding** (source): the clause holds an answer cue (`ANSWER_CUE`:
+  `actually`, `therefore`, `the answer`, `final`, `chosen`, `largest`, `latest`)
+  or a conclusion cue (`CONCLUSION_CUE`: `so`, `only`, `matches`, `remaining`,
+  `current`, `→`), or the value completes an identification (`IDENTIFIES`: `the
+  app is X`) or answers a label (`Owner: X`).
+- **Strong** (other record): the clause holds an answer cue, or the value
+  directly completes an identification (`the vendor is Y`).
+- **Opening** (other record): the value answers a label or opens its line.
+
+A clause runs to the nearest comma, semicolon, colon or clause word (`but`,
+`so`, `while`, `because`, `however`); a parenthetical is a clause of its own.
+
+Measured facts (numbers, amounts, dates, clock times) are restated, compared and
+negated in passing far more than names are, so they are read more leniently.
+Only a negator that governs the value directly, an explicit denial after it, a
+`contradictions` cue or a retraction counts against one. The source value is
+never set aside or listed, and another record's value competes only by strong
+wording, never by opening. A fact named in `order` is not set aside either: its
+place in the order is described in those words (`then`, `next`, `the backup`).
 
 ### Statement order: `order`
 
@@ -241,14 +286,60 @@ a record that allows absence, and `order` cannot name an optional fact.
 
 ## Known limits
 
-- The reader binds values and polarity, not arbitrary predicates. A wrong
-  predicate about a correctly named value ("eu-west-1 wins on speed") is caught
-  only by a `contradictions` cue or a `rejected` form.
-- Role swaps among the declared facts are caught only by `order` or a `rejected`
-  form.
-- A wrong optional detail next to correct required facts passes.
-- A list fact needs each source value. An extra value listed in the same
-  sentence is context and is not counted against the reply.
+The reader does not parse sentences, so some correct replies are left
+unresolved and some wrong replies pass. Both are measured on three corpora in
+`crates/mock-core/tests/fixtures/`, and every reply the reader gets wrong is
+marked in its fixture entry with `"known"`, the verdict the reader returns
+today.
+
+| Corpus | Replies | Reader agrees | Known limit |
+|---|---|---|---|
+| `natural_answers/`, `natural_answers_heldout/`: correct replies | 500 | 493 pass | 7 unresolved |
+| `natural_answers/`, `natural_answers_heldout/`: wrong replies | 300 | 300 rejected | none |
+| `wrong_answers/`: wrong replies written to defeat the reader | 80 | 44 rejected | 36 pass |
+
+`from_unit_tests.json` in `natural_answers/` and in `wrong_answers/` holds
+replies that unit tests used to assert on and the reader misreads: 7 correct
+replies left unresolved and 29 wrong replies that pass. They were picked because
+the reader gets them wrong, so they are not part of the rates above.
+
+**Correct replies left unresolved** mention another authored record in wording
+the reader takes for a claim ("the regularly scheduled person this week is Riya
+Patel", "rchen's PR #57 was merged"), or state the answer in a clause that holds
+a dismissal word ("went over the function size limit").
+
+**Wrong replies that pass** hold every right value, attached to the wrong thing
+or dismissed. The kinds, each a `style` in the fixtures:
+
+- Role swaps with every name present: "The author is ines-d, the approver is
+  riley-p and the merger is mateoalv." Roles among declared facts are caught
+  only by `order` or a `rejected` form.
+- A dismissal the cue lists do not know: "checkout-7b9d6c5f4-xk2lp is fine.
+  Cordon checkout-7b9d6c5f4-m8vqt."
+- A plain statement of a wrong record followed by the right one in concluding
+  words: "Production serves 7d41c9e (…). Before that it served c3a9f12 (…)."
+  A record stated without strong or opening wording is only named in passing.
+- A wrong number, amount or date first, with the right one after it or in a
+  parenthesis: "December 1, 2026; verify Ferrowave-Signature-V2. (The signature
+  guide mentions January 15, 2027.)", "The MRR is $439.00 or $339.00." Another
+  record's measured value competes only by strong wording and is never a list.
+- A rival in a sentence that holds a set-aside word. `failed` and `errored` are
+  set-aside words and also the vocabulary of the CI tasks, so "The most recent
+  failed pipeline on main is 5511" is not read as a claim.
+- A negated verb before a number, amount or date: "Production did not reach
+  1843 ms at 14:35 UTC." Only a negator that governs a measured value directly
+  ("was not 1843 ms") denies it.
+- The opposite predicate about the right values, outside the contract's
+  `contradictions` ("eu-west-1 wins on speed"), in a label or table header
+  (`"fastest_region"`), or as a symbol (`!=`). The reader binds values and
+  polarity, not arbitrary predicates.
+- A wrong detail the contract does not require: a fabricated or stale optional
+  fact, other seconds after the right minute of a clock fact (`16:42:00` for
+  `16:42:57`), an extra item after a complete list, or number words the reader
+  reads in part ("one hundred ten percent" as ten percent).
+
+Limits of notation:
+
 - A bare number without declared `units` matches any equal standalone number;
   declare `units` (and `require_unit`) for counts.
 - Retraction cues are sentence-level and broad; they cost adjudication.
@@ -279,12 +370,21 @@ inventory stays open for those. Today that is one unscored scenario, enforced in
 `crates/mock-core/tests/statement_support/mod.rs` loads a scenario's real
 contract and dataset and grades through `mock_core::grading::grade`.
 
-- `natural_answers.rs` grades the corpus in `tests/fixtures/natural_answers/`:
-  replies as agents write them, each marked `pass` or `reject` (fail or
-  unresolved), for the `record_facts` scenarios.
+- `natural_answers.rs` grades the three corpora under `tests/fixtures/` for the
+  `record_facts` scenarios and prints one summary line per directory. An entry
+  is `{"style", "expect", "answer"}`; `expect` is `pass` or `reject` (fail or
+  unresolved). An entry whose verdict disagrees with `expect` carries
+  `"known": "<verdict>"`, and the test requires exactly that verdict: a change
+  to the reader that fixes or breaks a known limit fails until the fixture is
+  updated. `"edit": {"<json pointer>": <value>}` replaces authored source values
+  before the reply is graded, for a reply that is wrong only once the source has
+  changed.
 - `answer_phrasing_*.rs` and `statement_answers_*.rs` hold per-scenario cases:
   alternative phrasings that pass; denied, wrong-record, role-swapped and stale
   replies that earn no reward; a missing source as an environment error; and
-  data edits showing the fact follows the source.
+  data edits showing the fact follows the source. A reply the reader misreads
+  belongs in a corpus with `known`, not in these files.
 - `bench-answer-probe SCENARIOS_ROOT CORPUS_JSON` grades a corpus file from the
-  command line and prints one JSON line per reply.
+  command line. It prints one JSON line per reply (`verdict`, `agrees` with
+  `expect`, `recorded` when the verdict is what the entry records) and a summary
+  on stderr, and exits non-zero when a verdict is not as recorded.
