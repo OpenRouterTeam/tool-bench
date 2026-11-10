@@ -11,7 +11,9 @@ mod answers;
 mod information;
 mod validation;
 
-pub use answers::{FactColumn, FactKind, FactRows, OncallAnswer, SentryDsn, SourceFacts};
+pub use answers::{
+    FactColumn, FactKind, FactRows, OncallAnswer, RecordFacts, SentryDsn, SourceFacts,
+};
 pub use information::{
     FieldFormat, InformationCheck, InformationField, InformationRead, InformationSeries,
     InformationWindow,
@@ -164,10 +166,12 @@ fn one() -> usize {
     1
 }
 
-/// Checks on the agent's final answer (`/app/answer.md`).
+/// Checks on the declared user-response or legacy artifact channel.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AnswerCheck {
+    #[serde(default, skip_serializing_if = "AnswerSource::is_legacy")]
+    pub source: AnswerSource,
     /// Each string must appear, case-insensitively.
     #[serde(default)]
     pub contains: Vec<String>,
@@ -179,6 +183,22 @@ pub struct AnswerCheck {
     pub oncall: Option<OncallAnswer>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_facts: Option<SourceFacts>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub record_facts: Option<RecordFacts>,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum AnswerSource {
+    #[default]
+    LegacyAnswerFile,
+    FinalResponse,
+}
+
+impl AnswerSource {
+    fn is_legacy(&self) -> bool {
+        *self == Self::LegacyAnswerFile
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -400,6 +420,27 @@ pub fn grade(input: &GradeInput) -> Grade {
 
     let integrity_ok = mcp_bypass == 0 || input.expect.interfaces == InterfacePolicy::DirectAllowed;
     let mut failures = Vec::new();
+    if let (Some(initial), Some(events)) = (input.initial_state, input.events) {
+        let records: Vec<_> = events
+            .iter()
+            .filter_map(|event| match &event.event {
+                events::EventKind::FaultSelected { record } => Some(record.clone()),
+                _ => None,
+            })
+            .collect();
+        if let Err(reason) =
+            crate::faults::validate_evidence(initial, &input.state, &records, input.journal, events)
+        {
+            failures.push(CheckFailure {
+                check: CheckKind::Environment,
+                disposition: CheckDisposition::Failed,
+                location: "evidence/fault-schedule".into(),
+                reason,
+                evidence: Vec::new(),
+                event_evidence: Vec::new(),
+            });
+        }
+    }
     for event in input.events.into_iter().flatten() {
         if let events::EventKind::EnvironmentFailed { code, reason } = &event.event {
             failures.push(CheckFailure {

@@ -10,6 +10,17 @@ use report::{compare_declared, load_trials};
 
 fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.first().map(String::as_str) == Some("--trials") {
+        if args.len() != 3 || args[2] != "--json" {
+            bail!("usage: bench-report --trials <run-dir> --json");
+        }
+        let trials = load_trials(&PathBuf::from(&args[1]))?;
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&report::trial_summary(&trials))?
+        );
+        return Ok(());
+    }
     let mut seen = std::collections::BTreeSet::new();
     let a = PathBuf::from(
         args.first()

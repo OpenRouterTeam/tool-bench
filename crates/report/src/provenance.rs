@@ -18,6 +18,8 @@ pub struct Provenance {
     pub initial_state_sha256: String,
     pub runner_adapter_sha256: String,
     pub manifest: ExecutionManifest,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inference: Option<mock_core::inference::InferenceEvidence>,
 }
 
 impl Provenance {
@@ -31,6 +33,12 @@ impl Provenance {
         });
         if let Some(policy) = &self.manifest.context.review_policy_sha256 {
             release["review_policy_sha256"] = json!(policy);
+        }
+        if let Some(inference) = &self.inference {
+            release["inference_capture"] = json!({
+                "schema": inference.schema_version,
+                "code_sha256": inference.adapter.code_sha256,
+            });
         }
         canonical_sha256(&release)
     }
@@ -59,6 +67,7 @@ impl Provenance {
             "runner": self.runner_adapter_sha256, "harness": self.manifest.harness,
             "python_version": self.manifest.python_version,
             "agent": if allow_agent_difference { Value::Null } else { json!(self.manifest.agent) },
+            "inference_condition": if allow_agent_difference { Value::Null } else { json!(self.manifest.inference_identity) },
             "context": self.manifest.context, "images": images,
             "agent_timeout_sec": self.manifest.agent_timeout_sec,
             "verifier_timeout_sec": self.manifest.verifier_timeout_sec
@@ -160,6 +169,17 @@ pub(crate) fn load_verified(
         bail!("host task identity does not match the collected scenario");
     }
     source.validate(scenario).map_err(anyhow::Error::msg)?;
+    let materialization = mock_core::materialization::bundle_from_directory(
+        &verifier,
+        &context.materialization_files,
+    )
+    .map_err(anyhow::Error::msg)?;
+    mock_core::materialization::validate_bundle(
+        &source,
+        &context.materialization_files,
+        &materialization,
+    )
+    .map_err(anyhow::Error::msg)?;
     if source != evidence.source
         || verification["contract_semantic_sha256"] != canonical_sha256(&contract)
         || verification["initial_state_sha256"] != evidence.initial_state_sha256
@@ -195,12 +215,57 @@ pub(crate) fn load_verified(
     if result["agent_info"]["name"].as_str() != Some(manifest.agent.name.as_str()) {
         bail!("host result agent identity does not match its observed execution");
     }
-    let answer_text = answer.as_deref().map(std::str::from_utf8).transpose()?;
+    let inference_bytes = if verification["inference_evidence_sha256"].is_string() {
+        let bytes = input("inference-evidence.json", "inference_evidence_sha256")?;
+        if bytes != read(&directory.join("artifacts/world/inference-evidence.json"))? {
+            bail!("inference evidence differs from the exact collected artifact");
+        }
+        Some(bytes)
+    } else {
+        None
+    };
+    let inference = mock_core::inference::load_bound(
+        inference_bytes.as_deref(),
+        &policy,
+        &admission,
+        &manifest,
+    )
+    .map_err(anyhow::Error::msg)?;
+    let native = inference.as_ref().filter(|value| !value.scripted);
+    let use_native_final = native.is_some()
+        && contract
+            .answer
+            .as_ref()
+            .is_some_and(|answer| answer.source == mock_core::grading::AnswerSource::FinalResponse);
+    let answer_text = if let Some(native) = native.filter(|_| use_native_final) {
+        native.final_text()
+    } else {
+        answer.as_deref().map(std::str::from_utf8).transpose()?
+    };
+    if let Some(inference) = &inference {
+        let expected_source = if use_native_final {
+            json!("native_final_response")
+        } else if answer.is_some() {
+            json!("legacy_answer_file")
+        } else {
+            Value::Null
+        };
+        if verification["inference_classification"] != json!(inference.classification)
+            || verification["answer_source"] != expected_source
+            || verification["graded_answer_sha256"]
+                != json!(answer_text.map(|text| sha256(text.as_bytes())))
+        {
+            bail!("inference classification or graded-answer provenance is inconsistent");
+        }
+    }
     let mut assessed = evidence.assess(
         &contract,
         answer_text,
         verification["context_overflow"] == true,
     );
+    if let Some(inference) = &inference {
+        inference.apply_to_grade(&mut assessed);
+    }
     assessed.admit_runner(Ok(()));
     let saved_bytes = read(&verifier.join("assessment.json"))?;
     let saved: Value = serde_json::from_slice(&saved_bytes)?;
@@ -223,6 +288,8 @@ pub(crate) fn load_verified(
             bail!("host reward metrics do not match the verified assessment at {key}");
         }
     }
+    let selected_answer = answer_text.map(str::to_owned);
+    let materialization_bindings = context.materialization_files.clone();
     let provenance = Provenance {
         evaluator_version: evidence.evaluator_version,
         evidence_schema_version: evidence.schema_version,
@@ -230,25 +297,31 @@ pub(crate) fn load_verified(
         initial_state_sha256: evidence.initial_state_sha256.clone(),
         runner_adapter_sha256: policy.adapter_sha256,
         manifest,
+        inference,
     };
+    let mut bindings: std::collections::BTreeMap<String, String> = [
+        ("assessment", sha256(&saved_bytes)),
+        ("contract", sha256(&contract_bytes)),
+        ("evidence", sha256(&evidence_bytes)),
+        ("manifest", sha256(&manifest_bytes)),
+        ("runner-admission", sha256(&admission_bytes)),
+        ("source", sha256(&source_bytes)),
+        ("task-context", sha256(&context_bytes)),
+        ("verification", sha256(&verification_bytes)),
+    ]
+    .into_iter()
+    .map(|(name, value)| (name.into(), value))
+    .collect();
+    if let Some(bytes) = &inference_bytes {
+        bindings.insert("inference".into(), sha256(bytes));
+    }
+    bindings.extend(materialization_bindings);
     Ok(Some(VerifiedAssessment {
         provenance,
         assessment: assessed,
         contract,
         evidence,
-        answer: answer_text.map(str::to_owned),
-        bindings: [
-            ("assessment", sha256(&saved_bytes)),
-            ("contract", sha256(&contract_bytes)),
-            ("evidence", sha256(&evidence_bytes)),
-            ("manifest", sha256(&manifest_bytes)),
-            ("runner-admission", sha256(&admission_bytes)),
-            ("source", sha256(&source_bytes)),
-            ("task-context", sha256(&context_bytes)),
-            ("verification", sha256(&verification_bytes)),
-        ]
-        .into_iter()
-        .map(|(name, value)| (name.into(), value))
-        .collect(),
+        answer: selected_answer,
+        bindings,
     }))
 }

@@ -165,6 +165,19 @@ pub fn write_task_with_conditions(
     )?;
     write_executable(&dir.join("tests/test.sh"), TEST_SH)?;
     write_solution(scenario, catalog, &dir.join("solution"))?;
+    let mut materialization_files = BTreeMap::new();
+    if let Some(bundle) = &dataset.materialization {
+        for (name, bytes) in &bundle.files {
+            let destination = dir.join("tests").join(name);
+            fs::create_dir_all(
+                destination
+                    .parent()
+                    .context("materialization file parent")?,
+            )?;
+            fs::write(destination, bytes)?;
+            materialization_files.insert(name.clone(), mock_core::runner::sha256(bytes));
+        }
+    }
     let context = mock_core::provenance::TaskContext {
         schema_version: 1,
         scenario: scenario.meta.id.clone(),
@@ -180,6 +193,7 @@ pub fn write_task_with_conditions(
             .iter()
             .map(|(name, value)| (name.clone(), mock_core::runner::sha256(value.as_bytes())))
             .collect(),
+        materialization_files,
     };
     write(
         &dir.join("tests/task-context.json"),
@@ -252,6 +266,10 @@ fn task_toml(
     writeln!(
         s,
         "[[artifacts]]\nsource = \"/exports/realized-manifest.json\"\ndestination = \"world/realized-manifest.json\"\nservice = \"world\"\n"
+    ).unwrap();
+    writeln!(
+        s,
+        "[[artifacts]]\nsource = \"/exports/inference-evidence.json\"\ndestination = \"world/inference-evidence.json\"\nservice = \"world\"\n"
     ).unwrap();
     writeln!(
         s,
@@ -338,6 +356,14 @@ fn runner_policy() -> RunnerPolicy {
             "manifest.py",
             include_bytes!("../../../deploy/runner/manifest.py").as_slice(),
         ),
+        (
+            "inference.py",
+            include_bytes!("../../../deploy/runner/inference.py").as_slice(),
+        ),
+        (
+            "computer1_capture.py",
+            include_bytes!("../../../deploy/runner/computer1_capture.py").as_slice(),
+        ),
     ] {
         digest.update(name.as_bytes());
         digest.update([0]);
@@ -354,7 +380,38 @@ fn runner_policy() -> RunnerPolicy {
             .iter()
             .map(|byte| format!("{byte:02x}"))
             .collect(),
+        inference_adapter: Some(mock_core::inference::AdapterIdentity {
+            name: mock_core::inference::COMPUTER1_ADAPTER_NAME.into(),
+            code_sha256: inference_adapter_sha256(),
+        }),
     }
+}
+
+fn inference_adapter_sha256() -> String {
+    let mut digest = Sha256::new();
+    for (name, bytes) in [
+        (
+            "computer1_capture.py",
+            include_bytes!("../../../deploy/runner/computer1_capture.py").as_slice(),
+        ),
+        (
+            "inference.py",
+            include_bytes!("../../../deploy/runner/inference.py").as_slice(),
+        ),
+    ] {
+        digest.update(name.as_bytes());
+        digest.update([0]);
+        digest.update((bytes.len() as u64).to_be_bytes());
+        digest.update(bytes);
+    }
+    format!(
+        "sha256:{}",
+        digest
+            .finalize()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect::<String>()
+    )
 }
 
 /// Per-trial secret for the world's admin port, provided only to the world container.
@@ -539,6 +596,7 @@ set -- bench-verify \
   --runner-policy /tests/runner-policy.json \
   --runner-admission /exports/runner-admission.json \
   --realized-manifest /exports/realized-manifest.json \
+  --inference-evidence /exports/inference-evidence.json \
   --output /logs/verifier
 if [ -f /app/answer.md ]; then
   set -- "$@" --answer /app/answer.md

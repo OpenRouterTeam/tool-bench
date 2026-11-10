@@ -42,6 +42,8 @@ class MainCollectionTests(unittest.IsolatedAsyncioTestCase):
         environment = StrictDockerEnvironment.__new__(StrictDockerEnvironment)
         self.environment = environment
         environment._is_verifier = False
+        environment._scenario = "diagnostic/host/collection"
+        environment.session_id = "trial"
         environment._enable_egress_control = False
         environment._collection_guard = CollectionGuard("trial")
         environment._controller_registered = False
@@ -55,6 +57,7 @@ class MainCollectionTests(unittest.IsolatedAsyncioTestCase):
         environment._answer_present = False
         environment._answer_copied = False
         environment._main_artifacts_sha256 = None
+        environment._inference_evidence_sha256 = None
         environment._write_receipt = lambda: None
         environment.observe_execution = AsyncMock()
         environment.trial_paths = SimpleNamespace(
@@ -87,6 +90,7 @@ class MainCollectionTests(unittest.IsolatedAsyncioTestCase):
         self.trial = SimpleNamespace(
             agent_environment=environment,
             agent=NopAgent.__new__(NopAgent),
+            exception_info=None,
             config=SimpleNamespace(
                 artifacts=[], source_trial=None, install_only=False,
                 extra_instruction_paths=[], extra_instructions=[],

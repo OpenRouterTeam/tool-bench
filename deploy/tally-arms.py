@@ -5,17 +5,19 @@ hidden search turns included), and paired per-task differences with a seeded boo
 
   deploy/tally-arms.py /tmp/tool-bench-arms/matrix/haiku /tmp/tool-bench-arms/matrix/kimi
 
-An overflow is a run whose harness saw a context-length error and made no tool call. The world's
-own context_overflow outcome needs an empty tools-container journal, which the MCP servers' startup
-handshakes rule out, so it is derived here from the run's .meta.
+The default path reproduces historical transcript/meta heuristics and is labeled legacy,
+not current inference admission. Use --verified --report-bin <bench-report> <run-dir>...
+for receipt-checked structured inference evidence; unavailable costs remain unknown.
 """
 import collections
+import argparse
 import glob
 import json
 import math
 import os
 import random
 import sys
+import subprocess
 
 ARMS = ['universal', 'native', 'off']
 
@@ -100,6 +102,9 @@ def paired(runs, a, b, value):
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "--verified":
+        return verified_main(sys.argv[2:])
+    print("Legacy/non-comparable historical tally: transcript/meta classification is not current inference admission.")
     for directory in sys.argv[1:]:
         runs = collect(directory)
         model = os.path.basename(directory)
@@ -128,6 +133,47 @@ def main():
                 unit = 'pp' if scale == 100 else ''
                 print(f'  {a} - {b} {label:7} {mean * scale:+.3f}{unit} [{low * scale:+.3f}, {high * scale:+.3f}] over {len(deltas)} tasks')
         print()
+
+def verified_main(arguments):
+    parser = argparse.ArgumentParser(description="Summarize provenance-checked trial artifacts, not transcript guesses")
+    parser.add_argument("--report-bin", required=True)
+    parser.add_argument("directories", nargs="+")
+    options = parser.parse_args(arguments)
+    for directory in options.directories:
+        result = subprocess.run(
+            [options.report_bin, "--trials", directory, "--json"],
+            check=True, capture_output=True, text=True,
+        )
+        value = json.loads(result.stdout)
+        if value.get("format") != "verified_trial_summary_v1" or value.get("schema_version") != 1:
+            raise ValueError("unsupported verified report format")
+        trials = value["trials"]
+        classes = collections.Counter()
+        costs = []
+        unknown_costs = 0
+        for trial in trials:
+            inference = trial.get("inference")
+            if inference is None:
+                classes["unavailable"] += 1
+                unknown_costs += 1
+            else:
+                classes[inference["classification"]] += 1
+                cost = inference["cost"]["total_cost_usd"]
+                if cost is None:
+                    unknown_costs += 1
+                else:
+                    costs.append(cost)
+        print(json.dumps({
+            "directory": directory,
+            "scope": "diagnostic summary, not a final paired comparison",
+            "attempts": len(trials),
+            "provenance_checked": sum(bool(trial["provenance_checked"]) for trial in trials),
+            "classifications": dict(classes),
+            "known_host_cost_usd": sum(costs) if costs else None,
+            "attempts_with_known_host_cost": len(costs),
+            "attempts_with_unknown_host_cost": unknown_costs,
+            "cost_scope": "host capture only; hidden-router and retry stages are not assumed zero",
+        }, allow_nan=False))
 
 
 if __name__ == '__main__':

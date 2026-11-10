@@ -1518,6 +1518,7 @@ dependencies = [
  "thiserror",
  "time",
  "tokio",
+ "tokio-stream",
  "toml",
  "tower",
  "url",

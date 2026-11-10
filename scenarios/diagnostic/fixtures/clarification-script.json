@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "task_id": "diagnostic/fixtures/clarification-ambiguous-order",
+  "initial_request": "Please process the refund for the duplicate charge on the River account.",
+  "initial_facts": [
+    {"id": "requester", "content": "Jae Kim"}
+  ],
+  "hidden_facts": [
+    {"id": "which_river", "content": "River Electronics (cus_diag_1)"},
+    {"id": "which_charge", "content": "ch_diag_100 ($250.00 for Order #D-100)"}
+  ],
+  "allowed_questions": [
+    {
+      "patterns": ["which company", "which river", "which customer", "which account"],
+      "reply": "River Electronics — the one at billing@river-electronics.example.",
+      "reveals_facts": ["which_river"]
+    },
+    {
+      "patterns": ["which charge", "which order", "which payment", "order number"],
+      "reply": "It is Order #D-100 (charge ch_diag_100, $250.00).",
+      "reveals_facts": ["which_charge"]
+    }
+  ],
+  "default_reply": "I am only able to help with the refund request for the duplicate charge.",
+  "max_turns": 5,
+  "forbidden_in_replies": ["ch_diag_101", "re_diag_001", "already refunded", "D-101"]
+}

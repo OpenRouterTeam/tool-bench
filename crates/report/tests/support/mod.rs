@@ -24,6 +24,18 @@ pub fn write_verified(directory: &Path, trial: &str, task: &str, passes: bool) {
     );
 }
 
+pub fn write_verified_final_response(directory: &Path, trial: &str, task: &str, passes: bool) {
+    write_fixture(
+        directory,
+        trial,
+        task,
+        json!({"version": 2, "audit_history": true, "answer": {"source":"final_response","contains":["Maya"]}}),
+        if passes { b"Maya" } else { b"wrong" },
+        None,
+        None,
+    );
+}
+
 pub fn write_unresolved(directory: &Path, trial: &str, task: &str) {
     write_fixture(
         directory,
@@ -71,6 +83,13 @@ fn write_fixture(
     dataset.source.scenario = dataset.meta.id.clone();
     dataset.contract = serde_json::from_value(definition).unwrap();
     let contract = dataset.contract.clone();
+    let materialization = dataset.materialization.clone();
+    let materialization_files: std::collections::BTreeMap<_, _> = materialization
+        .as_ref()
+        .into_iter()
+        .flat_map(|bundle| bundle.files.iter())
+        .map(|(name, bytes)| (name.clone(), sha256(bytes)))
+        .collect();
     let mut world = WorldState::from_dataset(dataset).unwrap();
     world.seal().unwrap();
     let evidence = WorldEvidence::capture(&world, &[], Ok(vec!["192.0.2.10".into()]));
@@ -80,7 +99,8 @@ fn write_fixture(
         "instruction_sha256": sha256(b"instruction"), "profile_sha256": sha256(b"profile"),
         "framing_sha256": sha256(b"framing"), "environment_files": {"Dockerfile": sha256(b"source")},
         "world_reference": "world:fixture", "tools_reference": "tools:fixture",
-        "review_policy_sha256": review_policy.map(|policy|policy.sha256().unwrap())
+        "review_policy_sha256": review_policy.map(|policy|policy.sha256().unwrap()),
+        "materialization_files": materialization_files
     })).unwrap();
     let mut images = serde_json::Map::new();
     for (role, identifier) in [("main", "1"), ("world", "2"), ("tools", "3")] {
@@ -157,6 +177,13 @@ fn write_fixture(
     ] {
         fs::write(root.join("verifier").join(name), bytes).unwrap();
     }
+    if let Some(bundle) = materialization {
+        for (name, bytes) in bundle.files {
+            let destination = root.join("verifier").join(name);
+            fs::create_dir_all(destination.parent().unwrap()).unwrap();
+            fs::write(destination, bytes).unwrap();
+        }
+    }
     fs::write(root.join("artifacts/world/evidence.json"), evidence_bytes).unwrap();
     fs::create_dir_all(root.join("artifacts/agent")).unwrap();
     fs::write(root.join("artifacts/agent/answer.md"), answer).unwrap();
@@ -170,6 +197,19 @@ fn write_fixture(
         .to_string(),
     )
     .unwrap();
+}
+
+pub fn write_materialized(directory: &Path, trial: &str, dataset: Dataset) {
+    let task = dataset.meta.id.replace('/', "__");
+    write_fixture(
+        directory,
+        trial,
+        &task,
+        json!({"version":2,"audit_history":true,"answer":{"contains":["Maya"]}}),
+        b"Maya",
+        None,
+        Some(dataset),
+    );
 }
 
 pub fn write_reviewable(

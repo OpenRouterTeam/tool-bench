@@ -11,6 +11,7 @@ use sha2::{Digest, Sha256};
 use crate::{
     clock::{ClockMode, LogicalClock},
     error::{Error, Result},
+    faults::FaultSchedule,
     grading::Expect,
     provenance::{DatasetSource, canonical_sha256},
     store::{Collection, Store},
@@ -37,6 +38,10 @@ struct ScenarioFile {
     scenario: ScenarioMeta,
     #[serde(default)]
     expect: Expect,
+    #[serde(default)]
+    fault_schedule: Option<FaultSchedule>,
+    #[serde(default)]
+    materialization: Option<crate::materialization::MaterializationSpec>,
 }
 
 /// A scenario's starting world: metadata plus one store per service directory.
@@ -46,6 +51,8 @@ pub struct Dataset {
     pub services: BTreeMap<String, Store>,
     pub contract: Expect,
     pub source: DatasetSource,
+    pub fault_schedule: Option<FaultSchedule>,
+    pub materialization: Option<crate::materialization::Bundle>,
 }
 
 impl Dataset {
@@ -63,6 +70,26 @@ impl Dataset {
         let mut source = Sha256::new();
         source.update(b"tool-bench-dataset-source-v1\0");
         let data_dir = root.join("dataset");
+        let mut materialization_manifest = None;
+        let mut materialization = None;
+        if let Some(spec) = &file.materialization {
+            if data_dir.exists() || data_dir.is_symlink() {
+                return Err(dataset_error(
+                    &data_dir,
+                    "materialized scenarios cannot also declare standalone dataset files".into(),
+                ));
+            }
+            if file.expect.version < 2 {
+                return Err(dataset_error(
+                    &meta_path,
+                    "materialized datasets require a version-two task contract".into(),
+                ));
+            }
+            let (resolved, bundle) = crate::materialization::load(root, &file.scenario.id, spec)?;
+            services = resolved.stores;
+            materialization_manifest = Some(resolved.manifest);
+            materialization = Some(bundle);
+        }
         if data_dir.is_dir() {
             for service_dir in sorted_entries(&data_dir)? {
                 if !service_dir.is_dir() {
@@ -86,21 +113,29 @@ impl Dataset {
             schema_version: 1,
             scenario: file.scenario.id.clone(),
             scenario_sha256: crate::runner::sha256(scenario_text.as_bytes()),
-            dataset_sha256: format!(
-                "sha256:{}",
-                source
-                    .finalize()
-                    .iter()
-                    .map(|byte| format!("{byte:02x}"))
-                    .collect::<String>()
+            dataset_sha256: materialization_manifest.as_ref().map_or_else(
+                || {
+                    format!(
+                        "sha256:{}",
+                        source
+                            .finalize()
+                            .iter()
+                            .map(|byte| format!("{byte:02x}"))
+                            .collect::<String>()
+                    )
+                },
+                canonical_sha256,
             ),
             contract_sha256: canonical_sha256(&file.expect),
+            materialization: materialization_manifest,
         };
         Ok(Self {
             meta: file.scenario,
             services,
             contract: file.expect,
             source: provenance,
+            fault_schedule: file.fault_schedule,
+            materialization,
         })
     }
 }

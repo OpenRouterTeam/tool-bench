@@ -11,7 +11,7 @@ use crate::{
     world::WorldState,
 };
 
-pub const EVIDENCE_SCHEMA_VERSION: u32 = 5;
+pub const EVIDENCE_SCHEMA_VERSION: u32 = 6;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -30,6 +30,8 @@ pub struct WorldEvidence {
     pub origin_error: Option<String>,
     pub answer: Option<String>,
     pub finalization: Finalization,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fault_records: Vec<crate::faults::FaultRecord>,
 }
 
 impl WorldEvidence {
@@ -57,6 +59,7 @@ impl WorldEvidence {
             origin_error,
             answer: world.answer.clone(),
             finalization: world.finalization(),
+            fault_records: world.fault_records().to_vec(),
         }
     }
 
@@ -116,6 +119,15 @@ impl WorldEvidence {
         }
         if let Err(reason) = crate::clock::validate_evidence(&self.initial_state, &self.state) {
             assessment.invalidate_environment("evidence/clock", reason);
+        }
+        if let Err(reason) = crate::faults::validate_evidence(
+            &self.initial_state,
+            &self.state,
+            &self.fault_records,
+            &self.journal,
+            &self.events,
+        ) {
+            assessment.invalidate_environment("evidence/fault-schedule", reason);
         }
         if let Err(reason) = crate::request::validate_journal(&self.events, &self.journal)
             && !assessment

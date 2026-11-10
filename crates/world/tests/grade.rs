@@ -251,7 +251,10 @@ async fn finalization_freezes_the_http_world_and_rejects_reset_and_answer_replac
         .await
         .unwrap();
     assert_eq!(sealed["finalization"]["phase"], "sealed");
-    assert_eq!(sealed["schema_version"], 5);
+    assert_eq!(
+        sealed["schema_version"],
+        mock_core::evidence::EVIDENCE_SCHEMA_VERSION
+    );
     assert_eq!(sealed["evaluator_version"], EVALUATOR_VERSION);
     let response = http
         .post(format!(

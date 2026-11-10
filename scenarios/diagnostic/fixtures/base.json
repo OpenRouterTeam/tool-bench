@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "synth-ops",
+  "revision": 1,
+  "description": "Synthetic operations org for diagnostic fixtures",
+  "datasets": {
+    "stripe": {
+      "customers": [
+        {"id": "cus_diag_1", "name": "River Electronics", "email": "billing@river-electronics.example"},
+        {"id": "cus_diag_2", "name": "River Electricals", "email": "billing@river-electricals.example"}
+      ],
+      "charges": [
+        {"id": "ch_diag_100", "amount": 25000, "currency": "usd", "customer": "cus_diag_1", "description": "Order #D-100", "refunded": false, "amount_refunded": 0},
+        {"id": "ch_diag_101", "amount": 25000, "currency": "usd", "customer": "cus_diag_1", "description": "Order #D-101", "refunded": true, "amount_refunded": 25000},
+        {"id": "ch_diag_200", "amount": 25000, "currency": "usd", "customer": "cus_diag_2", "description": "Order #D-200", "refunded": false, "amount_refunded": 0}
+      ],
+      "refunds": [
+        {"id": "re_diag_001", "charge": "ch_diag_101", "amount": 25000, "status": "succeeded", "reason": "requested_by_customer"}
+      ]
+    },
+    "zendesk": {
+      "tickets": [
+        {"id": "9001", "subject": "Refund for Order #D-101", "status": "solved", "requester_id": "u_diag_1"},
+        {"id": "9002", "subject": "Refund for duplicate charge", "status": "open", "requester_id": "u_diag_1"},
+        {"id": "9003", "subject": "Refund for Order #D-200", "status": "open", "requester_id": "u_diag_2"}
+      ],
+      "users": [
+        {"id": "u_diag_1", "name": "Jae Kim", "email": "jae@river-electronics.example"},
+        {"id": "u_diag_2", "name": "Jae Kim", "email": "jae@river-electricals.example"}
+      ]
+    }
+  }
+}

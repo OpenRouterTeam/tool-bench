@@ -17,6 +17,8 @@ pub struct TaskContext {
     pub review_policy_sha256: Option<String>,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub connector_env_sha256: BTreeMap<String, String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub materialization_files: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -60,6 +62,8 @@ pub struct ExecutionManifest {
     pub agent_timeout_sec: f64,
     pub verifier_timeout_sec: f64,
     pub images: BTreeMap<String, ImageObservation>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inference_identity: Option<crate::inference::InferenceIdentity>,
 }
 
 impl ExecutionManifest {
@@ -99,9 +103,25 @@ impl ExecutionManifest {
         {
             return Err("execution manifest does not match materialized task sources".into());
         }
-        if self.execution_kind != "scripted"
+        let dataset_source: DatasetSource =
+            serde_json::from_slice(source).map_err(|error| error.to_string())?;
+        crate::materialization::validate_context(&dataset_source, &context.materialization_files)?;
+        let producer_supported = match self.execution_kind.as_str() {
+            "scripted" => {
+                matches!(self.agent.name.as_str(), "oracle" | "nop")
+                    && self.inference_identity.is_none()
+            }
+            "native" => {
+                self.agent.name == "computer-1"
+                    && self.inference_identity.as_ref().is_some_and(|identity| {
+                        !identity.configured_model.is_empty()
+                            && !identity.configured_provider.is_empty()
+                    })
+            }
+            _ => false,
+        };
+        if !producer_supported
             || self.python_version.is_empty()
-            || !matches!(self.agent.name.as_str(), "oracle" | "nop")
             || self.harness.name != "harbor"
             || self.harness.version != "0.23.0"
             || [&self.agent, &self.harness]
@@ -179,6 +199,8 @@ pub struct DatasetSource {
     pub scenario_sha256: String,
     pub dataset_sha256: String,
     pub contract_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub materialization: Option<crate::materialization::MaterializationManifest>,
 }
 
 pub fn digest_valid(value: &str) -> bool {
@@ -223,6 +245,12 @@ impl DatasetSource {
             || !digest_valid(&self.contract_sha256)
         {
             return Err("world source provenance is missing, malformed or cross-scenario".into());
+        }
+        if let Some(materialization) = &self.materialization {
+            materialization.validate(scenario)?;
+            if canonical_sha256(materialization) != self.dataset_sha256 {
+                return Err("materialization source does not match the dataset identity".into());
+            }
         }
         Ok(())
     }

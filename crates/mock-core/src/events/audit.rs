@@ -380,7 +380,10 @@ pub(crate) fn audit_with_observer(
             EventKind::ExecutionRetained { .. } | EventKind::ExecutionReleased { .. } => {
                 known_operation(event, &operations)?;
             }
-            EventKind::RequestHeadReceived { .. } | EventKind::RequestBodyReceived { .. } => {
+            EventKind::RequestHeadReceived { .. }
+            | EventKind::RequestBodyReceived { .. }
+            | EventKind::ResponseDeliveryLost
+            | EventKind::FaultSelected { .. } => {
                 known_operation(event, &operations)?;
             }
             EventKind::StateCommitted { records } => {

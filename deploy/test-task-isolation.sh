@@ -5,6 +5,8 @@ cd "$ROOT"
 WORLD_IMAGE="${WORLD_IMAGE:?build a world image containing bench-verify first}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the tools image to validate}"
 EXPECTED_EVALUATOR_VERSION="${EXPECTED_EVALUATOR_VERSION:?provide the raw evaluator revision for the selected world image}"
+EXPECTED_EVIDENCE_SCHEMA_VERSION="$(sed -n 's/^pub const EVIDENCE_SCHEMA_VERSION: u32 = \([0-9][0-9]*\);/\1/p' crates/mock-core/src/evidence.rs)"
+test -n "$EXPECTED_EVIDENCE_SCHEMA_VERSION"
 OUT="$(mktemp -d /tmp/tool-bench-isolation.XXXXXX)"
 PROJECT="tb-isolation-$$"
 export HARBOR_TRIAL_ADMIN_TOKEN
@@ -118,9 +120,9 @@ for mode do
     "$ASSESSMENT" >/dev/null
   EVIDENCE="$(find "$OUT/$mode" -path '*/artifacts/world/evidence.json' -print -quit)"
   test -n "$EVIDENCE"
-  jq -e --argjson evaluator "$EXPECTED_EVALUATOR_VERSION" \
+  jq -e --argjson evaluator "$EXPECTED_EVALUATOR_VERSION" --argjson schema "$EXPECTED_EVIDENCE_SCHEMA_VERSION" \
     '.scenario == "business/stripe/customer-mrr" and .forged == null
-    and .schema_version == 5 and .evaluator_version == $evaluator
+    and .schema_version == $schema and .evaluator_version == $evaluator
     and .finalization.phase == "sealed" and (.finalization.pending | length) == 0
     and .finalization.failure == null and .finalization.event_count == (.events | length)' "$EVIDENCE" >/dev/null
   TRIAL_LOG="$(find "$OUT/$mode" -name trial.log -print -quit)"

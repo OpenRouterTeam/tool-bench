@@ -15,6 +15,15 @@ pub fn jsonapi(status: StatusCode, body: Value) -> Response {
     with_content_type(status, "application/vnd.api+json", body)
 }
 
+pub fn form_component_decode(text: &str) -> String {
+    let encoded = format!("value={}", text.replace('&', "%26").replace('=', "%3D"));
+    url::form_urlencoded::parse(encoded.as_bytes())
+        .next()
+        .expect("one encoded field")
+        .1
+        .into_owned()
+}
+
 fn with_content_type(status: StatusCode, content_type: &'static str, body: Value) -> Response {
     (status, [(CONTENT_TYPE, content_type)], body.to_string()).into_response()
 }

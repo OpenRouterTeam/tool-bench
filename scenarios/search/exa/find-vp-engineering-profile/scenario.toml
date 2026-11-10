@@ -28,3 +28,16 @@ answer = "Priya Raman, VP of Engineering at Tessellate Bio (Boston): https://www
 endpoint = "exa"
 tool = "people_search_exa"
 arguments = { query = "Priya Raman VP of Engineering Tessellate Bio Boston" }
+
+[expect.answer.record_facts]
+requirement = "answer must contain the VP of Engineering LinkedIn profile URL"
+mode = "contains"
+selection = "only"
+
+[expect.answer.record_facts.selector]
+collection = "/services/exa/documents"
+field_patterns = { "/title" = "(?i)VP of Engineering" }
+
+[expect.answer.record_facts.facts.url]
+field = "/url"
+kind = "text"

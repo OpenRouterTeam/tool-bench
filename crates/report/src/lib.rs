@@ -70,6 +70,23 @@ pub struct Trial {
     pub review: Option<review::coordinator::ReviewAudit>,
 }
 
+pub fn trial_summary(trials: &[Trial]) -> Value {
+    serde_json::json!({
+        "schema_version": 1,
+        "format": "verified_trial_summary_v1",
+        "scope": "Source/execution provenance; not published-image or held-out qualification",
+        "trials": trials.iter().map(|trial| {
+            serde_json::json!({
+                "task": trial.task,
+                "reward": trial.reward,
+                "outcome": trial.outcome,
+                "provenance_checked": trial.provenance.is_some(),
+                "inference": trial.provenance.as_ref().and_then(|value| value.inference.as_ref()),
+            })
+        }).collect::<Vec<_>>(),
+    })
+}
+
 /// Every trial `result.json` under `root` (job-level `result.json` files are skipped).
 pub fn load_trials(root: &Path) -> anyhow::Result<Vec<Trial>> {
     let mut files = Vec::new();
@@ -198,6 +215,38 @@ pub struct Comparison {
     pub tasks: Vec<TaskRow>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content_review: Option<ReviewComparison>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub inference_a: Vec<TrialInference>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub inference_b: Vec<TrialInference>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct TrialInference {
+    pub task: String,
+    pub session_id: String,
+    pub scripted: bool,
+    pub classification: mock_core::inference::InferenceClassification,
+    pub identity: mock_core::inference::InferenceIdentity,
+    pub cost: mock_core::inference::CostAccounting,
+}
+
+fn inference_rows(trials: &[Trial]) -> Vec<TrialInference> {
+    trials
+        .iter()
+        .filter_map(|trial| {
+            let provenance = trial.provenance.as_ref()?;
+            let inference = provenance.inference.as_ref()?;
+            Some(TrialInference {
+                task: trial.task.clone(),
+                session_id: provenance.manifest.session_id.clone(),
+                scripted: inference.scripted,
+                classification: inference.classification,
+                identity: inference.identity.clone(),
+                cost: inference.cost.clone(),
+            })
+        })
+        .collect()
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -469,12 +518,28 @@ pub fn compare_declared(
     } else {
         base_release
     };
-    let admission_level = match content_review.as_ref().map(|review| review.reviewer_kind) {
-        None => "source_bound_scripted_only",
-        Some(mock_core::review::ReviewerKind::Human) => {
+    let has_native = a.iter().chain(b).any(|trial| {
+        trial
+            .provenance
+            .as_ref()
+            .is_some_and(|provenance| provenance.manifest.execution_kind == "native")
+    });
+    let admission_level = match (
+        has_native,
+        content_review.as_ref().map(|review| review.reviewer_kind),
+    ) {
+        (true, None) => "source_bound_host_capture",
+        (true, Some(mock_core::review::ReviewerKind::Human)) => {
+            "source_bound_host_capture_with_authorized_human_content_review"
+        }
+        (true, Some(mock_core::review::ReviewerKind::ScriptedFixture)) => {
+            "source_bound_host_capture_with_scripted_review_controls"
+        }
+        (false, None) => "source_bound_scripted_only",
+        (false, Some(mock_core::review::ReviewerKind::Human)) => {
             "source_bound_scripted_with_authorized_human_content_review"
         }
-        Some(mock_core::review::ReviewerKind::ScriptedFixture) => {
+        (false, Some(mock_core::review::ReviewerKind::ScriptedFixture)) => {
             "source_bound_scripted_review_controls_only"
         }
     };
@@ -508,6 +573,8 @@ pub fn compare_declared(
             .collect(),
         tasks,
         content_review,
+        inference_a: inference_rows(a),
+        inference_b: inference_rows(b),
     })
 }
 
@@ -538,7 +605,7 @@ fn bootstrap_ci(diffs: &[f64]) -> (f64, f64) {
 impl Comparison {
     pub fn markdown(&self) -> String {
         let mut s = String::new();
-        s.push_str("Admission: source-bound scripted execution; native/model runtime comparisons are not yet admitted.\n\n");
+        s.push_str(&format!("Admission: {}. Source/provenance admission does not certify a published image, held-out release, or production consumer.\n\n", self.admission_level));
         if let Some(review) = &self.content_review {
             s.push_str(&format!(
                 "Content review condition: operator-declared {:?}; judgment-assisted effective results are separate from raw deterministic grades. Policy {}. Reviewed trials: A {}, B {}; other trials needed no content review. Scripted fixtures are protocol controls, not human review or model-performance estimates.\n\nRaw outcomes: A {:?}; B {:?}.\n\n",

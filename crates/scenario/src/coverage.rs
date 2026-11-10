@@ -218,6 +218,15 @@ pub fn inventory(
             related_record_filters += reference_filters(&check.source.selector);
             declared_content.source_bound_answers += 1;
         }
+        if let Some(check) = scenario
+            .expect
+            .answer
+            .as_ref()
+            .and_then(|answer| answer.record_facts.as_ref())
+        {
+            related_record_filters += reference_filters(&check.selector);
+            declared_content.source_bound_answers += 1;
+        }
         let mut effect_permissions = BTreeMap::new();
         let mut initial_scope_permissions = 0;
         if let Some(policy) = &scenario.expect.preservation {
@@ -257,12 +266,19 @@ pub fn inventory(
             source_gaps.push("no_authoritative_history_requirement")
         }
         if scenario.expect.answer.as_ref().is_some_and(|answer| {
-            answer.sentry_dsn.is_none() && answer.oncall.is_none() && answer.source_facts.is_none()
+            answer.sentry_dsn.is_none()
+                && answer.oncall.is_none()
+                && answer.source_facts.is_none()
+                && answer.record_facts.is_none()
         }) {
             source_gaps.push("legacy_answer_semantics")
         }
         if scenario.expect.answer.as_ref().is_some_and(|answer| {
-            answer.sentry_dsn.is_some() || answer.oncall.is_some() || answer.source_facts.is_some()
+            answer.source == mock_core::grading::AnswerSource::LegacyAnswerFile
+                && (answer.sentry_dsn.is_some()
+                    || answer.oncall.is_some()
+                    || answer.source_facts.is_some()
+                    || answer.record_facts.is_some())
         }) {
             source_gaps.push("legacy_answer_file_collection");
         }
@@ -370,6 +386,13 @@ pub fn inventory(
                 .is_some_and(|answer| answer.source_facts.is_some())
             {
                 "source_bound_facts_with_typed_rows_and_reviewed_claims"
+            } else if scenario
+                .expect
+                .answer
+                .as_ref()
+                .is_some_and(|answer| answer.record_facts.is_some())
+            {
+                "source_bound_record_facts_with_reviewed_claims"
             } else if scenario.expect.answer.is_some() {
                 "legacy_file_substrings_or_regex"
             } else {

@@ -43,3 +43,16 @@ arguments = { issue_key = "PAY-117", fields = "summary,status,assignee" }
 
 [solution]
 answer = "PAY-119 (Switch production traffic to the v2 gateway) is blocked by PAY-117 (Rotate payment gateway API credentials), which is assigned to Sam Ortiz and In Progress.\n"
+
+[expect.answer.record_facts]
+requirement = "answer must identify the blocked sprint item"
+mode = "contains"
+selection = "only"
+
+[expect.answer.record_facts.selector]
+collection = "/services/jira/issues"
+matching = { key = "PAY-119" }
+
+[expect.answer.record_facts.facts.issue_key]
+field = "/key"
+kind = "text"

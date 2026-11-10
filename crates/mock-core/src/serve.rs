@@ -161,6 +161,13 @@ async fn record(State(recorder): State<Recorder>, request: Request, next: Next) 
     if !body_complete {
         response_parts.status = StatusCode::INTERNAL_SERVER_ERROR;
     }
+    let delivery_lost = response_parts
+        .extensions
+        .remove::<crate::faults::ResponseDeliveryLost>()
+        .is_some();
+    if delivery_lost {
+        operation.record_delivery_loss();
+    }
 
     operation.record_response(ResponseRecord {
         status: response_parts.status.as_u16(),
@@ -168,7 +175,15 @@ async fn record(State(recorder): State<Recorder>, request: Request, next: Next) 
     });
     operation.finish(response_parts.status.as_u16(), body_complete);
 
-    Response::from_parts(response_parts, Body::from(response_bytes))
+    let body = if delivery_lost || !body_complete {
+        response_parts
+            .headers
+            .remove(axum::http::header::CONTENT_LENGTH);
+        crate::faults::failed_response_body()
+    } else {
+        Body::from(response_bytes)
+    };
+    Response::from_parts(response_parts, body)
 }
 
 fn is_mutating(method: &Method) -> bool {

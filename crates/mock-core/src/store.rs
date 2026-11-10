@@ -73,6 +73,10 @@ impl Store {
         self.collections.entry(name.to_owned()).or_default()
     }
 
+    pub fn collection_names(&self) -> impl Iterator<Item = &str> {
+        self.collections.keys().map(String::as_str)
+    }
+
     /// `{ "<collection>": { "<key>": doc, ... }, ... }`, collections sorted by name.
     pub fn snapshot(&self) -> Value {
         let mut out = Map::new();

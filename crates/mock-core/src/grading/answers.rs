@@ -14,8 +14,10 @@ use crate::{
 };
 
 mod oncall;
+mod record_facts;
 mod source_facts;
 pub use oncall::OncallAnswer;
+pub use record_facts::RecordFacts;
 pub use source_facts::{FactColumn, FactKind, FactRows, SourceFacts};
 
 static URLS: LazyLock<Regex> =
@@ -49,6 +51,9 @@ impl AnswerCheck {
             check.check(answer.expect("an answer was checked"), initial, state)?;
         }
         if let Some(check) = &self.source_facts {
+            check.check(answer.expect("an answer was checked"), initial)?;
+        }
+        if let Some(check) = &self.record_facts {
             check.check(answer.expect("an answer was checked"), initial)?;
         }
         Ok(())

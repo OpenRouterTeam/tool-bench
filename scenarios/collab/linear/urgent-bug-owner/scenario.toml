@@ -34,3 +34,16 @@ arguments = { projectId = "e3c09e4d-1537-5f94-8bf9-aa46108fc659", includeComplet
 
 [solution]
 answer = "The most urgent open bug in Payments v2 is PAY-118 \"Refund webhook retries double-charge customers after 3DS timeout\" (priority Urgent). It is assigned to Priya Natarajan and is In Progress (in the current cycle, 42).\n"
+
+[expect.answer.record_facts]
+requirement = "answer must identify the most urgent open bug and its identifier"
+mode = "contains"
+selection = "only"
+
+[expect.answer.record_facts.selector]
+collection = "/services/linear/issues"
+matching = { identifier = "PAY-118" }
+
+[expect.answer.record_facts.facts.issue_id]
+field = "/identifier"
+kind = "text"

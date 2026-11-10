@@ -101,6 +101,10 @@ impl Params {
             .filter(|s| !s.is_empty())
             .collect()
     }
+
+    pub fn snapshot(&self) -> Value {
+        Value::Object(self.map.clone())
+    }
 }
 
 pub fn scalar_string(v: &Value) -> Option<String> {
@@ -264,27 +268,7 @@ fn normalize_arrays(value: Value) -> Value {
 }
 
 pub fn percent_decode(text: &str) -> String {
-    let bytes = text.as_bytes();
-    let mut out = Vec::with_capacity(bytes.len());
-    let mut i = 0;
-    while i < bytes.len() {
-        match bytes[i] {
-            b'+' => out.push(b' '),
-            b'%' if i + 2 < bytes.len() => {
-                let hex = |b: u8| (b as char).to_digit(16);
-                match (hex(bytes[i + 1]), hex(bytes[i + 2])) {
-                    (Some(h), Some(l)) => {
-                        out.push((h * 16 + l) as u8);
-                        i += 2;
-                    }
-                    _ => out.push(b'%'),
-                }
-            }
-            b => out.push(b),
-        }
-        i += 1;
-    }
-    String::from_utf8_lossy(&out).into_owned()
+    mock_core::http::form_component_decode(text)
 }
 
 #[cfg(test)]

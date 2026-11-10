@@ -12,6 +12,8 @@ pub struct RunnerPolicy {
     pub verification_protocol: String,
     pub harbor_version: String,
     pub adapter_sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inference_adapter: Option<crate::inference::AdapterIdentity>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,6 +31,8 @@ pub struct RunnerAdmission {
     pub main_artifacts_sha256: Option<String>,
     pub answer_sha256: Option<String>,
     pub manifest_sha256: Option<String>,
+    #[serde(default)]
+    pub inference_evidence_sha256: Option<String>,
     pub phase: String,
     pub failure: Option<String>,
     pub main: Option<MainState>,

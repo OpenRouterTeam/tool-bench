@@ -23,6 +23,7 @@ class OracleCompletionTests(unittest.IsolatedAsyncioTestCase):
         environment = StrictDockerEnvironment.__new__(StrictDockerEnvironment)
         environment._is_verifier = False
         environment._scenario = "fixture/oracle/completion"
+        environment.session_id = "completion"
         environment._collection_guard = CollectionGuard("completion")
         environment._oracle_command = "(/solution/solve.sh) > /logs/agent/oracle.txt 2>&1"
         environment._oracle_executions = 0
@@ -30,7 +31,7 @@ class OracleCompletionTests(unittest.IsolatedAsyncioTestCase):
         environment._receipt_path = root / "runner-admission.json"
         environment._adapter_sha256 = "0" * 64
         environment._contract_sha256 = "sha256:" + "1" * 64
-        for field in ["_evidence_sha256", "_answer_sha256", "_main_artifacts_sha256", "_manifest_sha256"]:
+        for field in ["_evidence_sha256", "_answer_sha256", "_main_artifacts_sha256", "_manifest_sha256", "_inference_evidence_sha256"]:
             setattr(environment, field, None)
         return environment
 

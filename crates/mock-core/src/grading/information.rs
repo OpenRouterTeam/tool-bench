@@ -620,6 +620,11 @@ pub(super) fn audit(input: &GradeInput, entries: &[&JournalEntry]) -> Vec<CheckF
         Err(reason) => return vec![environment("information/requests".into(), reason)],
     };
     let mut completions = BTreeMap::new();
+    let lost: std::collections::BTreeSet<_> = events
+        .iter()
+        .filter(|event| matches!(event.event, EventKind::ResponseDeliveryLost))
+        .filter_map(|event| event.operation.as_ref().map(|operation| operation.id))
+        .collect();
     for event in events {
         if let EventKind::ResponseCompleted {
             status,
@@ -692,6 +697,9 @@ pub(super) fn audit(input: &GradeInput, entries: &[&JournalEntry]) -> Vec<CheckF
                     ));
                     continue;
                 };
+                if lost.contains(&identity) {
+                    continue;
+                }
                 let Some(request) = observed.get(&identity) else {
                     failures.push(environment(
                         location.clone(),

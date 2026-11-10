@@ -26,6 +26,7 @@ from deploy.runner.admission import (
 )
 from deploy.runner.snapshot import MAX_BYTES, extract_snapshot, fingerprint, snapshot_tree
 from deploy.runner.manifest import digest, execution_context, image_fingerprints
+from deploy.runner.inference import InferenceEvidence, admit_evidence
 
 
 class StrictDockerEnvironment(DockerEnvironment):
@@ -124,6 +125,8 @@ class StrictDockerEnvironment(DockerEnvironment):
         self._main_artifacts_sha256 = None
         self._execution_manifest = None
         self._manifest_sha256 = None
+        self._inference_evidence_sha256 = None
+        self._observed_agent = None
         self._write_receipt()
 
     def _requires_egress_control(self, *, startup_network_policy, phase_network_policies):
@@ -300,6 +303,7 @@ class StrictDockerEnvironment(DockerEnvironment):
         context_bytes = (self._task_root / "tests/task-context.json").read_bytes()
         context = json.loads(context_bytes)
         producer = execution_context(trial, self._task_root, context)
+        self._observed_agent = trial.agent
         images = {role: await self._observe_image(role) for role in ["main", "world", "tools"]}
         for role in ["world", "tools"]:
             if images[role]["reference"] != context[f"{role}_reference"]:
@@ -337,6 +341,24 @@ class StrictDockerEnvironment(DockerEnvironment):
         )
         if result.return_code != 0:
             raise AdmissionError("cannot deliver the protected execution manifest")
+
+    async def _publish_inference(self) -> None:
+        if self._inference_evidence_sha256 is None:
+            raise AdmissionError("host inference evidence was not sealed")
+        source = self.trial_paths.trial_dir / "inference-evidence.json"
+        if source.is_symlink():
+            raise AdmissionError("protected inference evidence cannot be a link")
+        content = source.read_bytes()
+        if digest(content) != self._inference_evidence_sha256:
+            raise AdmissionError("protected inference evidence changed after capture")
+        text = content.decode("utf-8")
+        result = await super().service_exec(
+            "printf '%s' " + shlex.quote(text) + " > /exports/inference-evidence.json.tmp"
+            + " && mv /exports/inference-evidence.json.tmp /exports/inference-evidence.json",
+            service="world", timeout_sec=20,
+        )
+        if result.return_code != 0:
+            raise AdmissionError("cannot publish protected inference evidence")
 
     async def finish_agent(self) -> None:
         try:
@@ -377,6 +399,36 @@ class StrictDockerEnvironment(DockerEnvironment):
             environment.pop("HARBOR_TRIAL_ADMIN_TOKEN", None)
         return environment
 
+    def bind_inference_evidence(self, evidence: InferenceEvidence, *, host_capture=None) -> None:
+        """Bind validated inference evidence into the runner receipt.
+
+        The evidence must already have passed admit_evidence() validation.
+        This binds its content hash into the receipt for downstream verification.
+        """
+        if self._is_verifier:
+            raise AdmissionError("verifier cannot bind inference evidence")
+        if self._inference_evidence_sha256 is not None:
+            raise AdmissionError("inference evidence was already bound")
+        admit_evidence(evidence)
+        if evidence.scenario != self._scenario or evidence.session_id != self.session_id:
+            raise AdmissionError("inference capture belongs to a different trial")
+        if not evidence.scripted:
+            from deploy.runner.computer1_capture import Computer1HostCapture
+            if type(host_capture) is not Computer1HostCapture:
+                raise AdmissionError("native evidence has no host capture authority")
+            observed_agent = getattr(self, "_observed_agent", None)
+            if observed_agent is None:
+                raise AdmissionError("native execution producer was not observed")
+            host_capture.validate_sealed(evidence, agent=observed_agent)
+        evidence_json = evidence.to_json()
+        evidence_path = self.trial_paths.trial_dir / "inference-evidence.json"
+        if evidence_path.exists() or evidence_path.is_symlink():
+            raise AdmissionError("inference evidence output already exists")
+        with evidence_path.open("x", encoding="utf-8") as output:
+            output.write(evidence_json + "\n")
+        self._inference_evidence_sha256 = digest(evidence_path.read_bytes())
+        self._write_receipt()
+
     def _write_receipt(self) -> None:
         receipt = self._collection_guard.receipt()
         receipt.update(
@@ -389,6 +441,7 @@ class StrictDockerEnvironment(DockerEnvironment):
                 "main_artifacts_sha256": self._main_artifacts_sha256,
                 "answer_sha256": self._answer_sha256,
                 "manifest_sha256": self._manifest_sha256,
+                "inference_evidence_sha256": self._inference_evidence_sha256,
             }
         )
         temporary = self._receipt_path.with_suffix(".json.tmp")
@@ -399,6 +452,7 @@ class StrictDockerEnvironment(DockerEnvironment):
         await self._admit_collection()
         self._verify_main_artifacts()
         await self._publish_manifest()
+        await self._publish_inference()
         result = await super().service_exec(
             "sha256sum /exports/evidence.json", service="world", timeout_sec=20
         )

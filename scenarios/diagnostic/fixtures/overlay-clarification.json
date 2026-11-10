@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "task_id": "diagnostic/fixtures/clarification-ambiguous-order",
+  "base_id": "synth-ops",
+  "base_revision": 1,
+  "inserts": {
+    "stripe": {
+      "charges": [
+        {"id": "ch_diag_102", "amount": 25000, "currency": "usd", "customer": "cus_diag_1", "description": "Order #D-102 (possible dup)", "refunded": false, "amount_refunded": 0}
+      ]
+    }
+  },
+  "removes": {}
+}

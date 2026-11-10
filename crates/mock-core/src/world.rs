@@ -13,6 +13,7 @@ use crate::{
     dataset::{Dataset, ScenarioMeta},
     error::Result,
     events::{self, EventLog, OperationContext},
+    faults::{FaultDecision, FaultRecord, FaultSchedule},
     ids::IdGen,
     journal::{Journal, JournalEntry, ResponseRecord},
     lifecycle::{Lifecycle, LifecycleError},
@@ -48,6 +49,9 @@ pub struct WorldState {
     pub(crate) lifecycle: Lifecycle,
     replay_headers: HeaderRegistry,
     source: DatasetSource,
+    fault_schedule: Option<FaultSchedule>,
+    initial_fault_schedule: Option<FaultSchedule>,
+    fault_records: Vec<FaultRecord>,
 }
 
 #[derive(Debug, Clone)]
@@ -157,6 +161,16 @@ impl SharedWorld {
     pub fn fail_operation(&self, operation: &OperationContext, code: &str, reason: &str) {
         let mut world = self.0.state.lock().expect("world lock");
         world.fail_operation(operation, code, reason);
+    }
+
+    pub fn check_fault(
+        &self,
+        service: &str,
+        operation_id: &str,
+        resource: Option<&str>,
+    ) -> FaultDecision {
+        let mut world = self.0.state.lock().expect("world lock");
+        world.check_fault(service, operation_id, resource)
     }
 
     pub(crate) fn record_response(&self, operation: &OperationContext, record: ResponseRecord) {
@@ -271,6 +285,9 @@ impl WorldState {
             lifecycle: Lifecycle::default(),
             replay_headers: HeaderRegistry::default(),
             source,
+            fault_schedule: dataset.fault_schedule.clone(),
+            initial_fault_schedule: dataset.fault_schedule,
+            fault_records: Vec::new(),
         })
     }
 
@@ -314,11 +331,13 @@ impl WorldState {
         self.events = EventLog::default();
         self.answer = None;
         self.epoch += 1;
+        self.fault_schedule = self.initial_fault_schedule.clone();
+        self.fault_records.clear();
         Ok(())
     }
 
     pub fn snapshot(&self) -> Value {
-        json!({
+        let mut snapshot = json!({
             "scenario": self.meta.id,
             "now": self.clock.now_rfc3339(),
             "clock": {
@@ -328,11 +347,16 @@ impl WorldState {
             },
             "services": stores_snapshot(&self.services, false),
             "sessions": stores_snapshot(&self.services, true),
-        })
+        });
+        if let Some(schedule) = &self.initial_fault_schedule {
+            snapshot["fault_schedule"] =
+                serde_json::to_value(schedule).expect("valid fault schedule");
+        }
+        snapshot
     }
 
     pub fn initial_snapshot(&self) -> Value {
-        json!({
+        let mut snapshot = json!({
             "scenario": self.initial_meta.id,
             "now": self.initial_meta.now,
             "clock": {
@@ -342,11 +366,60 @@ impl WorldState {
             },
             "services": stores_snapshot(&self.initial_services, false),
             "sessions": stores_snapshot(&self.initial_services, true),
-        })
+        });
+        if let Some(schedule) = &self.initial_fault_schedule {
+            snapshot["fault_schedule"] =
+                serde_json::to_value(schedule).expect("valid fault schedule");
+        }
+        snapshot
     }
 
     pub fn events(&self) -> &EventLog {
         &self.events
+    }
+
+    pub fn set_fault_schedule(
+        &mut self,
+        schedule: FaultSchedule,
+    ) -> std::result::Result<(), crate::faults::FaultScheduleError> {
+        if !self.events.entries().is_empty() || !self.journal.entries().is_empty() {
+            return Err(crate::faults::FaultScheduleError::TrialAlreadyStarted);
+        }
+        let mut schedule = schedule;
+        schedule.reset();
+        self.initial_fault_schedule = Some(schedule.clone());
+        self.fault_schedule = Some(schedule);
+        self.fault_records.clear();
+        Ok(())
+    }
+
+    pub fn fault_schedule(&self) -> Option<&FaultSchedule> {
+        self.fault_schedule.as_ref()
+    }
+
+    pub fn check_fault(
+        &mut self,
+        service: &str,
+        operation_id: &str,
+        resource: Option<&str>,
+    ) -> FaultDecision {
+        if !crate::faults::SUPPORTED_OPERATIONS.contains(&(service, operation_id)) {
+            return FaultDecision::None;
+        }
+        let Some(schedule) = self.fault_schedule.as_mut() else {
+            return FaultDecision::None;
+        };
+        let (decision, record) = schedule.check(service, operation_id, resource);
+        if let Some(operation) = events::current() {
+            self.events
+                .select_fault(operation, self.clock.now_rfc3339(), record.clone());
+        }
+        self.fault_records.push(record);
+        decision
+    }
+
+    pub fn fault_records(&self) -> &[FaultRecord] {
+        &self.fault_records
     }
 }
 

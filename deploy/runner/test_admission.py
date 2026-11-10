@@ -145,11 +145,14 @@ class CollectionAdmissionTests(unittest.IsolatedAsyncioTestCase):
 
 class TaskAdmissionTests(unittest.TestCase):
     def test_generated_policy_binds_the_actual_adapter_implementation(self):
+        from deploy.runner.inference import _adapter_sha256, _COMPUTER1_ADAPTER_NAME
         policy = json.loads(
             Path("tasks/business__stripe__customer-mrr/tests/runner-policy.json").read_text()
         )
         self.assertEqual(policy["adapter_sha256"], adapter_sha256())
         self.assertEqual(policy["harbor_version"], "0.23.0")
+        self.assertEqual(policy["inference_adapter"]["name"], _COMPUTER1_ADAPTER_NAME)
+        self.assertEqual(policy["inference_adapter"]["code_sha256"], _adapter_sha256())
 
     def test_actual_generated_task_requires_explicit_runner_protocol(self):
         original = Path(

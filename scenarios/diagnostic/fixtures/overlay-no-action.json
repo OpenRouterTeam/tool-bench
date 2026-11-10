@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "task_id": "diagnostic/fixtures/no-action-already-refunded",
+  "base_id": "synth-ops",
+  "base_revision": 1,
+  "inserts": {},
+  "removes": {}
+}

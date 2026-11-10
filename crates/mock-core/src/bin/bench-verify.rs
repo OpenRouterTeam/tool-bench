@@ -15,7 +15,7 @@ use serde::Serialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 
-const USAGE: &str = "usage: bench-verify --scenario ID --contract FILE --evidence FILE --output DIR [--answer FILE] [--task-source FILE --task-context FILE --realized-manifest FILE] [--runner-policy FILE --runner-admission FILE] [--context-overflow]";
+const USAGE: &str = "usage: bench-verify --scenario ID --contract FILE --evidence FILE --output DIR [--answer FILE] [--inference-evidence FILE] [--task-source FILE --task-context FILE --realized-manifest FILE] [--runner-policy FILE --runner-admission FILE] [--context-overflow]";
 
 struct Options {
     scenario: String,
@@ -28,6 +28,7 @@ struct Options {
     task_source: Option<PathBuf>,
     task_context: Option<PathBuf>,
     realized_manifest: Option<PathBuf>,
+    inference_evidence: Option<PathBuf>,
     context_overflow: bool,
 }
 
@@ -54,6 +55,15 @@ fn options() -> Result<Options, String> {
                     .ok_or_else(|| format!("{argument} requires a value\n{USAGE}"))?;
                 if values.insert(argument.clone(), value).is_some() {
                     return Err(format!("{argument} was specified more than once\n{USAGE}"));
+                }
+            }
+            "--inference-evidence" => {
+                let value = arguments
+                    .next()
+                    .filter(|value| !value.is_empty() && !value.starts_with("--"))
+                    .ok_or("--inference-evidence requires a file")?;
+                if values.insert(argument, value).is_some() {
+                    return Err("--inference-evidence was specified more than once".into());
                 }
             }
             _ => return Err(format!("unexpected argument {argument:?}\n{USAGE}")),
@@ -89,6 +99,7 @@ fn options() -> Result<Options, String> {
         task_source: values.remove("--task-source").map(PathBuf::from),
         task_context: values.remove("--task-context").map(PathBuf::from),
         realized_manifest: values.remove("--realized-manifest").map(PathBuf::from),
+        inference_evidence: values.remove("--inference-evidence").map(PathBuf::from),
         context_overflow,
     })
 }
@@ -120,6 +131,52 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
     let task_source_bytes = options.task_source.as_ref().map(fs::read).transpose();
     let task_context_bytes = options.task_context.as_ref().map(fs::read).transpose();
     let manifest_bytes = options.realized_manifest.as_ref().map(fs::read).transpose();
+    let inference_bytes = options
+        .inference_evidence
+        .as_ref()
+        .map(fs::read)
+        .transpose();
+    let inference: Result<Option<mock_core::inference::InferenceEvidence>, String> = (|| {
+        if options.inference_evidence.is_none() && options.runner_policy.is_none() {
+            return Ok(None);
+        }
+        let policy: RunnerPolicy = serde_json::from_slice(
+            runner_policy_bytes
+                .as_ref()
+                .map_err(ToString::to_string)?
+                .as_ref()
+                .ok_or("inference requires runner policy")?,
+        )
+        .map_err(|error| error.to_string())?;
+        if policy.inference_adapter.is_none() && options.inference_evidence.is_none() {
+            return Ok(None);
+        }
+        let admission: RunnerAdmission = serde_json::from_slice(
+            runner_admission_bytes
+                .as_ref()
+                .map_err(ToString::to_string)?
+                .as_ref()
+                .ok_or("inference requires runner admission")?,
+        )
+        .map_err(|error| error.to_string())?;
+        let manifest: ExecutionManifest = serde_json::from_slice(
+            manifest_bytes
+                .as_ref()
+                .map_err(ToString::to_string)?
+                .as_ref()
+                .ok_or("inference requires realized manifest")?,
+        )
+        .map_err(|error| error.to_string())?;
+        mock_core::inference::load_bound(
+            inference_bytes
+                .as_ref()
+                .map_err(ToString::to_string)?
+                .as_deref(),
+            &policy,
+            &admission,
+            &manifest,
+        )
+    })();
     let contract = contract_bytes
         .as_ref()
         .map_err(ToString::to_string)
@@ -144,11 +201,31 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
         });
     let empty_contract = Expect::default();
     let expected = contract.as_ref().unwrap_or(&empty_contract);
+    let native = inference
+        .as_ref()
+        .ok()
+        .and_then(Option::as_ref)
+        .filter(|value| !value.scripted);
+    let use_native_final = native.is_some()
+        && expected
+            .answer
+            .as_ref()
+            .is_some_and(|answer| answer.source == mock_core::grading::AnswerSource::FinalResponse);
+    let context_overflow = native.map_or(options.context_overflow, |value| {
+        value.classification.is_context_rejection()
+    });
+    let graded_answer = match &inference {
+        Err(_) => None,
+        Ok(_) if use_native_final => {
+            native.and_then(mock_core::inference::InferenceEvidence::final_text)
+        }
+        Ok(_) => answer.as_ref().ok().copied().flatten(),
+    };
     let mut assessment = match &evidence {
         Ok(evidence) => evidence.assess(
             expected,
-            answer.as_ref().ok().copied().flatten(),
-            options.context_overflow,
+            graded_answer,
+            context_overflow && native.is_none(),
         ),
         Err(_) => grade(&GradeInput {
             expect: expected,
@@ -156,12 +233,17 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
             journal: &[],
             answer: None,
             tools_ips: Vec::new(),
-            context_overflow: options.context_overflow,
+            context_overflow: context_overflow && native.is_none(),
             startup: &[],
             initial_state: None,
             events: None,
         }),
     };
+    match &inference {
+        Ok(Some(inference)) => inference.apply_to_grade(&mut assessment),
+        Err(reason) => assessment.invalidate_environment("inference/binding", reason),
+        _ => {}
+    }
     if options.task_source.is_some() {
         let source_check: Result<(), String> = (|| {
             let bytes = task_source_bytes
@@ -184,6 +266,35 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
         if let Err(reason) = source_check {
             assessment.invalidate_environment("evidence/task-source", reason);
         }
+    }
+    let materialization = (|| {
+        let captured = evidence.as_ref().map_err(ToString::to_string)?;
+        let context: TaskContext = match task_context_bytes.as_ref().map_err(ToString::to_string)? {
+            Some(bytes) => serde_json::from_slice(bytes).map_err(|error| error.to_string())?,
+            None if captured.source.materialization.is_none() => {
+                return Ok(mock_core::materialization::Bundle::default());
+            }
+            None => return Err("materialized evidence requires its private task context".into()),
+        };
+        let root = options
+            .task_context
+            .as_deref()
+            .and_then(Path::parent)
+            .filter(|path| !path.as_os_str().is_empty())
+            .unwrap_or(Path::new("."));
+        let bundle = mock_core::materialization::bundle_from_directory(
+            root,
+            &context.materialization_files,
+        )?;
+        mock_core::materialization::validate_bundle(
+            &captured.source,
+            &context.materialization_files,
+            &bundle,
+        )?;
+        Ok::<_, String>(bundle)
+    })();
+    if let Err(reason) = &materialization {
+        assessment.invalidate_environment("evidence/materialization", reason);
     }
     if options.runner_policy.is_some() {
         let admission = (|| {
@@ -231,6 +342,15 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
             let manifest: ExecutionManifest =
                 serde_json::from_slice(manifest_bytes).map_err(|error| error.to_string())?;
             manifest.validate(&options.scenario, &context, source, context_bytes)?;
+            mock_core::inference::load_bound(
+                inference_bytes
+                    .as_ref()
+                    .map_err(ToString::to_string)?
+                    .as_deref(),
+                &policy,
+                &admission,
+                &manifest,
+            )?;
             if admission.manifest_sha256.as_deref() != Some(digest(manifest_bytes).as_str())
                 || manifest.session_id != admission.session_id
                 || admission
@@ -269,7 +389,9 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
         }
         Err(reason) => assessment.invalidate_environment("evidence", reason),
     }
-    if let Err(reason) = &answer {
+    if let Err(reason) = &answer
+        && !use_native_final
+    {
         assessment.invalidate_environment("answer/collection", reason);
     }
     if let Err(reason) = &contract {
@@ -292,8 +414,11 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
             "manifest_sha256": manifest_bytes.as_ref().ok().and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
             "evidence_sha256": evidence_bytes.as_ref().ok().map(|bytes| digest(bytes)),
             "answer_sha256": answer_bytes.as_ref().ok().and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes)),
-            "answer_source": options.answer.as_ref().map(|_| "legacy_answer_file"),
-            "context_overflow": options.context_overflow,
+            "answer_source": if use_native_final { Some("native_final_response") } else { options.answer.as_ref().map(|_| "legacy_answer_file") },
+            "graded_answer_sha256": graded_answer.map(|text| digest(text.as_bytes())),
+            "inference_evidence_sha256": inference_bytes.as_ref().ok().and_then(|value| value.as_ref()).map(|bytes| digest(bytes)),
+            "inference_classification": inference.as_ref().ok().and_then(Option::as_ref).map(|value| value.classification),
+            "context_overflow": context_overflow,
             "runner_admission_checked": assessment.runner_admission_checked,
             "runner_admission_ok": assessment.runner_admission_ok,
             "runner_policy_sha256": runner_policy_bytes.as_ref().ok().and_then(|bytes| bytes.as_ref()).map(|bytes| digest(bytes)),
@@ -337,9 +462,23 @@ fn verify(options: Options) -> Result<(), Box<dyn Error>> {
                 .ok()
                 .and_then(|value| value.as_ref()),
         ),
+        (
+            "inference-evidence.json",
+            inference_bytes
+                .as_ref()
+                .ok()
+                .and_then(|value| value.as_ref()),
+        ),
     ] {
         if let Some(bytes) = bytes {
             fs::write(options.output.join(name), bytes)?;
+        }
+    }
+    if let Ok(bundle) = materialization {
+        for (name, bytes) in bundle.files {
+            let destination = options.output.join(name);
+            fs::create_dir_all(destination.parent().ok_or("materialization file parent")?)?;
+            fs::write(destination, bytes)?;
         }
     }
     write_json(&options.output.join("assessment.json"), &assessment)?;

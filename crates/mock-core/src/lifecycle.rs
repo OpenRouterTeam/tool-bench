@@ -190,6 +190,14 @@ impl Operation {
         self.world.record_response(&self.context, record);
     }
 
+    pub fn record_delivery_loss(&self) {
+        let mut world = self.world.0.state.lock().expect("world lock");
+        if world.epoch == self.epoch {
+            let time = world.clock.now_rfc3339();
+            world.events.lose_response(self.context.clone(), time);
+        }
+    }
+
     pub fn context(&self) -> &OperationContext {
         &self.context
     }

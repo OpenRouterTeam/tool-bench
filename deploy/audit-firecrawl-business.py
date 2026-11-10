@@ -762,9 +762,14 @@ def _audit_trial(verifier, family, *, direct=False, source_directory=None):
         require(evidence_file.is_file(), "runtime audit requires sealed authoritative world evidence")
     if evidence_file.is_file():
         evidence = read(evidence_file)
-        require(isinstance(evidence, dict) and evidence.get("schema_version") == 5
+        require(isinstance(evidence, dict) and evidence.get("schema_version") in (5, 6)
                 and evidence.get("scenario") == scenario,
                 "unqualified world evidence schema/scenario")
+        require(not evidence.get("fault_records") and "fault_schedule" not in initial
+                and "fault_schedule" not in final
+                and not any(event.get("kind") in ("fault_selected", "response_delivery_lost")
+                            for event in events),
+                "this audit does not qualify semantic fault conditions")
         require(all(same(evidence.get(field), value) for field, value in (
             ("initial_state", initial), ("state", final), ("events", events), ("journal", entries),
         )), "world evidence and verifier exports disagree")

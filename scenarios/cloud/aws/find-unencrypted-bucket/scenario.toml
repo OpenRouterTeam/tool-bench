@@ -56,3 +56,16 @@ arguments = { cli_command = [
 
 [solution]
 answer = "northwind-legacy-exports\n"
+
+[expect.answer.record_facts]
+requirement = "answer must name the S3 bucket with AES256 default encryption"
+mode = "contains"
+selection = "only"
+
+[expect.answer.record_facts.selector]
+collection = "/services/aws/buckets"
+matching = { Encryption = { SSEAlgorithm = "AES256" } }
+
+[expect.answer.record_facts.facts.bucket]
+field = "/Name"
+kind = "text"

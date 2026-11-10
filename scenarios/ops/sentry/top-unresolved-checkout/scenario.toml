@@ -32,3 +32,16 @@ arguments = { organizationSlug = "lumen-labs", projectSlugOrId = "checkout-api",
 
 [solution]
 answer = "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s (1,842 events, 611 users)"
+
+[expect.answer.record_facts]
+requirement = "answer must identify the noisiest unresolved checkout-api issue by its short ID"
+mode = "contains"
+selection = { largest = { field = "/count" } }
+
+[expect.answer.record_facts.selector]
+collection = "/services/sentry/issues"
+matching = { status = "unresolved", project = "checkout-api" }
+
+[expect.answer.record_facts.facts.issue_id]
+field = "/shortId"
+kind = "text"

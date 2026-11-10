@@ -1,13 +1,19 @@
 //! Scenario sources (`scenarios/<group>/<service|multi>/<slug>/`) and their conversion into
 //! Harbor task directories.
 
+pub mod audit;
+pub mod awareness;
+pub mod clarification;
 pub mod connections;
 pub mod coverage;
+pub mod exposure;
+pub mod family;
 pub mod framing;
 pub mod images;
 pub mod oracle_results;
 pub mod oracle_tools;
 pub mod profile;
+pub mod release;
 pub mod solution;
 pub mod taskgen;
 
@@ -155,9 +161,24 @@ impl Scenario {
         if let Err(error) = self.solution.validate_bindings() {
             bail!("{}: invalid oracle bindings: {error}", self.meta.id);
         }
-        if self.expect.answer.is_some() && !self.instruction.contains(ANSWER_PATH) {
+        if self.expect.answer.as_ref().is_some_and(|answer| {
+            answer.source == mock_core::grading::AnswerSource::LegacyAnswerFile
+        }) && !self.instruction.contains(ANSWER_PATH)
+        {
             bail!(
                 "{}: expects an answer, so the instruction must ask for {ANSWER_PATH}",
+                self.meta.id
+            );
+        }
+        if self
+            .expect
+            .answer
+            .as_ref()
+            .is_some_and(|answer| answer.source == mock_core::grading::AnswerSource::FinalResponse)
+            && self.instruction.contains(ANSWER_PATH)
+        {
+            bail!(
+                "{}: a natural final-response contract cannot replace a user-requested answer artifact",
                 self.meta.id
             );
         }

@@ -52,6 +52,8 @@ pub enum EventKind {
     RequestBodyReceived { body: CapturedBody },
     StateCommitted { records: Vec<StateChange> },
     ResponseCompleted { status: u16, body_complete: bool },
+    ResponseDeliveryLost,
+    FaultSelected { record: crate::faults::FaultRecord },
     EnvironmentFailed { code: String, reason: String },
     OperationAborted,
     ExecutionRetained { execution_id: u64 },
@@ -175,6 +177,19 @@ impl EventLog {
 
     pub(crate) fn abort(&mut self, operation: OperationContext, time: String) {
         self.push(Some(operation), time, EventKind::OperationAborted);
+    }
+
+    pub(crate) fn lose_response(&mut self, operation: OperationContext, time: String) {
+        self.push(Some(operation), time, EventKind::ResponseDeliveryLost);
+    }
+
+    pub(crate) fn select_fault(
+        &mut self,
+        operation: OperationContext,
+        time: String,
+        record: crate::faults::FaultRecord,
+    ) {
+        self.push(Some(operation), time, EventKind::FaultSelected { record });
     }
 
     pub(crate) fn retain(&mut self, operation: OperationContext, time: String) -> u64 {

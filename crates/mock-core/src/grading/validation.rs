@@ -123,11 +123,17 @@ impl Expect {
             }
         }
         if let Some(answer) = &self.answer {
+            if answer.source == super::AnswerSource::FinalResponse && self.version < 2 {
+                return Err(
+                    "native final-response collection requires a version-two contract".into(),
+                );
+            }
             if answer.contains.is_empty()
                 && answer.regex.is_none()
                 && answer.sentry_dsn.is_none()
                 && answer.oncall.is_none()
                 && answer.source_facts.is_none()
+                && answer.record_facts.is_none()
             {
                 return Err("answer has no predicate".into());
             }
@@ -156,6 +162,16 @@ impl Expect {
             if let Some(check) = &answer.source_facts {
                 if self.version < 2 || answer.sentry_dsn.is_some() || answer.oncall.is_some() {
                     return Err("source fact answer checks require a version-2 contract without a competing source-bound answer predicate".into());
+                }
+                check.validate()?;
+            }
+            if let Some(check) = &answer.record_facts {
+                if self.version < 2
+                    || answer.sentry_dsn.is_some()
+                    || answer.oncall.is_some()
+                    || answer.source_facts.is_some()
+                {
+                    return Err("record fact answer checks require a version-2 contract without a competing source-bound answer predicate".into());
                 }
                 check.validate()?;
             }

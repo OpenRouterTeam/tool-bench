@@ -4,6 +4,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 WORLD_IMAGE="${WORLD_IMAGE:?provide the current world image}"
 TOOLS_IMAGE="${TOOLS_IMAGE:?provide the composed tools image}"
+EXPECTED_EVALUATOR_VERSION="$(sed -n 's/^pub const EVALUATOR_VERSION: u32 = \([0-9][0-9]*\);/\1/p' crates/mock-core/src/grading.rs)"
+EXPECTED_EVIDENCE_SCHEMA_VERSION="$(sed -n 's/^pub const EVIDENCE_SCHEMA_VERSION: u32 = \([0-9][0-9]*\);/\1/p' crates/mock-core/src/evidence.rs)"
+test -n "$EXPECTED_EVALUATOR_VERSION"
+test -n "$EXPECTED_EVIDENCE_SCHEMA_VERSION"
 OUT="$(mktemp -d /tmp/tool-bench-publication-wire.XXXXXX)"
 PROJECT="tb-publication-$$"
 export HARBOR_TRIAL_ADMIN_TOKEN
@@ -36,8 +40,8 @@ compose stop --timeout 10 main >/dev/null
 compose exec -T world sh -eu -c \
   'curl -fsS -X POST -H "authorization: Bearer $BENCH_ADMIN_TOKEN" http://localhost:9000/_bench/finalize' \
   > "$OUT/evidence.json"
-jq -e '
-  .schema_version == 5 and .evaluator_version == 27
+jq -e --argjson evaluator "$EXPECTED_EVALUATOR_VERSION" --argjson schema "$EXPECTED_EVIDENCE_SCHEMA_VERSION" '
+  .schema_version == $schema and .evaluator_version == $evaluator
   and .finalization.phase == "sealed" and .finalization.failure == null
   and .state.services.shopify.products["8201"].status == "ACTIVE"
   and .state.services.shopify.products["8201"].onlineStoreVisible == true
