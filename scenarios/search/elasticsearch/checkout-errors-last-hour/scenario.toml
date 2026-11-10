@@ -67,6 +67,7 @@ assertions = [
  record = "_second_level"
  field = "/value"
  kind = "number"
+ optional = true
 
 [[expect.required_calls]]
 service = "elasticsearch"

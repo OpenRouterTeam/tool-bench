@@ -26,6 +26,7 @@ audit_history = true
  [expect.answer.record_facts]
  requirement = "Name the level-1 and level-2 on-call people for the production Database Reliability escalation policy right now."
  mode = "statements"
+ order = ["oncall1", "oncall2"]
  rejected = [
    "Level 1: ${oncall2}",
    "First on call: ${oncall2}",

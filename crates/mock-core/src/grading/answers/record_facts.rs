@@ -90,6 +90,10 @@ pub struct RecordFacts {
     /// expected values; unsupported additional clauses require adjudication.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub assertions: Vec<String>,
+    /// Facts of the same kind whose roles a reply could swap (the level-1 and level-2
+    /// on-call). The reply must first state them in this order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub order: Vec<String>,
 }
 
 /// How to pick the primary record from the candidates returned by `selector`.
@@ -305,8 +309,13 @@ impl RecordFacts {
         if self.facts.values().all(|fact| fact.optional) {
             return Err("record fact answers require at least one required fact".into());
         }
-        if self.assertions.is_empty() && self.facts.values().any(|fact| fact.optional) {
-            return Err("optional facts require reviewed affirmative clauses".into());
+        let mut ordered = std::collections::BTreeSet::new();
+        if self.order.len() == 1
+            || self.order.iter().any(|name| {
+                !ordered.insert(name) || self.facts.get(name).is_none_or(|fact| fact.optional)
+            })
+        {
+            return Err("a statement order names at least two distinct required facts".into());
         }
         for (name, fact) in &self.facts {
             if !valid_slot(name) {

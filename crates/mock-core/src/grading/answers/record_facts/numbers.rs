@@ -331,6 +331,112 @@ pub(super) fn numbers(text: &str) -> Vec<NumberToken> {
             previous,
         });
     }
+    found.extend(cardinal_words(text));
+    found.sort_by_key(|token| token.start);
+    found
+}
+
+const UNITS: &[&str] = &[
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+    "eleven",
+    "twelve",
+    "thirteen",
+    "fourteen",
+    "fifteen",
+    "sixteen",
+    "seventeen",
+    "eighteen",
+    "nineteen",
+];
+const TENS: &[&str] = &[
+    "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety",
+];
+/// Words after "one" that show it is a pronoun or determiner, not a count.
+const ONE_AS_PRONOUN: &[&str] = &[
+    "of", "is", "was", "that", "which", "who", "with", "to", "in", "on", "for", "at", "has", "had",
+    "can", "could", "would", "will", "may", "more", "another", "other", "or", "and", "by", "the",
+    "it", "i", "we", "they", "you",
+];
+
+/// Counts written as words from zero to ninety-nine ("six attempts", "twenty-one").
+fn cardinal_words(text: &str) -> Vec<NumberToken> {
+    let mut words: Vec<(usize, usize, &str)> = Vec::new();
+    let mut start = None;
+    for (index, character) in text.char_indices().chain([(text.len(), ' ')]) {
+        match (character.is_alphabetic(), start) {
+            (true, None) => start = Some(index),
+            (false, Some(begin)) => {
+                words.push((begin, index, &text[begin..index]));
+                start = None;
+            }
+            _ => {}
+        }
+    }
+    let attached = |index: usize| {
+        text[..index].chars().next_back().is_some_and(|character| {
+            character.is_alphanumeric() || matches!(character, '_' | '-' | '/')
+        })
+    };
+    let mut found = Vec::new();
+    let mut position = 0;
+    while position < words.len() {
+        let (begin, mut end, word) = words[position];
+        let mut next = position + 1;
+        let value = if let Some(tens) = TENS.iter().position(|name| *name == word) {
+            let mut value = (tens as i128 + 2) * 10;
+            // "twenty-one" or "twenty one".
+            if let Some((unit_begin, unit_end, unit)) = words.get(next).copied()
+                && matches!(&text[end..unit_begin], "-" | " ")
+                && let Some(unit) = UNITS.iter().position(|name| *name == unit)
+                && (1..=9).contains(&unit)
+            {
+                value += unit as i128;
+                end = unit_end;
+                next += 1;
+            }
+            Some(value)
+        } else {
+            UNITS
+                .iter()
+                .position(|name| *name == word)
+                .map(|unit| unit as i128)
+        };
+        let following = words
+            .get(next)
+            .filter(|(following, _, _)| text[end..*following].chars().all(|gap| gap == ' '))
+            .map_or("", |(_, _, word)| *word);
+        let joined_after = text[end..]
+            .chars()
+            .next()
+            .is_some_and(|character| character.is_alphanumeric() || matches!(character, '_' | '-'));
+        position = next;
+        let Some(value) = value else { continue };
+        if attached(begin) || joined_after || (word == "one" && ONE_AS_PRONOUN.contains(&following))
+        {
+            continue;
+        }
+        let chars: Vec<char> = text[..begin].chars().collect();
+        found.push(NumberToken {
+            start: begin,
+            end,
+            value: Rational::integer(value),
+            decimals: 0,
+            currency: currency_word(following),
+            suffix: String::new(),
+            next: following.to_owned(),
+            previous: word_before(&chars, chars.len()),
+        });
+    }
     found
 }
 

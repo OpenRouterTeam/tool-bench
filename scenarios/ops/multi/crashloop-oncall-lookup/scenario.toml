@@ -27,6 +27,7 @@ audit_history = true
  [expect.answer.record_facts]
  requirement = "Name the crash-looping production pod, its error from the logs, and who is on call (level 1 and 2) for its service."
  mode = "statements"
+ order = ["oncall1", "oncall2"]
 rejected = ["${oncall2} is on call and ${oncall1} is the backup"]
 assertions = [
   "Pod ${pod}, error: ${error}. On call: ${oncall1}, backup ${oncall2}.",

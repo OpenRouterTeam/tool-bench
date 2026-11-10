@@ -25,6 +25,7 @@ audit_history = true
  [expect.answer.record_facts]
  requirement = "Name the level-1 and level-2 on-call people for the Payments escalation policy right now."
  mode = "statements"
+ order = ["oncall1", "oncall2"]
 rejected = ["${oncall2} is on call and ${oncall1} is the backup", "${oncall2} and ${oncall1}"]
 assertions = [
   "On call: ${oncall1}, backup: ${oncall2}",

@@ -72,6 +72,52 @@ pub(super) fn fold(text: &str, lines: bool) -> String {
     folded
 }
 
+static MERIDIEM: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\b(\d{1,2})(?::(\d{2}))?\s?(a\.m\.|p\.m\.|am\b|pm\b)").expect("meridiem pattern")
+});
+static SPOKEN_DURATION: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:(\d{1,2})\s?(?:h|hr|hrs|hours?),?\s(?:and\s)?)?(\d{1,3})\s?(?:m|min|mins|minutes?),?\s?(?:and\s)?",
+        r"(\d{1,2})\s?(?:s|sec|secs|seconds?)\b",
+    ))
+    .expect("duration pattern")
+});
+
+/// Rewrites two common spoken notations into the forms sources use: `9 a.m.` and
+/// `2:30 pm` become `09:00` and `14:30`, and `47 min 12 s` becomes `47:12`.
+fn notation(folded: &str) -> String {
+    let clocked = MERIDIEM.replace_all(folded, |found: &regex::Captures<'_>| {
+        let hour: u32 = found[1].parse().unwrap_or(99);
+        let minute = found.get(2).map_or("00", |minute| minute.as_str());
+        if !(1..=12).contains(&hour) {
+            return found[0].to_owned();
+        }
+        let afternoon = found[3].starts_with('p');
+        let hour = match (hour, afternoon) {
+            (12, false) => 0,
+            (12, true) => 12,
+            (hour, true) => hour + 12,
+            (hour, false) => hour,
+        };
+        format!("{hour:02}:{minute}")
+    });
+    SPOKEN_DURATION
+        .replace_all(&clocked, |found: &regex::Captures<'_>| {
+            let seconds: u32 = found[3].parse().unwrap_or(99);
+            if seconds > 59 {
+                return found[0].to_owned();
+            }
+            match found.get(1) {
+                Some(hours) => {
+                    let minutes: u32 = found[2].parse().unwrap_or(0);
+                    format!("{}:{minutes:02}:{seconds:02}", hours.as_str())
+                }
+                None => format!("{}:{seconds:02}", &found[2]),
+            }
+        })
+        .into_owned()
+}
+
 fn sentences(text: &str) -> Vec<&str> {
     let mut found = Vec::new();
     let mut start = 0;
@@ -318,7 +364,7 @@ static TRAILING_DENIAL: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
         r#"^[\s"')\]]*(?:,\s*(?:which|who|that)\s+)?(?:"#,
         r"(?:is|was|are|were)(?:\s+not|n't)\s+(?:the|a|an|it|correct|right|true|accurate|our|that|what|who|where|one|actually|really|on call)\b",
-        r"|(?:(?:is|was|are|were|has been|had been|have been)\s+)?(?:also\s+|now\s+|since\s+)?(?:incorrect|wrong|false|inaccurate|ruled out|rejected|excluded|eliminated|discarded|superseded|outdated|deprecated)\b",
+        r"|(?:(?:is|was|are|were|has been|had been|have been)\s+)?(?:also\s+|now\s+|since\s+)?(?:incorrect|wrong|false|inaccurate|ruled out|excluded|eliminated|discarded|superseded|outdated|deprecated)\b",
         r")"
     ))
     .expect("trailing denial pattern")
@@ -332,6 +378,25 @@ static TRAILING_NEGATION: LazyLock<Regex> = LazyLock::new(|| {
         r")\b\s*(.*)$"
     ))
     .expect("trailing negation pattern")
+});
+/// A copular denial later in the mention's own clause ("X's $412,000 deal is not the
+/// largest"), or a demonstrative that takes the statement back ("..., but that isn't
+/// right").
+static LATER_DENIAL: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"^[^,;:()]{0,60}?\b(?:is|was|are|were)(?:\s+not|n't)\s+(?:the|a|an|it|correct|right|true|accurate|our|that|what|who|where|when|one|actually|really|on call)\b",
+        r"|\b(?:that|this)\s+(?:is|was)(?:\s+not|n't)\b",
+        r"|\b(?:it|which|they|these|those)\s+(?:is|was|are|were)(?:\s+not|n't)\s+(?:the|a|an|correct|right|true|accurate|what|who|where|when|why|how|one|actually|really|in force|valid|current)\b",
+    ))
+    .expect("later denial pattern")
+});
+/// A sentence that opens by denying the one before it.
+static TAKES_BACK: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"^\s*(?:but |however,? |yet )?(?:that|this|it|they|these|those)\s+(?:is|was|are|were)(?:\s+not|n't)\s+",
+        r"(?:the|a|an|correct|right|true|accurate|what|who|where|when|why|how|one|actually|really|in force|valid|current)\b",
+    ))
+    .expect("takes-back pattern")
 });
 /// Negative predicates that are true of a correctly identified thing.
 static BENIGN_PREDICATE: LazyLock<Regex> = LazyLock::new(|| {
@@ -474,21 +539,36 @@ struct Sentence<'answer> {
     /// The sentence holds evaluative/ranking language not covered by any
     /// reviewed contradiction cue.  When set, fact mentions are Disputed.
     unreviewed_predicate: bool,
+    /// The next sentence opens by taking this one back ("It was not the final pick").
+    taken_back: bool,
 }
 
 impl Sentence<'_> {
     fn status(&self, start: usize, end: usize) -> Status {
         let after = &self.masked[end..];
-        let negated_after = TRAILING_NEGATION
-            .captures(after)
-            .is_some_and(|captures| !BENIGN_PREDICATE.is_match(&captures[1]));
+        // A mention inside parentheses is governed by what follows the parenthesis.
+        let before = &self.masked[..start];
+        let enclosed = before.matches('(').count() > before.matches(')').count();
+        let outer = enclosed
+            .then(|| after.find(')').map(|close| &after[close + 1..]))
+            .flatten();
+        let negated = |text: &str| {
+            TRAILING_NEGATION
+                .captures(text)
+                .is_some_and(|captures| !BENIGN_PREDICATE.is_match(&captures[1]))
+        };
+        let negated_after = negated(after) || outer.is_some_and(negated);
         if let Some(status) = leading(&self.masked[..start]) {
             status
         } else if TRAILING_DENIAL.is_match(after)
+            || outer.is_some_and(|text| TRAILING_DENIAL.is_match(text))
+            || LATER_DENIAL.is_match(after)
+            || outer.is_some_and(|text| LATER_DENIAL.is_match(text))
             || negated_after
             || self.contradicted
             || RETRACTION.is_match(&self.masked)
             || self.unreviewed_predicate
+            || self.taken_back
         {
             Status::Disputed
         } else if HEDGE.is_match(&self.masked) {
@@ -519,7 +599,8 @@ fn find_text(text: &str, form: &str) -> Vec<(usize, usize)> {
                 && earlier.is_some_and(|digit| digit.is_ascii_digit())
                 && form.starts_with(|digit: char| digit.is_ascii_digit());
             let joined_before = previous.is_some_and(|character| {
-                (joint(character) && !timestamp) || (character == '-' && earlier.is_some_and(joint))
+                (joint(character) && !timestamp)
+                    || (matches!(character, '-' | '/') && earlier.is_some_and(joint))
             });
             let joined_after = next.is_some_and(|character| {
                 joint(character) || (character == '-' && later.is_some_and(joint))
@@ -628,6 +709,11 @@ fn read_number(fact: &RecordFact, token: &NumberToken, target: Rational, text: &
             && token.value.compare(Rational::ZERO) == Some(std::cmp::Ordering::Greater)
             && token.value.compare(Rational::integer(1)) == Some(std::cmp::Ordering::Less));
     let before = text[..token.start].trim_end_matches([' ', ':', '=', '(', '$', '#', '~']);
+    // "Failed sign-ins on 13 March: 6" names the unit in the label the number answers.
+    let label = text[..token.start]
+        .trim_end_matches([' ', '(', '$', '#', '~'])
+        .strip_suffix([':', '='])
+        .unwrap_or_default();
     let mut value = Some(token.value);
     let mut foreign = false;
     let mut unit_hit = units.iter().any(|reviewed| {
@@ -636,6 +722,7 @@ fn read_number(fact: &RecordFact, token: &NumberToken, target: Rational, text: &
             || (token.suffix.is_empty()
                 && (word_starts(after, reviewed) || word_starts(after.trim_start(), reviewed)))
             || word_ends(before, reviewed)
+            || !find_text(label, reviewed).is_empty()
     });
     // A dollar sign is the reviewed unit of an amount whose units name USD.
     unit_hit |= money
@@ -688,35 +775,90 @@ struct Evidence {
     conflict: bool,
     /// Another authored record's value is asserted.
     alternative: bool,
-    /// The first sentence that affirms the source value.
-    first_affirmed: Option<usize>,
-    /// Sentences that state another authored record's value without setting it aside.
+    /// The first and last sentences that affirm the source value, and the byte offset of
+    /// the first statement in its sentence.
+    first_affirmed: Option<(usize, usize)>,
+    last_affirmed: Option<usize>,
+    /// Sentences that state another authored record's value without setting it aside and
+    /// without also affirming the source value.
     rivals: Vec<usize>,
 }
 
 impl Evidence {
-    fn count(&mut self, status: Status, sentence: usize) {
+    fn count(&mut self, status: Status, sentence: usize, start: usize) {
         match status {
             // A hedged statement of the right value ("it appears to be X") is still the
             // reply's answer; a reply that hedges between records is caught by the rivals.
             Status::Affirmed | Status::Hedged => {
                 self.affirmed += 1;
-                self.first_affirmed.get_or_insert(sentence);
+                self.first_affirmed.get_or_insert((sentence, start));
+                self.last_affirmed = Some(sentence);
             }
             Status::Denied => self.denied += 1,
             Status::Disputed => self.disputed += 1,
         }
     }
 
-    /// The reply leads with another record: its value is stated, and not set aside, in a
-    /// sentence before the one that first affirms the source value. Other records named
-    /// in or after that sentence are context (a comparison, the runners-up, what was
-    /// excluded), not a competing answer.
-    fn led_by_rival(&self) -> bool {
-        self.first_affirmed
-            .is_some_and(|first| self.rivals.iter().any(|sentence| *sentence < first))
+    /// Whether another authored record competes with the source value as the reply's
+    /// answer. Other records are context when the reply both opens and closes on the
+    /// source value, or names them only in the sentence that states it. Otherwise the
+    /// reply must make its answer clear: an opening on another record needs a concluding
+    /// statement of the source value, and a close on another record must not present it
+    /// as the answer.
+    fn contested(&self, read: &[Sentence]) -> bool {
+        let (Some((first, _)), Some(last)) = (self.first_affirmed, self.last_affirmed) else {
+            return false;
+        };
+        let (Some(opening), Some(closing)) = (self.rivals.first(), self.rivals.last()) else {
+            return false;
+        };
+        let led = *opening < first;
+        let trailed = *closing > last;
+        match (led, trailed) {
+            (false, false) => false,
+            (false, true) => ANSWER_CUE.is_match(&read[*closing].masked),
+            (true, false) => {
+                let closing = &read[last].masked;
+                !(CONCLUSION_CUE.is_match(closing)
+                    || !(LIST_ITEM.is_match(closing) || DEMOTION.is_match(closing)))
+            }
+            (true, true) => true,
+        }
     }
 }
+
+/// Wording that presents a later record as the reply's real answer.
+static ANSWER_CUE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:actually|in fact|instead|rather|correct\w*|turns out|ultimately|final\w*|answer|conclusion",
+        r"|therefore|thus|hence|decision|decided|chose|chosen|picked|selected|winner",
+        r"|largest|biggest|highest|lowest|smallest|best|worst)\b",
+    ))
+    .expect("answer cue pattern")
+});
+/// A line of a list or table: a ranking, not a conclusion.
+static LIST_ITEM: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^\s*(?:\d+[.)]|[-+•·])\s").expect("list item pattern"));
+/// Wording that places the stated record below, after or outside the answer.
+static DEMOTION: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:second|third|fourth|fifth|runner-up|runners-up|next|behind|trails?|trailing|smaller|lower|fewer",
+        r"|less than|below|followed by|after that|exclud\w*|ignor\w*|closed|lost|archived|stale|outdated|old",
+        r"|previous|former|no longer|also|another|other|others)\b",
+    ))
+    .expect("demotion pattern")
+});
+/// Wording that marks a late statement of the source value as the reply's conclusion.
+static CONCLUSION_CUE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:so|therefore|thus|hence|consequently|accordingly|that leaves|which leaves|leaving|that makes",
+        r"|which makes|making|answer|conclusion|result|in short|in summary|summary|overall|final\w*|bottom line",
+        r"|tl;dr|net|actually|in fact|correct\w*|real|instead|only|right one|the one|match\w*",
+        r"|largest|biggest|highest|lowest|smallest|most|least|top|best|worst|latest|newest|oldest|current)\b",
+        r"|→|=>|->",
+    ))
+    .expect("conclusion cue pattern")
+});
 
 /// Words that set a record aside rather than present it as the answer.
 static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
@@ -730,6 +872,8 @@ static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
         r"|old|previous|prior|former|formerly|was|were|used to|no longer|until|before",
         r"|also|other|others|another|distractor\w*|look-?alike\w*|similar\w*|duplicate\w*|not to be confused",
         r"|for context|for reference|for comparison|by comparison|in contrast|e\.g|such as|including",
+        r"|not (?:the|an?) (?:answer|one|right|correct|match)|not counted|not included|doesn't count|does not count",
+        r"|staging|non-?prod\w*|sandbox|test environment",
         r")\b"
     ))
     .expect("set-aside pattern")
@@ -743,6 +887,16 @@ fn text_forms(fact: &RecordFact, forms: &[String]) -> Vec<String> {
             folded.extend(wordings.iter().map(|form| fold(form, false)));
         }
     }
+    // A link is the same link without its scheme or a trailing slash.
+    let bare: Vec<String> = folded
+        .iter()
+        .filter_map(|form| {
+            form.strip_prefix("https://")
+                .or_else(|| form.strip_prefix("http://"))
+        })
+        .map(|form| form.trim_end_matches('/').to_owned())
+        .collect();
+    folded.extend(bare);
     folded.retain(|form| !form.is_empty());
     folded.sort_by_key(|form| std::cmp::Reverse(form.len()));
     folded.dedup();
@@ -967,7 +1121,7 @@ pub(super) fn check(
             "{reason}; requirement: {requirement}"
         )))
     };
-    let mut folded = fold(answer, true);
+    let mut folded = notation(&fold(answer, true));
     for template in &contract.rejected {
         if form_pattern(template, contract, &facts, &folded)?
             .is_some_and(|pattern| pattern.is_match(&folded))
@@ -1036,13 +1190,43 @@ pub(super) fn check(
                 masked,
                 contradicted,
                 unreviewed_predicate,
+                taken_back: false,
             }
         })
         .collect();
+    let mut read = read;
+    for index in 1..read.len() {
+        if TAKES_BACK.is_match(&read[index].masked) {
+            read[index - 1].taken_back = true;
+        }
+    }
 
+    // Sentences that affirm any required fact: other records named there are context.
+    let affirming: Vec<bool> = read
+        .iter()
+        .zip(&located)
+        .map(|(sentence, found)| {
+            found.iter().zip(&items).any(|(spans, (_, fact, _, _))| {
+                !fact.optional
+                    && spans.iter().any(|(start, end)| {
+                        matches!(
+                            sentence.status(*start, *end),
+                            Status::Affirmed | Status::Hedged
+                        )
+                    })
+            })
+        })
+        .collect();
     let mut failure = None;
     let mut review = None;
+    // Where each fact is first affirmed, for the declared statement order.
+    let mut stated: BTreeMap<&str, (usize, usize)> = BTreeMap::new();
     for (index, (name, fact, target, alternatives)) in items.iter().enumerate() {
+        // Optional facts are context: stating, omitting or correcting one never decides
+        // the verdict. They still shield their own values from being read as rivals.
+        if fact.optional {
+            continue;
+        }
         let notes = &noted[index];
         // A differing amount that states another declared fact is that
         // fact's value, not a wrong value for this one.
@@ -1060,7 +1244,7 @@ pub(super) fn check(
         };
         for (position, (sentence, found)) in read.iter().zip(&located).enumerate() {
             for (start, end) in &found[index] {
-                evidence.count(sentence.status(*start, *end), position);
+                evidence.count(sentence.status(*start, *end), position, *start);
             }
             for alternative in *alternatives {
                 if fact.optional {
@@ -1096,7 +1280,7 @@ pub(super) fn check(
                         Status::Denied | Status::Disputed
                     ) {
                         evidence.alternative = true;
-                        if !SET_ASIDE.is_match(&sentence.masked) {
+                        if !affirming[position] && !SET_ASIDE.is_match(&sentence.masked) {
                             evidence.rivals.push(position);
                         }
                     }
@@ -1148,14 +1332,28 @@ pub(super) fn check(
             review.get_or_insert(format!(
                 "answer both asserts and disputes the source {name}"
             ));
-        } else if evidence.led_by_rival() {
+        } else if evidence.contested(&read) {
             review.get_or_insert(format!(
-                "answer states another authored record's value before the source {name}"
+                "answer presents another authored record's value as well as the source {name}"
             ));
+        }
+        if let Some(first) = evidence.first_affirmed {
+            stated.insert(*name, first);
         }
     }
     if let Some(reason) = failure {
         return failed(reason);
+    }
+    for pair in contract.order.windows(2) {
+        if let (Some(earlier), Some(later)) =
+            (stated.get(pair[0].as_str()), stated.get(pair[1].as_str()))
+            && later < earlier
+        {
+            review.get_or_insert(format!(
+                "answer states the source {} before the source {}, so their roles may be swapped",
+                pair[1], pair[0]
+            ));
+        }
     }
     if let Some(reason) = review {
         return Err(RecordCheckError::NeedsAdjudication(format!(
@@ -1224,6 +1422,7 @@ mod tests {
                 masked: blank(sentence, &[(start, end)]),
                 contradicted: false,
                 unreviewed_predicate: false,
+                taken_back: false,
             }
             .status(start, end)
         };
