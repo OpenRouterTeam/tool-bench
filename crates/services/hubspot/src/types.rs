@@ -672,6 +672,19 @@ const DEAL_PROPS: &[Prop] = &[
         "number",
         "number",
     ),
+    ("hs_is_closed", "Is Deal Closed?", "bool", "booleancheckbox"),
+    (
+        "hs_is_closed_won",
+        "Is Closed Won",
+        "bool",
+        "booleancheckbox",
+    ),
+    (
+        "hs_is_closed_lost",
+        "Is closed lost",
+        "bool",
+        "booleancheckbox",
+    ),
     (
         "notes_last_updated",
         "Last Activity Date",
@@ -687,6 +700,25 @@ const DEAL_PROPS: &[Prop] = &[
     ),
     ("hs_object_id", "Record ID", "number", "number"),
 ];
+
+/// Deal properties HubSpot sets itself from the deal's stage.
+pub const DEAL_CLOSED_PROPS: [&str; 3] = ["hs_is_closed", "hs_is_closed_won", "hs_is_closed_lost"];
+
+/// `(hs_is_closed, hs_is_closed_won, hs_is_closed_lost)` for a stage of the default sales
+/// pipeline. A stage the mock has no closed/open metadata for (a custom one) yields `None`.
+pub fn deal_closed_state(stage: &str) -> Option<[(&'static str, bool); 3]> {
+    let known = builtin_options("deals", "dealstage")
+        .iter()
+        .any(|(value, _)| *value == stage);
+    known.then(|| {
+        let (won, lost) = (stage == "closedwon", stage == "closedlost");
+        [
+            (DEAL_CLOSED_PROPS[0], won || lost),
+            (DEAL_CLOSED_PROPS[1], won),
+            (DEAL_CLOSED_PROPS[2], lost),
+        ]
+    })
+}
 
 const TICKET_PROPS: &[Prop] = &[
     ("subject", "Ticket name", "string", "text"),
@@ -1027,10 +1059,17 @@ pub fn builtin_properties(ty: &ObjectType) -> Vec<Value> {
                     json!({"label": label, "value": value, "description": "", "displayOrder": order, "hidden": false})
                 })
                 .collect();
-            let read_only = matches!(
-                *name,
-                "createdate" | "lastmodifieddate" | "hs_lastmodifieddate" | "hs_createdate" | "hs_object_id" | "notes_last_updated"
-            );
+            let calculated = ty.name == "deals" && DEAL_CLOSED_PROPS.contains(name);
+            let read_only = calculated
+                || matches!(
+                    *name,
+                    "createdate"
+                        | "lastmodifieddate"
+                        | "hs_lastmodifieddate"
+                        | "hs_createdate"
+                        | "hs_object_id"
+                        | "notes_last_updated"
+                );
             json!({
                 "updatedAt": DEFINED_AT,
                 "createdAt": DEFINED_AT,
@@ -1042,7 +1081,7 @@ pub fn builtin_properties(ty: &ObjectType) -> Vec<Value> {
                 "groupName": group,
                 "options": options,
                 "displayOrder": i,
-                "calculated": false,
+                "calculated": calculated,
                 "externalOptions": *name == "hubspot_owner_id",
                 "hasUniqueValue": *name == "hs_object_id",
                 "hidden": false,
