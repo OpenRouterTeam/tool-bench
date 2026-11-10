@@ -39,7 +39,10 @@ rejected = [
   "Current pricing plans of Tallybook, Billfold, Sumwise and Ledgerize.",
 ]
 mentions = ["Tallybook", "Billfold", "Sumwise", ["pricing", "price", "prices", "priced", "plans", "cost", "costs"]]
-forbids = ["FreshBooks", "Fresh Books", "InvoiceNinja", "Invoice Ninja", "Zervant", "Ledgerize"]
+# Ledgerize is on the compare page only as the tool it no longer compares against, so a brief
+# may name it to exclude it; the relation below reads how it is named. The other tools are
+# never on that page.
+forbids = ["FreshBooks", "Fresh Books", "InvoiceNinja", "Invoice Ninja", "Zervant"]
 
 [[expect.records]]
 selector = { collection = "/services/tavily/research", created = true, field_patterns = { "/input" = '(?i)\btallybook\b' } }
@@ -52,6 +55,19 @@ equals = 1
 [[expect.records]]
 selector = { collection = "/services/tavily/research", created = true, field_patterns = { "/input" = '(?i)\bsumwise\b' } }
 equals = 1
+
+# A research that names Ledgerize must say to exclude it: an exclusion word governs the name in
+# its own clause ("Do not include Ledgerize", "excluding Ledgerize", "not Ledgerize"), or the
+# name opens a sentence that excludes it ("Ledgerize has shut down; leave it out"). Named any
+# other way ("Sumwise and Ledgerize", "Also cover Ledgerize", "Ledgerize is no longer on the
+# page, but research it too") the two selections differ and the relation fails.
+[[expect.relations]]
+source = { collection = "/services/tavily/research", created = true, field_patterns = { "/input" = '(?i)\bledgerize\b' } }
+source_field = "/request_id"
+target = { collection = "/services/tavily/research", created = true, field_patterns = { "/input" = '(?i)(?:\b(?:exclud\w*|omit\w*|skip\w*|ignor\w*|without|except|not|rather than|other than|leav\w+ out)\b|n\Wt\b)[^.,;:!?()\n]*\bledgerize\b|(?:^|[.!?;:(\n]\s*)ledgerize\b[^.:!?()\n]*\b(?:excluded|omitted|left out|leave it out|out of scope|not in scope|not (?:be )?(?:included|covered|researched|compared))\b' } }
+target_field = "/request_id"
+kind = "bijection"
+allow_empty = true
 
 [[expect.relations]]
 source = { collection = "/services/tavily/research", created = true }

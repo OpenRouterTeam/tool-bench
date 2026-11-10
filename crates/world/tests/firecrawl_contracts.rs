@@ -19,6 +19,7 @@ const CREATE: &str = "search/firecrawl/monitor-competitor-pricing";
 const PAUSE: &str = "search/firecrawl/pause-broken-pricing-monitor";
 const BROKEN: &str = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a11";
 const HEALTHY: &str = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a12";
+const LOOK_ALIKE: &str = "0c7e4b21-9d3a-4e6f-a1b2-5c8d7e6f9a13";
 const EXISTING: &str = "3f6b2a10-5c4e-4d21-9b7a-1e0c2d3f4a02";
 static EXPORT_SEQUENCE: AtomicUsize = AtomicUsize::new(0);
 static TOOLS: OnceLock<OracleTools> = OnceLock::new();
@@ -398,11 +399,61 @@ async fn pausing_does_not_authorize_other_target_configuration_changes() {
 }
 
 #[tokio::test]
-async fn the_requested_pause_precedes_the_new_check() {
+async fn the_pause_and_the_new_check_are_independent_and_pass_in_either_order() {
     let trial = prepared(PAUSE);
     run(&trial, HEALTHY).await;
-    pause(&trial, json!({})).await;
+    // The check alone is half the request.
     assessment(&trial, Outcome::Fail);
+    pause(&trial, json!({})).await;
+    assessment(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
+async fn a_check_of_the_broken_or_the_look_alike_monitor_fails_in_either_order() {
+    for wrong in [BROKEN, LOOK_ALIKE] {
+        let trial = prepared(PAUSE);
+        run(&trial, wrong).await;
+        pause(&trial, json!({})).await;
+        assessment(&trial, Outcome::Fail);
+    }
+    let trial = prepared(PAUSE);
+    pause(&trial, json!({})).await;
+    run(&trial, LOOK_ALIKE).await;
+    assessment(&trial, Outcome::Fail);
+    // Once paused, the broken monitor refuses a manual check; nothing was run.
+    let trial = prepared(PAUSE);
+    pause(&trial, json!({})).await;
+    let (status, _) = trial
+        .request("POST", &format!("/v2/monitor/{BROKEN}/run"), Value::Null)
+        .await;
+    assert_eq!(status, axum::http::StatusCode::CONFLICT);
+    assessment(&trial, Outcome::Fail);
+}
+
+/// The update tool takes a free-form body, so the pause field has to be guessed. A rejected
+/// guess changes nothing and is not held against the pause that follows.
+#[tokio::test]
+async fn rejected_guesses_at_the_pause_field_do_not_fail_the_pause_that_follows() {
+    let trial = prepared(PAUSE);
+    for guess in [
+        json!({"active":false}),
+        json!({"paused":true}),
+        json!({"state":"paused"}),
+        json!({"status":"pause"}),
+    ] {
+        native_arguments(
+            "firecrawl_monitor_update",
+            json!({"id":BROKEN,"body":guess}),
+        );
+        let (status, _) = trial
+            .request("PATCH", &format!("/v2/monitor/{BROKEN}"), guess)
+            .await;
+        assert_eq!(status, axum::http::StatusCode::BAD_REQUEST);
+    }
+    assert_eq!(trial.state()["monitors"][BROKEN]["status"], "active");
+    pause(&trial, json!({})).await;
+    run(&trial, HEALTHY).await;
+    assessment(&trial, Outcome::Pass);
 }
 
 #[tokio::test]

@@ -25,7 +25,7 @@ audit_history = true
  [expect.answer.record_facts]
  requirement = "Name the service with the most production 5xx errors in the last hour, state the count, and name the most frequent error message within that service."
  mode = "statements"
- contradictions = ["fewest", "least"]
+ contradictions = ["fewest", "the least"]
 
  [expect.answer.record_facts.selector]
  collection = "/services/elasticsearch/docs"

@@ -689,12 +689,56 @@ async fn pricing_explicit_exclusions_are_not_mistaken_for_inclusions() {
     for brief in [
         "Research the current pricing plans of Tallybook, Billfold and Sumwise, but not FreshBooks.",
         "Research the current pricing plans of Tallybook, Billfold and Sumwise. Exclude Ledgerize, which is no longer on the compare page.",
+        // The compare page itself says Ledgerize is gone; a brief may say so in its own words.
+        "Research the current pricing plans of Tallybook, Billfold and Sumwise. Do not include Ledgerize, which shut down in 2025, or any other tools.",
+        "Produce a comprehensive report on the current pricing plans of exactly three invoicing tools: Tallybook, Billfold and Sumwise. Exclude Ledgerize (no longer on our compare page) and anything else.",
+        "Current pricing plans for Tallybook, Billfold, and Sumwise only. Ledgerize has shut down; leave it out.",
+        "Compare current pricing for Tallybook, Billfold and Sumwise.\n\nNote: Ledgerize was dropped from our compare page and is out of scope.",
+        "Pricing plans of Tallybook, Billfold and Sumwise (not Ledgerize).",
+        "Compare current pricing for Tallybook, Billfold and Sumwise, excluding Ledgerize.",
+        "Research pricing plans for Tallybook, Billfold and Sumwise. Ledgerize, which shut down in 2025, should be left out.",
     ] {
         let trial = tavily(PRICING);
         compare_page(&trial).await;
         tavily_research(&trial, brief, Some("pro")).await;
         pass(&trial.assess());
     }
+}
+
+#[tokio::test]
+async fn pricing_briefs_that_name_ledgerize_other_than_to_exclude_it_fail() {
+    for brief in [
+        "Compare pricing plans for Tallybook, Billfold, Sumwise, Ledgerize.",
+        "Compare pricing plans for:\n- Tallybook\n- Billfold\n- Sumwise\n- Ledgerize",
+        "Compare pricing plans for Tallybook, Billfold and Sumwise. Also cover Ledgerize.",
+        // Noting that it shut down does not make a fourth competitor an exclusion.
+        "Compare pricing plans for Tallybook, Billfold, Sumwise and Ledgerize, which shut down in 2025.",
+        "Compare pricing plans for Tallybook, Billfold, Sumwise and Ledgerize (discontinued).",
+        // An exclusion word elsewhere in the brief does not cover it either.
+        "Research pricing, not features, of Tallybook, Billfold, Sumwise and Ledgerize.",
+        // Saying it was dropped is not saying to leave it out.
+        "Compare pricing for Tallybook, Billfold and Sumwise. Ledgerize is no longer compared on our page, but please also research its last known pricing.",
+        "Compare pricing for Tallybook, Billfold, Sumwise. We no longer compare against Ledgerize, but include it anyway.",
+    ] {
+        let trial = tavily(PRICING);
+        compare_page(&trial).await;
+        tavily_research(&trial, brief, Some("pro")).await;
+        let grade = trial.assess();
+        fail(&grade);
+        assert!(!grade.relations_ok, "{grade:?}");
+    }
+    // Excluding Ledgerize does not excuse another tool that is not on the page.
+    let trial = tavily(PRICING);
+    compare_page(&trial).await;
+    tavily_research(
+        &trial,
+        "Compare pricing plans for Tallybook, Billfold, Sumwise and FreshBooks. Do not include Ledgerize.",
+        Some("pro"),
+    )
+    .await;
+    let grade = trial.assess();
+    fail(&grade);
+    assert!(!grade.records_ok, "{grade:?}");
 }
 
 #[tokio::test]

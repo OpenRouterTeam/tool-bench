@@ -562,6 +562,93 @@ async fn esql_from_returns_sorted_columns_and_default_limit() {
 }
 
 #[tokio::test]
+async fn terms_aggregation_on_the_index_metadata_field_buckets_by_index() {
+    let app = app();
+    let (status, body) = search(
+        &app,
+        "logs-checkout-*",
+        json!({"size": 0, "query": {"range": {"status_code": {"gte": 500}}}, "aggs": {
+            "by_index": {"terms": {"field": "_index", "order": {"_key": "asc"}}, "aggs": {
+                "by_service": {"terms": {"field": "service", "size": 1}}
+            }}
+        }}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let buckets = body["aggregations"]["by_index"]["buckets"]
+        .as_array()
+        .unwrap();
+    let keys: Vec<&str> = buckets
+        .iter()
+        .map(|bucket| bucket["key"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        keys,
+        [
+            "logs-checkout-prod-2026.10.29",
+            "logs-checkout-prod-2026.10.30",
+            "logs-checkout-staging-2026.10.30",
+        ]
+    );
+    // Each bucket holds exactly the matching documents of its own index.
+    for bucket in buckets {
+        let (_, own) = search(
+            &app,
+            bucket["key"].as_str().unwrap(),
+            json!({"size": 0, "query": {"range": {"status_code": {"gte": 500}}}}),
+        )
+        .await;
+        assert_eq!(
+            bucket["doc_count"], own["hits"]["total"]["value"],
+            "{bucket}"
+        );
+        assert!(bucket["doc_count"].as_u64().unwrap() > 0, "{bucket}");
+    }
+    assert_eq!(buckets[1]["by_service"]["buckets"][0]["key"], "cart-api");
+}
+
+#[tokio::test]
+async fn esql_row_computes_values_without_an_index() {
+    let app = app();
+    // The cluster clock, which a "last hour" question has to be read against.
+    let (status, body) = esql(&app, "ROW current = NOW()").await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(
+        body["columns"],
+        json!([{"name": "current", "type": "date"}])
+    );
+    assert_eq!(body["values"], json!([["2026-10-30T14:00:00.000Z"]]));
+    let (status, body) = esql(
+        &app,
+        "ROW a = 1, b = \"two\", c = 1.5 + 2 | EVAL d = a + 1 | KEEP a, b, c, d",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(
+        body["columns"],
+        json!([
+            {"name": "a", "type": "integer"},
+            {"name": "b", "type": "keyword"},
+            {"name": "c", "type": "double"},
+            {"name": "d", "type": "integer"},
+        ])
+    );
+    assert_eq!(body["values"], json!([[1, "two", 3.5, 2]]));
+    // Only the rightmost of two columns with one name is kept.
+    let (status, body) = esql(&app, "ROW a = 1, b = 2, a = ROUND(1.23, 0)").await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert_eq!(
+        body["columns"],
+        json!([{"name": "b", "type": "integer"}, {"name": "a", "type": "double"}])
+    );
+    assert_eq!(body["values"], json!([[2, 1.0]]));
+    // A source command only opens a query.
+    let (status, body) = esql(&app, "FROM orders-2026 | ROW a = 1").await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(body["error"]["type"], "parsing_exception");
+}
+
+#[tokio::test]
 async fn esql_errors() {
     let app = app();
     let (status, body) = esql(&app, "FROM orders-2026 | WHERE nope > 1").await;
