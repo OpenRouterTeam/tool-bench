@@ -228,6 +228,11 @@ fn vercel_github_lookup_binds_the_live_commit_to_its_pr_and_each_role() {
         "It appears to be c3a9f12 from PR #482, written by mateoalv, approved by ines-d and merged by riley-p.",
         // Other authored records named beside or after the answer are context.
         "Commit c3a9f12 (PR #482; the later #487 deploy failed), author mateoalv, approver ines-d, merger riley-p.",
+        // The reviewer who only commented, listed among the reviews before the approver
+        // or the merger is named.
+        "Commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9 is PR #482, written by mateoalv.\n\nReviews:\n- junpark: COMMENTED\n- ines-d: APPROVED\n\nMerged by riley-p.",
+        "Production serves commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9, which is PR #482. It was written by mateoalv, approved by ines-d (junpark only commented and did not approve), and merged by riley-p.",
+        "Commit: c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9\nPR: #482\nWritten by: mateoalv\nReviewed by: junpark (comment only), ines-d (approved)\nMerged by: riley-p",
     ]);
     case.fails(&[
         "The commit in production is not c3a9f12; PR #482 was written by mateoalv, approved by ines-d and merged by riley-p.",
@@ -240,6 +245,9 @@ fn vercel_github_lookup_binds_the_live_commit_to_its_pr_and_each_role() {
         "Commit c3a9f12, PR #482. Author: mateoalv. Approved by: riley-p. Merged by: ines-d.",
         "Commit c3a9f12, PR #482. ines-d wrote it, mateoalv approved it, riley-p merged it.",
         "Commit c3a9f12, PR #482. Author: mateoalv. Approved by: junpark. Merged by: riley-p.",
+        // A true remark about that reviewer does not hide a role the reply gives them.
+        "Commit c3a9f12, PR #482. Author: mateoalv. junpark commented. Approved by: junpark. Merged by: riley-p.",
+        "Commit c3a9f12, PR #482. Author: mateoalv. Approved by: ines-d (junpark only commented). Merged by: junpark.",
         // Near-miss identifiers and a hash that is too short to identify a commit.
         "Commit c3a9f13, PR #482, author mateoalv, approver ines-d, merger riley-p.",
         "Commit c3a9f1, PR #482, author mateoalv, approver ines-d, merger riley-p.",
@@ -252,6 +260,8 @@ fn vercel_github_lookup_binds_the_live_commit_to_its_pr_and_each_role() {
         "Production is not serving c3a9f12; PR #482 was written by mateoalv, approved by ines-d and merged by riley-p.",
         "Commit c3a9f12, PR #482. mateoalv did not write it. ines-d approved, riley-p merged.",
         "Commit c3a9f12, PR #482, written by Mateo, approved by Ines and merged by Riley.",
+        // The review list with the two reviewers' states swapped.
+        "Commit c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9 is PR #482, written by mateoalv.\n\nReviews:\n- junpark: APPROVED\n- ines-d: COMMENTED\n\nMerged by riley-p.",
     ]);
     // The served commit follows the authored deployment states.
     assert_eq!(
