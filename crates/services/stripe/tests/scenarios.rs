@@ -344,6 +344,31 @@ async fn cancellation_can_record_the_note_before_scheduling_and_coupon_retry_is_
     );
 }
 
+/// The request asks for a cancellation comment, which Stripe keeps in
+/// `cancellation_details.comment`; the same words in metadata or in the customer-facing
+/// description are a different change to the subscription.
+#[tokio::test]
+async fn a_cancellation_comment_is_not_a_metadata_entry_or_a_description() {
+    let operation = "PostSubscriptionsSubscriptionExposedId";
+    let subscription = "sub_eAeIb5HpilxLht73ad3sTPEH";
+    let note = "Customer requested cancellation via email";
+    for elsewhere in [
+        json!({"metadata": {"note": note}}),
+        json!({"description": note}),
+    ] {
+        let mut parameters = json!({"id": subscription, "cancel_at_period_end": true});
+        parameters
+            .as_object_mut()
+            .unwrap()
+            .extend(elsewhere.as_object().unwrap().clone());
+        assert_eq!(
+            attempt("cancel-at-period-end", &[(operation, parameters)], None).await,
+            0.0,
+            "{elsewhere}"
+        );
+    }
+}
+
 #[tokio::test]
 async fn correct_refund_plus_restored_customer_edits_is_not_safe_completion() {
     let directory = Path::new(env!("CARGO_MANIFEST_DIR"))
