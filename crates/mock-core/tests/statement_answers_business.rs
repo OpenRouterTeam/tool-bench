@@ -6,6 +6,21 @@ use mock_core::grading::Outcome;
 use serde_json::json;
 use statement_support::Case;
 
+/// Fail and Unresolved both earn no reward. Use this where a case does not depend on
+/// which of the two the reader returns.
+#[track_caller]
+fn never_passes(case: &Case, answers: &[&str]) {
+    let passed: Vec<&str> = answers
+        .iter()
+        .copied()
+        .filter(|answer| case.outcome(answer) == Outcome::Pass)
+        .collect();
+    assert!(
+        passed.is_empty(),
+        "these answers must not pass: {passed:#?}"
+    );
+}
+
 #[test]
 fn hubspot_largest_open_deal_binds_the_company_to_its_own_amount() {
     let case = Case::load("business/hubspot/largest-open-deal");
@@ -14,6 +29,8 @@ fn hubspot_largest_open_deal_binds_the_company_to_its_own_amount() {
         "Northwind Logistics, $412,000.",
         "Company: Northwind Logistics\nDeal amount: 412000 USD",
         "The biggest open deal belongs to **Northwind Logistics** and is worth $412k.",
+        // A hedged statement of the right record is still the reply's answer.
+        "I think it may be Northwind Logistics at $412,000, but I could not confirm.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -33,10 +50,31 @@ fn hubspot_largest_open_deal_binds_the_company_to_its_own_amount() {
     ]);
     case.unresolved(&[
         "Northwind Logistics has the largest open deal, worth roughly four hundred thousand dollars.",
-        "I think it may be Northwind Logistics at $412,000, but I could not confirm.",
         "Northwind has the largest open deal, worth $412,000.",
+        // Two companies offered without a choice, and the larger amount is the
+        // closed-won deal's.
         "Northwind Logistics ($412,000) and Northwind Traders ($530,000) are the two largest.",
     ]);
+}
+
+#[test]
+fn hubspot_reply_that_answers_with_another_deal_does_not_pass_by_naming_the_right_one() {
+    let case = Case::load("business/hubspot/largest-open-deal");
+    never_passes(
+        &case,
+        &[
+            // The right record named only to dismiss it.
+            "I ruled out Northwind Logistics ($412,000) because Northwind Traders ($530,000) is bigger.",
+            "Northwind Logistics has a $412,000 deal, but the largest open deal is Northwind Traders at $530,000.",
+            // The closed-won deal given as the answer, with the right record as runner-up.
+            "Northwind Traders has the largest open deal ($530,000), ahead of Northwind Logistics ($412,000).",
+            "The largest open deal is Northwind Traders at $530,000. Northwind Logistics has $412,000.",
+            // The right amount attached to the wrong company.
+            "Northwind Traders has the largest open deal, worth $412,000. Northwind Logistics is second.",
+            // A ranking that puts the right record third.
+            "Vandelay Industries: $640,000. Northwind Traders: $530,000. Northwind Logistics: $412,000.",
+        ],
+    );
 }
 
 #[test]
@@ -77,6 +115,9 @@ fn salesforce_pipeline_total_is_summed_per_owner_from_the_opportunities() {
         "Priya Raman - $252,500.00",
         "Rep: Priya Raman\nOpen Q2 pipeline: 252500 USD",
         "Priya Raman leads with $252.5k of open pipeline closing in Q2.",
+        "It is probably Priya Raman with $252,500.",
+        // A ranking that leads with the answer: the other reps' totals are context.
+        "Priya Raman: $252,500. Marcus Bell: $240,000. Sofia Alvarez: $135,000.",
     ]);
     case.fails(&[
         "Priya Raman does not have the largest pipeline; it is not $252,500.",
@@ -89,11 +130,7 @@ fn salesforce_pipeline_total_is_summed_per_owner_from_the_opportunities() {
         "Priya Raman has the largest open pipeline closing this quarter: $252,000.",
         "Priya Raman has the largest open pipeline closing this quarter: 252,500 EUR.",
     ]);
-    case.unresolved(&[
-        "Priya has about a quarter million dollars of open pipeline.",
-        "Priya Raman: $252,500. Marcus Bell: $240,000. Sofia Alvarez: $135,000.",
-        "It is probably Priya Raman with $252,500.",
-    ]);
+    case.unresolved(&["Priya has about a quarter million dollars of open pipeline."]);
     // The total follows the authored amounts.
     let amount = "/services/salesforce/Opportunity/0065g00000FMcaOAAT/Amount";
     assert_eq!(
@@ -113,6 +150,7 @@ fn hubspot_deal_company_is_followed_to_its_salesforce_owner_and_open_cases() {
     case.passes(&[
         "Company: Northwind Logistics\nAccount owner: Daniel Okafor\nOpen cases: 00002107, 00002113",
         "The largest open deal is with Northwind Logistics. Its Salesforce account is owned by Daniel Okafor and has two open cases: 00002113 (Escalated) and 00002107 (Working).",
+        "I think the company is Northwind Logistics, owned by Daniel Okafor, with open cases 00002107 and 00002113.",
     ]);
     case.fails(&[
         "The largest open deal is not with Northwind Logistics; the account owner is Daniel Okafor and the open cases are 00002107 and 00002113.",
@@ -129,7 +167,6 @@ fn hubspot_deal_company_is_followed_to_its_salesforce_owner_and_open_cases() {
         "Northwind Logistics, owned by Daniel Okafor. Open cases: 00002107 and 00002131.",
     ]);
     case.unresolved(&[
-        "I think the company is Northwind Logistics, owned by Daniel Okafor, with open cases 00002107 and 00002113.",
         "Northwind (owner: Daniel Okafor) has open cases 00002107 and 00002113.",
         "Northwind Logistics is owned by D. Okafor; open cases 00002107 and 00002113.",
         // The closed case listed as if it were open.
@@ -175,6 +212,9 @@ fn zendesk_ticket_order_is_read_from_the_requesters_shopify_order() {
         "- Order number: 1063\n- Status: has not shipped yet\n- Order total: 176 USD",
         "**Order number:** #1063\n**Shipped:** No — fulfillment status is UNFULFILLED\n**Order total:** $176.00 USD",
         "The order is #1063, awaiting fulfillment, total $176.00.",
+        "I believe it is order #1063 (unfulfilled, $176.00).",
+        // The requester's earlier order, named after the answer, is context.
+        "Order #1063 is unfulfilled ($176.00); order #1051 was fulfilled.",
     ]);
     case.fails(&[
         "Order #1063 ($176.00) is not unfulfilled.",
@@ -191,11 +231,11 @@ fn zendesk_ticket_order_is_read_from_the_requesters_shopify_order() {
         "Order #1063 has not shipped yet; the total is $167.00.",
         "Order #1063 has not shipped yet; the total is €176.00.",
     ]);
-    case.unresolved(&[
-        "I believe it is order #1063 (unfulfilled, $176.00).",
-        "Order #1063 has not shipped; the total is one hundred seventy-six dollars.",
-        "Order #1063 is unfulfilled ($176.00); order #1051 was fulfilled.",
-    ]);
+    // Number words are read up to ninety-nine, so this amount is not recognised.
+    never_passes(
+        &case,
+        &["Order #1063 has not shipped; the total is one hundred seventy-six dollars."],
+    );
     // The total and the status are read from the order record.
     let total = "/services/shopify/orders/5563/totalPrice";
     assert_eq!(
@@ -250,6 +290,7 @@ fn shopify_top_spender_total_excludes_refunded_and_cancelled_orders() {
     case.passes(&[
         "Name: Priya Raman\nEmail: priya.raman@outlook.com\nTotal spent: 1130 USD",
         "**Priya Raman** <priya.raman@outlook.com> has spent $1.13k with us.",
+        "It is probably Priya Raman (priya.raman@outlook.com) with $1,130.00.",
     ]);
     case.fails(&[
         "The top spender is not Priya Raman (priya.raman@outlook.com, $1,130.00).",
@@ -270,7 +311,6 @@ fn shopify_top_spender_total_excludes_refunded_and_cancelled_orders() {
         // The right customer ranked anywhere but first.
         "Priya Raman (priya.raman@outlook.com) is second with $1,130.00.",
         "Priya Raman (priya.raman@outlook.com) has spent about eleven hundred dollars.",
-        "It is probably Priya Raman (priya.raman@outlook.com) with $1,130.00.",
     ]);
     // A larger order for the runner-up, and an un-refunded order, change
     // who the top spender is.
@@ -318,6 +358,7 @@ fn zendesk_invoice_attachment_is_bound_to_its_author_and_ticket() {
     case.passes(&[
         "Ticket: 3108\nFile: Lumen-Invoice-INV-20931.pdf",
         "It's on ticket 3108; the attachment is `Lumen-Invoice-INV-20931.pdf`.",
+        "Probably ticket 3108, file Lumen-Invoice-INV-20931.pdf.",
     ]);
     case.fails(&[
         "It is not #3108, and the file is not Lumen-Invoice-INV-20931.pdf.",
@@ -334,8 +375,8 @@ fn zendesk_invoice_attachment_is_bound_to_its_author_and_ticket() {
         "Ticket 3018, file Lumen-Invoice-INV-20931.pdf.",
     ]);
     case.unresolved(&[
-        "Probably ticket 3108, file Lumen-Invoice-INV-20931.pdf.",
         "Ticket 3108 has the invoice PDF (INV-20931).",
+        // Her ticket and the agent-posted invoice on her colleague's, without a choice.
         "Tickets 3108 (Lumen-Invoice-INV-20931.pdf) and 3110 (Lumen-Invoice-INV-20877.pdf) both hold invoices.",
     ]);
     // The file name is read from the comment's attachment.  The reference
