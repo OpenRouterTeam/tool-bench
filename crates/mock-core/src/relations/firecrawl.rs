@@ -384,10 +384,11 @@ impl RecordCheck {
                 }
                 _ => return Err("Firecrawl outcome goals must describe one resource kind".into()),
             };
+        // String patterns may narrow the created resources to the one the goal describes; the
+        // preservation policy then has to permit whatever the patterns set aside.
         if self.selector.collection != collection
             || !self.selector.created
             || !self.selector.matching.is_empty()
-            || !self.selector.field_patterns.is_empty()
             || !self.selector.references.is_empty()
             || self.selector.key_prefix.is_some()
             || self.selector.identity_field.is_some()
@@ -402,7 +403,7 @@ impl RecordCheck {
             || self.label_matchers.is_some()
         {
             return Err(
-                "Firecrawl goals require exactly one complete created-resource collection".into(),
+                "Firecrawl goals require exactly one created resource, narrowed only by string patterns".into(),
             );
         }
         let fields = self

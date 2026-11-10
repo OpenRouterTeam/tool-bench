@@ -194,11 +194,41 @@ fn initial_manual_checks_must_be_real_new_children() {
 }
 
 #[test]
-fn semantic_goals_require_nonvacuous_unfiltered_created_resource_selection() {
+fn a_string_pattern_sets_aside_created_crawls_that_planned_nothing() {
+    let goal = crawl_goal(json!({"selector":{
+        "collection":"/services/firecrawl/crawls","created":true,
+        "field_patterns":{"/plannedPages/0":"^https?://"}
+    }}));
+    goal.validate().unwrap();
+    let attempt = job(json!({"id":"empty-attempt","url":"https://docs.example",
+        "status":"completed","total":0,"plannedPages":[]}));
+    let mut state = with_job(job(json!({})));
+    state["services"]["firecrawl"]["crawls"]["empty-attempt"] = attempt.clone();
+    goal.check(Some(&initial()), &state).unwrap();
+    assert!(matches!(
+        crawl_goal(json!({})).check(Some(&initial()), &state),
+        Err(RecordCheckError::Failed(_))
+    ));
+    state["services"]["firecrawl"]["crawls"]["empty-attempt"]["plannedPages"] =
+        json!(["https://docs.example/guides/one"]);
+    assert!(matches!(
+        goal.check(Some(&initial()), &state),
+        Err(RecordCheckError::Failed(_))
+    ));
+    assert!(matches!(
+        goal.check(Some(&initial()), &with_job(attempt)),
+        Err(RecordCheckError::Failed(_))
+    ));
+}
+
+#[test]
+fn semantic_goals_require_one_created_resource_without_raw_matchers() {
     for extra in [
         json!({"equals":0}),
         json!({"selector":{"collection":"/services/firecrawl/crawls","created":false}}),
         json!({"selector":{"collection":"/services/firecrawl/crawls","created":true,"matching":{"status":"queued"}}}),
+        json!({"selector":{"collection":"/services/firecrawl/crawls","created":true,
+            "field_patterns":{"/plannedPages/0":"^https?://"}},"equals":null,"max_count":1}),
         json!({"fields":{"/total":2}}),
     ] {
         assert!(crawl_goal(extra).validate().is_err());
