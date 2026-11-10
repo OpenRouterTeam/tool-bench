@@ -710,6 +710,38 @@ async fn spike_accepts_numeric_identities_and_handing_over_before_the_rollback()
 }
 
 #[tokio::test]
+async fn spike_accepts_restating_the_unresolved_status_with_the_handover() {
+    let trial = spike_trial(|_| {});
+    redeploy(&trial, "storefront", PREVIOUS_BUILD).await;
+    let sentry = |trial: &ContractTrial| {
+        trial.world.lock().unwrap().snapshot()["services"]["sentry"].clone()
+    };
+    let before = sentry(&trial);
+    // "Leave it unresolved" said in the same call: the issue already is, so Sentry
+    // records the assignment and nothing about its status.
+    update_issue(
+        &trial,
+        "STOREFRONT-5R",
+        json!({"assignedTo":"team:payments-web","status":"unresolved"}),
+    )
+    .await;
+    let after = sentry(&trial);
+    assert_eq!(
+        after["issues"]["STOREFRONT-5R"]["substatus"],
+        before["issues"]["STOREFRONT-5R"]["substatus"]
+    );
+    let recorded: Vec<&str> = after["activities"]
+        .as_object()
+        .unwrap()
+        .iter()
+        .filter(|(key, _)| before["activities"].get(key.as_str()).is_none())
+        .map(|(_, activity)| activity["type"].as_str().unwrap())
+        .collect();
+    assert_eq!(recorded, ["assigned"]);
+    assert_outcome(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
 async fn spike_rejects_redeploying_any_build_other_than_the_previous_production_server() {
     for build in [REGRESSED_BUILD, PREVIEW_BUILD] {
         let trial = spike_trial(|_| {});

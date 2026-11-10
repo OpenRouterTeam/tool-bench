@@ -813,6 +813,11 @@ pub async fn update_issue(
                 doc["resolvedAt"] = json!(now);
                 activities.push(("set_resolved_in_release", json!({ "inNextRelease": true })));
             }
+            // Sentry writes the status and substatus, and records the activity, only for
+            // the groups whose status differs from the requested one
+            // (`queryset.exclude(status=new_status)` in `handle_other_status_updates`), so
+            // "unresolved" leaves an issue that is already unresolved as it was.
+            "unresolved" | "reprocessing" if doc["status"] == "unresolved" => {}
             "unresolved" | "reprocessing" => {
                 doc["status"] = json!("unresolved");
                 doc["substatus"] = json!("ongoing");
