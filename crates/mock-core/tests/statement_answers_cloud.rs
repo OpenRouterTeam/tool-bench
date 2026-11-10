@@ -350,6 +350,14 @@ fn supabase_march_revenue_is_summed_per_customer_over_paid_and_shipped_orders() 
         "Customer: Grace Kim\nEmail: grace.kim@example.kr\nMarch total: 1234.5 USD",
         "Grace Kim <grace.kim@example.kr> leads March with $1,234.50.",
         "I believe it is Grace Kim (grace.kim@example.kr) with $1,234.50.",
+        // A runner-up line or paragraph ranks the other customer, not the winner.
+        "Customer: Grace Kim\nEmail: grace.kim@example.kr\nMarch revenue: $1,234.50\nRunner-up: Felix Wagner ($1,100.00)",
+        "Grace Kim, grace.kim@example.kr, $1,234.50. Felix Wagner came second with $1,100.00.",
+        // So does naming him as second inside the winner's own clause.
+        "Grace Kim beat second-place Felix Wagner with $1,234.50 in March revenue. Her email is grace.kim@example.kr.",
+        "Grace Kim edged out runner-up Felix Wagner, $1,234.50 to $1,100.00. Email: grace.kim@example.kr",
+        "Grace Kim (grace.kim@example.kr) led March with $1,234.50 ahead of second-place Felix Wagner at $1,100.00.",
+        "Grace Kim (grace.kim@example.kr) topped March at $1,234.50 with Felix Wagner in second place ($1,100.00).",
     ]);
     case.fails(&[
         "It is not Grace Kim (grace.kim@example.kr, $1,234.50).",
@@ -364,11 +372,17 @@ fn supabase_march_revenue_is_summed_per_customer_over_paid_and_shipped_orders() 
         "Felix Wagner (felix.wagner@example.de) brought in the most: $1,700.00.",
         "Grace Kim (grace.kim@example.kr) brought in the most: $1,243.50.",
         "Grace Kim (grace.kim@example.kr) brought in the most: €1,234.50.",
+        // The set-aside phrases name the runner-up only: they do not make him the answer,
+        // and the winner named as runner-up to him is still the wrong way round.
+        "Runner-up Felix Wagner (felix.wagner@example.de) had $1,100.00.",
+        "Felix Wagner (felix.wagner@example.de) beat runner-up Grace Kim (grace.kim@example.kr): $1,700.00 to $1,234.50.",
     ]);
     case.unresolved(&[
         "Grace (grace.kim@example.kr) brought in the most: $1,234.50.",
         // The right customer ranked anywhere but first.
         "Grace Kim (grace.kim@example.kr) was second with $1,234.50.",
+        "Grace Kim (grace.kim@example.kr) came second with $1,234.50.",
+        "Grace Kim (grace.kim@example.kr) was the runner-up with $1,234.50; Felix Wagner won with $1,700.00.",
         "Grace Kim (grace.kim@example.kr) brought in about twelve hundred dollars.",
     ]);
     // Un-refunding the runner-up's order makes him the top customer.
