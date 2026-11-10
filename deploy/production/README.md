@@ -8,10 +8,10 @@ openrouter-web, `harbor==0.23.0`) on a local Docker daemon, with Harbor's script
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `OPENROUTER_WEB` | `/Users/luke/github/openrouter-web` | worker repo; only `git rev-parse` and `git archive` run on it |
+| `OPENROUTER_WEB` | none, required | a checkout of the openrouter-web repository; only `git rev-parse` and `git archive` run on it |
 | `WORKER_REF` | `origin/main` | ref whose worker is extracted (pin a SHA for repeatable runs) |
 | `TASKS_SRC` | `/tmp/tb-stock/tasks` | generated tasks; read and copied, never edited |
-| `WORLD_IMAGE`, `TOOLS_IMAGE` | `tool-bench-world:e45-std`, `tool-bench-tools:e45` | images the tasks must reference (checked, never rewritten) |
+| `WORLD_IMAGE`, `TOOLS_IMAGE` | `tool-bench-world:dev`, `tool-bench-tools:dev` | images the tasks must reference (checked, never rewritten) |
 | `WORK` | `/tmp/tb-prod-worker` | everything created: `src-<sha>/`, `venv/`, `plans/`, `runs/` |
 | `PROXY` | `loopback` | `real` on a host that shares dockerd's network namespace |
 

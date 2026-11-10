@@ -9,8 +9,7 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 PILOT_HOME=/tmp/tb-pilot
-PY="${PILOT_PYTHON:-$HOME/.local/bin/python3.12}"
-[ -x "$PY" ] || PY=python3
+PY="${PILOT_PYTHON:-$(command -v python3.13 || command -v python3.12 || command -v python3.11 || command -v python3)}"
 die() { printf 'up.sh: %s\n' "$*" >&2; exit 2; }
 
 [ $# -eq 2 ] || die "usage: up.sh <task-name> <slot>"

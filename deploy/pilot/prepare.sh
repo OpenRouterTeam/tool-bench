@@ -5,14 +5,14 @@
 #   - the world image (default tag tool-bench-world:pilot),
 #   - target/debug/bench-verify, the grader grade.sh runs on the host,
 #   - the generated tasks in DIR (default /tmp/tb-pilot/tasks), which must be outside the repo.
-# The tools image (default tool-bench-tools:e45) is reused as it is and must already exist.
+# The tools image (default tool-bench-tools:dev) is reused as it is and must already exist.
 # Safe to re-run: the image is retagged and the tasks (generated beside DIR) are swapped in
 # only after every build step has succeeded, and running slots keep the image and task
 # inputs they started with.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 world_image=tool-bench-world:pilot
-tools_image=tool-bench-tools:e45
+tools_image=tool-bench-tools:dev
 out=/tmp/tb-pilot/tasks
 die() { printf 'prepare.sh: %s\n' "$*" >&2; exit 2; }
 

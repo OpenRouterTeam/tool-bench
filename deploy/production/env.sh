@@ -1,12 +1,12 @@
 # Shared parameters for the production-worker rehearsal. Source it; override any value from the
 # environment. Nothing here writes into the tool-bench checkout, openrouter-web, or TASKS_SRC.
-: "${OPENROUTER_WEB:=/Users/luke/github/openrouter-web}"   # read-only: git rev-parse + git archive
+: "${OPENROUTER_WEB:?set OPENROUTER_WEB to a checkout of openrouter-web}"   # read-only: git rev-parse + git archive
 : "${WORKER_REF:=origin/main}"                             # ref whose services/gcp-harbor-trial runs
 : "${TASKS_SRC:=/tmp/tb-stock/tasks}"                      # generated tasks (copied, never edited)
-: "${WORLD_IMAGE:=tool-bench-world:e45-std}"               # images the tasks must reference
-: "${TOOLS_IMAGE:=tool-bench-tools:e45}"
+: "${WORLD_IMAGE:=tool-bench-world:dev}"               # images the tasks must reference
+: "${TOOLS_IMAGE:=tool-bench-tools:dev}"
 : "${WORK:=/tmp/tb-prod-worker}"                           # everything this rehearsal creates
-: "${PYTHON:=$HOME/.local/bin/python3.12}"
+: "${PYTHON:=$(command -v python3.13 || command -v python3.12 || command -v python3.11 || command -v python3)}"
 
 WORKER_SHA=$(git -C "$OPENROUTER_WEB" rev-parse "$WORKER_REF")
 WORKER_SRC="$WORK/src-$(printf %s "$WORKER_SHA" | cut -c1-8)"

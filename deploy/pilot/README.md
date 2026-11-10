@@ -13,7 +13,7 @@ deploy/pilot/selftest.sh                   # reference solution = 1, no action =
 ```
 
 - `prepare.sh [--world-image TAG] [--tools-image TAG] [--out DIR]` builds `tool-bench-world:pilot`
-  from this tree, reuses `tool-bench-tools:e45`, builds `target/debug/bench-verify` and regenerates
+  from this tree, reuses `tool-bench-tools:dev`, builds `target/debug/bench-verify` and regenerates
   the tasks. Safe to re-run: live slots keep their image and inputs but use the new `bench-verify`.
 - `up.sh <task> <slot>` takes a directory under `$PILOT_TASKS` (default `/tmp/tb-pilot/tasks`)
   or an absolute task path, and publishes tools port `71NN` on `127.0.0.1:(20000 + slot*100 + NN)`.
