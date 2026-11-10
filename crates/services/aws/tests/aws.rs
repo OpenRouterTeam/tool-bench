@@ -203,6 +203,64 @@ async fn sts_reports_the_caller() {
 }
 
 #[tokio::test]
+async fn sns_lists_the_topics_the_alarms_notify_and_knows_no_other() {
+    let w = world("cloud/aws/orders-api-cpu-alarm");
+    let app = app(&w);
+    let before = state(&w);
+    let resp = query(&app, "sns", "Action=ListTopics&Version=2010-03-31").await;
+    assert_eq!(resp.status, StatusCode::OK, "{}", resp.text);
+    let x = resp.xml();
+    let listed: Vec<String> = x
+        .child("ListTopicsResult")
+        .unwrap()
+        .child("Topics")
+        .unwrap()
+        .children
+        .iter()
+        .map(|member| member.text_of("TopicArn").unwrap())
+        .collect();
+    assert_eq!(
+        listed,
+        [
+            "arn:aws:sns:us-east-1:481562039417:finance-alerts",
+            "arn:aws:sns:us-east-1:481562039417:ops-pager"
+        ]
+    );
+    let known = query(
+        &app,
+        "sns",
+        "Action=GetTopicAttributes&Version=2010-03-31&TopicArn=arn%3Aaws%3Asns%3Aus-east-1%3A481562039417%3Aops-pager",
+    )
+    .await;
+    assert_eq!(known.status, StatusCode::OK, "{}", known.text);
+    assert!(
+        known
+            .text
+            .contains("<key>Owner</key><value>481562039417</value>")
+    );
+    let unknown = query(
+        &app,
+        "sns",
+        "Action=GetTopicAttributes&Version=2010-03-31&TopicArn=arn%3Aaws%3Asns%3Aus-east-1%3A481562039417%3Aops-pagers",
+    )
+    .await;
+    assert_eq!(unknown.status, StatusCode::NOT_FOUND);
+    assert_eq!(
+        unknown
+            .xml()
+            .child("Error")
+            .unwrap()
+            .text_of("Code")
+            .unwrap(),
+        "NotFound"
+    );
+    // Reading topics changes nothing, and unmodelled operations stay an empty success.
+    let other = query(&app, "sns", "Action=ListSubscriptions&Version=2010-03-31").await;
+    assert_eq!(other.status, StatusCode::OK);
+    assert_eq!(state(&w), before);
+}
+
+#[tokio::test]
 async fn iam_lists_users_with_marker_pagination() {
     let w = world("cloud/aws/grant-auditor-access");
     let app = app(&w);
