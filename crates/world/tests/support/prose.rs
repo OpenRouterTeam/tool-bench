@@ -140,11 +140,14 @@ impl Proof<'_> {
                     "{name}: {wording:?} failed for something other than its text: {failure:#?}"
                 );
             }
+            // A selector that already reads the same text can reject the record before the text
+            // check sees it; `also` names that outcome. Otherwise the check under test must fail.
             assert!(
-                grade
-                    .failures
-                    .iter()
-                    .any(|failure| failure.reason.contains(&markers[0])),
+                !self.also.is_empty()
+                    || grade
+                        .failures
+                        .iter()
+                        .any(|failure| failure.reason.contains(&markers[0])),
                 "{name}: {wording:?} did not fail the check under test: {:#?}",
                 grade.failures
             );

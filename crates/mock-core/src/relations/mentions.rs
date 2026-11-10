@@ -30,6 +30,15 @@ impl Mention {
 /// Resolved `${name}` values, keyed by identity name.
 pub(super) type Identities<'a> = BTreeMap<&'a str, Vec<String>>;
 
+/// What an en dash, figure dash or minus folds to. It equals a hyphen when comparing, so `5-7`
+/// finds `5–7`, but unlike a hyphen it never extends an identifier, so `2026-11-07` is found in
+/// the range `2026-11-07–2026-11-08`.
+const RANGE_DASH: char = '\u{2013}';
+
+fn same(left: char, right: char) -> bool {
+    left == right || (matches!(left, '-' | RANGE_DASH) && matches!(right, '-' | RANGE_DASH))
+}
+
 /// Case, typographic punctuation, Markdown emphasis and whitespace do not change what a text
 /// says, so they are removed from both the text and the phrase before comparing.
 pub(super) fn fold(source: &str) -> String {
@@ -40,8 +49,10 @@ pub(super) fn fold(source: &str) -> String {
             '*' | '`' => {}
             '\u{2018}' | '\u{2019}' | '\u{201a}' | '\u{201b}' | '\u{2032}' => characters.push('\''),
             '\u{201c}' | '\u{201d}' | '\u{201e}' | '\u{201f}' | '\u{2033}' => characters.push('"'),
-            // Hyphen, non-breaking hyphen, figure dash, en dash and minus join like a hyphen.
-            '\u{2010}'..='\u{2013}' | '\u{2212}' => characters.push('-'),
+            '\u{2010}' | '\u{2011}' => characters.push('-'),
+            // Figure dash, en dash and minus read as a hyphen but mark a range, not a longer
+            // identifier (see `same` and `Reading::contains`).
+            '\u{2012}' | '\u{2013}' | '\u{2212}' => characters.push(RANGE_DASH),
             // An em dash separates clauses; it never joins an identifier.
             '\u{2014}' | '\u{2015}' => characters.push(' '),
             other => characters.extend(other.to_lowercase()),
@@ -186,7 +197,10 @@ impl Reading {
         };
         (0..=self.text.len() - phrase.len()).any(|start| {
             let end = start + phrase.len();
-            self.text[start..end] == phrase[..]
+            self.text[start..end]
+                .iter()
+                .zip(&phrase)
+                .all(|(actual, wanted)| same(*actual, *wanted))
                 && (!at_start || start == 0)
                 && (!at_end || end == self.text.len())
                 && !joins(
@@ -381,7 +395,7 @@ mod tests {
             fold("## Summary\n\n- **Deploy**  `412`\u{a0}went _out_ this\tmorning"),
             "## summary - deploy 412 went out this morning"
         );
-        assert_eq!(fold("5\u{2013}7 business days"), "5-7 business days");
+        assert_eq!(fold("5\u{2010}7 business days"), "5-7 business days");
         assert_eq!(
             fold("OPS-34\u{2014}the volume is kept"),
             "ops-34 the volume is kept"
@@ -443,6 +457,22 @@ mod tests {
         assert!(!found("OPS-341", "OPS-34"));
         assert!(!found("DEVOPS-34", "OPS-34"));
         assert!(found("tagged OPS-34\u{2014}volume kept", "OPS-34"));
+    }
+
+    #[test]
+    fn a_range_dash_reads_as_a_hyphen_but_does_not_extend_an_identifier() {
+        assert!(found(
+            "within 5\u{2013}7 business days",
+            "5-7 business days"
+        ));
+        assert!(found(
+            "within 5-7 business days",
+            "5\u{2013}7 business days"
+        ));
+        assert!(found("window 2026-11-07\u{2013}2026-11-08", "2026-11-07"));
+        assert!(found("window 2026-11-07\u{2013}2026-11-08", "2026-11-08"));
+        assert!(!found("window 2026-11-07-2026-11-08", "2026-11-07"));
+        assert!(!found("15\u{2013}7 business days", "5-7 business days"));
     }
 
     #[test]

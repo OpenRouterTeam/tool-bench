@@ -465,9 +465,11 @@ right owner and an extra owner must not satisfy a request for one owner.
 `sheet_date_fields` maps a record-relative cell pointer to a canonical ISO date.
 Reviewed equivalent representations include typed exact numeric Sheets serials
 with epoch **1899-12-30**, ISO text and the explicitly supported unambiguous
-slash-date forms. Numeric-looking RAW strings and unevaluated formula text do
-not become dates merely by resembling the expected serial or expression.
-Unreviewed spellings require adjudication. Audited history permits blank staging
+slash-date forms, and month-name spellings such as `November 30, 2027` or
+`30 Nov 2027`, which carry no day/month ambiguity. Numeric-looking RAW strings and
+unevaluated formula text do not become dates merely by resembling the expected
+serial or expression. A slash date whose day and month could be exchanged requires
+adjudication; any other text is not the date. Audited history permits blank staging
 but rejects a committed wrong date even when the final value is restored.
 
 `calendar_meeting` requires the complete created-event collection, exact title,
@@ -475,8 +477,9 @@ calendar and nanosecond instants, a confirmed non-recurring event, the complete
 case-equivalent guest set and one usable Google Meet URI backed by a successful
 modeled provider resource. A known URI in `location` is a valid representation;
 redundant convenience fields are not mandatory. A provider type label or guessed
-URL is not provisioning evidence. Optional unreviewed description wording
-requires adjudication rather than substring-based success.
+URL is not provisioning evidence. A link quoted inside the description's prose is
+neither: it does not supply a required video link and does not fail an event that
+needs none.
 
 Calendar goals cannot hide other new events through filters, `latest_by` or an
 alternative identity field, or shadow owned fields through reviewed projections
@@ -635,13 +638,17 @@ html_text = { "/properties/hs_note_body" = "Review passed; send the SOW by Nov 1
 
 The checker tokenizes the original source with locked `html5ever` code; it does not
 strip tags with a regex or trust a repaired DOM. Supported fragments are plain text
-and balanced, attribute-free `p`, `div`, `span`, `b`, `strong`, `i`, `em`, `u`, and
-`br` formatting. Paragraph/division/break boundaries and decoded whitespace,
+and balanced, attribute-free `p`, `div`, `span`, `b`, `strong`, `i`, `em`, `u`,
+`code`, `ul`, `ol`, `li`, `h1`-`h6`, `blockquote`, `br` and `hr` formatting, which is
+what services render ordinary Markdown replies into. A web link (`a` whose `href`
+is an `http(s)` URL, with optional `target`/`rel`) shows its label: the label is
+text and the page it cites is not a claim. Block boundaries and decoded whitespace,
 including nonbreaking spaces, are canonically folded to ordinary spaces. This
 equivalence is a declared content contract, not browser-exact whitespace or CSS
 rendering. Inline adjacency is preserved; comments do not supply requested text.
 
-Attributes, active/hidden/head/template/foreign/unknown markup, unsupported error
+Other attributes, `tel:`/`mailto:`/script links, tables, `pre`, struck-through and
+active/hidden/head/template/foreign/unknown markup, unsupported error
 recovery, directional/invisible controls, and resource-limit cases require
 adjudication. They cannot establish a pass merely because extracted words match.
 Limits are 1 MiB of source, 100,000 tokens, and 128 open formatting elements.
@@ -649,50 +656,76 @@ Supported but different text, wrong types, wrong quantities, and wrong relations
 remain ordinary proven failures. Known failures are not hidden by another field's
 unsupported rendering.
 
-### Reviewed whole-text examples
+### Reviewed text: examples and mentions
 
-Free-form factual requirements are not literal-copy requests. A finite collection
-of author-reviewed positive examples can establish only those complete texts,
-with declared Unicode-whitespace folding:
+Free-form factual requirements are not literal-copy requests, and a production run
+has no adjudication step: a text that is left unresolved is recorded as a failure.
+`reviewed_text` therefore gives every wording a verdict from two declarations:
 
 ```toml
 [[expect.records]]
-selector = { collection = "/services/salesforce/Task", created = true }
+selector = { collection = "/services/zendesk/comments", created = true }
 equals = 1
-reviewed_text = { "/Description" = { requirement = "Dana requested a three-year renewal quote by May 22, 2026.", accepted = ["Dana requested a three-year renewal quote by May 22, 2026.", "Dana wants a 3-year renewal quote by May 22."] } }
+reviewed_text = { "/body" = { requirement = "Give the refund reference RF-88213 and the 5-7 business-day arrival estimate.", accepted = ["Refund RF-88213 issued; expect it within 5-7 business days."], mentions = ["RF-88213", ["5-7", "5 to 7", "five to seven"], ["business days", "working days"]] } }
 ```
 
-`requirement` is the adjudication criterion, not a keyword matcher. Examples must
-be nonempty, distinct after whitespace folding, and independently justified from
-the user request and task context before model experiments. A candidate must match
-an entire example; fragments, a quoted example inside a contradictory narrative,
-or the presence of words such as `quote` cannot establish success. This checker
-does not strip HTML or infer facts from arbitrary natural language.
+- `accepted` lists complete author-reviewed texts. A text equal to one of them
+  (after whitespace folding) passes. `rejected` lists complete incorrect texts;
+  one of those fails.
+- `mentions` lists the distinctive facts any other wording must carry. Each entry
+  is one phrase or a list of equivalent spellings; every entry must be present.
+  Wording that carries them all passes; wording that lacks one is a proven
+  failure whose reason names what is missing.
+- `forbids` lists phrases no wording may carry. Use it only for a wrong value the
+  request warns about and a truthful text would not mention; correct text often
+  says "stopped (not terminated)" or "moved from the 3rd to the 10th".
 
-Missing, non-string or empty required text is a proven failure. Other nonempty
-wording—including valid unlisted paraphrases and apparent contradictions—requires
-adjudication, not an invented model-failure verdict. This finite positive path is
-**not** a general semantic judge, a trusted human-review receipt, or permission
-to prefer the oracle's wording in final scores. Until the prespecified trusted
-adjudication workflow is implemented, affected comparisons remain unresolved.
-Do not add newly observed model outputs to the examples to repair a measured run.
+The order is: missing, non-text or empty required text fails; an `accepted` or
+`bound` example passes; a `rejected` example or a `forbids` phrase fails; then
+`mentions` decide; without `mentions`, `optional = true` text passes in any
+wording; only required text without `mentions` is left for adjudication.
+`coverage` reports that last case as the `text_requires_adjudication` source gap,
+and no scored scenario may carry it.
 
-Revision 21 adds explicit `optional = true` for narration the user did not require,
-such as the body accompanying an approval review. Missing, null or whitespace-only
-text then needs no positive example. Supplied nonempty text still requires the
-same complete-example or adjudication path, and committed-history admission still
-checks earlier claims even if the body is later emptied or restored. Nontext values
-remain a known representation failure; `optional` is not an unrestricted-content
-permission. Nonempty criteria/examples remain mandatory when authoring the check.
-The default remains required, and the default false flag is omitted from serialized
-contracts so existing default contract identities do not change merely from adding
-this option. Required descriptions must not be made optional to repair an oracle.
+Phrases are plain text, not patterns. A phrase is found when it occurs in the
+text's declared `format` projection as a complete run of tokens:
+
+- letter case, Markdown emphasis (`*`, backticks, `_` around a word), curly quotes,
+  line breaks and repeated whitespace are ignored, and the `T` of an ISO date-time
+  separates its date from its time;
+- the neighbouring characters may not be letters or digits, so `412` is not found
+  in `4120` or `v412`; a number does not continue through a decimal point or
+  thousands separator, so `$62` is not found in `$62.50` nor `2026.11` in
+  `2026.11.1`; a phrase containing `-` or `_` is an identifier that does not
+  continue through another one, so `orders-db-replica-2` is not found in
+  `orders-db-replica-2-replica-lag`. An en dash reads as a hyphen (`5-7` finds
+  `5–7`) but marks a range and never extends an identifier;
+- `^` first pins the phrase to the start of the text and `$` last to its end, so
+  `"^Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize.$"`
+  keeps a dictated text exact;
+- there is no stemming: list `refund` and `refunded` as spellings of one entry.
+
+Derive `mentions` from what the request asks the text to convey: identifiers,
+numbers, names, dates and amounts, each with the spellings a competent writer
+would use, as several small entries rather than one long phrase. Do not require
+sentences, greetings or facts the request did not ask for. Every `accepted`
+example must itself carry the `mentions`, so they can never demand more than the
+reviewed wording did. Mentions establish that the facts are present; they do not
+read negation or judge added claims, and that limit must not be patched with
+`forbids` on ordinary words.
+
+`optional = true` marks narration the user did not require, such as the body
+accompanying an approval review. Missing, null or whitespace-only text passes, and
+so does any supplied wording unless it is a `rejected` example or carries a
+`forbids` phrase. Nontext values remain a known representation failure. The
+default remains required, and default-valued `optional`, `mentions` and `forbids`
+are omitted from serialized contracts so unchanged contracts keep their identity.
+Required descriptions must not be made optional to repair an oracle.
 
 `format` defaults to `plain`; markup is not implicitly stripped. Explicit
-`format = "html"` compares passive rich-text content against the same complete
-plain-text examples, using the bounded formatting grammar above. Unsupported
-rendering or unlisted nonempty content requires adjudication; empty supported
-content is a proven failure. This does not make factual prose a literal-copy task.
+`format = "html"` reads passive rich-text content, using the bounded formatting
+grammar above, before comparing examples and mentions. Unsupported rendering
+requires adjudication; empty supported content is a proven failure.
 
 `format = "zendesk_html"` additionally recognizes exactly one outer
 `<div class="zd-comment" dir="auto">...</div>` envelope emitted by the local
@@ -751,14 +784,21 @@ an identity containing `${...}` is never evaluated recursively. Candidate HTML
 is normalized only through the explicitly declared passive representation; source
 values do not become markup, queries or code.
 
-Every required identity group must contribute at least one actual complete
-reference. A wrong/old/prefix-only identifier cannot meet that obligation.
-Merely mentioning an actual ID, denying the action, quoting a positive message
-inside contradictory text, or using another unlisted narrative cannot establish
-success. Such nonempty wording with a valid reference requires adjudication,
-not an invented model-failure verdict. A valid split-refund response mentioning
-only one of several IDs likewise remains reviewable rather than being failed
-solely for not using the positive path's complete list.
+Wording outside the templates is read by `mentions`, where `${name}` stands for
+the identity's actual values in state:
+
+```toml
+mentions = ["${refund_ids}", ["refund", "refunded"]]
+```
+
+A slot is resolved before matching and keeps complete identity boundaries, so a
+wrong, old or prefix-only identifier is a proven failure. A multi-valued identity
+must be mentioned completely, in any order and layout; a source that resolves to
+several identities needs no `separator` for this. Give a bare number context
+(`"#${issue_number}"`, `"issue ${issue_number}"`) so an unrelated digit cannot
+satisfy it. Every declared identity must be read by some mention, and all
+spellings of one entry must read the same identities. Without `mentions`, a text
+that cites an actual identity in unlisted wording still requires adjudication.
 
 Final content uses final business state. Committed content resolves identities
 against that commit's state, so a later source change cannot retroactively approve
@@ -794,10 +834,10 @@ description. Other predicates may not also constrain these fields.
 Within this explicitly declared content projection, missing/null/whitespace-only
 fields mean absent text and match an author's empty-string example. This is not
 global JSON equivalence or permission to omit structural requirements. Non-text
-values and an entirely empty projection are proven failures. Other nonempty
-projections require adjudication; unknown paraphrases are not automatically
-model failures. Markup is not stripped. This remains a finite positive path,
-not a general factual judge or permission to extend examples after measurement.
+values and an entirely empty projection are proven failures. Markup is not
+stripped. `mentions` and `forbids` work as for `reviewed_text` and are read across
+all projected fields together, so a fact may sit in the summary or the
+description. Without `mentions`, other nonempty projections require adjudication.
 
 ### Structured Notion text and reviewed incorrect examples
 
@@ -807,18 +847,19 @@ supported text segment's `text.content` in order, without invented separators,
 then folds whitespace. A supplied `plain_text` must agree with its content.
 Passive bold/italic/underline/code and recognized Notion colors are supported.
 
-Links, strikethrough, mentions, equations, invisible/directional controls, unknown
-metadata and inconsistent shapes require adjudication. These are checker limits,
-not claims that Notion forbids such content. In particular, neither a link label
-nor withdrawn characters alone establish the requested factual content.
+A segment linked to an `http(s)` page shows its label, which is text; the page it
+cites is not a claim. `tel:`/`mailto:` and other links, strikethrough, mentions,
+equations, invisible/directional controls, unknown metadata and inconsistent
+shapes require adjudication. These are checker limits, not claims that Notion
+forbids such content. In particular, withdrawn characters do not establish the
+requested factual content.
 The underlying structured value remains subject to ordinary preservation.
 
 For static reviewed text, `rejected` may list exact, whole-text incorrect
 examples. They must be nonempty, normalized-distinct and disjoint from `accepted`.
 They cannot be combined with source-bound templates. A known incorrect example
-is a proven failure, including when committed and later restored; other unknown
-wording remains unresolved. This is not keyword rejection or a general negation
-classifier. For example, the unchanged old escalation contact is an explicitly
+is a proven failure, including when committed and later restored. This is not
+keyword rejection or a general negation classifier. For example, the unchanged old escalation contact is an explicitly
 incorrect final result for the frozen replacement task.
 
 ### Committed content admission
@@ -835,9 +876,13 @@ structural fields, totals and relationships are not reapplied to every incomplet
 construction step. Empty/missing content and supported empty HTML do not force
 one create call; final presence requirements remain separate.
 
-Nonempty earlier wording or an unsupported representation that the declared
-positive path cannot establish requires adjudication, not an invented ordinary
-model failure. This also applies to earlier nonmatching literal text: a final
+An earlier version of a `reviewed_text` or `reviewed_fields` value fails only for
+content known to be wrong: a `rejected` example or a `forbids` phrase. A draft
+that still lacks a mention is not a claim, and the final value is checked
+separately. Where no deterministic reading is declared (required text without
+`mentions`), nonempty earlier wording that the positive path cannot establish
+requires adjudication, as does an unsupported earlier representation. This also
+applies to earlier nonmatching literal text (`html_text`, `text_equals`): a final
 literal mismatch can be proven wrong, but an intermediate draft's acceptability
 cannot be guessed merely from different serialized content. Harmless approved
 formatting and metadata-only refinements remain valid. Proven final structural

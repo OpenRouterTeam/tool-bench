@@ -1489,6 +1489,9 @@ impl RecordCheck {
                     }
                 }
             }
+            // A service may render one written text into several checked fields; name each
+            // field that fails rather than only the first.
+            let mut failed_texts = Vec::new();
             for (field, check) in &self.reviewed_text {
                 match check.check(record.pointer(field), initial, final_state) {
                     Ok(()) => {}
@@ -1501,13 +1504,17 @@ impl RecordCheck {
                         });
                     }
                     Err(RecordCheckError::Failed(reason)) => {
-                        return Err(RecordCheckError::Failed(format!(
-                            "{} record {key} field {field}: {reason}",
-                            self.selector.collection
-                        )));
+                        failed_texts.push(format!("field {field}: {reason}"));
                     }
                     Err(error) => return Err(error),
                 }
+            }
+            if !failed_texts.is_empty() {
+                return Err(RecordCheckError::Failed(format!(
+                    "{} record {key} {}",
+                    self.selector.collection,
+                    failed_texts.join("; ")
+                )));
             }
             if let Some(check) = &self.reviewed_fields {
                 match check.check(record) {
