@@ -997,11 +997,12 @@ outcomes do not require an oracle-shaped call sequence.
 
 Call logging checks one actual created Task rather than a predicted next ID.
 It accepts a Call subtype or a Task with Type Call, with no contradictory type,
-and permits an optional coherent account link. Unspecified owner and priority
+and permits an optional coherent link: the contact's account, or that account's
+one renewal opportunity, which the call was about. Unspecified owner and priority
 choices are not hidden literal requirements. Call duration/direction/disposition
 cannot be invented from an instruction that provides none; unrelated links and
-edits to existing tasks are not requested. Contact/account
-activity-date effects are permitted only on the intended identities. Already later
+edits to existing tasks are not requested. Contact, account and
+linked-opportunity activity-date effects are permitted only on the intended identities. Already later
 activity dates are not forced backwards.
 
 The stored note uses reviewed examples and honest unresolved dispositions rather

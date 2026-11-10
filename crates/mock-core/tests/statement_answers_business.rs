@@ -118,8 +118,11 @@ fn salesforce_pipeline_total_is_summed_per_owner_from_the_opportunities() {
         "It is probably Priya Raman with $252,500.",
         // A ranking that leads with the answer: the other reps' totals are context.
         "Priya Raman: $252,500. Marcus Bell: $240,000. Sofia Alvarez: $135,000.",
+        // The request asks for "the total amount" and the org has one currency.
+        "Priya Raman — 252,500",
     ]);
     case.fails(&[
+        "Priya Raman — 240,000",
         "Priya Raman does not have the largest pipeline; it is not $252,500.",
         "Not Priya Raman ($252,500): the largest open pipeline belongs to Marcus Bell.",
         // Another rep with the leader's total, and the leader with another
@@ -213,8 +216,26 @@ fn zendesk_ticket_order_is_read_from_the_requesters_shopify_order() {
         "**Order number:** #1063\n**Shipped:** No — fulfillment status is UNFULFILLED\n**Order total:** $176.00 USD",
         "The order is #1063, awaiting fulfillment, total $176.00.",
         "I believe it is order #1063 (unfulfilled, $176.00).",
+        // "Has it shipped yet" answered as a labelled no, without the status word.
+        "- Order: #1063\n- Shipped: No\n- Total: $176.00",
+        "Order number: 1063\nShipped: no, not yet\nTotal: $176.00",
+        "| Field | Value |\n|---|---|\n| Order | #1063 |\n| Shipped | No |\n| Total | $176.00 |",
+        // Other ordinary ways of saying it has not shipped.
+        "Sam is asking about order #1063, which has yet to ship. The order total was $176.00.",
+        "Order #1063: nothing has shipped yet. Total $176.00.",
+        "Order #1063 has not been dispatched yet; the order total is $176.00.",
+        "Order #1063 is paid and awaiting shipment. Total: $176.00.",
+        "It's order #1063, it isn't shipped yet, and the total was $176.00.",
+        "Order #1063, pending fulfillment, total $176.00 USD.",
     ]);
     case.fails(&[
+        // The labelled answer the other way, on another order, and "not yet" about
+        // something other than the shipment.
+        "- Order: #1063\n- Shipped: Yes\n- Total: $176.00",
+        "- Order: #1051\n- Shipped: No\n- Total: $176.00",
+        "Order #1063 has shipped; tracking is not yet available. Total: $176.00.",
+        "Order #1063 has been shipped and is not yet delivered. Total: $176.00.",
+        "Order #1063 has shipped but the tracking email has not been sent. Total $176.00.",
         "Order #1063 ($176.00) is not unfulfilled.",
         "Order #1063 is no longer unfulfilled. Total $176.00.",
         "It is not #1063: that order is unfulfilled and totals $176.00.",

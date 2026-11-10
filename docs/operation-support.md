@@ -1317,7 +1317,7 @@ behavior. Existing tool definitions and rendered comment fields are unchanged.
 | Business operation | Exposed interface | Current evaluation support |
 |---|---|---|
 | File a caller's ticket | `create_ticket`, optionally followed by `update_ticket` | Exactly one actual new ticket for the intended requester, required subject/priority/type, an unresolved-safe description contract, and actual initial-comment/audit relationships; no predicted next ID |
-| Escalate an outage | `update_ticket`, `create_ticket_comment`, or a combined update with a comment | Urgent priority, additive `escalated` tag, exactly one new private note on the intended ticket; assignment/status and other tickets remain protected |
+| Escalate an outage | `update_ticket`, `create_ticket_comment`, or a combined update with a comment | Urgent priority, the `escalated` tag either added to the existing tags or sent as the whole list (`get_ticket` and `get_tickets` show no tags and `update_ticket` replaces them), exactly one new private note on the intended ticket; other tag changes, assignment/status and other tickets remain protected |
 | Reply and solve | `create_ticket_comment` then `update_ticket`, or a combined update | Exactly one new public reply on the intended ticket and solved status; an atomic coincident outcome is explicitly permitted, but a committed solve before the reply fails |
 | Bookkeeping | Shared ticket mutation implementation | Actual comment-parent and comment-audit identities, one target-scoped audit per commit, and harmless update retries rather than an oracle-specific total call count |
 | Other fields, rendering and operations | Accepted schemas and REST implementation | Not certified by this reviewed subset |

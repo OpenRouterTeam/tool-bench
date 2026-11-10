@@ -19,6 +19,7 @@ const CASE: &str = "5005g00000spz8MAAQ";
 const OPPORTUNITY: &str = "0065g000006FoSrAAK";
 const CONTACT: &str = "0035g00000p3z7WAAQ";
 const ACCOUNT: &str = "0015g000008HFvFAAW";
+const RENEWAL: &str = "0065g00000FMcaOAAT";
 const NOTE: &str = "Discussed renewal pricing. Dana wants a 3-year quote by May 22.";
 
 struct Trial {
@@ -408,6 +409,47 @@ async fn contact_only_account_link_and_both_call_representations_are_valid() {
             "2026-05-12"
         );
     }
+}
+
+// The call was about renewal pricing and the account has one renewal opportunity, so
+// Name = the contact with Related To = that opportunity is ordinary Salesforce practice.
+#[tokio::test]
+async fn relating_the_call_to_the_accounts_renewal_opportunity_is_valid() {
+    let trial = Trial::new("log-call-on-contact");
+    let actual = trial.call(json!({"WhatId": RENEWAL})).await;
+    let result = trial.assess();
+    assert_eq!(result.reward, 1.0, "{result:?}");
+    assert!(result.preservation_checked && result.history_checked);
+    let snapshot = trial.snapshot();
+    let salesforce = &snapshot["services"]["salesforce"];
+    assert_eq!(salesforce["Task"][&actual]["AccountId"], ACCOUNT);
+    assert_eq!(
+        salesforce["Opportunity"][RENEWAL]["LastActivityDate"],
+        "2026-05-12"
+    );
+}
+
+#[tokio::test]
+async fn another_accounts_opportunity_or_an_edit_to_the_renewal_is_not_the_requested_call() {
+    // The only other opportunity belongs to Northgate Capital Partners.
+    let trial = Trial::new("log-call-on-contact");
+    trial.call(json!({"WhatId": "0065g00000viCX8AAM"})).await;
+    let result = trial.assess();
+    assert_eq!(result.reward, 0.0, "{result:?}");
+    assert!(!result.records_ok && !result.preservation_ok);
+
+    let trial = Trial::new("log-call-on-contact");
+    trial.call(json!({"WhatId": RENEWAL})).await;
+    trial
+        .update(
+            "Opportunity",
+            RENEWAL,
+            json!({"NextStep": "Send 3-year quote"}),
+        )
+        .await;
+    let result = trial.assess();
+    assert_eq!(result.reward, 0.0, "{result:?}");
+    assert!(result.records_ok && !result.preservation_ok);
 }
 
 #[tokio::test]

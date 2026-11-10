@@ -22,8 +22,9 @@ audit_history = true
 selector = { collection = "/services/salesforce/Task", created = true }
 equals = 1
 fields = { "/WhoId" = "0035g00000p3z7WAAQ", "/AccountId" = "0015g000008HFvFAAW", "/Subject" = "Renewal pricing call", "/Status" = "Completed", "/IsClosed" = true, "/IsDeleted" = false, "/ActivityDate" = "2026-05-12" }
-optional_fields = { "/WhatId" = "0015g000008HFvFAAW" }
-optional_choices = { "/TaskSubtype" = ["Call", "Task", ""], "/Type" = ["Call", ""] }
+# Related To may stay empty, name the account, or name the account's one renewal opportunity
+# (0065g…FMcaO, "Northgate Analytics - Platform Renewal 2026"), which the call was about.
+optional_choices = { "/WhatId" = ["0015g000008HFvFAAW", "0065g00000FMcaOAAT"], "/TaskSubtype" = ["Call", "Task", ""], "/Type" = ["Call", ""] }
 null_fields = ["/CallDurationInSeconds", "/CallType", "/CallDisposition"]
 any_fields = [{ "/TaskSubtype" = "Call" }, { "/Type" = "Call" }]
 reviewed_text = { "/Description" = { requirement = "Note that Dana wants a three-year quote by May 22, 2026. The linked contact and the subject supply who she is and the renewal topic.", accepted = ["Discussed renewal pricing. Dana wants a 3-year quote by May 22.", "Dana requested a three-year renewal quote by May 22, 2026.", "Dana Whitfield wants a 3-year renewal quote by 2026-05-22."], mentions = [["3-year", "three-year", "3 year", "three year", "3 years", "three years", "3-yr", "3 yr", "3yr", "36-month", "36 month", "36 months"], ["quote", "quotes", "quotation", "quoted", "pricing"], ["May 22", "May 22nd", "22 May", "22nd May", "22nd of May", "2026-05-22", "5/22", "05/22", "22/05"]] } }
@@ -38,6 +39,9 @@ pointer = "/services/salesforce/Contact/0035g00000p3z7WAAQ/LastActivityDate"
 
 [[expect.preservation.allow]]
 pointer = "/services/salesforce/Account/0015g000008HFvFAAW/LastActivityDate"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000FMcaOAAT/LastActivityDate"
 
 [[solution.call]]
 endpoint = "salesforce"

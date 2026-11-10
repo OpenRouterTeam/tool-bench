@@ -67,6 +67,13 @@ pointer = "/services/zendesk/tickets/6230/priority"
 pointer = "/services/zendesk/tickets/6230/tags"
 add_set_values = ["escalated"]
 
+# No read tool shows a ticket's tags (get_ticket and get_tickets omit them) and
+# update_ticket replaces the whole list, so `tags = ["escalated"]` is what the request
+# asks for as far as an agent can see. Any other replacement still fails.
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/6230/tags"
+value_equals = ["escalated"]
+
 [[expect.preservation.allow]]
 pointer = "/services/zendesk/tickets/6230/updated_at"
 
