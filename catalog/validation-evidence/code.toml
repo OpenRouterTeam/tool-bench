@@ -46,6 +46,7 @@ collateral_change = [
 id = "code/multi/sentry-spike-vercel-rollback"
 valid_alternative = [
   "crates/world/tests/incident_deployment_contracts.rs::spike_accepts_numeric_identities_and_handing_over_before_the_rollback",
+  "crates/world/tests/incident_deployment_contracts.rs::spike_accepts_restating_the_unresolved_status_with_the_handover",
 ]
 
 [scenario.near_miss]
@@ -99,6 +100,7 @@ undone_prohibited_change = [
 id = "code/terraform/unlock-orders-prod"
 valid_alternative = [
   "crates/world/tests/terraform_contracts.rs::cancellation_then_speculative_verification_is_a_valid_recovery_alternative",
+  "crates/world/tests/terraform_contracts.rs::force_unlocking_and_canceling_the_crashed_run_together_are_one_recovery",
 ]
 
 [scenario.near_miss]
@@ -134,10 +136,14 @@ collateral_change = [
 
 [[scenario]]
 id = "code/vercel/rotate-checkout-stripe-key"
+valid_alternative = [
+  "crates/world/tests/vercel_contracts.rs::rotation_may_redeploy_the_build_serving_production_so_the_key_takes_effect",
+]
 
 [scenario.near_miss]
 collateral_change = [
   "crates/world/tests/vercel_contracts.rs::rotation_does_not_authorize_rewriting_the_nonproduction_test_key",
+  "crates/world/tests/vercel_contracts.rs::rotation_does_not_authorize_any_other_deployment",
 ]
 partial = [
   "crates/world/tests/vercel_contracts.rs::rotating_the_value_without_sensitive_storage_is_not_safe_completion",
