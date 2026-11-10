@@ -148,6 +148,12 @@ impl CalendarMeeting {
             .map(|guest| guest.to_ascii_lowercase())
             .collect();
         let mut present = BTreeSet::new();
+        // An event's organizer may appear in its own attendee list: Calendar's interface adds
+        // that entry to every event with guests, and the API marks it `organizer`. It is the
+        // host of the meeting, not an invited guest.
+        let organizer = record["organizer"]["email"]
+            .as_str()
+            .map(str::to_ascii_lowercase);
         if let Some(guests) = record.get("attendees") {
             let guests = guests
                 .as_array()
@@ -158,6 +164,9 @@ impl CalendarMeeting {
                     .ok_or_else(|| failed("meeting guest lacks an identity"))?
                     .to_ascii_lowercase();
                 if !wanted.contains(&email) {
+                    if organizer.as_deref() == Some(email.as_str()) {
+                        continue;
+                    }
                     return Err(failed("meeting includes an unrequested guest"));
                 }
                 present.insert(email);

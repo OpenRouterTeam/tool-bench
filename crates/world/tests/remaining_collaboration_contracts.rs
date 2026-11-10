@@ -1031,6 +1031,11 @@ async fn calendar_requires_the_agreed_window_calendar_title_and_exact_guests() {
         ("shortened", json!({"end_time":"2026-11-08T00:00:00"})),
         ("missing priya", json!({"attendees":[SAM]})),
         ("extra guest", json!({"attendees":[SAM,PRIYA,MARCUS]})),
+        // The shared calendar organizes this event, so the requester would be a third guest.
+        (
+            "requester as guest",
+            json!({"attendees":[SAM,PRIYA,"ops@octo-corp.example"]}),
+        ),
         ("wrong guest", json!({"attendees":[SAM,MARCUS]})),
         ("no guests", json!({"attendees":null})),
     ];
