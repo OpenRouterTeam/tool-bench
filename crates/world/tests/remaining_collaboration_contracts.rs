@@ -28,6 +28,7 @@ const STAGING_RECORD: &str = "e41a6d0c9b2f7e5a3c8d1b6f4a9e2c07";
 const DONE: &str = "4ed11568-6dd0-5b94-bf4e-ba05dd563850";
 const CANCELED: &str = "99afb074-55c3-5598-a54a-aeacf48ea5ff";
 const IN_PROGRESS: &str = "1bf2e271-f765-5dce-bbdd-56b9366aacc6";
+const IN_REVIEW: &str = "8e6f9641-c2c5-5ef8-9921-5abc7a8cea38";
 const NEW_ORIGIN: &str = "198.51.100.45";
 const CANCELED_ORIGIN: &str = "198.51.100.44";
 const CUTOVER_COMMENT: &str = "Updated the existing api.octo-corp.com A record to 198.51.100.45.";
@@ -850,6 +851,33 @@ async fn cutover_ticket_changes_are_scoped_to_the_requested_issue() {
     complete_cutover_workflow(&duplicate_comment).await;
     comment_on(&duplicate_comment, "PLAT-241", CUTOVER_COMMENT).await;
     fail(&duplicate_comment.assess());
+}
+
+#[tokio::test]
+async fn cutover_ticket_may_be_picked_up_as_in_progress_on_its_way_to_done() {
+    // The ticket is assigned to the requester: starting it before the work is ordinary.
+    let picked_up = trial(CUTOVER);
+    move_issue(&picked_up, "PLAT-241", IN_PROGRESS).await;
+    complete_cutover_workflow(&picked_up).await;
+    pass(&picked_up.assess());
+    assert!(
+        state_of(&picked_up, "linear")["issues"]["PLAT-241"]["startedAt"].is_string(),
+        "the mock stamps startedAt when the ticket is started"
+    );
+
+    // Any other state on the way is still a change nobody asked for, even once it is Done.
+    for detour in [IN_REVIEW, CANCELED] {
+        let detoured = trial(CUTOVER);
+        move_issue(&detoured, "PLAT-241", detour).await;
+        complete_cutover_workflow(&detoured).await;
+        fail(&detoured.assess());
+    }
+
+    // Starting the canceled look-alike is not part of picking up PLAT-241.
+    let wrong_ticket = trial(CUTOVER);
+    move_issue(&wrong_ticket, "PLAT-238", IN_PROGRESS).await;
+    complete_cutover_workflow(&wrong_ticket).await;
+    fail(&wrong_ticket.assess());
 }
 
 #[tokio::test]
