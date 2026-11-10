@@ -152,6 +152,10 @@ pub struct InformationSeries {
     pub source_tags: String,
     pub points: String,
     pub interval: String,
+    /// Widest response bucket, in source-timestamp seconds, that may merge several window
+    /// points and still witness the window. Without it such a rollup needs adjudication.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_rollup_interval: Option<u64>,
     pub source_points: String,
     pub timestamp_scale: u64,
     pub start: String,
@@ -215,9 +219,10 @@ impl InformationSeries {
             .iter()
             .any(|pointer| !literal_pointer(pointer))
             || self.timestamp_scale == 0
+            || self.max_rollup_interval == Some(0)
             || !matches!((start, end), (Some(start), Some(end)) if start < end)
         {
-            return Err("information series require literal response/source bindings, a positive timestamp scale and increasing exact bounds".into());
+            return Err("information series require literal response/source bindings, a positive timestamp scale and rollup limit, and increasing exact bounds".into());
         }
         Ok(())
     }
@@ -331,7 +336,10 @@ impl InformationSeries {
             .iter()
             .enumerate()
             .all(|(index, bucket)| !buckets[..index].contains(bucket));
-        Ok(if distinct {
+        let accepted_rollup = self
+            .max_rollup_interval
+            .is_some_and(|accepted| interval <= accepted as f64);
+        Ok(if distinct || accepted_rollup {
             SeriesEvidence::Witness
         } else {
             SeriesEvidence::Ambiguous

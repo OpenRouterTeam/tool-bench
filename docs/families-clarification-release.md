@@ -48,7 +48,7 @@ contract (four model sub-agents over disjoint groups, then a consolidation revie
 spot-checked cited facts against the datasets and normalized three
 assignments). Current primary distribution: entity_ambiguity 96, stale_state
 19, baseline 18, cross_system_identity 8, tool_ambiguity 4, dependency_depth 3,
-reconciliation 2. Depths: 0×5, 1×56, 2×63, 3×22, 4×4. The suite has no scored
+reconciliation 2. Depths: 0×5, 1×56, 2×63, 3×23, 4×3. The suite has no scored
 pagination, permission/refusal, retry/idempotency or untrusted-retrieval task;
 that is a measured gap, not a hidden one. Family assignment is a reviewed
 judgment and has not had independent human adjudication.
