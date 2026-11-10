@@ -388,11 +388,13 @@ static LATER_DENIAL: LazyLock<Regex> = LazyLock::new(|| {
     ))
     .expect("later denial pattern")
 });
-/// A sentence that opens by denying the one before it.
+/// A sentence that opens by denying the one before it, or by correcting it: what
+/// follows "Correction:" is the reply's own statement.
 static TAKES_BACK: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
         r"^\s*(?:but |however,? |yet )?(?:that|this|it|they|these|those)\s+(?:is|was|are|were)(?:\s+not|n't)\s+",
         r"(?:the|a|an|correct|right|true|accurate|what|who|where|when|why|how|one|actually|really|in force|valid|current)\b",
+        r"|^\s*correction\b",
     ))
     .expect("takes-back pattern")
 });
@@ -402,7 +404,7 @@ static BENIGN_PREDICATE: LazyLock<Regex> = LazyLock::new(|| {
         .expect("benign predicate pattern")
 });
 static RETRACTION: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"\b(?:at first|initially|originally|first thought|looked like|previously thought|was thought|on second thought|correction|scratch that|false that|untrue that|not true|not the case|isn't the case|wrong to say|incorrect to say|mistaken)\b")
+    Regex::new(r"\b(?:at first|initially|originally|first thought|looked like|previously thought|was thought|on second thought|scratch that|false that|untrue that|not true|not the case|isn't the case|wrong to say|incorrect to say|mistaken)\b")
         .expect("retraction pattern")
 });
 static HEDGE: LazyLock<Regex> = LazyLock::new(|| {
@@ -864,6 +866,7 @@ static SET_ASIDE: LazyLock<Regex> = LazyLock::new(|| {
         r"|not (?:the|an?) (?:answer|one|right|correct|match)|not (?:this|that) one|not counted|not included",
         r"|doesn't count|does not count|staging|non-?prod\w*|sandbox|test environment|draft|caveat|note|aside",
         r"|if|unless|otherwise|would|could have|in that case|hypothetical\w*|discussed|considered|proposed|leaning",
+        r"|should|expect\w*|regularly|normally|usually|ordinarily|typically",
         r")\b"
     ))
     .expect("set-aside pattern")
@@ -889,18 +892,29 @@ static DEMOTED_AS: LazyLock<Regex> = LazyLock::new(|| {
     ))
     .expect("demoted-as pattern")
 });
-/// Wording that presents a record as the reply's answer.
-static ANSWER_CUE: LazyLock<Regex> = LazyLock::new(|| {
+/// Wording that presents its whole clause as the reply's answer.
+static ASSERTED: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(concat!(
-        r"\b(?:actually|in fact|instead|rather|correct\w*|turns out|ultimately|final\w*|conclusion|answer",
+        r"\b(?:actually|in fact|instead|rather|correct\w*|turns out|ultimately|conclusion|answer",
         r"|therefore|thus|hence|consequently|accordingly|that leaves|which leaves|leaving|that makes|which makes",
-        r"|in short|in summary|bottom line|tl;dr|decision|decided|chose|chosen|picked|selected",
-        r"|signed|winner|real|actual|right one|the one",
+        r"|in short|in summary|bottom line|tl;dr|real|actual)\b",
+    ))
+    .expect("asserted pattern")
+});
+/// Wording that singles one thing out of several. It presents the thing it describes,
+/// which need not be every value in its clause ("the one we sent on 20 October").
+static SINGLED_OUT: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(concat!(
+        r"\b(?:final\w*|decision|decided|chose|chosen|picked|selected|signed|winner|right one|the one",
         r"|most|least|largest|biggest|highest|lowest|smallest|top|best|worst|latest|newest|oldest|slowest|fastest",
         r"|noisiest)\b",
     ))
-    .expect("answer cue pattern")
+    .expect("singled-out pattern")
 });
+/// Whether the wording presents a record as the reply's answer.
+fn answer_cue(text: &str) -> bool {
+    ASSERTED.is_match(text) || SINGLED_OUT.is_match(text)
+}
 /// Wording that marks a statement as the reply's conclusion.
 static CONCLUSION_CUE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"\b(?:so|only|match\w*|remaining|left|result|summary|overall|now|current\w*|live)\b|→|=>|->")
@@ -919,6 +933,11 @@ static IDENTIFIES_DIRECTLY: LazyLock<Regex> = LazyLock::new(|| {
 /// A mention that answers a label: "Owner: ...".
 static LABELLED: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"[:=]\s*[#@]?$").expect("label pattern"));
+/// The lead-in a mention answers, read past the clause boundary its colon makes:
+/// "Owner: X", "That leaves one: order X". Not the colon of a clock time or a link.
+static LEAD_IN: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"([^,;:=.!?]*)(?::\s+|=\s*)(?:[\w'-]+\s+){0,2}[#@]?$").expect("lead-in pattern")
+});
 /// A mention that opens its line, after at most a list marker.
 static OPENS_LINE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^\s*(?:\d+[.)]\s*|[-+•·]\s*)?$").expect("line opening pattern"));
@@ -1376,10 +1395,16 @@ pub(super) fn check(
                     {
                         evidence.demoted = true;
                     } else {
-                        let concluding = ANSWER_CUE.is_match(&around)
+                        // A label states the answer unless the label itself sets its
+                        // value aside ("Previous owner: X").
+                        let labelled = LEAD_IN
+                            .captures(&sentence.masked[..*start])
+                            .is_some_and(|lead| !SET_ASIDE.is_match(&lead[1]));
+                        let concluding = answer_cue(&around)
                             || CONCLUSION_CUE.is_match(&around)
                             || IDENTIFIES.is_match(before)
-                            || LABELLED.is_match(before);
+                            || LABELLED.is_match(before)
+                            || labelled;
                         evidence.claims.push((
                             Mention {
                                 sentence: position,
@@ -1459,8 +1484,15 @@ pub(super) fn check(
                     }
                     let (around, offset) = clause(&masked, start, end);
                     let before = &around[..offset];
-                    let strong =
-                        ANSWER_CUE.is_match(&around) || IDENTIFIES_DIRECTLY.is_match(before);
+                    // A date or amount that happens to equal another record's turns up
+                    // in passing beside a word that singles out something else, so only
+                    // wording about the whole clause presents it as the answer.
+                    let cued = if measured {
+                        ASSERTED.is_match(&around)
+                    } else {
+                        answer_cue(&around)
+                    };
+                    let strong = cued || IDENTIFIES_DIRECTLY.is_match(before);
                     // A measured value near the answer is usually a comparison; it
                     // competes only when it is claimed as the answer.
                     let opening =
