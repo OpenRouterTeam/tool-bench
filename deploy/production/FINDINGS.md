@@ -16,6 +16,21 @@ are under
 `services/gcp-harbor-trial/src/gcp_harbor_trial/`; Harbor paths are under `harbor/` in the venv;
 `taskgen.rs` is `crates/scenario/src/taskgen.rs` in this checkout at the time of writing.
 
+## What was done about these findings
+
+| Finding | In this repository | Still open in openrouter-web |
+|---|---|---|
+| 1. Withheld trials | Kept void on purpose: a trial the mock could not serve is not scored either way, because scoring only the failures among them would count the mock's limits against the agent. `docs/production.md` tells readers to compare the skipped count per arm. | Add `RewardFileNotFoundError` to `INFRA_SKIP_REASONS` so the row carries a reason. |
+| 2. No `oracle` in production | `deploy/stock-campaign.sh` runs oracle and no-op through stock Harbor locally. | Add `oracle` to `HarborAgentName`, or run `nop` over all 150 as the canary. |
+| 3. 41 s of stop waits | Fixed: `stop_signal: SIGKILL` on all three services and `STOPSIGNAL SIGKILL` in the verifier image. | |
+| 4. Verifier images at verify time | Fixed: tasks no longer declare `network_mode = "no-network"` for the verifier. | |
+| 5. `expected_tool_names` misses 15 tasks | | Extend the regex in `expected_tools.py` to `bound_call` lines (a warning only). |
+| 6. Agent image built per trial | Not changed. | Publish the agent image, or accept about a minute per trial. |
+| 7. Agent container has open internet | Not changed: the mock services are reachable only through the MCP servers, and direct access is an integrity violation. | Decide whether the allowlist should apply. |
+| 8. Three artifacts never exist | Fixed: optional-mode tasks no longer declare them. | |
+| 9. Verifier is handed secrets | `bench-verify` uses none. | Stop passing the agent's variables to the verifier. |
+| 10. Trial-name collision | Fixed: `taskgen` refuses two tasks that share their first 44 characters. | |
+
 ## 1. Exercised for real vs substituted
 
 | Piece | Status | Detail |
