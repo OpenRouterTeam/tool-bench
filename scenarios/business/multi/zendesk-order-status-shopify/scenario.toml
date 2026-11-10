@@ -31,7 +31,6 @@ requirement = "State the number of the Shopify order placed on May 10, 2026 by t
 mode = "statements"
 context = [
   "(Sam's other order, #1051 from March, was fulfilled; #1060 belongs to a different Sam Ortiz.)",
-  "Shipped: No",
   "payment PAID",
 ]
 
@@ -64,6 +63,8 @@ capture = '^#(\d+)$'
 field = "/fulfillmentStatus"
 kind = "text"
 
+# Ways of saying an order has not shipped. The request asks "has it shipped yet", so a
+# labelled "Shipped: No" is an answer too; "Shipped : No" is how a table cell reads.
 [expect.answer.record_facts.facts.status.wordings]
 UNFULFILLED = [
   "not shipped",
@@ -76,14 +77,37 @@ UNFULFILLED = [
   "hasn't yet shipped",
   "hasn't been shipped",
   "hasn't yet been shipped",
+  "isn't shipped",
+  "yet to ship",
+  "yet to be shipped",
+  "nothing has shipped",
+  "nothing has been shipped",
   "not fulfilled",
   "not yet fulfilled",
   "not been fulfilled",
   "not yet been fulfilled",
   "hasn't been fulfilled",
   "hasn't yet been fulfilled",
+  "isn't fulfilled",
+  "yet to be fulfilled",
   "awaiting fulfillment",
+  "awaiting fulfilment",
+  "awaiting shipment",
+  "awaiting dispatch",
+  "pending fulfillment",
+  "pending shipment",
+  "not dispatched",
+  "not yet dispatched",
+  "not been dispatched",
+  "not yet been dispatched",
+  "hasn't been dispatched",
   "unshipped",
+  "Shipped: No",
+  "Shipped : No",
+  "Shipped yet: No",
+  "Shipped: Not yet",
+  "Shipped : Not yet",
+  "Shipped yet: Not yet",
 ]
 
 [expect.answer.record_facts.facts.total]
