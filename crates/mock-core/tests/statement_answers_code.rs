@@ -14,6 +14,11 @@ fn argocd_degraded_app_binds_the_app_to_its_pods_image_tag_and_reason() {
         "- Application: checkout-web\n- Failing workload: Deployment checkout-web (pod checkout-web-7f8b9c6d5-q2x7m)\n- Root cause: ErrImagePull, the image tag 2.14.0-rc3 was never pushed",
         "checkout-web is Degraded: its new pod cannot pull ghcr.io/lumen-retail/checkout-web:2.14.0-rc3 (ImagePullBackOff).",
         "| App | checkout-web |\n| Tag | 2.14.0-rc3 |\n| Why | the kubelet failed to pull the image |",
+        // A polite hedge still states the answer.
+        "I think the Degraded app is probably checkout-web, failing to pull tag 2.14.0-rc3 (ImagePullBackOff).",
+        // Other authored records named beside or after the answer are context.
+        "checkout-web (2.14.0-rc3, ImagePullBackOff) is Degraded; checkout-web-staging is Degraded too.",
+        "checkout-web is Degraded: the 2.14.0-rc3 pod is in ImagePullBackOff while the 2.13.4 pods keep serving.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -30,13 +35,10 @@ fn argocd_degraded_app_binds_the_app_to_its_pods_image_tag_and_reason() {
         "checkout-web is Degraded on production and runs tag 2.14.0-rc3.",
     ]);
     case.unresolved(&[
-        "I think the Degraded app is probably checkout-web, failing to pull tag 2.14.0-rc3 (ImagePullBackOff).",
         // A cause in a wording nobody reviewed: it shares words with the pod's
         // own health message, so it is adjudicated rather than failed.
         "checkout-web is Degraded on production because the image tag 2.14.0-rc3 does not exist in the registry.",
         "checkout-web is Degraded on production and runs image tag 2.14.0-rc3.",
-        "checkout-web (2.14.0-rc3, ImagePullBackOff) is Degraded; checkout-web-staging is Degraded too.",
-        "checkout-web is Degraded: the 2.14.0-rc3 pod is in ImagePullBackOff while the 2.13.4 pods keep serving.",
     ]);
     // The tag follows the failing pod's authored image.
     let image = "/services/argocd/resources/0d3df349-e40e-5789-bc1f-b9740a79c8a0/images/0";
@@ -63,6 +65,8 @@ fn github_ci_failure_reads_the_failed_job_of_the_latest_run_of_the_pr_branch() {
         "Job: unit-tests\nFailing test: TestRetryBackoffCapsAtMaxDelay\nAssertion: expected delay 30s, got 32s",
         "The `unit-tests` job is red. `TestRetryBackoffCapsAtMaxDelay` (backoff_test.go:17) reports \"expected delay 30s, got 32s\".",
         "- **Job:** `unit-tests` (run 9005)\n- **Failing test:** `TestRetryBackoffCapsAtMaxDelay`\n- **Assertion:** `backoff_test.go:17: expected delay 30s, got 32s`\n\nThe `lint` and `integration-tests` jobs succeeded.",
+        // A polite hedge still states the answer.
+        "Probably the unit-tests job: TestRetryBackoffCapsAtMaxDelay, expected delay 30s, got 32s.",
     ]);
     case.fails(&[
         "It was not the unit-tests job; TestRetryBackoffCapsAtMaxDelay printed \"expected delay 30s, got 32s\".",
@@ -77,7 +81,6 @@ fn github_ci_failure_reads_the_failed_job_of_the_latest_run_of_the_pr_branch() {
         "The unit-tests job failed in TestRetryBackoffCapsAtMaxDelay.",
     ]);
     case.unresolved(&[
-        "Probably the unit-tests job: TestRetryBackoffCapsAtMaxDelay, expected delay 30s, got 32s.",
         // A negated verb after the job, and the reviewed contradiction cue
         // ("passed" where the failed job is asked for): never an assertion.
         "unit-tests did not fail; TestRetryBackoffCapsAtMaxDelay: expected delay 30s, got 32s",
@@ -124,6 +127,10 @@ fn gitlab_failed_pipeline_binds_the_latest_failed_main_pipeline_to_its_job_and_c
         "| Pipeline | 5520 |\n| Job | integration-tests |\n| Column | refund_reason |",
         "Pipeline #5520 failed in integration-tests: column \"refund_reason\" of relation \"refunds\" does not exist.",
         "integration-tests broke pipeline 5520. The column refund_reason does not exist.",
+        // A polite hedge still states the answer.
+        "I believe it is pipeline 5520, integration-tests, column refund_reason.",
+        // Other authored records named beside or after the answer are context.
+        "Pipelines 5511 and 5520 both failed on main; 5520 failed in integration-tests on refund_reason.",
     ]);
     case.fails(&[
         "The failed pipeline is not 5520; integration-tests complains about refund_reason.",
@@ -140,9 +147,7 @@ fn gitlab_failed_pipeline_binds_the_latest_failed_main_pipeline_to_its_job_and_c
         "Pipeline 5520 failed in integration-tests.",
     ]);
     case.unresolved(&[
-        "I believe it is pipeline 5520, integration-tests, column refund_reason.",
         "Pipeline 5520 failed in the integration tests job on column refund_reason.",
-        "Pipelines 5511 and 5520 both failed on main; 5520 failed in integration-tests on refund_reason.",
     ]);
     // The job name follows the authored job of the selected pipeline.
     let name = "/services/gitlab/jobs/88409/name";
@@ -178,6 +183,10 @@ fn vercel_github_lookup_binds_the_live_commit_to_its_pr_and_each_role() {
         "| Commit | c3a9f12 |\n| PR | #482 |\n| Author | Mateo Alvarez |\n| Approved by | Ines Duarte |\n| Merged by | Riley Park |",
         "Production serves c3a9f12e8b47 from PR #482, written by mateoalv, approved by ines-d and merged by riley-p.",
         "Commit c3a9f12, PR #482. mateoalv wrote it, ines-d approved it, riley-p merged it.",
+        // A polite hedge still states the answer.
+        "It appears to be c3a9f12 from PR #482, written by mateoalv, approved by ines-d and merged by riley-p.",
+        // Other authored records named beside or after the answer are context.
+        "Commit c3a9f12 (PR #482; the later #487 deploy failed), author mateoalv, approver ines-d, merger riley-p.",
     ]);
     case.fails(&[
         "The commit in production is not c3a9f12; PR #482 was written by mateoalv, approved by ines-d and merged by riley-p.",
@@ -197,13 +206,11 @@ fn vercel_github_lookup_binds_the_live_commit_to_its_pr_and_each_role() {
         "Commit c3a9f12, PR #482, author mateoalv, approver ines-d.",
     ]);
     case.unresolved(&[
-        "It appears to be c3a9f12 from PR #482, written by mateoalv, approved by ines-d and merged by riley-p.",
         // A negator across a verb, and a negated verb after a name: disputed.
         // (The short hash cannot be a rejected-form slot; the reader covers it.)
         "Production is not serving c3a9f12; PR #482 was written by mateoalv, approved by ines-d and merged by riley-p.",
         "Commit c3a9f12, PR #482. mateoalv did not write it. ines-d approved, riley-p merged.",
         "Commit c3a9f12, PR #482, written by Mateo, approved by Ines and merged by Riley.",
-        "Commit c3a9f12 (PR #482; the later #487 deploy failed), author mateoalv, approver ines-d, merger riley-p.",
     ]);
     // The served commit follows the authored deployment states.
     assert_eq!(
@@ -238,6 +245,10 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
         "1. Production serves c3a9f12 - \"Fix tax rounding for EU orders (#482)\".\n2. The latest preview failed with FUNCTION_SIZE_EXCEEDED.",
         "Commit: c3a9f12e8b47d05a6e21f9b3c7d84e50a1b6f2d9\nMessage: Fix tax rounding for EU orders\nPreview failure: a Serverless Function has exceeded the unzipped maximum size of 250 MB",
         "Production is on c3a9f12 (Fix tax rounding for EU orders). The newest preview went over the function size limit.",
+        // A polite hedge still states the answer.
+        "Production seems to serve c3a9f12 (\"Fix tax rounding for EU orders\"); the preview hit the function size limit.",
+        // Other authored records named beside or after the answer are context.
+        "Production serves c3a9f12 (\"Fix tax rounding for EU orders\"), not the newer 7d41c9e build; the preview 4be1d07 failed with FUNCTION_SIZE_EXCEEDED.",
     ]);
     case.fails(&[
         "Production is not on c3a9f12 (\"Fix tax rounding for EU orders\"); the preview failed on function size.",
@@ -251,12 +262,10 @@ fn vercel_status_binds_the_live_commit_and_the_latest_preview_failure() {
         "Production serves c3a9f12 (\"Fix tax rounding for EU orders (#482)\").",
     ]);
     case.unresolved(&[
-        "Production seems to serve c3a9f12 (\"Fix tax rounding for EU orders\"); the preview hit the function size limit.",
         "Production is not serving c3a9f12 (Fix tax rounding for EU orders); preview: FUNCTION_SIZE_EXCEEDED.",
         // Correct, but in wordings nobody reviewed.
         "Production serves c3a9f12, \"Fix tax rounding for EU orders (#482)\". The latest preview failed because a function was over 250 MB.",
         "Production serves c3a9f12 (the EU tax rounding fix); the latest preview failed with FUNCTION_SIZE_EXCEEDED.",
-        "Production serves c3a9f12 (\"Fix tax rounding for EU orders\"), not the newer 7d41c9e build; the preview 4be1d07 failed with FUNCTION_SIZE_EXCEEDED.",
     ]);
     // The served commit follows the authored deployment states.
     let ready = "/services/vercel/deployments/dpl_PXw2C2jTZZ3IIez5YkG9aXqPW0Kq/readyState";
@@ -282,6 +291,10 @@ fn argocd_gitlab_trace_follows_the_deploy_commit_message_to_the_pipeline_and_its
         "- App: checkout-web, failing on image tag 2.14.0-rc3\n- Pipeline: 7712, failed job: image-publish\n- Error: denied: permission_denied: The token provided does not match expected scopes (write:packages)",
         "checkout-web cannot pull tag 2.14.0-rc3. Pipeline #7712 promoted it although its image-publish job failed: the docker push was denied because GHCR_TOKEN had expired.",
         "checkout-web (2.14.0-rc3). Pipeline 7712: image-publish failed because the CI token expired; the promote job has `when: always` and pushed the deploy commit anyway.",
+        // A polite hedge still states the answer.
+        "checkout-web (2.14.0-rc3). I believe pipeline 7712 promoted it; image-publish failed with permission_denied.",
+        // Other authored records named beside or after the answer are context.
+        "checkout-web (2.14.0-rc3). Pipeline 7712: build, unit-tests and promote were fine, image-publish failed with permission_denied.",
     ]);
     case.fails(&[
         // Negated and rejected-alternative answers that still hold the keywords.
@@ -303,10 +316,8 @@ fn argocd_gitlab_trace_follows_the_deploy_commit_message_to_the_pipeline_and_its
         "checkout-web (2.14.0-rc3). Pipeline 7712: image-publish failed.",
     ]);
     case.unresolved(&[
-        "checkout-web (2.14.0-rc3). I believe pipeline 7712 promoted it; image-publish failed with permission_denied.",
         "checkout-web (2.14.0-rc3). Pipeline 7712: image-publish did not fail; permission_denied.",
         "checkout-web (2.14.0-rc3). Pipeline 7712: the image publish job failed with permission_denied.",
-        "checkout-web (2.14.0-rc3). Pipeline 7712: build, unit-tests and promote were fine, image-publish failed with permission_denied.",
     ]);
     // The failed job follows the authored jobs of the pipeline.
     let name = "/services/gitlab/jobs/77123/name";
@@ -370,6 +381,8 @@ fn terraform_failure_binds_the_latest_run_to_its_apply_error_and_labelled_plan_c
     case.passes(&[
         "Run: run-Gy4tBHGggKx49nbH\nFailed resource: aws_db_instance.payments (InvalidParameterCombination)\nPlan: 1 to add, 1 to change, 0 to destroy",
         "run-Gy4tBHGggKx49nbH errored while applying `aws_db_instance.payments`: InvalidParameterCombination. Its plan was `Plan: 1 to add, 1 to change, 0 to destroy`; the apply got as far as 1 added, 0 changed, 0 destroyed.",
+        // A polite hedge still states the answer.
+        "It is probably run-Gy4tBHGggKx49nbH: aws_db_instance.payments, InvalidParameterCombination. Plan: 1 to add, 1 to change, 0 to destroy",
     ]);
     case.fails(&[
         "The failed run is not run-Gy4tBHGggKx49nbH. aws_db_instance.payments, InvalidParameterCombination. Plan: 1 to add, 1 to change, 0 to destroy",
@@ -391,7 +404,6 @@ fn terraform_failure_binds_the_latest_run_to_its_apply_error_and_labelled_plan_c
         "run-Gy4tBHGggKx49nbH failed applying aws_db_instance.payments with InvalidParameterCombination.",
     ]);
     case.unresolved(&[
-        "It is probably run-Gy4tBHGggKx49nbH: aws_db_instance.payments, InvalidParameterCombination. Plan: 1 to add, 1 to change, 0 to destroy",
         // The counts outside Terraform's format carry no reviewed label.
         "run-Gy4tBHGggKx49nbH failed applying aws_db_instance.payments with InvalidParameterCombination. The plan would add 1, change 1 and destroy 0 resources.",
         "run-Gy4tBHGggKx49nbH failed applying aws_db_instance.payments with InvalidParameterCombination. Plan: one to add, one to change, zero to destroy.",
