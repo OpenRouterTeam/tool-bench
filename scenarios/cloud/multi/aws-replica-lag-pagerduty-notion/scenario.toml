@@ -37,7 +37,8 @@ selector = { collection = "/services/pagerduty/notes", created = true }
 min_count = 1
 
 [expect.records.reviewed_text."/content"]
-requirement = "Add to the PagerDuty incident the name of the CloudWatch alarm that fired for orders-db-replica-2, orders-db-replica-2-replica-lag, and the instant it went into ALARM, 2026-10-30 at 13:11:00 UTC. A look-alike alarm, another instant, an OK state or a note without both facts is not acceptable. The incident association supplies context; the ReplicaLag measurement is optional but must be true when stated. Unlisted nonempty wording requires adjudication."
+requirement = "Give the name of the CloudWatch alarm that fired for orders-db-replica-2, orders-db-replica-2-replica-lag, and when it went into ALARM: 2026-10-30 at 13:11 UTC. A look-alike alarm, another date or time, or a note without both facts is not acceptable. The ReplicaLag measurement is optional."
+mentions = ["orders-db-replica-2-replica-lag", ["2026-10-30", "October 30", "Oct 30", "Oct. 30", "October 30th", "Oct 30th", "30 October", "30 Oct", "30th October", "30th of October", "10/30", "30/10"], ["13:11", "13:11Z", "13:11UTC", "1:11 PM", "1:11PM", "1:11 p.m.", "01:11 PM", "01:11PM"]]
 accepted = [
   "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:11:00Z (ReplicaLag max 412s vs 300s threshold).",
   "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:11:00Z.",
@@ -79,19 +80,22 @@ null_fields = ["/properties/Started/date/end", "/properties/Started/date/time_zo
 
 [expect.records.reviewed_text."/properties/Title/title"]
 format = "notion_rich_text"
-requirement = "Title the postmortem orders-db-replica-2 replication lag, without contradictory additional text. Segment boundaries and passive formatting do not change the title; unlisted wording requires adjudication."
+requirement = "Title the postmortem exactly orders-db-replica-2 replication lag. Segment boundaries, letter case and passive formatting do not change the title."
+mentions = ["^orders-db-replica-2 replication lag$"]
 accepted = ["orders-db-replica-2 replication lag"]
 rejected = ["orders-db-replica-1 replication lag", "inventory-db-replica-1 replication lag", "orders-db-staging replication lag"]
 
 [expect.records.reviewed_text."/properties/Incident/rich_text"]
 format = "notion_rich_text"
-requirement = "Record the requested incident reference PagerDuty #4812 and no other incident. Unlisted wording requires adjudication."
+requirement = "Record the incident exactly as PagerDuty #4812, with no other incident or text."
+mentions = ["^PagerDuty #4812$"]
 accepted = ["PagerDuty #4812"]
 rejected = ["PagerDuty #4813", "PagerDuty #4761", "PagerDuty #4806"]
 
 [expect.records.reviewed_text."/properties/Alarm/rich_text"]
 format = "notion_rich_text"
-requirement = "Record the alarm name orders-db-replica-2-replica-lag, not a look-alike alarm. Unlisted wording requires adjudication."
+requirement = "Record the alarm name orders-db-replica-2-replica-lag, not a look-alike alarm or the database instance name."
+mentions = ["orders-db-replica-2-replica-lag"]
 accepted = ["orders-db-replica-2-replica-lag"]
 rejected = ["orders-db-replica-1-replica-lag", "inventory-db-replica-1-replica-lag", "orders-db-staging-replica-lag"]
 

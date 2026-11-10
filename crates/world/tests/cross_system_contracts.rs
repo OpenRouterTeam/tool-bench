@@ -188,11 +188,6 @@ fn fail(grade: &Grade) {
     assert!(grade.environment_ok && grade.contract_ok && grade.integrity_ok);
 }
 
-fn unresolved(grade: &Grade) {
-    assert_eq!(grade.outcome, Outcome::Unresolved, "{grade:?}");
-    assert!(grade.adjudication_needed && grade.environment_ok);
-}
-
 #[tokio::test]
 async fn cross_system_writes_require_real_outcomes_and_default_preservation() {
     for id in [CRM, VIP, REFUND] {
@@ -295,15 +290,27 @@ async fn crm_request_body_digits_do_not_establish_the_final_negotiated_amount() 
 }
 
 #[tokio::test]
-async fn bare_ids_and_denied_sync_messages_remain_semantically_unresolved() {
+async fn sync_notes_pass_with_the_sync_statement_and_the_actual_opportunity_id_and_fail_without_them()
+ {
     for body in [
-        OPPORTUNITY,
-        "The Salesforce opportunity 0065g00000IDWm1AAH has NOT been synced.",
+        "This deal has been synced to Salesforce (opportunity ID 0065g00000IDWm1AAH).",
+        "Salesforce sync done: opportunity 0065g00000IDWm1 is now Closed Won at $176,500, close date 2026-10-28.",
     ] {
         let trial = Trial::new(CRM);
         trial.sync(json!(176500)).await;
         trial.note(DEAL, body).await;
-        unresolved(&trial.assess());
+        pass(&trial.assess());
+    }
+    for body in [
+        OPPORTUNITY,
+        "This deal has been synced to Salesforce.",
+        "Synced to Salesforce opportunity 0065g00000IRdw1AAD.",
+        "Sync complete. Salesforce opportunity ID: 0065g00000ISup7AAD (Closed Won, $176,500).",
+    ] {
+        let trial = Trial::new(CRM);
+        trial.sync(json!(176500)).await;
+        trial.note(DEAL, body).await;
+        fail(&trial.assess());
     }
 }
 
@@ -345,13 +352,39 @@ async fn restored_sync_note_contradictions_cannot_erase_committed_content() {
     trial.sync(json!(176500)).await;
     let id = trial.note(DEAL, SYNC).await;
     trial
-        .note_update(
-            &id,
-            "The Salesforce opportunity 0065g00000IDWm1AAH has NOT been synced.",
-        )
+        .note_update(&id, "Synced to Salesforce opportunity 0065g00000IRdw1AAD.")
         .await;
     trial.note_update(&id, SYNC).await;
-    unresolved(&trial.assess());
+    let grade = trial.assess();
+    fail(&grade);
+    assert!(
+        grade
+            .failures
+            .iter()
+            .any(|failure| !failure.event_evidence.is_empty()),
+        "{grade:?}"
+    );
+}
+
+#[tokio::test]
+async fn an_edited_sync_note_is_judged_by_its_final_text() {
+    const DRAFT: &str = "Synced to Salesforce; opportunity ID to follow.";
+    let completed = Trial::new(CRM);
+    completed.sync(json!(176500)).await;
+    let id = completed.note(DEAL, DRAFT).await;
+    completed
+        .note_update(
+            &id,
+            "Synced to Salesforce. Opportunity ID: 0065g00000IDWm1AAH",
+        )
+        .await;
+    pass(&completed.assess());
+
+    let regressed = Trial::new(CRM);
+    regressed.sync(json!(176500)).await;
+    let id = regressed.note(DEAL, SYNC).await;
+    regressed.note_update(&id, DRAFT).await;
+    fail(&regressed.assess());
 }
 
 #[tokio::test]

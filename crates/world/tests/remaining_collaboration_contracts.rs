@@ -161,11 +161,6 @@ fn fail(grade: &Grade) {
     assert!(grade.environment_ok && grade.contract_ok && grade.integrity_ok);
 }
 
-fn unresolved(grade: &Grade) {
-    assert_eq!(grade.outcome, Outcome::Unresolved, "{grade:?}");
-    assert!(grade.adjudication_needed && grade.environment_ok);
-}
-
 fn state_of(trial: &ContractTrial, service: &str) -> Value {
     trial.world.lock().unwrap().snapshot()["services"][service].clone()
 }
@@ -573,7 +568,7 @@ async fn refund_audits_restored_collateral_changes() {
 }
 
 #[tokio::test]
-async fn refund_message_content_is_reviewed_for_amount_and_unsupported_claims() {
+async fn refund_message_must_confirm_the_refund_and_its_amount_in_any_wording() {
     for wording in [
         "Your refund of $6200.00 has been issued.",
         "We refunded $26.00 for your desk lamp order.",
@@ -586,15 +581,30 @@ async fn refund_message_content_is_reviewed_for_amount_and_unsupported_claims() 
         reply(&attempt, json!({"body":wording})).await;
         fail(&attempt.assess());
     }
-    let unlisted = trial(REFUND);
-    full_refund(&unlisted).await;
-    mark_refunded(&unlisted, 5024).await;
-    reply(
-        &unlisted,
-        json!({"body":"Thanks for flagging the damaged lamp; the money for order 5024 is on its way back to you."}),
-    )
-    .await;
-    unresolved(&unlisted.assess());
+    for (wording, truthful) in [
+        (
+            "Thanks for flagging the damaged lamp; we've refunded the full $62.00 for order 5024.",
+            true,
+        ),
+        (
+            "Thanks for flagging the damaged lamp; the money for order 5024 is on its way back to you.",
+            false,
+        ),
+        (
+            "Thanks for flagging the damaged lamp; we've refunded $62.50 for order 5024.",
+            false,
+        ),
+    ] {
+        let unlisted = trial(REFUND);
+        full_refund(&unlisted).await;
+        mark_refunded(&unlisted, 5024).await;
+        reply(&unlisted, json!({"body":wording})).await;
+        if truthful {
+            pass(&unlisted.assess());
+        } else {
+            fail(&unlisted.assess());
+        }
+    }
 
     let withdrawn = trial(REFUND);
     full_refund(&withdrawn).await;
@@ -873,7 +883,7 @@ async fn cutover_requires_each_action_and_dns_before_comment_and_done() {
 }
 
 #[tokio::test]
-async fn cutover_comment_is_reviewed_for_the_actual_change() {
+async fn cutover_comment_must_name_the_record_and_its_new_address_in_any_wording() {
     for wording in [
         "Moved api.octo-corp.com to 198.51.100.44.",
         "Created a new A record for api.octo-corp.com at 198.51.100.45.",
@@ -885,16 +895,30 @@ async fn cutover_comment_is_reviewed_for_the_actual_change() {
         move_issue(&attempt, "PLAT-241", DONE).await;
         fail(&attempt.assess());
     }
-    let unlisted = trial(CUTOVER);
-    move_api_record(&unlisted).await;
-    comment_on(
-        &unlisted,
-        "PLAT-241",
-        "Cut api.octo-corp.com over to the new origin as requested.",
-    )
-    .await;
-    move_issue(&unlisted, "PLAT-241", DONE).await;
-    unresolved(&unlisted.assess());
+    for (wording, truthful) in [
+        (
+            "Pointed the api.octo-corp.com A record at 198.51.100.45 (origin-3); it is still proxied.",
+            true,
+        ),
+        (
+            "Cut api.octo-corp.com over to the new origin as requested.",
+            false,
+        ),
+        (
+            "Pointed the api.octo-corp.dev A record at 198.51.100.45.",
+            false,
+        ),
+    ] {
+        let unlisted = trial(CUTOVER);
+        move_api_record(&unlisted).await;
+        comment_on(&unlisted, "PLAT-241", wording).await;
+        move_issue(&unlisted, "PLAT-241", DONE).await;
+        if truthful {
+            pass(&unlisted.assess());
+        } else {
+            fail(&unlisted.assess());
+        }
+    }
 }
 
 #[tokio::test]
@@ -1134,7 +1158,16 @@ async fn calendar_reply_must_be_one_truthful_message_in_the_requested_thread() {
         json!({"message":"Calendar hold added for the PG16 switchover."}),
     )
     .await;
-    unresolved(&unlisted.assess());
+    pass(&unlisted.assess());
+
+    let off_topic = trial(CALENDAR);
+    schedule(&off_topic, json!({})).await;
+    announce(
+        &off_topic,
+        json!({"message":"Sounds good, see everyone Saturday night."}),
+    )
+    .await;
+    fail(&off_topic.assess());
 }
 
 #[tokio::test]

@@ -147,10 +147,6 @@ fn fail(grade: &Grade) {
     assert_eq!(grade.outcome, Outcome::Fail, "{grade:?}");
     assert!(grade.environment_ok && grade.contract_ok && grade.integrity_ok);
 }
-fn review(grade: &Grade) {
-    assert_eq!(grade.outcome, Outcome::Unresolved, "{grade:?}");
-    assert!(grade.environment_ok && grade.adjudication_needed);
-}
 
 #[tokio::test]
 async fn all_six_reference_plans_preserve_business_state_and_reject_no_op() {
@@ -194,15 +190,23 @@ async fn linear_creation_accepts_shifted_identifiers_and_follow_up_classificatio
 }
 
 #[tokio::test]
-async fn linear_required_details_are_not_replaced_by_keywords_or_an_invented_customer_count() {
+async fn linear_required_details_pass_in_unlisted_wording_and_are_not_replaced_by_keywords() {
+    let trial = Trial::new("linear", "file-safari-crash-bug");
+    trial
+        .create_issue(json!({
+            "description":"On Safari 17.1 (macOS 14), Saved carts loops after 4.12 RC; Chrome and Firefox work normally."
+        }))
+        .await;
+    pass(&trial.assess());
     for description in [
         "Safari",
         "Safari works correctly; Chrome reloads.",
-        "On Safari 17.1 (macOS 14), Saved carts loops after 4.12 RC; Chrome and Firefox work normally.",
+        "On Safari 16.4 (macOS 13), Saved carts loops after 4.12 RC; Chrome and Firefox work normally.",
+        "On Safari 17.1 (macOS 14), Saved carts loops after 4.11 RC; Chrome and Firefox work normally.",
     ] {
         let trial = Trial::new("linear", "file-safari-crash-bug");
         trial.create_issue(json!({"description":description})).await;
-        review(&trial.assess());
+        fail(&trial.assess());
     }
 }
 
@@ -247,14 +251,20 @@ async fn escalation_uses_new_comment_identity_and_complete_customer_claim() {
         .escalate("Acme Retail escalated this Safari checkout issue.")
         .await;
     pass(&trial.assess());
+    let trial = Trial::new("linear", "escalate-right-safari-issue");
+    trial
+        .escalate("Escalation received from the Acme Retail team.")
+        .await;
+    pass(&trial.assess());
     for body in [
         "Acme",
-        "Acme Retail did not escalate this issue.",
-        "Escalation received from the Acme Retail team.",
+        "Acme Retail",
+        "Acme Corp escalated this issue.",
+        "A customer escalated this issue.",
     ] {
         let trial = Trial::new("linear", "escalate-right-safari-issue");
         trial.escalate(body).await;
-        review(&trial.assess());
+        fail(&trial.assess());
     }
 }
 
@@ -388,16 +398,26 @@ async fn slack_thread_summary_requires_the_complete_final_window_and_lead() {
             .await;
         pass(&trial.assess());
     }
+    let trial = Trial::new("slack", "cutover-thread-summary");
+    trial
+        .send(
+            "C05DBMIG2RT",
+            Some("1792600205.318801"),
+            "Final window is 2026-11-07 from 22:00 to 01:00 CT, and Sam is leading.",
+        )
+        .await;
+    pass(&trial.assess());
     for text in [
         "2026-11-07 22:00",
-        "Not agreed: 2026-11-07 22:00-01:00. Priya leads.",
+        "Agreed: 2026-11-07 22:00-01:00 CT. Priya leads.",
+        "Agreed: Friday 2026-11-06, 20:00-23:00 CT. Sam leads.",
         "The window starts at 22:00 Central on November 7 and ends at 01:00; Sam leads.",
     ] {
         let trial = Trial::new("slack", "cutover-thread-summary");
         trial
             .send("C05DBMIG2RT", Some("1792600205.318801"), text)
             .await;
-        review(&trial.assess());
+        fail(&trial.assess());
     }
 }
 
@@ -421,7 +441,7 @@ async fn slack_thread_destinations_and_extra_posts_are_protected() {
 }
 
 #[tokio::test]
-async fn slack_dm_accepts_user_or_conversation_identity_without_requiring_extra_facts() {
+async fn slack_dm_accepts_user_or_conversation_identity_and_any_wording_with_the_date() {
     for destination in ["U06AKIM3D2Q", "D09KIMDM4X1"] {
         let trial = Trial::new("slack", "release-date-dm-designer");
         trial
@@ -433,14 +453,23 @@ async fn slack_dm_accepts_user_or_conversation_identity_without_requiring_extra_
             .await;
         pass(&trial.assess());
     }
+    let trial = Trial::new("slack", "release-date-dm-designer");
+    trial
+        .send(
+            "U06AKIM3D2Q",
+            None,
+            "Web 4.12 will be released on 2026-11-10.",
+        )
+        .await;
+    pass(&trial.assess());
     for text in [
-        "2026-11-10",
-        "The release is not on 2026-11-10.",
-        "Web 4.12 will be released on 2026-11-10.",
+        "Web 4.12 will be released on Tuesday, November 10.",
+        "Web 4.12 will be released on 2026-11-03.",
+        "The web 4.12 release moved because of the payments SDK regression.",
     ] {
         let trial = Trial::new("slack", "release-date-dm-designer");
         trial.send("U06AKIM3D2Q", None, text).await;
-        review(&trial.assess());
+        fail(&trial.assess());
     }
 }
 

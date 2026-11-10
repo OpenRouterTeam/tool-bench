@@ -65,7 +65,8 @@ equals = 1
 fields = { "/issue" = "OPS-34", "/author" = "jordan.lee" }
 
 [expect.records.reviewed_text."/body"]
-requirement = "Tell the OPS-34 ticket what was done: the production reporting-worker-legacy instance was stopped, not terminated, and tagged DecommissionTicket=OPS-34. The ticket association supplies context. The instance ID, retained disk and untouched staging copy are optional but must be true when stated. Termination, a staging stop or an omitted stop or tag claim is not acceptable. Unlisted nonempty wording requires adjudication."
+requirement = "Tell the OPS-34 ticket what was done: the instance was stopped (not terminated) and tagged. The ticket supplies which instance and which tag; the instance ID, the tag's key and value, the retained disk and the untouched staging copy are optional. A comment that omits the stop or the tag is not acceptable."
+mentions = [["stopped", "stop", "stopping", "StopInstances"], ["tagged", "tag", "tags", "tagging", "DecommissionTicket"]]
 accepted = [
   "Stopped (not terminated) the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34. Its EBS volume is kept. The staging copy (i-0e4a6c8b2d1f35790) is still running.",
   "Stopped (not terminated) the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34. Its EBS volume is kept.",

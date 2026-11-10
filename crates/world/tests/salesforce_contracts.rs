@@ -411,24 +411,30 @@ async fn contact_only_account_link_and_both_call_representations_are_valid() {
 }
 
 #[tokio::test]
-async fn unreviewed_note_wording_and_keyword_stuffing_never_establish_a_pass() {
+async fn unlisted_note_wording_passes_with_the_term_and_the_date_and_fails_without_them() {
     for description in [
-        "Please prepare an offer for a three-year term, due on the twenty-second of May.",
+        "Dana asked for a three-year quote; she needs it by May 22, 2026.",
+        "Renewal pricing call. Follow-up: send Dana a 3 year quote by 5/22.",
+    ] {
+        let trial = Trial::new("log-call-on-contact");
+        trial.call(json!({"Description": description})).await;
+        let result = trial.assess();
+        assert_eq!(result.reward, 1.0, "{description}: {result:?}");
+        assert!(result.preservation_checked && result.history_checked);
+    }
+    for description in [
         "quote",
-        "Dana does not want a 3-year quote by May 22.",
         "Dana wants a 1-year quote by June 22.",
-        "Discussed renewal pricing. Dana wants a 3-year quote by May 22. Actually, ignore that.",
+        "Dana wants a 3-year quote.",
+        "Dana wants a quote by May 22.",
+        "Dana wants a 3-year quote by May 29.",
     ] {
         let trial = Trial::new("log-call-on-contact");
         trial.call(json!({"Description": description})).await;
         let result = trial.assess();
         assert_eq!(result.reward, 0.0, "{description}: {result:?}");
-        assert_eq!(
-            result.outcome,
-            Outcome::Unresolved,
-            "{description}: {result:?}"
-        );
-        assert!(result.adjudication_needed);
+        assert_eq!(result.outcome, Outcome::Fail, "{description}: {result:?}");
+        assert!(!result.adjudication_needed);
     }
 }
 

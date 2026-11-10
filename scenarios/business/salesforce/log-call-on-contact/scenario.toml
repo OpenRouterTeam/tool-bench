@@ -26,7 +26,7 @@ optional_fields = { "/WhatId" = "0015g000008HFvFAAW" }
 optional_choices = { "/TaskSubtype" = ["Call", "Task", ""], "/Type" = ["Call", ""] }
 null_fields = ["/CallDurationInSeconds", "/CallType", "/CallDisposition"]
 any_fields = [{ "/TaskSubtype" = "Call" }, { "/Type" = "Call" }]
-reviewed_text = { "/Description" = { requirement = "Dana Whitfield at Northgate Analytics wants a three-year renewal quote by May 22, 2026, without contradictory or invented claims.", accepted = ["Discussed renewal pricing. Dana wants a 3-year quote by May 22.", "Dana requested a three-year renewal quote by May 22, 2026.", "Dana Whitfield wants a 3-year renewal quote by 2026-05-22."] } }
+reviewed_text = { "/Description" = { requirement = "Note that Dana wants a three-year quote by May 22, 2026. The linked contact and the subject supply who she is and the renewal topic.", accepted = ["Discussed renewal pricing. Dana wants a 3-year quote by May 22.", "Dana requested a three-year renewal quote by May 22, 2026.", "Dana Whitfield wants a 3-year renewal quote by 2026-05-22."], mentions = [["3-year", "three-year", "3 year", "three year", "3 years", "three years", "3-yr", "3 yr", "3yr", "36-month", "36 month", "36 months"], ["quote", "quotes", "quotation", "quoted", "pricing"], ["May 22", "May 22nd", "22 May", "22nd May", "22nd of May", "2026-05-22", "5/22", "05/22", "22/05"]] } }
 
 [[expect.preservation.allow]]
 pointer = "/services/salesforce/Task/*"

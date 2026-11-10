@@ -27,7 +27,7 @@ selector = { collection = "/services/linear/issues", matching = { teamId = "6da7
 equals = 1
 fields = { "/title" = "Saved carts tab reloads in a loop on Safari 17", "/priority" = 2, "/projectId" = "665e6e05-9585-5351-a871-913d9e5b298f", "/assigneeId" = "0bfae6ae-01d0-58d1-a611-7d1973102c45" }
 null_fields = ["/archivedAt", "/completedAt", "/canceledAt"]
-reviewed_text = { "/description" = { requirement = "Record that opening Saved carts on Safari 17.1/macOS 14 causes a reload loop, Chrome/Firefox are fine, and the regression began with the 4.12 release candidate. Do not invent customer counts or other unsupported facts. Unlisted nonempty wording requires adjudication.", accepted = ["On Safari 17.1 (macOS 14), opening the Saved carts tab makes the page reload in a loop. Chrome and Firefox are fine. It started with the 4.12 release candidate."] } }
+reviewed_text = { "/description" = { requirement = "Record the forwarded details: opening Saved carts on Safari 17.1/macOS 14 causes a reload loop, Chrome/Firefox are fine, and the regression began with the 4.12 release candidate. The exact title supplies the Saved carts reload-loop symptom; the description must carry Safari 17.1, macOS 14, Chrome, Firefox and the 4.12 release candidate.", accepted = ["On Safari 17.1 (macOS 14), opening the Saved carts tab makes the page reload in a loop. Chrome and Firefox are fine. It started with the 4.12 release candidate."], mentions = [["17.1", "v17.1"], ["macOS 14", "mac OS 14", "macOS Sonoma"], "Chrome", "Firefox", ["4.12", "v4.12"], ["release candidate", "release-candidate", "RC"]] } }
 
 [[expect.relations]]
 source = { collection = "/services/linear/issue_history", created = true }

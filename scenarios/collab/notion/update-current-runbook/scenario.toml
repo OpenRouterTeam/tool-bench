@@ -22,7 +22,7 @@ audit_history = true
 selector = { collection = "/services/notion/blocks", matching = { id = "d18edb31-c7d9-4fa2-9759-783c0b2d0b89", parent = { page_id = "7c41530e-e886-4046-9cb4-2f49e6957f99" } } }
 equals = 1
 fields = { "/type" = "paragraph", "/archived" = false, "/in_trash" = false }
-reviewed_text = { "/paragraph/rich_text" = { format = "notion_rich_text", requirement = "Replace Marcus Webb, +1 555-0100 with Sam Ortiz, +1 555-0142 in the current runbook's escalation contact, preserving the surrounding prefix and role text. Passive formatting and segment boundaries do not change the claim. A name or phone token alone, a rejected alternative or a contradiction is not a complete replacement; unlisted wording requires adjudication.", accepted = ["Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure)"], rejected = ["Escalation contact: Marcus Webb, +1 555-0100 (Head of Infrastructure)"] } }
+reviewed_text = { "/paragraph/rich_text" = { format = "notion_rich_text", requirement = "Replace Marcus Webb, +1 555-0100 with Sam Ortiz, +1 555-0142 in the current runbook's escalation contact and keep the rest of the line, so it reads: Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure). Passive formatting and segment boundaries do not change the line; a name or phone alone, the old contact or any added text is not the requested replacement.", accepted = ["Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure)"], rejected = ["Escalation contact: Marcus Webb, +1 555-0100 (Head of Infrastructure)"], mentions = ["^Escalation contact: Sam Ortiz, +1 555-0142 (Head of Infrastructure)$"] } }
 
 [[expect.preservation.allow]]
 pointer = "/services/notion/blocks/d18edb31-c7d9-4fa2-9759-783c0b2d0b89/paragraph/rich_text"

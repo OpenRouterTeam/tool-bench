@@ -27,13 +27,13 @@ audit_history = true
 selector = { collection = "/services/google/calendar_events", created = true }
 equals = 1
 calendar_meeting = { calendar_id = "c_ops_team@group.calendar.google.com", summary = "Payments cluster PG16 production cutover", start = "2026-11-08T04:00:00Z", end = "2026-11-08T07:00:00Z", attendees = ["sam.ortiz@octo-corp.example", "priya.natarajan@octo-corp.example"], require_meet = false }
-reviewed_text = { "/description" = { optional = true, requirement = "Optional event context must not contradict the agreed production cutover: Sam leads, Priya verifies payments, window 2026-11-07 22:00-01:00 CT and a 00:30 CT rollback deadline. Unreviewed wording requires adjudication.", accepted = ["Production PG16 cutover of the payments cluster. Lead: Sam. Payments verification: Priya. Rollback deadline 00:30 CT."], rejected = ["Production cutover is on 2026-11-06 from 20:00 to 23:00 CT.", "Cutover cancelled."] } }
+reviewed_text = { "/description" = { optional = true, requirement = "Optional event context: the request does not ask for a description, so no particular wording is required.", accepted = ["Production PG16 cutover of the payments cluster. Lead: Sam. Payments verification: Priya. Rollback deadline 00:30 CT."], rejected = ["Production cutover is on 2026-11-06 from 20:00 to 23:00 CT.", "Cutover cancelled."] } }
 
 [[expect.records]]
 selector = { collection = "/services/slack/posted", created = true }
 equals = 1
 fields = { "/channel" = "C05DBMIG2RT", "/thread_ts" = "1792600205.318801", "/user" = "U02CMORG8RK" }
-reviewed_text = { "/text" = { requirement = "Reply in the production-cutover thread that the cutover is now on the calendar. The thread supplies the event context; no particular wording, invitees, date or time is mandatory, but any added claim must match the committed Ops team event. Denials, a wrong calendar/window or a not-yet-created claim are not accepted. Unlisted nonempty wording requires adjudication, not an invented model failure.", accepted = [
+reviewed_text = { "/text" = { requirement = "Reply in the production-cutover thread that the cutover is now on the calendar. The thread supplies the event context. The reply must refer to the calendar entry (the calendar, the event, the invites or it being scheduled); no particular wording, invitees, date or time is mandatory. Denials, a wrong calendar/window or a not-yet-created claim are not accepted.", accepted = [
   "It's on the Ops team calendar: Payments cluster PG16 production cutover, Saturday 2026-11-07 22:00-01:00 CT. Sam and Priya are invited.",
   "The production cutover is on the Ops team calendar.",
   "Added to the Ops team calendar for Saturday 2026-11-07, 22:00-01:00 CT, and invited Sam and Priya.",
@@ -41,7 +41,7 @@ reviewed_text = { "/text" = { requirement = "Reply in the production-cutover thr
 ], rejected = [
   "It's on the Ops team calendar for Friday 2026-11-06, 20:00-23:00 CT.",
   "I could not add the cutover to the calendar.",
-] } }
+], mentions = [["calendar", "event", "invite", "invites", "invited", "invitation", "invitations", "scheduled"]] } }
 
 [[expect.records]]
 selector = { collection = "/services/slack/messages", created = true }

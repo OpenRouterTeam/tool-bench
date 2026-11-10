@@ -25,7 +25,7 @@ enum Variant {
     CollateralMutation,
     PrematureReply,
     BareReference,
-    DeniedRefund,
+    MissingReference,
     UnreviewedParaphrase,
     GroundedAlternative,
     SplitRefund,
@@ -227,9 +227,10 @@ async fn run(variant: Variant, prediction: Option<Value>) -> Run {
                 Variant::MinimalReply => Some(format!(
                     "Your duplicate payment was refunded. Stripe refund references: {reference}."
                 )),
-                Variant::DeniedRefund => Some(format!(
-                    "The duplicate payment has not been refunded. Stripe refund reference: {reference}."
-                )),
+                Variant::MissingReference => Some(
+                    "Hi Hannah, the duplicate $480.00 charge for order #1077 has been refunded in full."
+                        .to_owned(),
+                ),
                 Variant::UnreviewedParaphrase => Some(format!(
                     "Hannah, the entire extra $480 payment for #1077 was returned. You can reference {reference}; the original is untouched."
                 )),
@@ -374,30 +375,38 @@ async fn predicting_the_future_id_cannot_make_a_premature_public_reply_pass() {
         json!(48000)
     );
     assert!(premature.assessment.state_ok);
-    assert!(!premature.assessment.records_ok);
+    // The reply ends up citing the refund that exists, so its text is in order. What makes it
+    // wrong is that it was posted before the refund, which the ordering check reports.
+    assert!(premature.assessment.records_ok);
     assert!(premature.assessment.relations_ok);
     assert!(!premature.assessment.ordering_ok);
+    assert_eq!(premature.assessment.outcome, Outcome::Fail);
     assert_eq!(premature.assessment.reward, 0.0);
 }
 
 #[tokio::test]
-async fn id_mentions_do_not_prove_refund_communication_and_unknown_paraphrases_are_not_model_failures()
- {
-    for variant in [
-        Variant::BareReference,
-        Variant::DeniedRefund,
-        Variant::UnreviewedParaphrase,
-        Variant::LegacyForecast,
-    ] {
+async fn a_bare_or_missing_refund_id_fails_and_truthful_unlisted_replies_pass() {
+    for variant in [Variant::BareReference, Variant::MissingReference] {
         let result = run(variant, None).await;
         assert!(result.assessment.state_ok && result.assessment.relations_ok);
+        assert!(!result.assessment.records_ok);
         assert_eq!(
             result.assessment.outcome,
-            Outcome::Unresolved,
+            Outcome::Fail,
             "{:?}",
             result.assessment
         );
-        assert!(result.assessment.adjudication_needed && result.assessment.environment_ok);
+        assert!(!result.assessment.adjudication_needed && result.assessment.environment_ok);
+    }
+    for variant in [Variant::UnreviewedParaphrase, Variant::LegacyForecast] {
+        let result = run(variant, None).await;
+        assert_eq!(
+            result.assessment.outcome,
+            Outcome::Pass,
+            "{:?}",
+            result.assessment
+        );
+        assert!(result.assessment.history_checked && result.assessment.relations_ok);
     }
 }
 

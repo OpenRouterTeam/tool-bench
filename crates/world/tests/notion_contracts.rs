@@ -150,6 +150,7 @@ async fn keyword_substrings_and_later_contradictory_segments_do_not_establish_cu
 {
     for (property, field, segments) in [
         ("Customer", "rich_text", json!([text("Not Acme Retail")])),
+        ("Customer", "rich_text", json!([text("Acme")])),
         (
             "Summary",
             "title",
@@ -158,13 +159,30 @@ async fn keyword_substrings_and_later_contradictory_segments_do_not_establish_cu
                 text(" is an incorrect report.")
             ]),
         ),
+        (
+            "Summary",
+            "title",
+            json!([text("Checkout button unresponsive")]),
+        ),
     ] {
         let trial = Trial::new("log-customer-escalation");
         let mut input = properties();
         input[property][field] = segments;
         trial.create(input).await;
-        unresolved(&trial.assess());
+        let grade = trial.assess();
+        fail(&grade);
+        assert!(!grade.adjudication_needed, "{grade:?}");
     }
+}
+
+#[tokio::test]
+async fn customer_and_summary_keep_their_meaning_in_another_letter_case() {
+    let trial = Trial::new("log-customer-escalation");
+    let mut input = properties();
+    input["Summary"]["title"] = json!([text("Checkout Button Unresponsive on Safari")]);
+    input["Customer"]["rich_text"] = json!([text("ACME Retail")]);
+    trial.create(input).await;
+    pass(&trial.assess());
 }
 
 #[tokio::test]
@@ -288,18 +306,28 @@ async fn runbook_expected_words_do_not_hide_a_contradiction_or_withdrawn_stateme
             text(REPLACEMENT),
             text(". This is not the escalation contact.")
         ]),
-        json!([{"type":"text","text":{"content":REPLACEMENT},"annotations":{"strikethrough":true}}]),
         json!([text("Sam Ortiz, +1 555-0142")]),
         json!([text("Escalation contact: Sam Ortiz, +1 555-0142")]),
     ] {
         let trial = Trial::new("update-current-runbook");
         trial.contact(CONTACT, content).await;
-        unresolved(&trial.assess());
+        let grade = trial.assess();
+        fail(&grade);
+        assert!(!grade.adjudication_needed, "{grade:?}");
     }
+    // Struck-through text is withdrawn rather than stated, so its reading stays with a reviewer.
+    let withdrawn = Trial::new("update-current-runbook");
+    withdrawn
+        .contact(
+            CONTACT,
+            json!([{"type":"text","text":{"content":REPLACEMENT},"annotations":{"strikethrough":true}}]),
+        )
+        .await;
+    unresolved(&withdrawn.assess());
 }
 
 #[tokio::test]
-async fn runbook_contradiction_restoration_cannot_erase_committed_history() {
+async fn runbook_old_contact_written_back_cannot_be_erased_but_a_draft_can_be_completed() {
     let valid = Trial::new("update-current-runbook");
     valid.complete("update-current-runbook").await;
     let restored = Trial::new("update-current-runbook");
@@ -307,12 +335,23 @@ async fn runbook_contradiction_restoration_cannot_erase_committed_history() {
     restored
         .contact(
             CONTACT,
-            json!([text("Do not call Sam Ortiz, +1 555-0142.")]),
+            json!([text(
+                "Escalation contact: Marcus Webb, +1 555-0100 (Head of Infrastructure)"
+            )]),
         )
         .await;
     restored.complete("update-current-runbook").await;
     assert_eq!(valid.state(), restored.state());
-    unresolved(&restored.assess());
+    fail(&restored.assess());
+
+    // A draft that only lacks part of the line is not a claim; the completed line is read.
+    let drafted = Trial::new("update-current-runbook");
+    drafted
+        .contact(CONTACT, json!([text("Escalation contact: Sam Ortiz")]))
+        .await;
+    fail(&drafted.assess());
+    drafted.complete("update-current-runbook").await;
+    pass(&drafted.assess());
 }
 
 #[tokio::test]
