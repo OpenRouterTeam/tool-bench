@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:d7944c989f6ea4a2
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:3154d5bad472cc6a
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "cloud/supabase/pause-legacy-marketing-project"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:2883185b019a2b74
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:3dd608f17463f8a6
     stop_signal: SIGKILL
     networks:
       default: {}
