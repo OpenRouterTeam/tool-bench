@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cdb27ba7278bcc19
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:eb4c7e5797d4b3a7
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "search/exa/find-vp-engineering-profile"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b90b466a6ab83c71
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:440832e3d8bac995
     stop_signal: SIGKILL
     networks:
       default: {}
