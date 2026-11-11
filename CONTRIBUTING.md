@@ -15,8 +15,10 @@ cargo run -q --locked -p scenario --bin taskgen -- --check --inventory docs/cove
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s deploy/tests -p 'test_*.py'
 ```
 
-Use Python 3.12+ for host tests. Runner regressions additionally need the pinned
-Harbor environment in `deploy/runner/requirements.txt`; CI runs those separately.
+Use Python 3.12+ for host tests. Runner regressions (`python -m unittest discover -s
+deploy/runner -p 'test_*.py'`) additionally need the pinned Harbor environment in
+`deploy/runner/requirements.txt` and [Bun](https://bun.sh) on `PATH`, which runs the
+provider proxy; CI runs those separately.
 
 - Commit generated `tasks/` and `docs/coverage/scenario-inventory.json` with the
   source change. Never edit generated tasks by hand.
