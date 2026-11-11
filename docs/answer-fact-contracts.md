@@ -167,9 +167,10 @@ RFC 3339 form.
 
 1. A `rejected` form (a template with `${fact}` slots, such as
    `${blocker} is blocked by ${blocked}`) fails the reply where the reply makes
-   that claim. It does not where the reply quotes it as a question (`the "we
-   chose Honeycomb?" message`), denies or retracts it, or reports it as a
-   rumour or speculation.
+   that claim. It does not where the reply quotes or reports it as a question
+   (`the "we chose Honeycomb?" message`, `Sam asked whether "we chose
+   Honeycomb"`), denies or retracts it, or reports it as a rumour or
+   speculation.
 2. `context` forms are set aside before reading. `predicates` are negative
    phrases that are true of the facts (`does not match the expected scopes`) and
    are not read as denials. `contradictions` are words that say the opposite of
@@ -201,7 +202,7 @@ RFC 3339 form.
    |---|---|---|
    | The value | `not X`, `X is wrong`, `X's deal is not the largest`, a `contradictions` cue in its clause | Always |
    | A predicate about the value | `not owned by X`, `has not been updated for X`, `X did not delete …` | Only if the reply never concludes on the value |
-   | The whole sentence | a retraction word in it, or the next sentence taking it back (`… reviewed #482; that was not an approval`) | Only if the reply never concludes on the value in another sentence, or that sentence or the next offers another record in its place (`I first wrote Series B, but that isn't right: it is a Series A`) |
+   | The whole sentence | a retraction word in it, or the next sentence taking it back (`… reviewed #482; that was not an approval`) | Only if the reply never concludes on the value in another sentence, or that sentence or the next offers another record in its place (`I first wrote Series B, but that isn't right: it is a Series A`). Never when the sentence is about another record: it names another record's value for a required fact and not that fact's source value (`order #1060 … also unfulfilled. That is not the order behind the ticket`) |
 5. For each fact that is affirmed and nowhere denied or disputed, the reply's
    answer is read from its claims, in order (see
    [The reply's answer](#the-replys-answer)).
@@ -333,9 +334,9 @@ today.
 replies that unit tests used to assert on and the reader misread: 7 correct
 replies, 4 of them still left unresolved, and 29 wrong replies that pass. They
 were picked because the reader got them wrong, so they are not part of the
-rates above. `natural_answers/pilot_agent.json` holds 158 replies that pilot
+rates above. `natural_answers/pilot_agent.json` holds 207 replies that pilot
 agents wrote to 54 lookup tasks without seeing the contracts. Earlier readers
-left ten of them unresolved or failed; all pass now.
+left twelve of them unresolved or failed; all pass now.
 
 **Correct replies left unresolved** state a bare answer and then name another
 authored record in wording the reader takes for a claim ("the September invoice

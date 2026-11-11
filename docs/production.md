@@ -201,18 +201,19 @@ for one, and each can be repeated from this repository:
 |---|---|
 | Reference solution and no-op agent through stock Harbor (`deploy/stock-campaign.sh`) | The reference solution scores 1 on 150 of 150 tasks and the no-op agent scores 0 on 150 of 150 |
 | The production worker's own planner, validation and trial code (`deploy/production/`) | All 150 task directories load, and 26 scripted attempts end as expected |
-| AI agents attempting tasks through the MCP servers without seeing the contracts (`deploy/pilot/`) | 357 attempts in four waves. The last wave covered all 150 tasks: 147 passed, two correct replies were left unscored and one completed trial was voided. All three causes have since been fixed |
+| AI agents attempting tasks through the MCP servers without seeing the contracts (`deploy/pilot/`) | 412 attempts in five waves. The fourth covered all 150 tasks: 147 passed, two correct replies were left unscored and one completed trial was voided. The fifth repeated the 55 lookup tasks: 53 passed. Every cause has since been fixed |
 | Reply corpora (`crates/mock-core/tests/fixtures/`) | 499 of 500 correct replies pass and 300 of 300 wrong replies are rejected |
 
 What the agent attempts found, and what to expect from a model run:
 
 - **Lookup replies.** The reader that grades written replies was the weak point. In
-  successive waves it left 5 of 56, 3 of 55 and 2 of 55 correct replies unscored, each
-  time because of a note written after a complete answer. Every case was fixed and all
-  158 replies are now regression fixtures, but those rates are the honest guide: expect
-  a few percent of correct, wordy replies to come back unresolved. `bench-report` lists
-  unresolved trials apart from failures. Read them before trusting a small difference
-  between two arms.
+  successive waves it rejected or left unscored 5 of 56, 3 of 55, 2 of 55 and 2 of 55
+  correct replies, each time because of a note written after a complete answer. Every
+  case was fixed and all 207 replies are now regression fixtures, but the rate stopped
+  falling at about 2 in 55 on fresh replies. That is the honest guide: expect a few
+  percent of correct, wordy lookup replies to score 0, most of them as unresolved.
+  `bench-report` lists unresolved trials apart from failures. Read them, and the failed
+  lookup trials, before trusting a small difference between two arms.
 - **Write tasks.** All 95 passed in the last wave. A probe of the alternatives the
   agents had doubted changed 30 tasks where an ordinary way of doing the job was
   rejected or the data contradicted itself, and fixed 11 mock behaviours that blocked

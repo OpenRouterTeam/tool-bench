@@ -144,9 +144,9 @@ fn sentences(text: &str) -> Vec<&str> {
         .collect()
 }
 
-/// Whether the reply makes the claim at `start..end` of `text`, as opposed to quoting it
-/// as a question, denying it, retracting it or reporting it as a rumour. A claim that
-/// runs across sentences is taken as made.
+/// Whether the reply makes the claim at `start..end` of `text`, as opposed to quoting or
+/// reporting it as a question, denying it, retracting it or reporting it as a rumour. A
+/// claim that runs across sentences is taken as made.
 fn asserted(text: &str, start: usize, end: usize) -> bool {
     let base = text.as_ptr() as usize;
     let Some((from, line)) = sentences(text)
@@ -158,7 +158,10 @@ fn asserted(text: &str, start: usize, end: usize) -> bool {
     };
     let (before, after) = (&line[..start - from], &line[end - from..]);
     let rest = text[from + line.len()..].trim_start();
-    let asked = ASKED.is_match(after) || rest.starts_with('?');
+    // An indirect question: "Sam asked whether we chose X". The asking must lead into the
+    // claim, so a colon or semicolon between them ends it ("You asked: we chose X").
+    let lead = before.rsplit([':', ';']).next().unwrap_or(before);
+    let asked = ASKED.is_match(after) || rest.starts_with('?') || INDIRECT_QUESTION.is_match(lead);
     // The next sentence opens by calling this one wrong: "...; that is wrong."
     let dismissed = sentences(rest)
         .first()
@@ -471,6 +474,11 @@ static CALLED_WRONG: LazyLock<Regex> = LazyLock::new(|| {
         r"(?:wrong|incorrect|false|untrue|mistaken|(?:just |only )?(?:a )?(?:rumou?r|speculation|hearsay|gossip))\b",
     ))
     .expect("called-wrong pattern")
+});
+/// Wording that reports what follows as a question someone asked.
+static INDIRECT_QUESTION: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"\b(?:asked|asks|asking|wondered|wonders|wondering|whether)\b")
+        .expect("indirect question pattern")
 });
 /// Closing quotes and brackets, then a question mark: the text before is asked, not said.
 static ASKED: LazyLock<Regex> =
@@ -1458,6 +1466,26 @@ pub(super) fn check(
         }
     }
 
+    // Sentences about another record: they name another record's value for a required fact
+    // and not the source value of that fact ("order #1060 ... is also unfulfilled").
+    let about_other: Vec<bool> = read
+        .iter()
+        .zip(&located)
+        .map(|(sentence, found)| {
+            items
+                .iter()
+                .enumerate()
+                .any(|(index, (_, fact, _, alternatives))| {
+                    !fact.optional
+                        && found[index].is_empty()
+                        && alternatives.iter().any(|alternative| {
+                            let mut unused = Notes::default();
+                            !spans(fact, alternative, sentence.text, false, &mut unused).is_empty()
+                        })
+                })
+        })
+        .collect();
+
     let mut failure = None;
     let mut review = None;
     // Where each fact is first affirmed, for the declared statement order.
@@ -1679,16 +1707,33 @@ pub(super) fn check(
         // Once the reply has concluded on the value, a negative predicate about it ("has
         // not been updated for X") denies nothing. A dispute of another sentence that
         // names it ("... reviewed #482; that was not an approval") does not either,
-        // unless that sentence or the next offers another record in its place.
+        // unless that sentence or the next offers another record in its place. A dispute
+        // of a sentence about another record never does.
+        // Any concluding statement of the value will do here ("so nothing has shipped"):
+        // the question is whether the reply stands by the value, not whether a later
+        // record could still take the answer.
         let concluded: Vec<usize> = evidence
             .claims
             .iter()
-            .filter(|(_, claim)| matches!(claim, Claim::Source { settling: true, .. }))
+            .filter(|(_, claim)| {
+                matches!(
+                    claim,
+                    Claim::Source {
+                        concluding: true,
+                        ..
+                    }
+                )
+            })
             .map(|(mention, _)| mention.sentence)
             .collect();
         for (position, status, reach) in std::mem::take(&mut evidence.indirect) {
             let stands = match reach {
                 Reach::Predicate => !concluded.is_empty(),
+                // A sentence about another record is what its dispute dismisses ("...
+                // order #1060, also unfulfilled. That is not the order behind the
+                // ticket"): the value it shares with the source is neither stated nor
+                // denied there.
+                _ if about_other[position] => true,
                 _ => {
                     concluded.iter().any(|sentence| *sentence != position)
                         && !evidence
