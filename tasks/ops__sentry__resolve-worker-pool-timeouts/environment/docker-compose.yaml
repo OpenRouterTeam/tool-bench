@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:169c97d39264144a
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cdb27ba7278bcc19
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "ops/sentry/resolve-worker-pool-timeouts"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b8f3bd7ed50d397a
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b90b466a6ab83c71
     stop_signal: SIGKILL
     networks:
       default: {}
