@@ -53,6 +53,27 @@ CONTRADICTORY_CRITERIA = {
     "Alert only about careers. Ignore prices and plan limits.",
     "Only alert about prices, never plan limits.",
 }
+# A criterion in other words covers the request when it names price changes and either
+# plan-limit changes or every change to the page. These lists are this auditor's own
+# reading of the request, not a copy read from the contract.
+PRICE_TERMS = ("price", "prices", "pricing", "priced", "cost", "costs")
+LIMIT_TERMS = ("limit", "limits", "quota", "quotas", "allowance", "allowances", "cap", "caps")
+EVERY_CHANGE_TERMS = (
+    "any change", "any changes", "all changes", "every change", "any update", "any updates",
+    "anything changes", "page changes", "page is updated", "changes to the pricing page",
+    "changes on the pricing page",
+)
+
+
+def names(text, terms):
+    return any(re.search(r"(?<![a-z0-9])" + re.escape(term) + r"(?![a-z0-9])", text) for term in terms)
+
+
+def covers_request(criterion):
+    text = " ".join(criterion.lower().split())
+    return names(text, PRICE_TERMS) and (names(text, LIMIT_TERMS) or names(text, EVERY_CHANGE_TERMS))
+
+
 CHECK_STATES = {
     "queued", "running", "completed", "partial", "failed",
     "skipped_no_credits", "skipped_overlap",
@@ -454,8 +475,8 @@ def monitor_goal(record, complete):
             problems.append("active criterion excludes requested price/limit coverage")
         elif not isinstance(criterion, str) or not criterion.strip():
             problems.append("active judging has no coverage criterion")
-        elif criterion not in APPROVED_CRITERIA:
-            unknown.append("active filter meaning requires independent adjudication")
+        elif criterion not in APPROVED_CRITERIA and not covers_request(criterion):
+            problems.append("active criterion does not cover the requested price and limit changes")
     return problems, unknown
 
 
@@ -616,8 +637,6 @@ def allowed_transaction(initial, cursor, following, changes, family, selected, r
                         and response.get("data", {}).get("monitorId") == parent,
                         "manual check creation is not bound to its actual HTTP child")
                 require(instant_ns(after.get("createdAt")) == instant_ns(now), "new check has the wrong time")
-                if family == "pause" and cursor["firecrawl"]["monitors"][selected["broken"]]["status"] != "paused":
-                    problems.append("healthy check started before the broken monitor was paused")
             elif eligible and before is not None:
                 allowed = method == "GET" and path == f"/v2/monitor/{parent}/checks/{identity}" \
                     and fields <= {"status", "startedAt", "completedAt", "summary", "pages"}

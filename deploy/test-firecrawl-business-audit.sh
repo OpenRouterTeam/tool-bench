@@ -33,6 +33,6 @@ PY
   cat "$(dirname "$verifier")/audit.log"
   count=$((count + 1))
 done
-test "$count" = 17
-printf '%s\n' 'All 17 source-bound fixtures independently agree, including three explicit on-disk variants.'
-printf '%s\n' 'The unresolved filter remains unresolved; this is not a model score, runtime campaign or hosted certification.'
+test "$count" = 18
+printf '%s\n' 'All 18 source-bound fixtures independently agree, including three explicit on-disk variants.'
+printf '%s\n' 'A paraphrased filter passes and a partial one fails; this is not a model score, runtime campaign or hosted certification.'

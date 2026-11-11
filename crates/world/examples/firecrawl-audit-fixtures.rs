@@ -101,8 +101,12 @@ fn monitor_body(variant: &str) -> Value {
         body["goal"] = Value::Null;
         body["judgeEnabled"] = json!(false);
     }
-    if variant == "unknown_filter" {
+    // The requested coverage in other words, and a criterion that leaves the limits out.
+    if variant == "paraphrased_filter" {
         body["goal"] = json!("Watch meaningful price and limit revisions.");
+    }
+    if variant == "partial_filter" {
+        body["goal"] = json!("Tell me when the prices move.");
     }
     body
 }
@@ -243,12 +247,13 @@ async fn main() -> anyhow::Result<()> {
                 "active_restored_nondaily",
                 "existing_clock",
                 "occupied_identity",
-                "unknown_filter",
+                "paraphrased_filter",
+                "partial_filter",
             ][..],
         ),
         (
             "pause-broken-pricing-monitor",
-            &["reference", "nop", "already_paused", "wrong_order"][..],
+            &["reference", "nop", "already_paused", "check_first"][..],
         ),
     ] {
         for variant in variants {
@@ -300,7 +305,9 @@ async fn main() -> anyhow::Result<()> {
                         }
                     }
                     _ => {
-                        if *variant != "wrong_order" && *variant != "already_paused" {
+                        // The pause and the check concern different monitors, so the
+                        // request is met in either order.
+                        if *variant != "check_first" && *variant != "already_paused" {
                             update(&trial, &tools, BROKEN, json!({"status":"paused"})).await?;
                         }
                         call(
@@ -310,7 +317,7 @@ async fn main() -> anyhow::Result<()> {
                             json!({"id":HEALTHY}),
                         )
                         .await?;
-                        if *variant == "wrong_order" {
+                        if *variant == "check_first" {
                             update(&trial, &tools, BROKEN, json!({"status":"paused"})).await?;
                         }
                     }
@@ -343,8 +350,7 @@ async fn main() -> anyhow::Result<()> {
                 | "mixed_scope"
                 | "active_restored_nondaily"
                 | "existing_clock"
-                | "wrong_order" => Outcome::Fail,
-                "unknown_filter" => Outcome::Unresolved,
+                | "partial_filter" => Outcome::Fail,
                 _ => Outcome::Pass,
             };
             ensure!(

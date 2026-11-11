@@ -436,13 +436,25 @@ class BusinessGoalTests(unittest.TestCase):
         trial.update(identity, {"status": "active"})
         self.assertEqual(trial.audit()[0], "pass")
 
-    def test_contradictory_active_filter_fails_and_unknown_active_filter_is_unresolved(self):
+    def test_an_active_filter_must_cover_prices_and_limits_in_any_wording(self):
         trial = Trial("create")
         trial.monitor({"goal": "Only alert about prices, never plan limits."})
         self.assertEqual(trial.audit()[0], "fail")
-        trial = Trial("create")
-        trial.monitor({"goal": "Watch meaningful price and limit revisions."})
-        self.assertEqual(trial.audit()[0], "unresolved")
+        for criterion in [
+            "Watch meaningful price and limit revisions.",
+            "Tell me whenever anything changes on Fabrikam's pricing.",
+        ]:
+            trial = Trial("create")
+            trial.monitor({"goal": criterion})
+            self.assertEqual(trial.audit()[0], "pass", criterion)
+        for criterion in [
+            "Tell me when the prices move.",
+            "Watch for new plan limits.",
+            "Keep an eye on the capsule pricelist.",
+        ]:
+            trial = Trial("create")
+            trial.monitor({"goal": criterion})
+            self.assertEqual(trial.audit()[0], "fail", criterion)
 
     def test_safe_daily_clock_change_on_the_new_monitor_is_a_valid_plan(self):
         trial = Trial("create")
@@ -470,10 +482,14 @@ class BusinessGoalTests(unittest.TestCase):
         trial.run(next(iter(trial.initial["firecrawl"]["monitors"])))
         self.assertEqual(trial.audit()[0], "fail")
 
-    def test_pause_then_run_is_required_not_the_reverse(self):
+    def test_the_pause_and_the_check_may_come_in_either_order(self):
         trial = Trial("pause")
         trial.run(trial.selected["healthy"])
         trial.update(trial.selected["broken"], {"status": "paused"})
+        self.assertEqual(trial.audit()[0], "pass")
+        # A check with no pause is still half the request.
+        trial = Trial("pause")
+        trial.run(trial.selected["healthy"])
         self.assertEqual(trial.audit()[0], "fail")
 
     def test_pause_does_not_allow_extra_target_configuration(self):

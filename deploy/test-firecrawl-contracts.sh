@@ -80,8 +80,8 @@ if [ "$#" -eq 0 ]; then
     create_reference create_broad create_timezone create_staged_email create_clock \
     create_paused_clock create_initial_check create_disabled_email create_extra_recipient \
     create_wrong_target create_weekdays create_twice_daily create_contradictory \
-    create_unknown_filter create_restored_filter create_existing_run create_duplicate \
-    pause_reference pause_direct pause_readback pause_wrong_order pause_extra_goal \
+    create_paraphrased_filter create_partial_filter create_restored_filter create_existing_run create_duplicate \
+    pause_reference pause_direct pause_readback pause_check_first pause_extra_goal \
     pause_extra_monitor pause_duplicate_check pause_restored_goal
 fi
 for variant do
@@ -149,9 +149,10 @@ for variant do
     create_weekdays) monitor '{"schedule":{"cron":"0 9 * * 1-5","timezone":"UTC"}}' ;;
     create_twice_daily) monitor '{"schedule":{"cron":"0 0,12 * * *","timezone":"UTC"}}' ;;
     create_contradictory) monitor '{"goal":"Only alert about prices, never plan limits."}' ;;
-    create_unknown_filter)
+    create_paraphrased_filter)
       monitor '{"goal":"Watch meaningful price and limit revisions."}'
-      expected=unresolved ;;
+      expected=pass ;;
+    create_partial_filter) monitor '{"goal":"Tell me when the prices move."}' ;;
     create_restored_filter)
       monitor
       update_new '{"goal":"Only alert about prices, never plan limits."}'
@@ -162,7 +163,7 @@ for variant do
     create_duplicate) monitor; monitor '{}' '[]' ;;
     pause_direct) pause; run_healthy; expected=pass ;;
     pause_readback) pause; run_healthy; poll_healthy; expected=pass ;;
-    pause_wrong_order) run_healthy; pause ;;
+    pause_check_first) run_healthy; pause; expected=pass ;;
     pause_extra_goal) pause '{"goal":"An unrequested criterion"}'; run_healthy ;;
     pause_extra_monitor)
       pause
