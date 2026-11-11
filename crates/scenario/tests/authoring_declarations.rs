@@ -55,11 +55,30 @@ fn gaps(row: &Value) -> Vec<&str> {
         .collect()
 }
 
-/// A repository root that shares the real scenarios, tool snapshots and operation document
-/// but has its own (initially empty) declarations and one fixture test file.
+/// Copies a directory tree. Scenario loading refuses links (a materialized dataset must be
+/// made of ordinary files and directories), so the fixture cannot share the tree by symlink.
+fn copy_tree(from: &Path, to: &Path) {
+    fs::create_dir_all(to).unwrap();
+    for entry in fs::read_dir(from).unwrap() {
+        let entry = entry.unwrap();
+        let target = to.join(entry.file_name());
+        if entry.file_type().unwrap().is_dir() {
+            copy_tree(&entry.path(), &target);
+        } else {
+            fs::copy(entry.path(), target).unwrap();
+        }
+    }
+}
+
+/// A repository root with the real scenarios, tool snapshots and operation document but its
+/// own (initially empty) declarations and one fixture test file.
 fn fixture_root() -> tempfile::TempDir {
     let directory = tempfile::tempdir().unwrap();
-    for shared in ["scenarios", "servers", "docs"] {
+    copy_tree(
+        &root().join("scenarios"),
+        &directory.path().join("scenarios"),
+    );
+    for shared in ["servers", "docs"] {
         #[cfg(unix)]
         std::os::unix::fs::symlink(
             fs::canonicalize(root().join(shared)).unwrap(),
