@@ -155,11 +155,23 @@ class TaskAdmissionTests(unittest.TestCase):
         self.assertEqual(policy["inference_adapter"]["code_sha256"], _adapter_sha256())
 
     def test_actual_generated_task_requires_explicit_runner_protocol(self):
-        original = Path(
+        committed = Path(
             "tasks/business__stripe__customer-mrr/task.toml"
         ).read_text()
+        # The committed tasks are generated for stock Harbor. The strict controller admits
+        # the form `taskgen --runner-admission required` writes, which also declares the
+        # verifier's network cut.
+        original = committed.replace(
+            "[verifier.environment]\n",
+            '[verifier.environment]\nnetwork_mode = "no-network"\n',
+            1,
+        )
+        self.assertNotEqual(original, committed)
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "task.toml"
+            path.write_text(committed)
+            with self.assertRaises(AdmissionError):
+                admit_task(path)
             path.write_text(original)
             self.assertEqual(admit_task(path), "business/stripe/customer-mrr")
             for changed in [

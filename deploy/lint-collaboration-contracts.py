@@ -165,6 +165,12 @@ def derive_cutover(rows):
     states = [row for row in rows["linear/workflow_states"] if row["teamId"] == team["id"]]
     todo = {row["id"] for row in states if row["type"] == "unstarted"}
     done = only((row for row in states if row["type"] == "completed"), "the Done state is missing or ambiguous")
+    # Picking the ticket up before closing it is ordinary workflow, so the team's In Progress
+    # state may be passed through on the way to Done.
+    in_progress = only(
+        (row for row in states if row["type"] == "started" and row["name"] == "In Progress"),
+        "the In Progress state is missing or ambiguous",
+    )
     ticket = only(
         (row for row in rows["linear/issues"] if row["teamId"] == team["id"] and row["stateId"] in todo and "origin-3" in row["title"]),
         "the open origin-3 ticket is missing or ambiguous",
@@ -192,6 +198,7 @@ def derive_cutover(rows):
         "team": team["id"],
         "done": done["id"],
         "done_name": done["name"],
+        "in_progress": in_progress["id"],
         "zone": zone["id"],
         "record": record["id"],
         "staging_zone": staging["zone_id"],
@@ -395,10 +402,14 @@ def lint_cutover(facts, contract):
     permitted_pointers(
         contract,
         [f"{base}/content", f"{base}/modified_on", f"{issue}/stateId", f"{issue}/completedAt", f"{issue}/updatedAt", "/services/linear/comments/*", "/services/linear/issue_history/*"],
-        [f"{base}/settings", f"{base}/comment_modified_on", f"{base}/tags_modified_on"],
+        [f"{base}/settings", f"{base}/comment_modified_on", f"{base}/tags_modified_on", f"{issue}/startedAt"],
     )
     require(permission(contract, f"{base}/content")["value_equals"] == facts["address"], "content permission allows another address")
-    require(permission(contract, f"{issue}/stateId")["value_equals"] == facts["done"], "state permission allows another state")
+    states = sorted(rule.get("value_equals") or "" for rule in allowed(contract) if rule["pointer"] == f"{issue}/stateId")
+    require(
+        states in ([facts["done"]], sorted([facts["done"], facts["in_progress"]])),
+        "state permission allows another state",
+    )
     require(permission(contract, "/services/linear/comments/*")["matching"] == {"issueId": facts["issue_id"]}, "comment permission is not scoped to the ticket")
     for ordering in expectation(contract)["ordering"]:
         prerequisite = ordering["prerequisite"]
