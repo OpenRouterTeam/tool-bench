@@ -87,6 +87,14 @@ CONTEXT = error(400, "invalid_request_error", "prompt is too long: 550000 tokens
 RATE = error(429, "rate_limit_error", "rate limited")
 
 
+def consume(response):
+    """Reads a streamed reply to its end. The proxy records an exchange as answered only
+    once the stream has been relayed, so a reply left unread is still in flight when the
+    capture is finalized."""
+    with response:
+        response.read()
+
+
 class FakeProvider:
     """An offline Anthropic Messages endpoint that replays scripted responses."""
 
@@ -662,17 +670,17 @@ class HostStdoutParserTests(unittest.TestCase):
                 headers={"content-type": "application/json", "anthropic-version": "2023-06-01",
                          "x-api-key": env_vars["ANTHROPIC_API_KEY"]},
             )
-            urllib.request.urlopen(request, timeout=10)
+            consume(urllib.request.urlopen(request, timeout=10))
             body["messages"] = [user(INSTRUCTION),
                                 {"role": "assistant", "content": [{"type": "tool_use", "id": "toolu_1",
                                  "name": "github_search", "input": {"query": "checkout owner"}}]},
                                 {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "toolu_1",
                                  "content": "Maya is the owner"}]}]
-            urllib.request.urlopen(urllib.request.Request(
+            consume(urllib.request.urlopen(urllib.request.Request(
                 capture.local_url + "/v1/messages", data=json.dumps(body).encode(),
                 headers={"content-type": "application/json", "anthropic-version": "2023-06-01",
                          "x-api-key": env_vars["ANTHROPIC_API_KEY"]},
-            ), timeout=10)
+            ), timeout=10))
 
             evidence = capture.finalize()
             self.assertEqual(evidence.classification, "completed")
@@ -716,11 +724,11 @@ class HostStdoutParserTests(unittest.TestCase):
             body = {"model": "claude-fixture", "max_tokens": 1024, "system": "test", "stream": True,
                     "messages": [user(INSTRUCTION)],
                     "tools": [{"name": "github_search", "input_schema": {"type": "object"}}]}
-            urllib.request.urlopen(urllib.request.Request(
+            consume(urllib.request.urlopen(urllib.request.Request(
                 capture.local_url + "/v1/messages", data=json.dumps(body).encode(),
                 headers={"content-type": "application/json", "anthropic-version": "2023-06-01",
                          "x-api-key": env_vars["ANTHROPIC_API_KEY"]},
-            ), timeout=10)
+            ), timeout=10))
 
             evidence = capture.finalize()
             self.assertEqual(evidence.classification, "failed_finalization")

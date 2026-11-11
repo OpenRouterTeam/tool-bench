@@ -274,7 +274,9 @@ class RealClaudeCarrierTests(unittest.TestCase):
             capture.local_url + "/v1/messages", data=json.dumps(body).encode(),
             headers={"content-type": "application/json", "anthropic-version": "2023-06-01",
                      "x-api-key": env_vars["ANTHROPIC_API_KEY"]})
-        urllib.request.urlopen(request, timeout=10)
+        # Read the stream to its end: an unread reply is still in flight at finalization.
+        with urllib.request.urlopen(request, timeout=10) as response:
+            response.read()
 
         self.assertFalse(capture._host_stdout_captured)
         evidence = capture.finalize()
