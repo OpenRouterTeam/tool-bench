@@ -201,7 +201,7 @@ for one, and each can be repeated from this repository:
 |---|---|
 | Reference solution and no-op agent through stock Harbor (`deploy/stock-campaign.sh`) | The reference solution scores 1 on 150 of 150 tasks and the no-op agent scores 0 on 150 of 150 |
 | The production worker's own planner, validation and trial code (`deploy/production/`) | All 150 task directories load, and 26 scripted attempts end as expected |
-| AI agents attempting tasks through the MCP servers without seeing the contracts (`deploy/pilot/`) | 357 attempts in four waves. The last wave covered all 150 tasks on the final contracts: 147 passed |
+| AI agents attempting tasks through the MCP servers without seeing the contracts (`deploy/pilot/`) | 357 attempts in four waves. The last wave covered all 150 tasks: 147 passed, two correct replies were left unscored and one completed trial was voided. All three causes have since been fixed |
 | Reply corpora (`crates/mock-core/tests/fixtures/`) | 499 of 500 correct replies pass and 300 of 300 wrong replies are rejected |
 
 What the agent attempts found, and what to expect from a model run:
@@ -217,6 +217,10 @@ What the agent attempts found, and what to expect from a model run:
   agents had doubted changed 30 tasks where an ordinary way of doing the job was
   rejected or the data contradicted itself, and fixed 11 mock behaviours that blocked
   or misled correct work.
+- **Refused calls.** A mock refuses an operation it does not model. One agent passed an
+  optional parameter the Drive mock lacks, retried without it and finished the task; the
+  trial was voided. A refused call now voids a trial only if the trial does not otherwise
+  pass.
 - **One model.** Every pilot agent was the same model. A different model will take
   paths these did not, so treat a task that one model fails every time while its trace
   looks right as a contract to inspect, with `bench-report --explain <task>`.
