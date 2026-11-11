@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:c9cf6feb07cccfba
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "search/elasticsearch/checkout-errors-last-hour"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:440832e3d8bac995
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6
     stop_signal: SIGKILL
     networks:
       default: {}
