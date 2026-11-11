@@ -7,49 +7,87 @@ services = ["vercel"]
 tags = ["write", "single-service", "vercel", "disambiguation"]
 timeout_sec = 900
 
-# api.acme-shop.com belongs to checkout-api-next (prj_9Nau...), not the legacy checkout-api
-# (prj_Tt5m..., api-legacy.acme-shop.com).
-[[expect.state]]
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "checkout-api (api-legacy.acme-shop.com) and checkout-api-next (api.acme-shop.com) both have a production STRIPE_SECRET_KEY plus preview/development test keys; contract pins the prj_9NauQL production binding."
+
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/vercel/environment_bindings", matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", key = "STRIPE_SECRET_KEY", scope = "production" } }
+equals = 1
+fields = { "/value" = "sk_live_51NvCheckoutRot8Hq2", "/type" = "sensitive", "/records" = 1 }
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_variables/*"
+kind = "delete"
+matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", key = "STRIPE_SECRET_KEY", scope = "production", type = "sensitive" }
+count_scope = "per_commit"
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_variables/*"
+kind = "create"
+matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", key = "STRIPE_SECRET_KEY", value = "sk_live_51NvCheckoutRot8Hq2", scope = "production", type = "sensitive" }
+count_scope = "per_commit"
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/env"
+
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/updatedAt"
+
+[[expect.preservation.allow]]
 pointer = "/services/vercel/env_by_target/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/production/STRIPE_SECRET_KEY"
-equals = "sk_live_51NvCheckoutRot8Hq2"
 
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/preview/STRIPE_SECRET_KEY"
-equals = "sk_test_51NvCheckoutNextTst2"
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_bindings/*/value"
+initial_matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", key = "STRIPE_SECRET_KEY", scope = "production" }
 
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/development/STRIPE_SECRET_KEY"
-equals = "sk_test_51NvCheckoutNextTst2"
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_bindings/*/type"
+initial_matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", key = "STRIPE_SECRET_KEY", scope = "production" }
 
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/production/STRIPE_WEBHOOK_SECRET"
-equals = "whsec_Next4f0c1e9b2a"
+[[expect.preservation.allow]]
+pointer = "/services/vercel/environment_bindings/*/records"
+initial_matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", key = "STRIPE_SECRET_KEY", scope = "production" }
 
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_Tt5m7wZLjgqPCBUfmEh1nWJN9ZIW/production/STRIPE_SECRET_KEY"
-equals = "sk_live_51NvLegacyCheckout4r8Q"
+# Vercel reads environment variables when a deployment is built, so the rotated key reaches
+# production only with the next production deployment. The request neither asks for one nor
+# rules it out, and the old key is already rolled: redeploying the exact build that serves
+# production now (dpl_31CbxP6STgiIcddZvYPTtDYiJkhL) to production is accepted and is not
+# required. Another build, another target, a new build from Git and other projects stay
+# unauthorized.
+[[expect.preservation.allow]]
+pointer = "/services/vercel/deployments/*"
+kind = "create"
+matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", source = "redeploy", target = "production" }
+references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL", sourcePreserved = true } } }]
+count_scope = "per_commit"
 
-[[expect.state]]
-pointer = "/services/vercel/env_by_target/prj_Tt5m7wZLjgqPCBUfmEh1nWJN9ZIW/preview/STRIPE_SECRET_KEY"
-equals = "sk_test_51NvLegacyCheckoutT3st"
+[[expect.preservation.allow]]
+pointer = "/services/vercel/deployment_sources/*"
+kind = "create"
+matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", originalDeploymentId = "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL", sourcePreserved = true }
+count_scope = "per_commit"
 
-[[expect.required_calls]]
-service = "vercel"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "vercel-create-environment-variables" }
+[[expect.preservation.allow]]
+pointer = "/services/vercel/aliases/*/deploymentId"
+initial_matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH" }
+field_patterns = { "/alias" = "^(api\\.acme-shop\\.com|checkout-api-next-acme-shop\\.vercel\\.app)$" }
+references = [{ source_field = "/deploymentId", target_field = "/id", target = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", readyState = "READY", target = "production" }, references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL", sourcePreserved = true } } }] } }]
+max_count = 2
 
-[[expect.forbidden_calls]]
-service = "vercel"
-body = { name = "vercel-remove-environment-variable", arguments = { idOrName = "checkout-api" } }
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/targets/production"
+references = [{ source_field = "/targets/production/id", target_field = "/id", target = { collection = "/services/vercel/deployments", created = true, matching = { projectId = "prj_9NauQLxYvOeIyWZWq6mqvavv9xuH", readyState = "READY", target = "production" }, references = [{ source_field = "/id", target_field = "/deploymentId", target = { collection = "/services/vercel/deployment_sources", created = true, matching = { originalDeploymentId = "dpl_31CbxP6STgiIcddZvYPTtDYiJkhL", sourcePreserved = true } } }] } }]
 
-[[expect.forbidden_calls]]
-service = "vercel"
-body = { name = "vercel-remove-environment-variable", arguments = { idOrName = "prj_Tt5m7wZLjgqPCBUfmEh1nWJN9ZIW" } }
-
-[[expect.forbidden_calls]]
-service = "vercel"
-body = { name = "vercel-delete-project" }
+[[expect.preservation.allow]]
+pointer = "/services/vercel/projects/prj_9NauQLxYvOeIyWZWq6mqvavv9xuH/latestDeployments"
 
 [[solution.call]]
 endpoint = "vercel"
@@ -60,11 +98,13 @@ arguments = { idOrName = "checkout-api-next", domain = "api.acme-shop.com" }
 endpoint = "vercel"
 tool = "vercel-get-environments"
 arguments = { idOrName = "checkout-api-next" }
+capture = [{ name = "production_key_id", pointer = "/content/1/text", json_pointer = "", select = { matching = { key = "STRIPE_SECRET_KEY", type = "sensitive" }, pointer = "/id" }, constraint = { type = "string", minLength = 1 } }]
 
 [[solution.call]]
 endpoint = "vercel"
 tool = "vercel-remove-environment-variable"
-arguments = { idOrName = "checkout-api-next", id = "rN1Dlb7NzGIlkNJD" }
+template = true
+arguments = { idOrName = "checkout-api-next", id = "${production_key_id}" }
 
 [[solution.call]]
 endpoint = "vercel"

@@ -1,0 +1,77 @@
+# Reviewed operation support for `firecrawl`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_check_crawl_status"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_crawl"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_map"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_monitor_check"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_monitor_checks"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_monitor_create"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_monitor_get"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_monitor_list"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_monitor_run"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"
+
+[[operation]]
+endpoint = "firecrawl"
+tool = "firecrawl_monitor_update"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Firecrawl scripted native-client checkpoint — condition 42B"

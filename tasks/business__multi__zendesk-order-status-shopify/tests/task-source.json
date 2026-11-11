@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/multi/zendesk-order-status-shopify",
+  "scenario_sha256": "sha256:375fd4a190c17924185618dedadd8b1aae9524defb5dd3a5284d75c726fe955b",
+  "dataset_sha256": "sha256:089a3a26bbf5c15596577e3f54e358daaf83a2b806a731ca9346640f526090cd",
+  "contract_sha256": "sha256:4db18c641f6badd2c037ef88850e4b1803470c55c6158ddb691a62757810f86b"
+}

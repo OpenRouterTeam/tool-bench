@@ -6,7 +6,7 @@
 //!
 //! [`load`] builds an in-memory [`Db`]; [`store`] writes a changed one back.
 
-use mock_core::{ids::IdGen, store::Store};
+use mock_core::{ids::IdGen, store::Store, world::ServiceState};
 use serde_json::{Map, Value, json};
 
 use crate::sql::{
@@ -104,6 +104,29 @@ fn rows_collection(r: &str, schema: &str, name: &str) -> String {
     format!("db.{r}.{schema}.{name}")
 }
 
+pub fn initialize(service: &mut ServiceState, _now: i64) {
+    let tables: Vec<_> = service
+        .store
+        .collection("tables")
+        .into_iter()
+        .flat_map(|tables| tables.iter())
+        .map(|(identity, value)| {
+            let definition = serde_json::from_value::<TableDef>(value.clone())
+                .unwrap_or_else(|_| panic!("unsupported Supabase table fixture shape"));
+            (
+                identity.to_owned(),
+                serde_json::to_value(definition).expect("table definition serializes"),
+            )
+        })
+        .collect();
+    for (identity, definition) in tables {
+        service
+            .store
+            .collection_mut("tables")
+            .insert(identity, definition);
+    }
+}
+
 /// Loads project `r`'s database. Tables without a definition get one inferred from rows.
 pub fn load(store: &Store, ids: &IdGen, r: &str, now_rfc3339: &str) -> Db {
     let prefix = format!("{r}.");
@@ -162,8 +185,39 @@ pub fn load(store: &Store, ids: &IdGen, r: &str, now_rfc3339: &str) -> Db {
             ext
         })
         .collect();
+    let history: Vec<_> = store
+        .collection("migrations")
+        .into_iter()
+        .flat_map(|migrations| migrations.iter())
+        .filter(|(identity, _)| identity.starts_with(&format!("{r}/")))
+        .map(|(_, migration)| {
+            vec![
+                migration.get("version").cloned().unwrap_or(Value::Null),
+                migration.get("name").cloned().unwrap_or(Value::Null),
+                migration.get("statements").cloned().unwrap_or(Value::Null),
+            ]
+        })
+        .collect();
+    let read_only_tables = if history.is_empty() {
+        Vec::new()
+    } else {
+        vec![Table {
+            def: serde_json::from_value(json!({
+                "id":16383,"schema":"supabase_migrations","name":"schema_migrations",
+                "columns":[
+                    {"name":"version","type":"text","nullable":false},
+                    {"name":"name","type":"text"},
+                    {"name":"statements","type":"text[]"}
+                ],
+                "primary_keys":["version"]
+            }))
+            .expect("migration catalog definition is valid"),
+            rows: history,
+        }]
+    };
     Db {
         tables,
+        read_only_tables,
         extensions,
         now: rfc3339_to_tstz(now_rfc3339),
         ids: ids.clone(),
@@ -270,6 +324,7 @@ pub fn introspect_tables(db: &Db, parameters: &[Value], exclude: bool) -> Vec<Va
     let schemas: Vec<String> = parameters.iter().filter_map(to_text).collect();
     db.tables
         .iter()
+        .chain(&db.read_only_tables)
         .filter(|t| schemas.contains(&t.def.schema) != exclude)
         .map(|t| table_row(db, &t.def, t.rows.len()))
         .collect()

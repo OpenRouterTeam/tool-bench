@@ -1,0 +1,56 @@
+# Reviewed operation support for `kubernetes`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "kubernetes"
+tool = "helm_list"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Kubernetes memory, desired scaling and Helm cleanup"
+
+[[operation]]
+endpoint = "kubernetes"
+tool = "helm_uninstall"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Kubernetes memory, desired scaling and Helm cleanup"
+
+[[operation]]
+endpoint = "kubernetes"
+tool = "pods_get"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Kubernetes memory, desired scaling and Helm cleanup"
+
+[[operation]]
+endpoint = "kubernetes"
+tool = "pods_list_in_namespace"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Kubernetes memory, desired scaling and Helm cleanup"
+
+[[operation]]
+endpoint = "kubernetes"
+tool = "resources_create_or_update"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Kubernetes memory, desired scaling and Helm cleanup"
+
+[[operation]]
+endpoint = "kubernetes"
+tool = "resources_list"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Kubernetes memory, desired scaling and Helm cleanup"
+
+[[operation]]
+endpoint = "kubernetes"
+tool = "resources_scale"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Kubernetes memory, desired scaling and Helm cleanup"

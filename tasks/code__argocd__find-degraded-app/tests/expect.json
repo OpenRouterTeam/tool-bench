@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -10,7 +15,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "argocd",
@@ -20,7 +27,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "argocd",
@@ -30,14 +39,138 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "checkout-web",
-      "2.14.0-rc3"
-    ],
-    "regex": "(?is)(ImagePullBackOff|ErrImagePull|pull|not found|does(n't| not) exist|missing (image|tag))"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the Argo CD application that is Degraded on production (its failing Deployment has the same name), the image tag its failing pod runs, and why that pod is not starting (the reason it is waiting, or the cause its events give for that reason).",
+      "selector": {
+        "collection": "/services/argocd/applications",
+        "matching": {
+          "metadata": {
+            "labels": {
+              "env": "production"
+            }
+          },
+          "status": {
+            "health": {
+              "status": "Degraded"
+            }
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "app": {
+          "field": "/metadata/name",
+          "kind": "text"
+        },
+        "image_tag": {
+          "field": "/images/0",
+          "kind": "identifier",
+          "record": "pod",
+          "capture": ":([^:/]+)$"
+        },
+        "pod_name": {
+          "field": "/name",
+          "kind": "identifier",
+          "optional": true,
+          "record": "pod"
+        },
+        "reason": {
+          "field": "/manifest/status/containerStatuses/0/state/waiting/reason",
+          "kind": "text",
+          "record": "pod",
+          "also": [
+            "/health/message"
+          ],
+          "wordings": {
+            "ImagePullBackOff": [
+              "ErrImagePull",
+              "image pull back-off",
+              "image pull backoff",
+              "cannot pull",
+              "can't pull",
+              "could not pull",
+              "couldn't pull",
+              "unable to pull",
+              "failed to pull",
+              "fails to pull",
+              "failing to pull",
+              "cannot be pulled",
+              "can't be pulled",
+              "could not be pulled",
+              "couldn't be pulled",
+              "not found",
+              "NotFound",
+              "does not exist",
+              "doesn't exist",
+              "nonexistent",
+              "non-existent",
+              "no such image",
+              "no such tag",
+              "never pushed",
+              "never published",
+              "not in the registry",
+              "isn't in the registry",
+              "not present in the registry",
+              "missing from the registry",
+              "missing from ghcr",
+              "missing tag",
+              "missing image",
+              "tag is missing",
+              "image is missing",
+              "registry has no",
+              "registry does not have",
+              "registry doesn't have",
+              "cannot be found",
+              "can't be found",
+              "could not be found",
+              "couldn't be found"
+            ]
+          }
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "pod": {
+          "collection": "/services/argocd/resources",
+          "filter": {
+            "matching": {
+              "/kind": "Pod"
+            },
+            "excluding": [
+              {
+                "/health/status": "Healthy"
+              }
+            ]
+          },
+          "on": {
+            "/manifest/metadata/labels/app.kubernetes.io~1instance": "/metadata/name"
+          }
+        }
+      },
+      "context": [
+        "The old pods are still serving",
+        "pod ${pod_name}",
+        "Why"
+      ],
+      "predicates": [
+        "cannot roll out",
+        "can't roll out",
+        "could not roll out"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

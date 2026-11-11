@@ -1,0 +1,123 @@
+{
+  "render": [
+    {
+      "name": "reference in ordinary customer text",
+      "bindings": {"refund_id": "re_returned"},
+      "arguments": {"comment": "Your refund ${refund_id} was issued."},
+      "expected": {"comment": "Your refund re_returned was issued."}
+    },
+    {
+      "name": "whole values retain their JSON types",
+      "bindings": {"count": 3, "enabled": true, "details": {"value": "x"}, "empty": null},
+      "arguments": ["${count}", "${enabled}", "${details}", "${empty}", "${count} items"],
+      "expected": [3, true, {"value": "x"}, null, "3 items"]
+    },
+    {
+      "name": "captured text is not another template",
+      "bindings": {"reference": "${private}", "private": "never_expand"},
+      "arguments": ["${reference}", "Refund ${reference}.", "${reference}/${private}"],
+      "expected": ["${private}", "Refund ${private}.", "${private}/never_expand"]
+    },
+    {
+      "name": "unicode surrounding captures is preserved",
+      "bindings": {"identifier": "re_日本", "count": 2},
+      "arguments": {"message": "🙂 ご返金 ${identifier} · ${count} 件"},
+      "expected": {"message": "🙂 ご返金 re_日本 · 2 件"}
+    },
+    {
+      "name": "quotes and shell syntax remain data",
+      "bindings": {"identifier": "\"; $(not-a-command) \\ text"},
+      "arguments": {"id": "${identifier}", "message": "ID: ${identifier}"},
+      "expected": {"id": "\"; $(not-a-command) \\ text", "message": "ID: \"; $(not-a-command) \\ text"}
+    }
+  ],
+  "answers": [
+    {
+      "name": "actual returned DSN",
+      "template": "${dsn}",
+      "bindings": {"dsn": "https://returned@ingest.example.net/73023"},
+      "expected": "https://returned@ingest.example.net/73023"
+    },
+    {
+      "name": "explicit newline is preserved exactly",
+      "template": "SENTRY_DSN=${dsn}\n",
+      "bindings": {"dsn": "https://returned@ingest.example.net/73023"},
+      "expected": "SENTRY_DSN=https://returned@ingest.example.net/73023\n"
+    },
+    {
+      "name": "captured answer data is not shell or another template",
+      "template": "${text}",
+      "bindings": {"text": "${private}; $(not-a-command) \"quoted\" 日本", "private": "never_expand"},
+      "expected": "${private}; $(not-a-command) \"quoted\" 日本"
+    },
+    {
+      "name": "whole nonstring values become JSON answer bytes",
+      "template": "${value}",
+      "bindings": {"value": {"amount": 3, "verified": true}},
+      "expected": "{\"amount\":3,\"verified\":true}"
+    }
+  ],
+  "invalid_render": [
+    {"name": "unclosed placeholder", "arguments": "before ${value", "bindings": {"value": "safe"}},
+    {"name": "invalid placeholder name", "arguments": "${value.bad}", "bindings": {"value": "safe"}},
+    {"name": "nested placeholder", "arguments": {"body": "${outer${value}}"}, "bindings": {"value": "safe"}},
+    {"name": "missing captured value", "arguments": {"id": "${missing}"}, "bindings": {}}
+  ],
+  "capture": [
+    {
+      "name": "select a unique exact channel rather than a position or substring",
+      "bindings": {},
+      "captures": [{"name": "publication", "pointer": "/content/0/text", "json_pointer": "/publications/nodes", "select": {"matching": {"name": "Online Store"}, "pointer": "/id"}}],
+      "result": {"content": [{"text": "{\"publications\":{\"nodes\":[{\"id\":\"wrong\",\"name\":\"Not Online Store\"},{\"id\":\"actual-returned\",\"name\":\"Online Store\"}]}}"}]},
+      "expected": {"publication": "actual-returned"}
+    },
+    {
+      "name": "decode JSON text content",
+      "bindings": {},
+      "captures": [{"name": "refund_id", "pointer": "/content/0/text", "json_pointer": "/id"}],
+      "result": {"content": [{"type": "text", "text": "{\"id\":\"re_live_result\"}"}]},
+      "expected": {"refund_id": "re_live_result"}
+    },
+    {
+      "name": "escaped keys and explicit null",
+      "bindings": {"prior": 1},
+      "captures": [
+        {"name": "value", "pointer": "/a~1b/~0name/0", "json_pointer": null},
+        {"name": "empty", "pointer": "/null", "json_pointer": null}
+      ],
+      "result": {"a/b": {"~name": [7]}, "null": null},
+      "expected": {"prior": 1, "value": 7, "empty": null}
+    }
+  ],
+  "replacement_render": [
+    {
+      "name": "replace one captured spec field without losing independent configuration",
+      "bindings": {"spec":{"source":{"targetRevision":"main","repoURL":"https://example.test/repo"},"syncPolicy":{"automated":{"enabled":true}},"info":"${not_a_binding}"}},
+      "arguments": {"spec":"${spec}","applicationName":"billing-worker"},
+      "replacements": [{"pointer":"/spec/source/targetRevision","value":"v1.42.0"}],
+      "expected": {"spec":{"source":{"targetRevision":"v1.42.0","repoURL":"https://example.test/repo"},"syncPolicy":{"automated":{"enabled":true}},"info":"${not_a_binding}"},"applicationName":"billing-worker"}
+    },
+    {
+      "name": "escaped pointer replaces an existing null with a typed captured object",
+      "bindings": {"body":{"a/b":{"~name":null}},"payload":{"enabled":true,"opaque":"${literal}"}},
+      "arguments": {"body":"${body}"},
+      "replacements": [{"pointer":"/body/a~1b/~0name","value":"${payload}"}],
+      "expected": {"body":{"a/b":{"~name":{"enabled":true,"opaque":"${literal}"}}}}
+    },
+    {
+      "name": "array element and literal asterisk keys remain ordinary JSON pointers",
+      "bindings": {},
+      "arguments": {"rows":[1,2],"*":{"value":"old"}},
+      "replacements": [{"pointer":"/rows/1","value":null},{"pointer":"/*/value","value":"new"}],
+      "expected": {"rows":[1,null],"*":{"value":"new"}}
+    }
+  ],
+  "invalid_replacements": [
+    {"name":"missing field","bindings":{},"arguments":{"spec":{}},"replacements":[{"pointer":"/spec/source/targetRevision","value":"v1.42.0"}]},
+    {"name":"root replacement","bindings":{},"arguments":{"spec":{}},"replacements":[{"pointer":"","value":{}}]},
+    {"name":"bad escape","bindings":{},"arguments":{"spec":{}},"replacements":[{"pointer":"/spec/~2field","value":true}]},
+    {"name":"duplicate replacement","bindings":{},"arguments":{"spec":{"target":"main"}},"replacements":[{"pointer":"/spec/target","value":"first"},{"pointer":"/spec/target","value":"second"}]},
+    {"name":"overlapping parent and child","bindings":{},"arguments":{"spec":{"target":"main"}},"replacements":[{"pointer":"/spec","value":{}},{"pointer":"/spec/target","value":"second"}]},
+    {"name":"unbound replacement value","bindings":{},"arguments":{"spec":{"target":"main"}},"replacements":[{"pointer":"/spec/target","value":"${missing}"}]}
+  ]
+}

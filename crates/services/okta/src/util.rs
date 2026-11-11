@@ -18,6 +18,7 @@ pub enum Reply {
     /// A list page plus its `Link` header value.
     Page(Vec<Value>, String),
     Empty(StatusCode),
+    Unsupported,
 }
 
 impl Reply {
@@ -43,6 +44,14 @@ pub fn into_response(reply: Reply, request_id: &str) -> Response {
             Some(link),
         ),
         Reply::Empty(s) => (s, None, None),
+        Reply::Unsupported => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Some(
+                json!({"message":"This operation is unavailable for this Okta connection."})
+                    .to_string(),
+            ),
+            None,
+        ),
     };
     let mut resp = match body {
         Some(b) => (status, [(header::CONTENT_TYPE, "application/json")], b).into_response(),
@@ -79,7 +88,7 @@ pub fn error(status: StatusCode, code: &str, summary: &str, causes: &[String]) -
             "errorCode": code,
             "errorSummary": summary,
             "errorLink": code,
-            "errorId": "oaetoolbench0000000000",
+            "errorId": "oae8mr4n2Yc6Ds7Rt0x7",
             "errorCauses": causes,
         }),
     )
@@ -95,12 +104,7 @@ pub fn not_found(id: &str, kind: &str) -> Reply {
 }
 
 pub fn endpoint_not_found() -> Reply {
-    error(
-        StatusCode::NOT_FOUND,
-        "E0000007",
-        "Not found: Resource not found: (Endpoint)",
-        &[],
-    )
+    Reply::Unsupported
 }
 
 pub fn validation(causes: &[&str]) -> Reply {
@@ -317,12 +321,45 @@ pub fn id_of(v: &Value) -> String {
     v["id"].as_str().unwrap_or_default().to_owned()
 }
 
+pub fn decoded_segments(path: &str) -> Result<Vec<String>, Reply> {
+    path.split('/')
+        .map(|segment| {
+            let mut decoded = Vec::with_capacity(segment.len());
+            let mut encoded = segment.as_bytes().iter().copied();
+            while let Some(value) = encoded.next() {
+                if value == b'%' {
+                    let Some(high) = encoded.next().and_then(|byte| (byte as char).to_digit(16))
+                    else {
+                        return Err(validation(&["path: Invalid percent encoding"]));
+                    };
+                    let Some(low) = encoded.next().and_then(|byte| (byte as char).to_digit(16))
+                    else {
+                        return Err(validation(&["path: Invalid percent encoding"]));
+                    };
+                    decoded.push((high * 16 + low) as u8);
+                } else {
+                    decoded.push(value);
+                }
+            }
+            let decoded = String::from_utf8(decoded)
+                .map_err(|_| validation(&["path: Invalid UTF-8 encoding"]))?;
+            if decoded.contains(['/', '\\'])
+                || decoded.chars().any(char::is_control)
+                || matches!(decoded.as_str(), "." | "..")
+            {
+                return Err(validation(&["path: Invalid path segment"]));
+            }
+            Ok(decoded)
+        })
+        .collect()
+}
+
 /// The API client the MCP server authenticates as; the actor of every event it causes.
 pub fn actor() -> Value {
     json!({
-        "id": "0oatoolbench",
+        "id": crate::account::CLIENT_ID,
         "type": "PublicClientApp",
-        "alternateId": "0oatoolbench",
+        "alternateId": crate::account::CLIENT_ID,
         "displayName": "Okta MCP Server",
         "detailEntry": null
     })
@@ -336,7 +373,7 @@ pub fn log_event(world: &mut WorldState, event_type: &str, display: &str, target
     let event = json!({
         "actor": actor(),
         "client": {
-            "userAgent": { "rawUserAgent": "okta-mcp-server/0.0.1 okta-sdk-python", "os": "Linux", "browser": "UNKNOWN" },
+            "userAgent": { "rawUserAgent": "okta-mcp-server/1.1.7 okta-sdk-python/3.4.6", "os": "Linux", "browser": "UNKNOWN" },
             "zone": "null",
             "device": "Unknown",
             "id": null,
@@ -344,7 +381,7 @@ pub fn log_event(world: &mut WorldState, event_type: &str, display: &str, target
             "geographicalContext": null
         },
         "device": null,
-        "authenticationContext": { "authenticationStep": 0, "externalSessionId": "trstoolbench" },
+        "authenticationContext": { "authenticationStep": 0, "externalSessionId": crate::account::SESSION_ID },
         "displayMessage": display,
         "eventType": event_type,
         "outcome": { "result": "SUCCESS", "reason": null },

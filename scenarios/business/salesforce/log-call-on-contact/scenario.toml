@@ -7,42 +7,41 @@ services = ["salesforce"]
 tags = ["write", "single-service", "salesforce", "disambiguation"]
 timeout_sec = 900
 
-# The first Task the org creates gets Id 00T8c0000000001EAA. Its contact must be Dana
-# Whitfield at Northgate Analytics, not Dan Whitfield (same account) or Dana Whitfield at
-# Northgate Capital Partners.
-[[expect.state]]
-pointer = "/services/salesforce/Task/00T8c0000000001EAA/WhoId"
-equals = "0035g00000p3z7WAAQ"
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Dana Whitfield 0035g00000p3z7WAAQ at Northgate Analytics vs Dana Whitfield at Northgate Capital Partners and Dan Whitfield at the same account; contract requires WhoId 0035g00000p3z7WAAQ."
 
-[[expect.state]]
-pointer = "/services/salesforce/Task/00T8c0000000001EAA/Subject"
-equals = "Renewal pricing call"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/salesforce/Task/00T8c0000000001EAA/Status"
-equals = "Completed"
+[[expect.records]]
+selector = { collection = "/services/salesforce/Task", created = true }
+equals = 1
+fields = { "/WhoId" = "0035g00000p3z7WAAQ", "/AccountId" = "0015g000008HFvFAAW", "/Subject" = "Renewal pricing call", "/Status" = "Completed", "/IsClosed" = true, "/IsDeleted" = false, "/ActivityDate" = "2026-05-12" }
+# Related To may stay empty, name the account, or name the account's one renewal opportunity
+# (0065g…FMcaO, "Northgate Analytics - Platform Renewal 2026"), which the call was about.
+optional_choices = { "/WhatId" = ["0015g000008HFvFAAW", "0065g00000FMcaOAAT"], "/TaskSubtype" = ["Call", "Task", ""], "/Type" = ["Call", ""] }
+null_fields = ["/CallDurationInSeconds", "/CallType", "/CallDisposition"]
+any_fields = [{ "/TaskSubtype" = "Call" }, { "/Type" = "Call" }]
+reviewed_text = { "/Description" = { requirement = "Note that Dana wants a three-year quote by May 22, 2026. The linked contact and the subject supply who she is and the renewal topic.", accepted = ["Discussed renewal pricing. Dana wants a 3-year quote by May 22.", "Dana requested a three-year renewal quote by May 22, 2026.", "Dana Whitfield wants a 3-year renewal quote by 2026-05-22."], mentions = [["3-year", "three-year", "3 year", "three year", "3 years", "three years", "3-yr", "3 yr", "3yr", "36-month", "36 month", "36 months"], ["quote", "quotes", "quotation", "quoted", "pricing"], ["May 22", "May 22nd", "22 May", "22nd May", "22nd of May", "2026-05-22", "5/22", "05/22", "22/05"]] } }
 
-[[expect.state]]
-pointer = "/services/salesforce/Task/00T8c0000000001EAA/ActivityDate"
-equals = "2026-05-12"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Task/*"
+kind = "create"
+matching = { WhoId = "0035g00000p3z7WAAQ" }
 
-[[expect.state]]
-pointer = "/services/salesforce/Task/00T8c0000000001EAA/Description"
-contains = "quote"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Contact/0035g00000p3z7WAAQ/LastActivityDate"
 
-# Exactly one task is logged.
-[[expect.state]]
-pointer = "/services/salesforce/Task/00T8c0000000002EAA"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Account/0015g000008HFvFAAW/LastActivityDate"
 
-[[expect.required_calls]]
-service = "salesforce"
-method = "POST"
-path_regex = "^/services/data/v[0-9.]+/(composite/sobjects|sobjects/Task)$"
-
-[[expect.forbidden_calls]]
-service = "salesforce"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000FMcaOAAT/LastActivityDate"
 
 [[solution.call]]
 endpoint = "salesforce"

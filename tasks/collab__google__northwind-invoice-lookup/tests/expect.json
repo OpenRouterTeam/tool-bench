@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -12,7 +17,9 @@
         "name": "send_gmail_message"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "google",
@@ -24,13 +31,58 @@
         "name": "draft_gmail_message"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "PO-48213"
-    ],
-    "regex": "12,?480"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "From the invoice email Northwind Traders sent for October services, give the PO number it references, the amount due in US dollars, and the due date.",
+      "selector": {
+        "collection": "/services/google/gmail_messages",
+        "matching": {},
+        "field_patterns": {
+          "/headers/From": "^Northwind Traders\\b",
+          "/headers/Subject": "^Invoice\\b.*\\bOctober\\b"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "amount": {
+          "field": "/body_text",
+          "kind": "money",
+          "capture": "(?m)^Amount due: \\$([\\d,]+(?:\\.\\d+)?)$"
+        },
+        "draft_amount": {
+          "field": "/body_text",
+          "kind": "money",
+          "optional": true,
+          "capture": "draft figure of \\$(\\d[\\d,]*(?:\\.\\d+)?)"
+        },
+        "due": {
+          "field": "/body_text",
+          "kind": "date",
+          "capture": "(?m)^Due date: (.+)$"
+        },
+        "po": {
+          "field": "/body_text",
+          "kind": "identifier",
+          "capture": "(?m)^PO number: (\\S+)$"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "this replaces the earlier draft figure of ${draft_amount}"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

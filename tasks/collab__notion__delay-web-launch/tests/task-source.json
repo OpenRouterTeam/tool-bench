@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/notion/delay-web-launch",
+  "scenario_sha256": "sha256:7ee3d2914dbe48ff088585df3548a61031f4814e351bb19852e387bf4b8d4a8d",
+  "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
+  "contract_sha256": "sha256:e282c7835308854d4ee3a5d92ba54e72513dba0ff5ab9df3a19067b606235d3d"
+}

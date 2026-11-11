@@ -7,42 +7,57 @@ services = ["exa"]
 tags = ["write", "single-service", "exa"]
 timeout_sec = 900
 
-# The first agent run created in this world gets this ID (deterministic per seed).
-[[expect.state]]
-pointer = "/services/exa/agent_runs/agent_run_scs3OiJHAdhPsWK7P8UasA97/status"
-equals = "completed"
+[scenario.family]
+schema_version = 1
+primary = "tool_ambiguity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 1
+rationale = "Contract requires exactly one agent_run whose output equals enrich-three-leads; a single-company run returns enrich-corvane-only, and search surfaces look-alike corvane.io (Lisbon, 45 employees)."
 
-# One run covering all three companies (in the query or as input rows).
-[[expect.required_calls]]
-service = "exa"
-method = "POST"
-path = "/agent/runs"
-body_contains = "Corvane Robotics"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.required_calls]]
-service = "exa"
-method = "POST"
-path = "/agent/runs"
-body_contains = "Lumetric Health"
+[[expect.records]]
+selector = { collection = "/services/exa/agent_runs", created = true }
+equals = 1
+fields = { "/object" = "agent_run", "/status" = "completed" }
 
-[[expect.required_calls]]
-service = "exa"
-method = "POST"
-path = "/agent/runs"
-body_contains = "Bramblewood Foods"
+[[expect.relations]]
+source = { collection = "/services/exa/agent_runs", created = true }
+source_field = "/output"
+target = { collection = "/services/exa/agent_outputs", matching = { id = "enrich-three-leads" } }
+target_field = "/output"
+kind = "equals"
 
-# A single job: no second run.
-[[expect.state]]
-pointer = "/services/exa/agent_runs/agent_run_erVFsP6IfBuF1zdebjP5n3PX"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/exa/agent_runs/*"
+kind = "create"
+matching = { object = "agent_run", status = "completed" }
+max_count = 1
 
 [[expect.forbidden_calls]]
 service = "exa"
 method = "DELETE"
 
-[expect.answer]
-contains = ["Pittsburgh", "Austin", "Leeds", "340"]
-regex = '(?s)(1[,. ]?150.*2[,. ]?600|2[,. ]?600.*1[,. ]?150)'
+[expect.answer.source_facts]
+requirement = "Report every lead with its own headquarters city and approximate employee headcount as related by the authored enrichment output, without swapping, omitting or negating any row."
+source = { selector = { collection = "/services/exa/agent_outputs", matching = { id = "enrich-three-leads" } }, field = "/output/content" }
+key = "company"
+rows = "all"
+
+[expect.answer.source_facts.columns.company]
+header = "Company"
+kind = "name"
+short_names = true
+
+[expect.answer.source_facts.columns.city]
+header = "HQ city"
+kind = "place"
+
+[expect.answer.source_facts.columns.employees]
+header = "Employees (approx.)"
+kind = "number"
 
 [solution]
 answer = "| Company | HQ city | Employees |\n|---|---|---|\n| Corvane Robotics | Pittsburgh, PA | ~340 |\n| Lumetric Health | Austin, TX | ~1,150 |\n| Bramblewood Foods | Leeds, UK | ~2,600 |\n"

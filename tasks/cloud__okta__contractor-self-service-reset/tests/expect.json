@@ -1,93 +1,71 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/selfServicePasswordReset/access",
-      "equals": "DENY",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/okta/policies",
+        "matching": {
+          "id": "00p4pwcntr2Uv9Wx0x7",
+          "name": "Contractors Password Policy",
+          "type": "PASSWORD"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "ACTIVE"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/selfServiceUnlock/access",
-      "equals": "DENY",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/passwordChange/access",
-      "equals": "ALLOW",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/status",
-      "equals": "ACTIVE",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/policies/00p4pwcntr2Uv9Wx0x7/status",
-      "equals": "ACTIVE",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/policy_rules/00p4pwempl4Yz1Ab2x7~10pr5rule1pl4Yz1Ab2x7/actions/selfServicePasswordReset/access",
-      "equals": "ALLOW",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/policy_rules/00p4pwempl4Yz1Ab2x7~10pr5rule1pl4Yz1Ab2x7/actions/selfServiceUnlock/access",
-      "equals": "ALLOW",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/policy_rules/00p4pwdflt0Pq7Rs8tx7~10pr5rule2lt0Pq7Rs8tx/actions/selfServicePasswordReset/access",
-      "equals": "ALLOW",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/okta/policy_rules",
+        "matching": {
+          "id": "0pr5rule0tr2Uv9Wx0x7",
+          "type": "PASSWORD"
+        },
+        "key_prefix": "00p4pwcntr2Uv9Wx0x7/",
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/actions/passwordChange/access": "ALLOW",
+        "/actions/selfServicePasswordReset/access": "DENY",
+        "/actions/selfServiceUnlock/access": "DENY",
+        "/status": "ACTIVE"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "okta",
-      "method": "PUT",
-      "path": "/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [
-    {
-      "service": "okta",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "^/api/v1/policies/(00p4pwempl4Yz1Ab2x7|00p4pwdflt0Pq7Rs8tx7)",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
     {
       "service": "okta",
       "method": "DELETE",
@@ -96,18 +74,138 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "okta",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v1/policies/.*lifecycle/deactivate$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/selfServicePasswordReset/access",
+        "kind": "update",
+        "matching": {
+          "actions": {
+            "selfServicePasswordReset": {
+              "access": "DENY"
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7$"
+        }
+      },
+      {
+        "pointer": "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/actions/selfServiceUnlock/access",
+        "kind": "update",
+        "matching": {
+          "actions": {
+            "selfServiceUnlock": {
+              "access": "DENY"
+            }
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7$"
+        }
+      },
+      {
+        "pointer": "/services/okta/policy_rules/00p4pwcntr2Uv9Wx0x7~10pr5rule0tr2Uv9Wx0x7/lastUpdated",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7$"
+        }
+      },
+      {
+        "pointer": "/services/okta/logs/*",
+        "kind": "create",
+        "matching": {
+          "actor": {
+            "id": "0oa8wq4n2Yc6Ds7Rt0x7"
+          },
+          "eventType": "policy.rule.update",
+          "outcome": {
+            "result": "SUCCESS"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/target/0/id",
+            "target": {
+              "collection": "/services/okta/policy_rules",
+              "matching": {
+                "id": "0pr5rule0tr2Uv9Wx0x7"
+              },
+              "key_prefix": "00p4pwcntr2Uv9Wx0x7/",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/target/1/id",
+            "target": {
+              "collection": "/services/okta/policies",
+              "matching": {
+                "id": "00p4pwcntr2Uv9Wx0x7",
+                "type": "PASSWORD"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/v1/policies/00p4pwcntr2Uv9Wx0x7/rules/0pr5rule0tr2Uv9Wx0x7$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

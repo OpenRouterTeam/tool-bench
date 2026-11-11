@@ -7,13 +7,61 @@ services = ["supabase"]
 tags = ["lookup", "single-service", "supabase"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Grace Kim totals 1234.50 paid or shipped in March; Felix Wagner passes her if refunded 5006 or the April 1 order 5014 is counted, Ben Okafor has pending 1300, and staging has a 9999.99 order."
+
 # Grace Kim: 412.50 + 389.00 + 433.00 (paid/shipped, March 2026, production).
 # Traps: Felix Wagner reaches 1,700 with his refunded order and 1,600 with the order placed
 # just after midnight on April 1; Ana Ruiz tops all-time revenue; Ben Okafor's large order is
 # still pending; staging holds a 9,999.99 load-test order.
-[expect.answer]
-contains = ["Grace Kim", "grace.kim@example.kr"]
-regex = '1,?234\.50?'
+[expect]
+version = 2
+audit_history = true
+
+[expect.answer.record_facts]
+requirement = "Name the customer of the production storefront project whose paid or shipped orders created in March 2026 UTC sum to the largest total, with that customer's email address and that total in US dollars."
+mode = "statements"
+# Words that rank the customer anywhere but first.
+contradictions = ["second", "second-highest", "second-largest", "runner-up", "the least", "the lowest"]
+# Felix Wagner is second in the authored data. Naming him as such in the winner's own clause
+# ("beat runner-up Felix Wagner") ranks him, not the winner.
+context = [
+  "runner-up Felix Wagner",
+  "second-place Felix Wagner",
+  "Felix Wagner in second place",
+  "Felix Wagner in second",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders"
+field_patterns = { "/created_at" = "^2026-03-", "/status" = "^(paid|shipped)$" }
+
+[expect.answer.record_facts.selection.group]
+by = "/customer_id"
+measure = { sum = "/total" }
+pick = "largest"
+
+[expect.answer.record_facts.related.customer]
+collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers"
+on = { "/id" = "/key" }
+
+[expect.answer.record_facts.facts.name]
+record = "customer"
+field = "/full_name"
+kind = "text"
+
+[expect.answer.record_facts.facts.email]
+record = "customer"
+field = "/email"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.total]
+field = "/value"
+kind = "money"
 
 [[expect.forbidden_calls]]
 service = "supabase"
@@ -30,4 +78,4 @@ tool = "execute_sql"
 arguments = { project_id = "qmvbxtzkplrnwdhyfaco", query = "select c.full_name, c.email, sum(o.total) as revenue from public.orders o join public.customers c on c.id = o.customer_id where o.status in ('paid', 'shipped') and o.created_at >= '2026-03-01T00:00:00Z' and o.created_at < '2026-04-01T00:00:00Z' group by c.id, c.full_name, c.email order by revenue desc limit 3" }
 
 [solution]
-answer = "Grace Kim (grace.kim@example.kr) brought in the most revenue in March 2026: $1,234.50 across three paid/shipped orders.\n"
+answer = "Grace Kim (grace.kim@example.kr) brought in the most revenue: $1,234.50."

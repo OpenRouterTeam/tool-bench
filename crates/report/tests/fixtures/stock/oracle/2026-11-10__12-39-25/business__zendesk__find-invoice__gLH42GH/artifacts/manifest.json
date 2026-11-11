@@ -1,0 +1,50 @@
+[
+  {
+    "source": "/logs/artifacts",
+    "destination": "artifacts/logs/artifacts",
+    "type": "directory",
+    "status": "empty",
+    "service": null,
+    "exclude": []
+  },
+  {
+    "source": "/app/answer.md",
+    "destination": "artifacts/agent/answer.md",
+    "type": "file",
+    "status": "ok",
+    "service": null,
+    "exclude": []
+  },
+  {
+    "source": "/exports/evidence.json",
+    "destination": "artifacts/world/evidence.json",
+    "type": "file",
+    "status": "ok",
+    "service": "world",
+    "exclude": []
+  },
+  {
+    "source": "/exports/runner-admission.json",
+    "destination": "artifacts/world/runner-admission.json",
+    "type": "file",
+    "status": "failed",
+    "service": "world",
+    "exclude": []
+  },
+  {
+    "source": "/exports/realized-manifest.json",
+    "destination": "artifacts/world/realized-manifest.json",
+    "type": "file",
+    "status": "failed",
+    "service": "world",
+    "exclude": []
+  },
+  {
+    "source": "/exports/inference-evidence.json",
+    "destination": "artifacts/world/inference-evidence.json",
+    "type": "file",
+    "status": "failed",
+    "service": "world",
+    "exclude": []
+  }
+]

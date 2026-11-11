@@ -21,6 +21,7 @@ pub fn execute(
         "customerUpdate" => customer_update(store, args, now),
         "productCreate" => product_create(store, args, now),
         "productUpdate" => product_update(store, args, now),
+        "publishablePublish" => crate::publication::publish(store, args, now),
         "productDelete" => product_delete(store, args),
         "productVariantsBulkCreate" => variants_bulk_create(store, args, now),
         "productVariantsBulkUpdate" => variants_bulk_update(store, args, now),
@@ -547,7 +548,7 @@ fn product_create(store: &mut Store, args: &Map<String, Value>, now: &str) -> Va
         "tags": tags(&input["tags"]),
         "createdAt": now,
         "updatedAt": now,
-        "publishedAt": if status == "ACTIVE" { json!(now) } else { Value::Null },
+        "publishedAt": Value::Null,
         "seo": {"title": text(&input["seo"]["title"]), "description": text(&input["seo"]["description"])},
         "options": options,
         "variants": [{
@@ -573,6 +574,7 @@ fn product_create(store: &mut Store, args: &Map<String, Value>, now: &str) -> Va
         return payload(Value::Null, errors);
     }
     store.collection_mut("products").insert(id.to_string(), doc);
+    crate::publication::sync_visibility(store, id);
     payload(reference("Product", id), Vec::new())
 }
 
@@ -628,9 +630,6 @@ fn product_update(store: &mut Store, args: &Map<String, Value>, now: &str) -> Va
     }
     if let Some(status) = input.get("status").and_then(Value::as_str) {
         doc["status"] = json!(status);
-        if status == "ACTIVE" && doc["publishedAt"].is_null() {
-            doc["publishedAt"] = json!(now);
-        }
     }
     if let Some(seo) = input.get("seo").and_then(Value::as_object) {
         if !doc["seo"].is_object() {
@@ -677,6 +676,7 @@ fn product_update(store: &mut Store, args: &Map<String, Value>, now: &str) -> Va
     }
     doc["updatedAt"] = json!(now);
     store.collection_mut("products").insert(key, doc);
+    crate::publication::sync_visibility(store, id);
     payload(reference("Product", id), Vec::new())
 }
 
@@ -693,6 +693,16 @@ fn product_delete(store: &mut Store, args: &Map<String, Value>) -> Value {
         }),
         Some((id, key)) => {
             store.collection_mut("products").remove(&key);
+            let links: Vec<_> = store
+                .collection("resource_publications")
+                .into_iter()
+                .flat_map(|rows| rows.iter())
+                .filter(|(_, row)| row["productId"] == id)
+                .map(|(key, _)| key.to_owned())
+                .collect();
+            for link in links {
+                store.collection_mut("resource_publications").remove(&link);
+            }
             json!({
                 "__typename": "ProductDeletePayload",
                 "deletedProductId": model::gid("Product", id),

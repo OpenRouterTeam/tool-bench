@@ -7,12 +7,49 @@ services = ["salesforce"]
 tags = ["lookup", "single-service", "salesforce"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Priya Raman leads only on open Q2 deals (252500); counting closed deals makes Sofia Alvarez lead (415000) and ignoring the quarter makes Marcus Bell lead (450000); answer must name Priya Raman."
+
 # Priya Raman: 120,000 + 85,000 + 47,500 open in Q2 2026.
 # Distractors: counting closed deals makes Sofia Alvarez the leader (415,000), ignoring the
 # quarter makes Marcus Bell the leader (450,000).
-[expect.answer]
-contains = ["Priya Raman"]
-regex = "252,?500"
+[expect]
+version = 2
+audit_history = true
+
+[expect.answer.record_facts]
+requirement = "Name the Salesforce user who owns the largest total Amount of open (not closed) opportunities with a close date in April-June 2026, and state that total in US dollars."
+mode = "statements"
+
+[expect.answer.record_facts.selector]
+collection = "/services/salesforce/Opportunity"
+matching = { IsClosed = false }
+field_patterns = { "/CloseDate" = "^2026-0[456]-" }
+
+[expect.answer.record_facts.filter]
+present = ["/Amount"]
+
+[expect.answer.record_facts.selection.group]
+by = "/OwnerId"
+measure = { sum = "/Amount" }
+pick = "largest"
+
+[expect.answer.record_facts.related.rep]
+collection = "/services/salesforce/User"
+on = { "/Id" = "/key" }
+
+[expect.answer.record_facts.facts.rep]
+record = "rep"
+field = "/Name"
+kind = "text"
+
+[expect.answer.record_facts.facts.total]
+field = "/value"
+kind = "money"
 
 [[solution.call]]
 endpoint = "salesforce"
@@ -25,4 +62,4 @@ tool = "salesforce_query_records"
 arguments = { objectName = "User", fields = ["Id", "Name", "Title"], whereClause = "Id = '0055g00000MZfGEAA1'" }
 
 [solution]
-answer = "Priya Raman has the largest open pipeline closing this quarter (Q2 2026): $252,500 across 3 open opportunities.\n"
+answer = "Priya Raman has the largest open pipeline: $252,500."

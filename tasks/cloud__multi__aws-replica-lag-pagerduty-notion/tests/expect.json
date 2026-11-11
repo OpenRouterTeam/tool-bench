@@ -1,139 +1,653 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/pagerduty/notes",
-      "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "content": "orders-db-replica-2-replica-lag"
-      },
-      "key_prefix": "Q3K8ORDBLAG2RX/"
-    },
-    {
-      "pointer": "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/status",
-      "equals": "triggered",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/notes/Q1INVDBLAG7QWE~11",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/notes/Q5DBSTG9LAGT3N~11",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/pages",
-      "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "in_trash": false,
-        "parent": {
-          "data_source_id": "7d2e3f4a-5b6c-4d7e-9f80-a1b2c3d4e5f6"
+      "selector": {
+        "collection": "/services/pagerduty/incidents",
+        "matching": {
+          "id": "Q3K8ORDBLAG2RX",
+          "incident_number": 4812
         },
-        "properties": {
-          "Alarm": {
-            "rich_text": [
-              {
-                "plain_text": "orders-db-replica-2-replica-lag"
-              }
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "triggered"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "array_lengths": {
+        "/acknowledgements": 0
+      }
+    },
+    {
+      "selector": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/content": {
+          "requirement": "Give the name of the CloudWatch alarm that fired for orders-db-replica-2, orders-db-replica-2-replica-lag, and when it went into ALARM: 2026-10-30 at 13:11 UTC. A look-alike alarm, another date or time, or a note without both facts is not acceptable. The ReplicaLag measurement is optional.",
+          "accepted": [
+            "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:11:00Z (ReplicaLag max 412s vs 300s threshold).",
+            "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:11:00Z.",
+            "CloudWatch alarm orders-db-replica-2-replica-lag has been in ALARM since 2026-10-30T13:11:00Z.",
+            "Alarm orders-db-replica-2-replica-lag entered ALARM at 2026-10-30T13:11:00Z.",
+            "Alarm orders-db-replica-2-replica-lag entered ALARM at 2026-10-30 13:11:00 UTC.",
+            "orders-db-replica-2-replica-lag went into ALARM at 13:11 UTC on 2026-10-30."
+          ],
+          "rejected": [
+            "CloudWatch alarm orders-db-replica-1-replica-lag went into ALARM at 2026-10-23T02:09:00Z.",
+            "CloudWatch alarm inventory-db-replica-1-replica-lag went into ALARM at 2026-10-30T13:19:00Z.",
+            "CloudWatch alarm orders-db-staging-replica-lag went into ALARM at 2026-10-30T08:01:00Z.",
+            "CloudWatch alarm orders-db-replica-2-replica-lag went into ALARM at 2026-10-30T13:12:00Z."
+          ],
+          "mentions": [
+            "orders-db-replica-2-replica-lag",
+            [
+              "2026-10-30",
+              "October 30",
+              "Oct 30",
+              "Oct. 30",
+              "October 30th",
+              "Oct 30th",
+              "30 October",
+              "30 Oct",
+              "30th October",
+              "30th of October",
+              "10/30",
+              "30/10"
+            ],
+            [
+              "13:11",
+              "13:11Z",
+              "13:11UTC",
+              "1:11 PM",
+              "1:11PM",
+              "1:11 p.m.",
+              "01:11 PM",
+              "01:11PM"
             ]
-          },
-          "Incident": {
-            "rich_text": [
-              {
-                "plain_text": "4812"
-              }
-            ]
-          },
-          "Severity": {
-            "select": {
-              "name": "SEV2"
-            }
-          },
-          "Started": {
-            "date": {
-              "start": "2026-10-30"
-            }
-          },
-          "Status": {
-            "status": {
-              "name": "Draft"
-            }
-          },
-          "Title": {
-            "title": [
-              {
-                "plain_text": "orders-db-replica-2 replication lag"
-              }
-            ]
-          }
+          ],
+          "format": "plain",
+          "bound": null
         }
       },
-      "key_prefix": null
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/notion/pages/8e3f4a5b-6c7d-4e8f-a091-b2c3d4e5f607/properties/Title/title/0/plain_text",
-      "equals": "orders-db-replica-1 replication lag",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/notion/pages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/notion/pages/8e3f4a5b-6c7d-4e8f-a091-b2c3d4e5f607/in_trash",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/notion/pages",
+        "matching": {
+          "parent": {
+            "data_source_id": "7d2e3f4a-5b6c-4d7e-9f80-a1b2c3d4e5f6"
+          }
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/archived": false,
+        "/in_trash": false,
+        "/parent/database_id": "6c1d2e3f-4a5b-4c6d-8e7f-90a1b2c3d4e5",
+        "/parent/type": "data_source_id",
+        "/properties/Severity/select/name": "SEV2",
+        "/properties/Started/date/start": "2026-10-30",
+        "/properties/Status/status/name": "Draft"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [
+        "/properties/Started/date/end",
+        "/properties/Started/date/time_zone"
+      ],
+      "html_text": {},
+      "reviewed_text": {
+        "/properties/Alarm/rich_text": {
+          "requirement": "Record the alarm name orders-db-replica-2-replica-lag, not a look-alike alarm or the database instance name.",
+          "accepted": [
+            "orders-db-replica-2-replica-lag"
+          ],
+          "rejected": [
+            "orders-db-replica-1-replica-lag",
+            "inventory-db-replica-1-replica-lag",
+            "orders-db-staging-replica-lag"
+          ],
+          "mentions": [
+            "orders-db-replica-2-replica-lag"
+          ],
+          "format": "notion_rich_text",
+          "bound": null
+        },
+        "/properties/Incident/rich_text": {
+          "requirement": "Record the incident exactly as PagerDuty #4812, with no other incident or text.",
+          "accepted": [
+            "PagerDuty #4812"
+          ],
+          "rejected": [
+            "PagerDuty #4813",
+            "PagerDuty #4761",
+            "PagerDuty #4806"
+          ],
+          "mentions": [
+            "^PagerDuty #4812$"
+          ],
+          "format": "notion_rich_text",
+          "bound": null
+        },
+        "/properties/Title/title": {
+          "requirement": "Title the postmortem exactly orders-db-replica-2 replication lag. Segment boundaries, letter case and passive formatting do not change the title.",
+          "accepted": [
+            "orders-db-replica-2 replication lag"
+          ],
+          "rejected": [
+            "orders-db-replica-1 replication lag",
+            "inventory-db-replica-1 replication lag",
+            "orders-db-staging replication lag"
+          ],
+          "mentions": [
+            "^orders-db-replica-2 replication lag$"
+          ],
+          "format": "notion_rich_text",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "pagerduty",
-      "method": "POST",
-      "path": "/incidents/Q3K8ORDBLAG2RX/notes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": "Q3K8ORDBLAG2RX/",
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": []
     },
     {
-      "service": "notion",
-      "method": "POST",
-      "path": "/v1/pages",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/user/id",
+      "target": {
+        "collection": "/services/pagerduty/account",
+        "matching": {},
+        "key_prefix": "account",
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/user_id",
+      "kind": "foreign_key",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/notion/pages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/parent/data_source_id",
+      "target": {
+        "collection": "/services/notion/data_sources",
+        "matching": {
+          "id": "7d2e3f4a-5b6c-4d7e-9f80-a1b2c3d4e5f6"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
+  "audit_history": true,
+  "ordering": [],
+  "information": [
+    {
+      "prerequisite": {
+        "service": "aws",
+        "method": "POST",
+        "path": "/",
+        "path_regex": null,
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "headers": {
+          "x-amz-target": "GraniteServiceVersion20100801.DescribeAlarms"
+        },
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      },
+      "response_field": "/MetricAlarms",
+      "source": {
+        "collection": "/services/aws/alarms",
+        "matching": {
+          "AlarmName": "orders-db-replica-2-replica-lag",
+          "StateValue": "ALARM"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "projection": [
+        {
+          "response": [
+            "/AlarmName"
+          ],
+          "source": "/AlarmName"
+        },
+        {
+          "response": [
+            "/StateValue"
+          ],
+          "source": "/StateValue"
+        },
+        {
+          "response": [
+            "/StateTransitionedTimestamp"
+          ],
+          "source": "/StateTransitionedTimestamp",
+          "format": "unix_seconds"
+        }
+      ],
+      "action": {
+        "service": "pagerduty",
+        "method": "POST",
+        "path": "/incidents/Q3K8ORDBLAG2RX/notes",
+        "path_regex": null,
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      },
+      "action_effect": {
+        "selector": {
+          "collection": "/services/pagerduty/notes",
+          "matching": {},
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/content",
+        "nonempty_text": true
+      },
+      "alternatives": [
+        {
+          "prerequisite": {
+            "service": "aws",
+            "method": "POST",
+            "path": "/",
+            "path_regex": null,
+            "query_contains": null,
+            "body": null,
+            "body_contains": null,
+            "headers": {
+              "x-amz-target": "GraniteServiceVersion20100801.DescribeAlarmHistory"
+            },
+            "min_count": 1,
+            "response_status": [],
+            "allow_tool_error": false
+          },
+          "response_field": "/AlarmHistoryItems",
+          "source": {
+            "collection": "/services/aws/alarm_history",
+            "matching": {
+              "AlarmName": "orders-db-replica-2-replica-lag",
+              "HistoryData": {
+                "newState": {
+                  "stateValue": "ALARM"
+                }
+              },
+              "HistoryItemType": "StateUpdate"
+            },
+            "key_prefix": null,
+            "created": false,
+            "identity_field": null
+          },
+          "projection": [
+            {
+              "response": [
+                "/AlarmName"
+              ],
+              "source": "/AlarmName"
+            },
+            {
+              "response": [
+                "/HistorySummary"
+              ],
+              "source": "/HistorySummary"
+            },
+            {
+              "response": [
+                "/Timestamp"
+              ],
+              "source": "/Timestamp",
+              "format": "unix_seconds"
+            }
+          ]
+        },
+        {
+          "prerequisite": {
+            "service": "aws",
+            "method": "POST",
+            "path": "/",
+            "path_regex": null,
+            "query_contains": null,
+            "body": null,
+            "body_contains": null,
+            "headers": {
+              "x-amz-target": "GraniteServiceVersion20100801.DescribeAlarmsForMetric"
+            },
+            "min_count": 1,
+            "response_status": [],
+            "allow_tool_error": false
+          },
+          "response_field": "/MetricAlarms",
+          "source": {
+            "collection": "/services/aws/alarms",
+            "matching": {
+              "AlarmName": "orders-db-replica-2-replica-lag",
+              "StateValue": "ALARM"
+            },
+            "key_prefix": null,
+            "created": false,
+            "identity_field": null
+          },
+          "projection": [
+            {
+              "response": [
+                "/AlarmName"
+              ],
+              "source": "/AlarmName"
+            },
+            {
+              "response": [
+                "/StateValue"
+              ],
+              "source": "/StateValue"
+            },
+            {
+              "response": [
+                "/StateTransitionedTimestamp"
+              ],
+              "source": "/StateTransitionedTimestamp",
+              "format": "unix_seconds"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "prerequisite": {
+        "service": "aws",
+        "method": "POST",
+        "path": "/",
+        "path_regex": null,
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "headers": {
+          "x-amz-target": "GraniteServiceVersion20100801.DescribeAlarms"
+        },
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      },
+      "response_field": "/MetricAlarms",
+      "source": {
+        "collection": "/services/aws/alarms",
+        "matching": {
+          "AlarmName": "orders-db-replica-2-replica-lag",
+          "StateValue": "ALARM"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "projection": [
+        {
+          "response": [
+            "/AlarmName"
+          ],
+          "source": "/AlarmName"
+        },
+        {
+          "response": [
+            "/StateValue"
+          ],
+          "source": "/StateValue"
+        },
+        {
+          "response": [
+            "/StateTransitionedTimestamp"
+          ],
+          "source": "/StateTransitionedTimestamp",
+          "format": "unix_seconds"
+        }
+      ],
+      "action": {
+        "service": "notion",
+        "method": "POST",
+        "path": "/v1/pages",
+        "path_regex": null,
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      },
+      "action_effect": {
+        "selector": {
+          "collection": "/services/notion/pages",
+          "matching": {},
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/archived",
+        "equals": false
+      },
+      "alternatives": [
+        {
+          "prerequisite": {
+            "service": "aws",
+            "method": "POST",
+            "path": "/",
+            "path_regex": null,
+            "query_contains": null,
+            "body": null,
+            "body_contains": null,
+            "headers": {
+              "x-amz-target": "GraniteServiceVersion20100801.DescribeAlarmHistory"
+            },
+            "min_count": 1,
+            "response_status": [],
+            "allow_tool_error": false
+          },
+          "response_field": "/AlarmHistoryItems",
+          "source": {
+            "collection": "/services/aws/alarm_history",
+            "matching": {
+              "AlarmName": "orders-db-replica-2-replica-lag",
+              "HistoryData": {
+                "newState": {
+                  "stateValue": "ALARM"
+                }
+              },
+              "HistoryItemType": "StateUpdate"
+            },
+            "key_prefix": null,
+            "created": false,
+            "identity_field": null
+          },
+          "projection": [
+            {
+              "response": [
+                "/AlarmName"
+              ],
+              "source": "/AlarmName"
+            },
+            {
+              "response": [
+                "/HistorySummary"
+              ],
+              "source": "/HistorySummary"
+            },
+            {
+              "response": [
+                "/Timestamp"
+              ],
+              "source": "/Timestamp",
+              "format": "unix_seconds"
+            }
+          ]
+        },
+        {
+          "prerequisite": {
+            "service": "aws",
+            "method": "POST",
+            "path": "/",
+            "path_regex": null,
+            "query_contains": null,
+            "body": null,
+            "body_contains": null,
+            "headers": {
+              "x-amz-target": "GraniteServiceVersion20100801.DescribeAlarmsForMetric"
+            },
+            "min_count": 1,
+            "response_status": [],
+            "allow_tool_error": false
+          },
+          "response_field": "/MetricAlarms",
+          "source": {
+            "collection": "/services/aws/alarms",
+            "matching": {
+              "AlarmName": "orders-db-replica-2-replica-lag",
+              "StateValue": "ALARM"
+            },
+            "key_prefix": null,
+            "created": false,
+            "identity_field": null
+          },
+          "projection": [
+            {
+              "response": [
+                "/AlarmName"
+              ],
+              "source": "/AlarmName"
+            },
+            {
+              "response": [
+                "/StateValue"
+              ],
+              "source": "/StateValue"
+            },
+            {
+              "response": [
+                "/StateTransitionedTimestamp"
+              ],
+              "source": "/StateTransitionedTimestamp",
+              "format": "unix_seconds"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "required_calls": [],
   "forbidden_calls": [
     {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "^/incidents",
+      "service": "aws",
+      "method": "POST",
+      "path": "/",
+      "path_regex": null,
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "headers": {
+        "x-amz-target": "GraniteServiceVersion20100801.SetAlarmState"
+      },
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "notion",
@@ -143,28 +657,124 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "aws",
-      "method": null,
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "Action=SetAlarmState",
-      "min_count": 1
-    },
-    {
-      "service": "aws",
-      "method": null,
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "\"StateReason\"",
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/pagerduty/notes/*",
+        "kind": "create",
+        "matching": {
+          "user": {
+            "type": "user_reference"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/user/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q3K8ORDBLAG2RX/notes$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q3K8ORDBLAG2RX/notes$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q3K8ORDBLAG2RX"
+          },
+          "service": {
+            "id": "PSVORDB"
+          },
+          "type": "annotate_log_entry"
+        },
+        "references": [
+          {
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q3K8ORDBLAG2RX/notes$"
+        }
+      },
+      {
+        "pointer": "/services/notion/pages/*",
+        "kind": "create",
+        "matching": {
+          "parent": {
+            "data_source_id": "7d2e3f4a-5b6c-4d7e-9f80-a1b2c3d4e5f6"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

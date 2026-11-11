@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/gitlab/file-circuit-breaker-issue",
+  "scenario_sha256": "sha256:6cbcf037f702b7213bab04ca748f17de018b130e25b5120a824bea4ad5d22861",
+  "dataset_sha256": "sha256:a609995c59659e9a04c592603f5f95749562cf76cedbc0fb7b8391bbff3eb96e",
+  "contract_sha256": "sha256:2b0b84e64a8a97ff7fbc618cb8fffbda1df9a330ae53db56dc8217f3097c4212"
+}

@@ -1,74 +1,129 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/name",
-      "equals": "Fabrikam pricing",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/firecrawl/monitors",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "firecrawl_monitor": {
+        "name": "Fabrikam pricing",
+        "url": "https://www.fabrikam.io/pricing",
+        "recipient": "pricing-intel@contoso.example",
+        "judged_goal": {
+          "requirement": "When an active monitor's judging is enabled, its goal must cover both price changes and plan-limit changes on the pricing page, or every change to that page. Paused setup edits may be revised before reactivation. Broad unjudged markdown tracking is also valid.",
+          "accepted": [
+            "Alert when Fabrikam changes any plan price or plan limit.",
+            "Notify when prices or plan limits change.",
+            "Alert on any change to the pricing page."
+          ],
+          "rejected": [
+            "Alert only about careers. Ignore prices and plan limits.",
+            "Only alert about prices, never plan limits."
+          ],
+          "mentions": [
+            [
+              "price",
+              "prices",
+              "pricing",
+              "priced",
+              "cost",
+              "costs"
+            ],
+            [
+              "limit",
+              "limits",
+              "quota",
+              "quotas",
+              "allowance",
+              "allowances",
+              "cap",
+              "caps",
+              "any change",
+              "any changes",
+              "all changes",
+              "every change",
+              "any update",
+              "any updates",
+              "anything changes",
+              "page changes",
+              "page is updated",
+              "changes to the pricing page",
+              "changes on the pricing page"
+            ]
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      }
     },
     {
-      "pointer": "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/status",
-      "equals": "active",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/targets/0/urls/0",
+      "selector": {
+        "collection": "/services/firecrawl/monitor_checks",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
       "equals": null,
-      "exists": null,
-      "contains": "fabrikam.io/pricing",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/schedule/intervalMinutes",
-      "equals": 1440,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/notification/email/recipients",
-      "equals": null,
-      "exists": null,
-      "contains": "pricing-intel@contoso.example",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/firecrawl/monitors/3f6b2a10-5c4e-4d21-9b7a-1e0c2d3f4a02/targets/0/urls/0",
-      "equals": "https://www.fabrikam.io/careers",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/firecrawl/monitors/3f6b2a10-5c4e-4d21-9b7a-1e0c2d3f4a01/status",
-      "equals": "active",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "min_count": null,
+      "max_count": 1,
+      "fields": {
+        "/trigger": "manual"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "firecrawl",
-      "method": "POST",
-      "path": "/v2/monitor",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/firecrawl/monitor_checks",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/monitorId",
+      "target": {
+        "collection": "/services/firecrawl/monitors",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "firecrawl",
@@ -78,7 +133,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "firecrawl",
@@ -88,8 +145,504 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/firecrawl/monitors/*",
+        "kind": "create",
+        "matching": {
+          "name": "Fabrikam pricing"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v2/monitor$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/notification",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/goal",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/judgeEnabled",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/status",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/schedule",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/nextRunAt",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/updatedAt",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/lastRunAt",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+/run$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitors/*/lastCheckId",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/id",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+/run$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*",
+        "kind": "create",
+        "matching": {
+          "trigger": "manual"
+        },
+        "references": [
+          {
+            "source_field": "/monitorId",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+/run$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/status",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/monitorId",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+/checks/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/startedAt",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/monitorId",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+/checks/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/completedAt",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/monitorId",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+/checks/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/summary",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/monitorId",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+/checks/[^/]+$"
+        }
+      },
+      {
+        "pointer": "/services/firecrawl/monitor_checks/*/pages",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/monitorId",
+            "target": {
+              "collection": "/services/firecrawl/monitors",
+              "matching": {},
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "firecrawl",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/v2/monitor/[^/]+/checks/[^/]+$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

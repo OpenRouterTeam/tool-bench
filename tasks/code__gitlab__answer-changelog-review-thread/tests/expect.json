@@ -1,81 +1,272 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/gitlab/notes/81503/resolved",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/gitlab/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/gitlab/notes/81502/resolved",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/gitlab/notes",
+        "matching": {
+          "author": "sam.okafor",
+          "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+          "noteable": "northwind/billing/billing-service!88",
+          "system": false
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/resolvable": true,
+        "/resolved": true
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/body": {
+          "requirement": "Say the changelog entry was added in commit 24f172e5, in Dana's existing review thread. The surrounding MR supplies the payments-SDK context. The reply must name the changelog and the commit (short or full SHA); a commit token alone does not establish the requested reply.",
+          "accepted": [
+            "The changelog entry was added in commit 24f172e5.",
+            "Yes, the changelog entry for the 4.2.0 bump was added in commit 24f172e5."
+          ],
+          "mentions": [
+            [
+              "changelog",
+              "change log"
+            ],
+            [
+              "24f172e5",
+              "24f172e5f801f520765fdc1dcfa16dc929323edf"
+            ]
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/gitlab/notes/81601/resolved",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/gitlab/merge_requests/northwind~1billing~1billing-service!88/state",
-      "equals": "opened",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/gitlab/notes",
+        "matching": {
+          "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+          "noteable": "northwind/billing/billing-service!88",
+          "resolvable": true
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 2,
+      "max_count": null,
+      "fields": {
+        "/resolved": true
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "gitlab",
-      "method": "POST",
-      "path": null,
-      "path_regex": "/merge_requests/88/discussions/d7e8c986532452a2290d7e7255e2b2cae36e36ce/notes$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": "24f172e5",
-      "min_count": 1
+      "source": {
+        "collection": "/services/gitlab/events",
+        "matching": {
+          "project": "northwind/billing/billing-service",
+          "target_type": "Note"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/target_id",
+      "target": {
+        "collection": "/services/gitlab/notes",
+        "matching": {
+          "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+          "noteable": "northwind/billing/billing-service!88"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
+  "audit_history": true,
+  "ordering": [
     {
-      "service": "gitlab",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v4/projects/(northwind%2Fmobile%2Fcheckout-ios|204)/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "gitlab",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "^/api/v4/projects/(northwind%2Fmobile%2Fcheckout-ios|204)/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "gitlab",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "^/api/v4/projects/[^/]+/merge_requests/88/merge$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/gitlab/notes",
+          "matching": {
+            "author": "sam.okafor",
+            "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+            "noteable": "northwind/billing/billing-service!88",
+            "system": false
+          },
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/body",
+        "nonempty_text": true
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/gitlab/notes",
+          "matching": {
+            "author": "dana.kowalski",
+            "body": "Did you update CHANGELOG.md for the 4.2 bump? Support reads it before every billing release.",
+            "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+            "noteable": "northwind/billing/billing-service!88"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/resolved",
+        "equals": true
+      },
+      "require_transition": false,
+      "allow_same_commit": false
     }
   ],
-  "answer": null
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/gitlab/notes/*",
+        "kind": "create",
+        "matching": {
+          "author": "sam.okafor",
+          "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+          "noteable": "northwind/billing/billing-service!88",
+          "system": false
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/gitlab/notes/*/resolved",
+        "kind": "update",
+        "matching": {
+          "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+          "noteable": "northwind/billing/billing-service!88",
+          "resolvable": true
+        },
+        "max_count": 2,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/gitlab/notes/*/resolved_by",
+        "kind": "update",
+        "matching": {
+          "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+          "noteable": "northwind/billing/billing-service!88",
+          "resolvable": true
+        },
+        "max_count": 2,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/gitlab/notes/*/resolved_at",
+        "kind": "update",
+        "matching": {
+          "discussion_id": "d7e8c986532452a2290d7e7255e2b2cae36e36ce",
+          "noteable": "northwind/billing/billing-service!88",
+          "resolvable": true
+        },
+        "max_count": 2,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/gitlab/merge_requests/northwind~1billing~1billing-service!88/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/gitlab/events/*",
+        "kind": "create",
+        "matching": {
+          "action_name": "commented on",
+          "author": "sam.okafor",
+          "project": "northwind/billing/billing-service",
+          "target_iid": 88,
+          "target_type": "Note"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

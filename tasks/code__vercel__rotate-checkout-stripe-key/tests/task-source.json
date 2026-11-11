@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/vercel/rotate-checkout-stripe-key",
+  "scenario_sha256": "sha256:105e5c8d5499ec43a49a15cbbdf328837aa7a6bb74e797065f7b74cf3984eefd",
+  "dataset_sha256": "sha256:439caddd71f2943b2f57e69f097b3dae6fb7cfb5e23b8e4b9bdb7fa602c02ef9",
+  "contract_sha256": "sha256:dbaae16dbf19c16b91feccdacc7eacea0eb69327859633b2981f3eec26dbac65"
+}

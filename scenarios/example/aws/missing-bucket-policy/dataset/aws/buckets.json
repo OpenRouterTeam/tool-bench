@@ -1,0 +1,11 @@
+[
+  {
+    "_key": "policy-audit-bucket",
+    "Name": "policy-audit-bucket",
+    "CreationDate": "2024-01-18T10:00:00Z",
+    "Encryption": {
+      "SSEAlgorithm": "AES256",
+      "BucketKeyEnabled": false
+    }
+  }
+]

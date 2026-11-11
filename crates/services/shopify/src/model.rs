@@ -121,6 +121,7 @@ pub fn shop(store: &Store) -> Value {
         "timezoneAbbreviation": text("timezoneAbbreviation", "EST"),
         "primaryDomain": {"__typename": "Domain", "host": DOMAIN, "url": format!("https://{DOMAIN}"), "sslEnabled": true},
         "plan": {"__typename": "ShopPlan", "displayName": "Basic", "partnerDevelopment": false, "shopifyPlus": false},
+        "publicationCount": docs(store, "publications").len(),
     })
 }
 
@@ -490,12 +491,18 @@ pub fn product(store: &Store, raw: &Value) -> Value {
         "createdAt": doc["createdAt"],
         "updatedAt": doc.get("updatedAt").filter(|v| !v.is_null()).unwrap_or(&doc["createdAt"]),
         "publishedAt": doc.get("publishedAt").cloned().unwrap_or(Value::Null),
+        "resourcePublications": crate::publication::resources(store, id),
+        "resourcePublicationsCount": {
+            "__typename": "Count",
+            "count": docs(store, "resource_publications").iter().filter(|row| row["productId"] == id && row["isPublished"] == true).count(),
+            "precision": "EXACT"
+        },
         "isGiftCard": false,
         "totalInventory": total_inventory,
         "tracksInventory": variants_docs.iter().any(|v| v["tracked"].as_bool().unwrap_or(true)),
         "hasOnlyDefaultVariant": is_default_option(doc["options"].as_array().map(Vec::as_slice).unwrap_or_default()),
         "hasOutOfStockVariants": variants_docs.iter().any(|v| v["inventoryQuantity"].as_i64().unwrap_or(0) <= 0),
-        "onlineStoreUrl": if status == "ACTIVE" { Value::String(format!("https://{DOMAIN}/products/{handle}")) } else { Value::Null },
+        "onlineStoreUrl": if doc["onlineStoreVisible"] == true { Value::String(format!("https://{DOMAIN}/products/{handle}")) } else { Value::Null },
         "onlineStorePreviewUrl": format!("https://{DOMAIN}/products/{handle}"),
         "templateSuffix": Value::Null,
         "seo": {"__typename": "SEO", "title": seo.get("title").cloned().unwrap_or(Value::Null), "description": seo.get("description").cloned().unwrap_or(Value::Null)},
@@ -926,6 +933,7 @@ pub fn resolve(store: &Store, kind: &str, id: u64) -> Value {
         "Collection" => {
             find(store, "collections", id).map_or(Value::Null, |d| collection(store, d))
         }
+        "Publication" => crate::publication::publication(store, id),
         _ => Value::Null,
     }
 }

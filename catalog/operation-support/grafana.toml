@@ -1,0 +1,105 @@
+# Reviewed operation support for `grafana`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "grafana"
+tool = "alerting_rules_read"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "alerting_silences_read"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "alerting_silences_write"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "create_annotation"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "get_alert_group"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "get_annotations"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "get_current_oncall_users"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "grafana_api_request"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "list_alert_groups"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "list_oncall_schedules"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "list_oncall_teams"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "list_oncall_users"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "search_dashboards"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"
+
+[[operation]]
+endpoint = "grafana"
+tool = "update_alert_group"
+status = "partial"
+limitations = "Reviewed native result contract and the workflows recorded in the section; other arguments, fields and error behavior of this tool are not certified."
+section = "Grafana scripted native-client checkpoint — revision 35"

@@ -5,7 +5,9 @@ mod apps;
 mod error;
 mod infra;
 mod model;
+mod rendered;
 mod resources;
+mod workload;
 
 use axum::{
     Router,
@@ -36,7 +38,11 @@ impl MockService for Argocd {
     }
 
     fn hosts(&self) -> &'static [&'static str] {
-        &[]
+        &["argocd.lumen-retail.dev"]
+    }
+
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(rendered::initialize)
     }
 
     fn router(&self) -> Router<SharedWorld> {
@@ -45,6 +51,10 @@ impl MockService for Argocd {
             .route(
                 "/api/v1/applications/{name}",
                 get(apps::get).put(apps::update).delete(apps::delete),
+            )
+            .route(
+                "/api/v1/applications/{name}/spec",
+                axum::routing::put(apps::update_spec),
             )
             .route(
                 "/api/v1/applications/{name}/sync",

@@ -1,0 +1,16 @@
+[
+  {
+    "_key": "billing-worker-production-1.42.0",
+    "app": "argocd/billing-worker",
+    "image": "ghcr.io/lumen-retail/billing-worker:1.42.0",
+    "pullable": true,
+    "ready": true
+  },
+  {
+    "_key": "billing-worker-production-1.41.0",
+    "app": "argocd/billing-worker",
+    "image": "ghcr.io/lumen-retail/billing-worker:1.41.0",
+    "pullable": true,
+    "ready": true
+  }
+]

@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "github",
@@ -9,7 +14,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -21,7 +28,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "sentry",
@@ -31,7 +40,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "github",
@@ -41,7 +52,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "github",
@@ -51,7 +64,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "github",
@@ -61,15 +76,130 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "STOREFRONT-WEB-7Q",
-      "storefront@5.2.0",
-      "Sofia"
-    ],
-    "regex": "(?i)(#|pull/|PR\\s*|pull request\\s*)57\\b"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the unresolved Sentry issue of the storefront-web project that has the most events (short ID), the release it first appeared in, the number of the GitHub pull request whose merge commit is that release's commit, and that pull request's author.",
+      "selector": {
+        "collection": "/services/sentry/issues",
+        "matching": {
+          "project": "storefront-web",
+          "status": "unresolved"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "largest": {
+          "field": "/count"
+        }
+      },
+      "facts": {
+        "author": {
+          "field": "/name",
+          "kind": "text",
+          "record": "author",
+          "also": [
+            "/login"
+          ]
+        },
+        "commit_message": {
+          "field": "/commits/0/message",
+          "kind": "text",
+          "optional": true,
+          "record": "release"
+        },
+        "commit_sha": {
+          "field": "/commits/0/id",
+          "kind": "identifier",
+          "optional": true,
+          "record": "release",
+          "capture": "^(.{7})"
+        },
+        "commit_title": {
+          "field": "/commits/0/message",
+          "kind": "text",
+          "optional": true,
+          "record": "release",
+          "capture": "^(?:feat|fix|chore|perf|refactor|docs|style|test|ci|build|revert)(?:\\([^)]+\\))?: (.+)"
+        },
+        "event_count": {
+          "field": "/count",
+          "kind": "number",
+          "optional": true
+        },
+        "issue_id": {
+          "field": "/shortId",
+          "kind": "identifier"
+        },
+        "pull_request": {
+          "field": "/number",
+          "kind": "number",
+          "record": "pull",
+          "units": [
+            "#",
+            "pr",
+            "request",
+            "number"
+          ],
+          "require_unit": true
+        },
+        "release": {
+          "field": "/version",
+          "kind": "identifier",
+          "record": "release",
+          "wordings": {
+            "storefront@5.2.0": [
+              "5.2.0"
+            ]
+          }
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "author": {
+          "from": "pull",
+          "collection": "/services/github/users",
+          "on": {
+            "/login": "/user"
+          }
+        },
+        "pull": {
+          "from": "release",
+          "collection": "/services/github/pulls",
+          "on": {
+            "/merge_commit_sha": "/commits/0/id"
+          }
+        },
+        "release": {
+          "collection": "/services/sentry/releases",
+          "on": {
+            "/version": "/firstRelease"
+          }
+        }
+      },
+      "context": [
+        "(https://github.com/lumen-labs/storefront/pull/${pull_request})",
+        "(${event_count} events, unresolved)",
+        "(single commit ${commit_sha}, \"${commit_message}\")",
+        "commit title: \"${commit_title}\""
+      ],
+      "contradictions": [
+        "fewest",
+        "least frequent",
+        "least noisy",
+        "quietest"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

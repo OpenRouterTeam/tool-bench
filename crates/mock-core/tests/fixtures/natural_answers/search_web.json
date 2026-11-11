@@ -1,0 +1,590 @@
+{
+  "search/firecrawl/northwind-team-pricing": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "$79/month billed annually, 12 seats."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Northwind Analytics' Team plan costs $79 per month when billed annually, and it comes with 12 seats."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Northwind Analytics: Team plan\n\n- **Price (annual billing):** $79 per month\n- **Seats included:** 12\n\nSource: https://www.northwind-analytics.com/pricing (prices updated September 1, 2026).\n\nNote: the February 2025 blog post and the G2 listing still show $69/month with 10 seats. Those are the old figures from before the September 2026 change, so I did not use them."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I searched for Northwind Analytics' pricing and got several conflicting sources. The company's February 2025 blog post announces a Team plan at $69/month with 10 seats, and G2 repeats those numbers, but G2's data was last updated in March 2025. The changelog has a September 1, 2026 entry saying Team now includes more seats than before and that prices were updated, and the live pricing page matches the changelog. Northwind Traders also came up, but that is a food wholesaler, not the analytics company.\n\nSo the current answer, from the live pricing page: the Team plan is $79 a month on annual billing, with 12 seats included."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Team plan, per the live pricing page (\"Pricing | Northwind Analytics\", https://www.northwind-analytics.com/pricing):\n\n- USD 79 per month when billed annually (USD 948 for the year); paying month to month is $99\n- Twelve seats included; extra seats are $8 per seat per month\n- Also includes 10M tracked events per month and 13-month data retention\n\nThe page says prices were updated on 1 September 2026."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Northwind Analytics' Team plan is $69/month billed annually and includes 10 seats."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The pricing page shows $79/month and 12 seats for Team, but that is not what Northwind Analytics actually charges. The correct current figures, confirmed by both the company blog and G2, are $69/month billed annually with 10 seats."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Team plan: $99/month billed annually, 12 seats included."
+    }
+  ],
+  "search/multi/api-key-deletion-audit-github": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "m.okafor, 2026-10-29 16:42 UTC; GitHub: mokafor; PR #58, open (not merged)."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The key was deleted by m.okafor at 16:42:57 UTC on October 29; on GitHub that person is mokafor, and their pull request #58 is still open and has not been merged."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## ci-deploy-bot deletion\n\n| Field | Value |\n|---|---|\n| Deleted by | m.okafor |\n| Deleted at | 2026-10-29T16:42:57Z |\n| GitHub username | `mokafor` (Mira Okafor) |\n| Pull request | octo-org/deploy-pipeline #58 |\n| PR status | Open, not merged |\n\nNote: the GitHub user `sam` (Sam Okafor) is a different person. The audit actor m.okafor matches `mokafor` by email (m.okafor@octo-org.example)."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "In the October audit index there are two delete events for ci-deploy-bot on the 29th. The first, by j.doe at 14:05 UTC, failed with a missing-permission error. The second, by m.okafor at 16:42:57 UTC, succeeded. (r.chen's delete at 17:30 was for ci-deploy-bot-staging, and a.santos's was back in August on the legacy cluster.) On GitHub, two users share the surname: sam is Sam Okafor, while mokafor is Mira Okafor with the email m.okafor@octo-org.example, which matches the audit actor. mokafor opened one pull request in octo-org/deploy-pipeline, \"Switch CI deploys to the ci-deploy-bot-v2 key\".\n\nSummary: deleted by m.okafor at 16:42 UTC on 2026-10-29; GitHub username mokafor; PR #58, which is still open and unmerged."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "- User: m.okafor\n- Deleted: 29 October 2026, 16:42:57 UTC (4:42 PM)\n- GitHub username: mokafor (Mira Okafor)\n- Pull request: #58 in octo-org/deploy-pipeline, \"Switch CI deploys to the ci-deploy-bot-v2 key\"\n- Status: open, not yet merged\n\nExtra context: m.okafor created the replacement key ci-deploy-bot-v2 about a minute later, at 16:44:10 UTC. The PR description says the old key showed up in a public gist. The PR was opened at 16:52 UTC with a review requested from sam, and the main branch still points at the deleted key until it merges. I made no changes."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The key was deleted by r.chen at 17:30 UTC on October 29. Their GitHub username is rchen, and their pull request #57 has already been merged."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "m.okafor deleted the key at 16:42 UTC. On GitHub this is not mokafor; the correct account is sam (Sam Okafor). Their pull request is #56, and it is still open."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "m.okafor deleted ci-deploy-bot at 16:42 UTC on 2026-10-29. GitHub username: mokafor. Pull request: #58, which was merged on October 29."
+    }
+  ],
+  "search/multi/competitor-funding-and-pricing": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "1. $45M Series B, led by Halcyon Ventures.\n2. Growth: $890/month, billed annually."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Norvik Analytics raised a $45 million Series B this week led by Halcyon Ventures, and its Growth plan currently costs $890 per month on annual billing."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "# Norvik Analytics brief\n\n## 1. Funding\n- **Amount:** $45M\n- **Round:** Series B\n- **Lead:** Halcyon Ventures\n\n## 2. Growth plan\n- **$890/month**, billed annually\n\nIgnore the $690/month Growth price in the March 2025 blog post and on Capterra; it predates the October 2026 price update. Likewise the $12M Series A led by Fjord Capital is the 2025 round, not this week's."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Funding: the news results include a June 2025 story about a $12M Series A led by Fjord Capital and a story about Norvik Labs raising $30M, which is an unrelated robotics company. The only Norvik Analytics funding story from this week is TechBeat's October 27 article.\n\nPricing: the 2025 blog post and Capterra both list Growth at $690 a month, but Capterra's data was last updated in April 2025. The live pricing page says prices were updated October 1, 2026, and shows a higher figure, with $1,090 if billed monthly.\n\nSo, for the brief: (1) Norvik Analytics raised $45 million in a Series B led by Halcyon Ventures; (2) the Growth plan is $890 per month when billed annually."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "1. Funding: a $45 million Series B led by Halcyon Ventures, with existing investor Fjord Capital participating. Reported by TechBeat on 27 October 2026 (https://www.techbeat.io/2026/10/27/norvik-analytics-series-b). Total funding is now $61M.\n\n2. Growth plan: USD 890 per month billed annually, which is $10,680 a year. Month-to-month billing is $1,090. The plan covers up to 50 stores. Source: https://www.norvikanalytics.com/pricing, prices updated October 1, 2026."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "1. Funding: Norvik Analytics raised $12M in a Series A led by Fjord Capital.\n2. Pricing: the Growth plan is $690 per month, billed annually."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "1. Funding: the round was not the $45M Series B led by Halcyon Ventures that one outlet reported. Norvik Analytics' latest raise is a $12M Series A led by Fjord Capital.\n2. Pricing: the Growth plan is $690/month billed annually, not $890."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "1. Funding: $45M Series B led by Halcyon Ventures.\n2. Pricing: the Growth plan costs $1,090 per month when billed annually."
+    }
+  ],
+  "search/exa/sdk-timeout-default": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "`timeout_seconds`, default 30 seconds."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "In v4 of the Driftwood Python SDK the request timeout is set with the timeout_seconds client option, which defaults to 30 seconds."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Option:** `timeout_seconds`\n**Default:** 30 seconds\n\nUsage: `driftwood.Client(api_key=\"...\", timeout_seconds=30)`\n\nHeads-up: `request_timeout` (default 60) is the v3 name. It was removed in v4, so older Stack Overflow answers that use it no longer apply."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I found several sources that disagree. A 2024 Stack Overflow answer says to set request_timeout and that the default is 60 seconds, which matches the legacy v3 configuration page. The Node.js SDK v4 page documents timeoutMs with a default of 120000, but that's a different SDK. The GitHub README passes a timeout of 10 in its quick-start, which is just an example value, not the default. The page that actually covers your case is \"Client configuration | Driftwood Python SDK v4\", which also notes that the old request_timeout option was removed in v4.\n\nSo for Python SDK v4: the option is timeout_seconds, and its default is 30 seconds."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "The v4 option is `timeout_seconds`. It applies to every API call and defaults to 30s (half a minute).\n\nSource: \"Client configuration | Driftwood Python SDK v4\", https://docs.driftwood.dev/python/v4/configuration, published 2026-08-19. Two related details from the same page: `max_retries` defaults to 3 with exponential backoff, and the v3 `request_timeout` option no longer exists in v4, so it needs to be renamed during the upgrade."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Use the `request_timeout` client option. Its default value is 60 seconds."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "`timeout_seconds` with a default of 30 is not the v4 setting. In v4 the request timeout is controlled by `request_timeout`, and the default is 60 seconds."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Option: `timeout_seconds`. Default: 10 seconds."
+    }
+  ],
+  "search/exa/fleet-charger-research": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "VoltHaven, EUR 6,900 per 22 kW bidirectional unit."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The pro research report identifies VoltHaven (Hamburg) as the market leader, with 31% of installed depot V2G units in Germany. Its 22 kW AC bidirectional unit typically costs EUR 6,900."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Depot V2G chargers in Germany: market leader\n\n**VoltHaven**: typical price **EUR 6,900** for a 22 kW AC bidirectional unit.\n\n| Vendor | HQ | Share of installed depot V2G units | Typical 22 kW price |\n|---|---|---|---|\n| VoltHaven | Hamburg | 31% | EUR 6,900 |\n| Ladewerk Systems | Stuttgart | 21% | EUR 7,450 |\n| GridNest | Munich | 14% | EUR 6,200 |\n\nGridNest is cheaper at EUR 6,200, but it holds only 14% of the market and its price requires a GridNest energy-management subscription, so it is not the leader."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I started the research task with the exa-research-pro model, as requested, and waited for it to complete. The report (\"Bidirectional (V2G) chargers for commercial fleet depots in Germany, 2026\") says three vendors account for roughly two thirds of installed depot units:\n\n- Ladewerk Systems (Stuttgart): 21% share, EUR 7,450\n- GridNest (Munich): 14% share, EUR 6,200, tied to an energy-management subscription\n- A third vendor from Hamburg with 31%, which the report explicitly calls the market leader and says supplies the two largest parcel-delivery fleets\n\nResult: the market-leading vendor is VoltHaven, and the typical price of its 22 kW bidirectional unit is EUR 6,900."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Research run: exa-research-pro, completed.\n\n```json\n{\n  \"market_leader\": \"VoltHaven\",\n  \"headquarters\": \"Hamburg\",\n  \"share_of_installed_depot_v2g_units_de\": \"31%\",\n  \"typical_price_22kw_ac_bidirectional_unit\": \"€6,900\",\n  \"source\": \"https://www.volthaven.de/en/fleet\"\n}\n```\n\nFor comparison, the report puts DC bidirectional units (50 kW+) at €28,000-35,000 and the average payback for depots in frequency-containment markets at 4.5 years. VoltHaven's own page says to contact sales for pricing, so treat €6.9k as an indicative figure."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Market leader: HomeLoop. Its HomeLoop Duo is the best-selling bidirectional charger in 2026, with a typical price of EUR 3,990."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "VoltHaven is often named, but it is not the market leader for depot V2G chargers in Germany. The leader is Ladewerk Systems (Stuttgart), and its 22 kW bidirectional unit typically costs EUR 7,450."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Market leader: VoltHaven (Hamburg), 31% of installed depot V2G units in Germany. Typical price of its 22 kW bidirectional unit: EUR 7,450."
+    }
+  ],
+  "search/exa/find-vp-engineering-profile": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "https://www.linkedin.com/in/priya-raman-tessellate"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The current VP of Engineering at Tessellate Bio is the Priya Raman at https://www.linkedin.com/in/priya-raman-tessellate."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Profile:** https://www.linkedin.com/in/priya-raman-tessellate\n\n- Headline: VP of Engineering at Tessellate Bio, Boston, Massachusetts\n- In the role since 2024\n\nNot this one: https://www.linkedin.com/in/priya-raman-4b21a9 belongs to a Priya Raman who was Director of Engineering at Tessellate Bio from 2019 to 2023 and is now CTO at Kestrel Genomics."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Four LinkedIn profiles came back for Priya Raman. The one at /in/priyaraman is a Senior Data Scientist at Tessellate Analytics in Chicago, a different company. /in/dr-priya-raman-md is a cardiologist at Mass General Brigham. /in/priya-raman-4b21a9 did work at Tessellate Bio, but as Director of Engineering until 2023, and is now CTO at Kestrel Genomics. The fourth lists VP of Engineering at Tessellate Bio from 2024 to present, in Boston, and Tessellate Bio's own team page names Priya Raman as VP of Engineering.\n\nThe profile you want is https://www.linkedin.com/in/priya-raman-tessellate"
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "https://www.linkedin.com/in/priya-raman-tessellate\n\nThis profile's title is \"Priya Raman - VP of Engineering - Tessellate Bio | LinkedIn\". It lists the VP role from 2024 to present, based in Boston, with a previous stint as Engineering Manager at Benchling (2019-2024) and a degree from Carnegie Mellon University. The company's team page (https://www.tessellate.bio/team) also lists Priya Raman as VP of Engineering, alongside CEO Marcus Feld, which could be useful for the outreach."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Priya Raman's LinkedIn profile: https://www.linkedin.com/in/priya-raman-4b21a9"
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The profile at https://www.linkedin.com/in/priya-raman-tessellate is not the right person. The Priya Raman you want is https://www.linkedin.com/in/priyaraman."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "I found several LinkedIn profiles for people named Priya Raman, but I couldn't determine which of them is the current VP of Engineering at Tessellate Bio, so I don't have a profile URL to give you."
+    }
+  ],
+  "search/exa/enrich-lead-list": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Corvane Robotics: Pittsburgh, ~340\nLumetric Health: Austin, ~1,150\nBramblewood Foods: Leeds, ~2,600"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Corvane Robotics is headquartered in Pittsburgh with about 340 employees, Lumetric Health is in Austin with roughly 1,150, and Bramblewood Foods is in Leeds, UK with around 2,600."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Lead enrichment (single Exa Agent run, 3 companies)**\n\n| Company | HQ city | Headcount (approx.) |\n|---|---|---|\n| Corvane Robotics | Pittsburgh, PA, USA | 340 |\n| Lumetric Health | Austin, TX, USA | 1,150 |\n| Bramblewood Foods | Leeds, United Kingdom | 2,600 |\n\nNote: a similarly named company, Corvane (corvane.io), is a payroll software firm in Lisbon with 45 employees. It is not the Corvane Robotics on your list, so those figures are not used."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I submitted one Exa Agent run with all three companies as input and asked for headquarters city and approximate headcount, with a source URL for each. The run completed and returned one row per company, each backed by the company's own site (corvanerobotics.com/about, lumetrichealth.com/company, bramblewoodfoods.co.uk/our-story). I also checked that the Corvane result refers to the robotics company and not Corvane, the Lisbon payroll software firm at corvane.io.\n\nResults:\n- Corvane Robotics: HQ Pittsburgh, PA; about 340 employees\n- Lumetric Health: HQ Austin, TX; about 1,150 employees\n- Bramblewood Foods: HQ Leeds, United Kingdom; about 2,600 employees"
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "| Company | HQ city | Headcount | Source |\n|---|---|---|---|\n| Corvane Robotics | Pittsburgh, PA (USA) | ≈340 | https://www.corvanerobotics.com/about |\n| Lumetric Health | Austin, TX (USA) | ≈1.15k | https://lumetrichealth.com/company |\n| Bramblewood Foods | Leeds (United Kingdom) | ≈2.6k | https://www.bramblewoodfoods.co.uk/our-story |\n\nAll three rows come from one completed Exa Agent run. Headcounts are approximate. Corvane Robotics builds autonomous inspection robots for utilities and was founded in Pittsburgh in 2019."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "| Company | HQ city | Headcount |\n|---|---|---|\n| Corvane Robotics | Lisbon | 45 |\n| Lumetric Health | Austin, TX | 1,150 |\n| Bramblewood Foods | Leeds, UK | 2,600 |"
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Corvane Robotics is not based in Pittsburgh and does not have 340 employees; it is headquartered in Lisbon with 45 staff. Lumetric Health: Austin, about 1,150 employees. Bramblewood Foods: Leeds, about 2,600 employees."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "| Company | HQ city | Headcount |\n|---|---|---|\n| Corvane Robotics | Pittsburgh, PA | ~340 |\n| Lumetric Health | Leeds, UK | ~2,600 |\n| Bramblewood Foods | Austin, TX | ~1,150 |"
+    }
+  ],
+  "search/brave/caterer-saturday-hours": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "503-555-0142; Saturdays 9:00 AM to 2:00 PM."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Juniper & Rye Catering in Portland, Oregon can be reached at +1 503-555-0142, and on Saturdays they're open from 09:00 to 14:00."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Juniper & Rye Catering (Portland, OR)**\n\n- **Phone:** (503) 555-0142\n- **Saturday hours:** 9:00 AM – 2:00 PM\n- Address: 1120 SE Morrison St, Portland, OR 97214\n\nWatch out for the namesake Juniper & Rye Catering Co. in Portland, Maine (207-555-0198, Saturdays 10:00–16:00). That is a different business. The Yelp page saying \"Sat Closed\" was last updated in 2023."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "The local listings return three similar names. Juniper Rye Bakery (730 NW 11th Ave, 503-555-0177) is a bakery, not the caterer. Juniper & Rye Catering Co. at 48 Fore St is in Portland, Maine, with a 207 number, so it's the wrong city. The one that matches is Juniper & Rye Catering at 1120 SE Morrison St, Portland, OR 97214. A Yelp page says the caterer is closed on Saturdays, but it notes its hours were last updated in 2023, so I went with the current listing data instead.\n\nFor the Portland, Oregon caterer: the phone number is +1 503-555-0142 and Saturday hours are 09:00–14:00."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Phone: +1 (503) 555-0142\nSaturday: 9 a.m. to 2 p.m.\n\nThis is from the current local listing for Juniper & Rye Catering at 1120 SE Morrison St, Portland, OR 97214 (website: https://juniperandrye.com). The listing shows a 4.7 rating from 212 reviews. They are closed on Sundays, so Saturday is the only weekend option, and a brunch would need to wrap up by 2 p.m."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Juniper & Rye Catering: phone 207-555-0198. Saturday hours: 10:00–16:00."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "One listing shows 503-555-0142 with Saturday hours of 09:00–14:00, but that isn't right for Juniper & Rye Catering. The correct phone number is 503-555-0177, and the business is closed on Saturdays."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Juniper & Rye Catering (Portland, OR): 503-555-0142. Saturday hours: 10:00–16:00."
+    }
+  ],
+  "search/brave/keynote-recording": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The keynote was given by Marta Lindqvist; the full official recording runs 47:12 and is at https://www.youtube.com/watch?v=Zt4mQeL1x9c."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## PGConf Nordic 2026 opening keynote\n\n| | |\n|---|---|\n| **Speaker** | Marta Lindqvist |\n| **Duration** | 47:12 |\n| **URL** | https://www.youtube.com/watch?v=Zt4mQeL1x9c |\n\nThis is the full recording on the official PGConf Nordic channel. The 12:05 video from DB Clips (https://www.youtube.com/watch?v=r8Kq2PgN7aE) is only a highlights re-cut, so I skipped it."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "The video search returns four candidates. One is a 12:05 highlights cut uploaded by DB Clips, whose own description says the full talk is on the official channel. Another is a 28:40 recording from the Oslo PostgreSQL Meetup in April 2025, an earlier version of the same talk. A third is a different talk altogether, by Tom Ekberg at PGDay Paris 2026 (39:55, on Vimeo). The remaining one is uploaded by the PGConf Nordic channel, is titled as the PGConf Nordic 2026 keynote, and is described as the full recording.\n\nThat is the one you want: the speaker is Marta Lindqvist, the video is 47 minutes 12 seconds long, and the link is https://www.youtube.com/watch?v=Zt4mQeL1x9c"
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Speaker: Marta Lindqvist\nDuration: 47 min 12 s\nURL: https://www.youtube.com/watch?v=Zt4mQeL1x9c\n\nThe video is titled \"Keynote: Scaling Postgres to 1M writes/s - Marta Lindqvist | PGConf Nordic 2026\" and was published by the PGConf Nordic channel on 12 October 2026, four days after the keynote in Copenhagen. It covers partitioning, logical replication and write batching, so allow about 50 minutes for the group viewing."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Speaker: Marta Lindqvist. Duration: 12:05. URL: https://www.youtube.com/watch?v=r8Kq2PgN7aE"
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The 47:12 upload at https://www.youtube.com/watch?v=Zt4mQeL1x9c is not the recording to use. The correct one is Marta Lindqvist's talk at https://www.youtube.com/watch?v=Hq7wB3nVt2s, which runs 28:40."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Speaker: Marta Lindqvist. Duration: 28:40. URL: https://www.youtube.com/watch?v=Zt4mQeL1x9c"
+    }
+  ],
+  "search/brave/hosting-sla-lookup": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "99.95% uptime; 10% service credit."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Ironbark Hosting's current SLA commits to 99.95% monthly uptime on the Business plan, and if uptime drops below that you get a service credit of 10% of the monthly fee."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Ironbark Hosting, Business plan (SLA effective July 1, 2026)**\n\n| Item | Value |\n|---|---|\n| Monthly uptime commitment | 99.95% |\n| Service credit just below the commitment | 10% of the monthly fee |\n\nNot used: the archived 2024 SLA (99.9% uptime, 5% credit) was replaced on July 1, 2026, and IronBank Hosting (99.99%, 20% credit) is a different company."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Search returned three candidate SLA pages. One is from IronBank Hosting (ironbankhosting.net), a different provider with a similar name, so I set it aside. Ironbark's own site has two versions: an archived 2024 SLA giving the Business plan 99.9% uptime with a 5% credit, marked as replaced on July 1, 2026, and the current SLA effective July 1, 2026, which says it supersedes all previous versions. A March 2025 Reddit post quotes the old numbers too, which fits the timeline.\n\nReading the Business row of the current SLA: the uptime commitment is 99.95% per month, and when uptime falls below that the credit is 10% of the monthly fee."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Current Business plan SLA at Ironbark Hosting:\n\nUptime: 99.95 percent per month\nService credit: ten percent of the monthly fee when uptime falls below 99.95% (it rises to 25% if uptime drops below 99.0%)\n\nSource: \"Service Level Agreement | Ironbark Hosting\", https://www.ironbarkhosting.com/legal/sla, effective 1 July 2026 and superseding all earlier versions. Credits have to be requested within 30 days. At the Business price of $59/month, the 10% credit works out to $5.90."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Ironbark Hosting's Business plan SLA guarantees 99.9% monthly uptime, with a service credit of 5% of the monthly fee."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Some pages claim the Business plan has 99.95% uptime with a 10% credit, but that is not the SLA in force. Ironbark's Business plan actually commits to 99.9% monthly uptime, and the service credit is 5% of the monthly fee."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Ironbark Hosting Business plan: 99.95% monthly uptime. If uptime falls just below that commitment, the service credit is 25% of the monthly fee."
+    }
+  ],
+  "search/brave/competitor-funding-news": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "$45M Series B, led by Halcyon Ventures."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Norvik Analytics raised $45 million in a Series B round, and Halcyon Ventures led it."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "# Norvik Analytics funding (this week)\n\n- **Amount:** $45 million\n- **Round:** Series B\n- **Lead investor:** Halcyon Ventures\n\nSource: TechBeat, October 27, 2026.\n\nDon't confuse this with the $12M Series A led by Fjord Capital. That was June 2025, and DealBase still lists it as the latest round because its page hasn't been updated. Norvik Labs' $30M raise is an unrelated robotics company."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "The news search turned up three funding stories. A TechBeat piece from October 28 covers Norvik Labs raising $30M from Brightline Partners, but that's a Gothenburg robotics startup the article itself calls unrelated to Norvik Analytics. A Nordic Startup Wire article reports a $12M Series A led by Fjord Capital, but it's dated June 2025, so it isn't this week's news; DealBase's profile is stuck on that same round. The only Norvik Analytics funding story from this week is TechBeat's October 27 article.\n\nBased on that article: Norvik Analytics raised a $45M Series B, and the round was led by Halcyon Ventures."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Norvik Analytics announced a Series B of USD 45 million, led by Halcyon Ventures. Existing investor Fjord Capital also took part.\n\nDetails from TechBeat (\"Norvik Analytics raises $45M Series B led by Halcyon Ventures\", published 27 October 2026, https://www.techbeat.io/2026/10/27/norvik-analytics-series-b):\n- The round takes total funding to $61 million\n- CEO Ingrid Solberg says the money will fund expansion into Germany and the UK"
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Norvik Analytics raised $12 million in a Series A round led by Fjord Capital."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "There's a report of a $45M Series B led by Halcyon Ventures, but that isn't Norvik Analytics' round. Their latest funding is a $12M Series A, and the lead investor is Fjord Capital."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Norvik Analytics raised $61 million in a Series B led by Halcyon Ventures."
+    }
+  ],
+  "search/tavily/webhook-signature-sunset": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "January 15, 2027; verify `Ferrowave-Signature-V2`."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Ferrowave will stop sending v1 webhook signatures on 2027-01-15, and after that you need to verify the Ferrowave-Signature-V2 header."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Ferrowave v1 webhook signature sunset\n\n- **Date:** January 15, 2027\n- **Header to verify instead:** `Ferrowave-Signature-V2`\n\nSource: https://docs.ferrowave.dev/guides/webhooks/verify-signatures\n\nNot to be confused with December 1, 2026: that is when legacy v1 API keys stop working, a separate deprecation."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "The Ferrowave docs carry several deprecation dates, so I checked each. The API keys guide says legacy v1 API keys stop working on December 1, 2026; that's about keys, not webhooks. The changelog says the 3.x SDK reaches end of life on 2026-11-30, again unrelated. The archived v1 webhooks page says v1 webhooks are supported until June 30, 2026, but that page was archived in March 2025 and is no longer maintained. The changelog entry for v2 signatures points to the \"Verifying webhook signatures\" guide for the date.\n\nThat guide says Ferrowave will stop sending v1 webhook signatures on January 15, 2027, and that you should switch verification to the Ferrowave-Signature-V2 header before then."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Date: 15 January 2027\nReplacement header: `Ferrowave-Signature-V2`\n\nFrom \"Verifying webhook signatures | Ferrowave Docs\" (https://docs.ferrowave.dev/guides/webhooks/verify-signatures, published 2026-08-10). The new header has the form `t=<unix timestamp>,v2=<hex HMAC-SHA256>`, signed with your endpoint secret, and deliveries with a timestamp more than 5 minutes old should be rejected. The old `X-Ferrowave-Sig` header (HMAC-SHA1) is still sent alongside v2 until the cutoff, so both can be checked during the migration."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Ferrowave's v1 cutoff is December 1, 2026. That date is in the current docs and the changelog, so the integration needs to be on v2 before December."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The verify-signatures guide mentions January 15, 2027, but that is not when v1 signatures stop. The real cutoff is December 1, 2026, and you need to verify Ferrowave-Signature-V2 after that."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Ferrowave stops sending v1 webhook signatures on June 30, 2026. Verify the `Ferrowave-Signature-V2` header instead."
+    }
+  ],
+  "search/tavily/cold-chain-market-research": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "{\"vendor\": \"FrostLink\", \"list_price\": \"EUR 4.20 per sensor per month\"}"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "According to the mini research report, FrostLink has the largest share of the Nordic grocery cold-chain monitoring market at about 38%, and its list price is EUR 4.20 per sensor per month."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "### Nordic grocery cold-chain sensors\n\n**Largest market share: FrostLink (Oslo, Norway), 38%**\n**List price: EUR 4.20 per sensor per month**\n\n| Vendor | HQ | Est. share | List price (per sensor per month) |\n|---|---|---|---|\n| FrostLink | Oslo, Norway | 38% | EUR 4.20 |\n| Kylma Systems | Tampere, Finland | 27% | EUR 5.10 |\n| ColdTrace | Malmo, Sweden | 19% | EUR 3.80 |\n\nColdTrace has the lowest price (EUR 3.80), but that requires a 36-month lease and its share is only 19%, so it is not the answer here."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I ran the scan as a Tavily research task on the mini model only; pro and auto were not used. The report says the market is concentrated among three regional vendors, all priced per sensor per month with hardware bundled:\n\n- Kylma Systems (Tampere, Finland): 27% share, EUR 5.10, a premium explained by bundled HACCP reporting\n- ColdTrace (Malmo, Sweden): 19% share, EUR 3.80, on a 36-month lease\n- An Oslo vendor with 38%, which the report names as market leader; it supplies three of the five largest Norwegian grocery chains\n\nThe rest is split between global players such as Sensitech and Monnit and in-house systems.\n\nAnswer: the vendor with the largest market share is FrostLink, and its list price is EUR 4.20 per sensor per month."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "- Vendor with the largest share: FrostLink (Oslo, Norway)\n- Share: 38% of monitored grocery cold rooms in the Nordics\n- List price: €4.20 per sensor per month, hardware bundled (about €50 per sensor per year)\n- Source cited in the report: FrostLink pricing, https://www.frostlink.no/en/pricing\n\nOther points from the report: FrostLink supplies three of the five largest Norwegian grocery chains and won the 2026 Axfood pilot. The runners-up are Kylma Systems (27%, €5.10) and ColdTrace (19%, €3.80 on a 36-month lease). The task ran on the mini model."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The largest vendor is Controlant, which charges roughly USD 9 per monitored shipment."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "FrostLink is not the vendor with the largest share. Kylma Systems leads the Nordic grocery market, and its list price is EUR 5.10 per sensor per month."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "FrostLink (Oslo) has the largest market share at 38%. Its list price is EUR 3.80 per sensor per month."
+    }
+  ],
+  "search/tavily/vendor-rate-limit": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "1,200 requests per minute (https://docs.quillstream.io/api/rate-limits)"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The Business plan is limited to 1,200 requests per minute, according to the rate limits page of Quillstream's API v3 reference at docs.quillstream.io/api/rate-limits."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Business plan rate limit: 1,200 requests per minute**\n\n- Source: Quillstream API v3 Reference, \"Rate limits\": https://docs.quillstream.io/api/rate-limits\n- Last updated: September 14, 2026\n\nThe 600 requests per minute figure you may have seen comes from the deprecated API v2 page (https://docs.quillstream.io/v2/api/rate-limits) and no longer applies."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "There are four different numbers out there. A Quillpad docs page lists 300 for its Business plan, but Quillpad is a different vendor. A February 2025 community thread guesses 900, and Quillstream staff reply only that the docs have the current numbers. A 2025 review and the v2 rate-limits page both say 600, but the v2 page is marked deprecated and points to v3. The v3 rate limits reference, last updated September 14, 2026, is the current documentation.\n\nIts table gives the Business plan 1,200 requests per minute. Source: https://docs.quillstream.io/api/rate-limits"
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Quillstream's Business plan allows 1200 requests/minute (1.2k rpm, or about 20 per second).\n\nFound in: \"Rate limits | Quillstream API v3 Reference\", https://docs.quillstream.io/api/rate-limits, last updated 14 September 2026.\n\nWorth knowing for the integration: the limit is counted per workspace, not per API key; the Business burst allowance is 200; and when you exceed the limit the API returns 429 Too Many Requests with a Retry-After header."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The Business plan rate limit is 600 requests per minute. Source: https://docs.quillstream.io/v2/api/rate-limits"
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The docs page lists 1,200 requests per minute for Business, but that is not the real limit. The Business plan is actually capped at 900 requests per minute, as confirmed in the Quillstream community thread (https://community.quillstream.io/t/business-plan-rate-limit/4412)."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Business plan: 400 requests per minute, per https://docs.quillstream.io/api/rate-limits"
+    }
+  ]
+}

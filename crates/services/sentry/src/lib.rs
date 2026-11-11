@@ -1,5 +1,5 @@
 //! Mock Sentry (self-hosted style, `/api/0`), as called by `@sentry/mcp-server` with
-//! `--host=world:8113 --insecure-http`.
+//! the account's configured `SENTRY_URL`.
 //!
 //! Dataset collections (`dataset/sentry/<collection>.json`):
 //!
@@ -8,7 +8,7 @@
 //! | `organizations` | slug | `{id, slug, name}` |
 //! | `users` | id | org members; the **first** one is the token's user (`/auth/`). `teams`: team slugs |
 //! | `teams` | slug | `{id, slug, name}` |
-//! | `projects` | slug | `{id, slug, name, platform, teams: [slug], environments}` |
+//! | `projects` | legacy key or immutable id | `{id, slug, name, platform, teams: [slug], environments}` |
 //! | `keys` | `<project>/<name>` | client keys (DSNs): `{id, name, project, public, secret, isActive}` |
 //! | `releases` | version | `{version, projects: [slug], dateCreated, dateReleased, commits, deploys}` |
 //! | `issues` | short ID | API-shaped issue with `project` as a slug and `firstRelease`/`lastRelease` as versions; optional `tags: {key: [{value, count}]}` |
@@ -26,6 +26,7 @@
 
 mod discover;
 mod extras;
+mod instance;
 mod issues;
 mod org;
 mod releases;
@@ -54,7 +55,11 @@ impl MockService for Sentry {
     }
 
     fn hosts(&self) -> &'static [&'static str] {
-        &[]
+        instance::HOSTS
+    }
+
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(instance::initialize)
     }
 
     fn router(&self) -> Router<SharedWorld> {

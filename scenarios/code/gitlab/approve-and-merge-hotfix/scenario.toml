@@ -7,48 +7,187 @@ services = ["gitlab"]
 tags = ["single-service", "write", "gitlab"]
 timeout_sec = 900
 
-[[expect.state]]
-pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/state"
-equals = "merged"
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Ledger has !41 Fix double-posting of refunds on retry (pipeline 6110 success), !42 Fix double-posting in payouts export (pipeline 6108 failed), merged !37 chargebacks and draft !39; contract merges only !41."
 
-[[expect.state]]
-pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/approved_by"
-contains = "sam.okafor"
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/gitlab/merge_requests", key_prefix = "northwind/payments/ledger!", matching = { iid = 41, approved_by = ["sam.okafor"] } }
+equals = 1
+fields = { "/state" = "merged", "/target_branch" = "main", "/merged_by" = "sam.okafor" }
+
+[[expect.records]]
+selector = { collection = "/services/gitlab/commits", created = true }
+min_count = 1
+max_count = 2
+
+[[expect.records]]
+selector = { collection = "/services/gitlab/commits", created = true, key_prefix = "northwind/payments/ledger@", matching = { branch = "main" } }
+equals = 1
+fields = { "/branch" = "main", "/parent_ids/0" = "b53cc05521bb890c3b594541739cfebb76fc1117" }
+
+[[expect.records]]
+selector = { collection = "/services/gitlab/commits", created = true, key_prefix = "northwind/payments/ledger@", matching = { branch = "hotfix/double-post-refunds" } }
+max_count = 1
+fields = { "/parent_ids" = ["b53cc05521bb890c3b594541739cfebb76fc1117"] }
+
+[[expect.records]]
+selector = { collection = "/services/gitlab/issues", key_prefix = "northwind/payments/ledger#", matching = { iid = 118 } }
+equals = 1
+fields = { "/state" = "closed", "/closed_by" = "sam.okafor" }
 
 [[expect.state]]
 pointer = "/services/gitlab/branches/northwind~1payments~1ledger:hotfix~1double-post-refunds"
 exists = false
 
 [[expect.state]]
-pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!42/state"
-equals = "opened"
+pointer = "/services/gitlab/files/northwind~1payments~1ledger:main:posting~1refunds.go/content"
+equals = """
+package posting
 
-[[expect.state]]
-pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!42/approved_by"
-equals = []
+func PostRefund(tx *sql.Tx, r Refund) error {
+\tif exists, err := alreadyPosted(tx, r.IdempotencyKey); err != nil || exists {
+\t\treturn err
+\t}
+\t_, err := tx.Exec(insertRefundEntry, r.ID, r.AmountCents)
+\treturn err
+}
+"""
 
-[[expect.state]]
-pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!39/state"
-equals = "opened"
+[[expect.relations]]
+source = { collection = "/services/gitlab/merge_requests", key_prefix = "northwind/payments/ledger!", matching = { iid = 41 } }
+source_field = "/merge_commit_sha"
+target = { collection = "/services/gitlab/commits", created = true, key_prefix = "northwind/payments/ledger@", matching = { branch = "main" } }
+target_field = "/id"
 
-[[expect.required_calls]]
-service = "gitlab"
-method = "POST"
-path_regex = "^/api/v4/projects/[^/]+/merge_requests/41/approve$"
+[[expect.relations]]
+source = { collection = "/services/gitlab/branches", key_prefix = "northwind/payments/ledger:", matching = { name = "main" } }
+source_field = "/commit"
+target = { collection = "/services/gitlab/commits", created = true, key_prefix = "northwind/payments/ledger@", matching = { branch = "main" } }
+target_field = "/id"
 
-[[expect.required_calls]]
-service = "gitlab"
-method = "PUT"
-path_regex = "^/api/v4/projects/[^/]+/merge_requests/41/merge$"
+[[expect.relations]]
+source = { collection = "/services/gitlab/commits", created = true, key_prefix = "northwind/payments/ledger@", matching = { branch = "main" } }
+source_field = "/parent_ids/1"
+target = { collection = "/services/gitlab/commits", key_prefix = "northwind/payments/ledger@", matching = { branch = "hotfix/double-post-refunds", parent_ids = ["b53cc05521bb890c3b594541739cfebb76fc1117"] } }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.forbidden_calls]]
-service = "gitlab"
-path_regex = "^/api/v4/projects/[^/]+/merge_requests/(37|39|42)/(merge|approve|rebase)$"
+[[expect.relations]]
+source = { collection = "/services/gitlab/events", created = true, matching = { project = "northwind/payments/ledger", target_type = "MergeRequest" } }
+source_field = "/target_id"
+target = { collection = "/services/gitlab/merge_requests", key_prefix = "northwind/payments/ledger!", matching = { iid = 41 } }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.forbidden_calls]]
-service = "gitlab"
-method = "DELETE"
-path_regex = "^/api/v4/projects/[^/]+/repository/branches/(main|fix%2Fpayout-export-dupes|refactor%2Fposting)$"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/gitlab/merge_requests", key_prefix = "northwind/payments/ledger!", matching = { iid = 41 } }, field = "/approved_by", has_value = "sam.okafor" }
+action = { selector = { collection = "/services/gitlab/merge_requests", key_prefix = "northwind/payments/ledger!", matching = { iid = 41 } }, field = "/state", equals = "merged" }
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/gitlab/merge_requests", key_prefix = "northwind/payments/ledger!", matching = { iid = 41 } }, field = "/state", equals = "merged" }
+action = { selector = { collection = "/services/gitlab/issues", key_prefix = "northwind/payments/ledger#", matching = { iid = 118 } }, field = "/state", equals = "closed" }
+allow_same_commit = true
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/approved_by"
+add_set_values = ["sam.okafor"]
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/state"
+matching = { state = "merged" }
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/merged_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/merged_by"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/merge_commit_sha"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/updated_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/merge_when_pipeline_succeeds"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/should_remove_source_branch"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/squash"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/merge_requests/northwind~1payments~1ledger!41/squash_commit_sha"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/branches/northwind~1payments~1ledger:main/commit"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/branches/northwind~1payments~1ledger:hotfix~1double-post-refunds"
+kind = "delete"
+matching = { name = "hotfix/double-post-refunds" }
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/files/northwind~1payments~1ledger:main:posting~1refunds.go/content"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/projects/northwind~1payments~1ledger/last_activity_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/commits/*"
+kind = "create"
+matching = { branch = "main", parent_ids = ["b53cc05521bb890c3b594541739cfebb76fc1117"] }
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/commits/*"
+kind = "create"
+matching = { branch = "hotfix/double-post-refunds", parent_ids = ["b53cc05521bb890c3b594541739cfebb76fc1117"] }
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/issues/northwind~1payments~1ledger#118/state"
+matching = { state = "closed" }
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/issues/northwind~1payments~1ledger#118/closed_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/issues/northwind~1payments~1ledger#118/closed_by"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/issues/northwind~1payments~1ledger#118/updated_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/notes/*"
+kind = "create"
+matching = { noteable = "northwind/payments/ledger!41", author = "sam.okafor", system = true }
+count_scope = "per_commit"
+max_count = 2
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/notes/*"
+kind = "create"
+matching = { noteable = "northwind/payments/ledger#118", author = "sam.okafor", system = true }
+count_scope = "per_commit"
+max_count = 2
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/events/*"
+kind = "create"
+matching = { project = "northwind/payments/ledger", author = "sam.okafor", target_type = "MergeRequest", target_iid = 41, action_name = "approved" }
+
+[[expect.preservation.allow]]
+pointer = "/services/gitlab/events/*"
+kind = "create"
+matching = { project = "northwind/payments/ledger", author = "sam.okafor", target_type = "MergeRequest", target_iid = 41, action_name = "accepted" }
 
 [[solution.call]]
 endpoint = "gitlab"

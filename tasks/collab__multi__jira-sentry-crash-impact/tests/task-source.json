@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/multi/jira-sentry-crash-impact",
+  "scenario_sha256": "sha256:fa10a970e71cf6cd0fddce4d7a6dbb9c6ee9b91ddba3106504d2e3d6622537fd",
+  "dataset_sha256": "sha256:9a0465141d9ec276cd745291bc55e7cfd6b43d63ab18bc0151a6a34ad6f63351",
+  "contract_sha256": "sha256:eb56cefbbeb3c69caa1668bf0e1287196b551dfceedb80e8d88e967c947fecdf"
+}

@@ -1,1 +1,1 @@
-{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"firecrawl_crawl","arguments":{"includePaths":["^/api/.*"],"limit":50,"url":"https://docs.lumenpay.dev"}}}
+{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"firecrawl_crawl","arguments":{"crawlEntireDomain":true,"includePaths":["^/api/.*"],"limit":50,"url":"https://docs.lumenpay.dev/api/overview"}}}

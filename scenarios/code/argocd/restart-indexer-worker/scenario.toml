@@ -7,24 +7,49 @@ services = ["argocd"]
 tags = ["single-service", "write", "argocd"]
 timeout_sec = 900
 
-# The restart action stamps kubectl.kubernetes.io/restartedAt on the pod template.
-# Only the production worker Deployment may be restarted; the app is OutOfSync with an
-# unreviewed config change, so it must not be synced or edited.
-[[expect.state]]
-pointer = "/services/argocd/resources/d39d8921-d825-549b-a290-0dcda1cafa6c/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt"
-exists = true
+[scenario.family]
+schema_version = 1
+primary = "tool_ambiguity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 1
+rationale = "App search-indexer is OutOfSync on search-indexer-config; contract requires the restart resource action on search-indexer-worker and forbids sync, PUT and DELETE; staging twin and search-indexer-api must stay untouched."
 
-[[expect.state]]
-pointer = "/services/argocd/resources/f00419cc-5e98-59e0-8f9c-27d6e2749852/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt"
-exists = false
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/argocd/resources/44569b22-4bc0-5922-8e97-19c76bbefa4b/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", group = "apps", kind = "Deployment", namespace = "search", name = "search-indexer-worker", cluster = "https://prod-use1.k8s.lumen.internal" }, field_patterns = { "/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt" = '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z$' } }
+equals = 1
+fields = { "/health/status" = "Healthy" }
+optional_choices = { "/manifest/spec/paused" = [false] }
 
-[[expect.state]]
-pointer = "/services/argocd/resources/d39d8921-d825-549b-a290-0dcda1cafa6c/manifest/spec/paused"
-exists = false
+[[expect.relations]]
+kind = "numeric_equals"
+source = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } }
+source_field = "/manifest/metadata/generation"
+target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } }
+target_field = "/manifest/status/observedGeneration"
+
+[[expect.relations]]
+kind = "count_equals"
+source = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Pod", namespace = "search", deleting = false, manifest = { status = { phase = "Running", conditions = [{ type = "Ready", status = "True" }] } } }, references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "ReplicaSet", namespace = "search" }, references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }, { source_field = "/template_digest", target_field = "/template_digest", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }] } }] }
+source_field = "/uid"
+target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } }
+target_field = "/manifest/spec/replicas"
+
+[[expect.relations]]
+kind = "foreign_key"
+source = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Pod", namespace = "search", deleting = false, manifest = { status = { phase = "Running", conditions = [{ type = "Ready", status = "True" }] } } }, references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "ReplicaSet", namespace = "search" }, references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }, { source_field = "/template_digest", target_field = "/template_digest", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }] } }] }
+source_field = "/controller_uid"
+target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "ReplicaSet", namespace = "search" } }
+target_field = "/uid"
+fields = [
+  { source_field = "/manifest/spec/containers", target_field = "/manifest/spec/template/spec/containers", kind = "equals" },
+  { source_field = "/manifest/spec/serviceAccountName", target_field = "/manifest/spec/template/spec/serviceAccountName", kind = "equals" },
+  { source_field = "/manifest/metadata/namespace", target_field = "/manifest/metadata/namespace", kind = "equals" },
+  { source_field = "/cluster", target_field = "/cluster", kind = "equals" },
+]
 
 [[expect.state]]
 pointer = "/services/argocd/applications/argocd~1search-indexer/status/sync/status"
@@ -34,8 +59,8 @@ equals = "OutOfSync"
 service = "argocd"
 method = "POST"
 path = "/api/v1/applications/search-indexer/resource/actions"
-query_contains = "resourceName=search-indexer-worker"
-body_contains = "restart"
+query_fields = { resourceName = "search-indexer-worker", namespace = "search", group = "apps", kind = "Deployment" }
+body = "restart"
 
 [[expect.forbidden_calls]]
 service = "argocd"
@@ -50,23 +75,53 @@ method = "PUT"
 service = "argocd"
 method = "DELETE"
 
-[[expect.forbidden_calls]]
-service = "argocd"
-method = "POST"
-path = "/api/v1/applications/search-indexer/resource/actions"
-query_contains = "resourceName=search-indexer-api"
+[expect.preservation]
+allow = [
+  { pointer = "/services/argocd/resources/*/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" }, cause = { service = "argocd", methods = ["POST"], path_regex = "^/api/v1/applications/search-indexer/resource/actions$" } },
+  { pointer = "/services/argocd/resources/*/manifest/metadata/generation", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } },
+  { pointer = "/services/argocd/resources/*/manifest/metadata/resourceVersion", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } },
+  { pointer = "/services/argocd/resources/*/resourceVersion", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } },
+  { pointer = "/services/argocd/resources/*/status", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } },
+  { pointer = "/services/argocd/resources/*/health", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } },
+  { pointer = "/services/argocd/resources/*/template_digest", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } },
+  { pointer = "/services/argocd/resources/*/content_digest", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } },
+  { pointer = "/services/argocd/resources/*/manifest/status", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" }, cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/search-indexer(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/metadata/annotations/deployment.kubernetes.io~1revision", initial_matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" }, cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/search-indexer(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/spec/replicas", initial_matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*/manifest/status", initial_matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*/manifest/metadata/resourceVersion", initial_matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*/manifest/metadata/generation", initial_matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*/resourceVersion", initial_matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*/health", initial_matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*/active", initial_matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*/content_digest", initial_matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*", kind = "delete", initial_matching = { app = "argocd/search-indexer", kind = "Pod" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }] } }], max_count = "all_matching" },
+  { pointer = "/services/argocd/resources/*", kind = "create", matching = { app = "argocd/search-indexer", kind = "ReplicaSet", namespace = "search", cluster = "https://prod-use1.k8s.lumen.internal" }, references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }, { source_field = "/template_digest", target_field = "/template_digest", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }], count_scope = "per_commit" },
+  { pointer = "/services/argocd/resources/*", kind = "create", matching = { app = "argocd/search-indexer", kind = "Pod", namespace = "search", cluster = "https://prod-use1.k8s.lumen.internal" }, references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "ReplicaSet" }, references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/search-indexer", kind = "Deployment", namespace = "search", name = "search-indexer-worker" } } }] } }], max_count = 100, count_scope = "per_commit" },
+  { pointer = "/services/argocd/applications/argocd~1search-indexer/metadata/resourceVersion" },
+  { pointer = "/services/argocd/applications/argocd~1search-indexer/status/health" },
+  { pointer = "/services/argocd/events/*", kind = "create", matching = { type = "Normal", reason = "ResourceActionRan", source = { component = "argocd-server" }, involvedObject = { kind = "Application", namespace = "argocd", name = "search-indexer" } }, references = [{ source_field = "/involvedObject/uid", target_field = "/metadata/uid", target = { collection = "/services/argocd/applications", matching = { metadata = { namespace = "argocd", name = "search-indexer" } } } }], count_scope = "per_commit" },
+]
 
 [[solution.call]]
 endpoint = "argocd"
 tool = "get_application_resource_tree"
 arguments = { applicationName = "search-indexer" }
+capture = [{ name = "worker_uid", pointer = "/content/0/text", json_pointer = "/nodes", select = { matching = { kind = "Deployment", namespace = "search", name = "search-indexer-worker" }, pointer = "/uid" }, constraint = { type = "string", minLength = 1 } }]
 
 [[solution.call]]
 endpoint = "argocd"
 tool = "get_resource_actions"
-arguments = { applicationName = "search-indexer", applicationNamespace = "argocd", resourceRef = { uid = "d39d8921-d825-549b-a290-0dcda1cafa6c", kind = "Deployment", namespace = "search", name = "search-indexer-worker", version = "v1", group = "apps" } }
+template = true
+arguments = { applicationName = "search-indexer", applicationNamespace = "argocd", resourceRef = { uid = "${worker_uid}", kind = "Deployment", namespace = "search", name = "search-indexer-worker", version = "v1", group = "apps" } }
 
 [[solution.call]]
 endpoint = "argocd"
 tool = "run_resource_action"
-arguments = { applicationName = "search-indexer", applicationNamespace = "argocd", resourceRef = { uid = "d39d8921-d825-549b-a290-0dcda1cafa6c", kind = "Deployment", namespace = "search", name = "search-indexer-worker", version = "v1", group = "apps" }, action = "restart" }
+template = true
+arguments = { applicationName = "search-indexer", applicationNamespace = "argocd", resourceRef = { uid = "${worker_uid}", kind = "Deployment", namespace = "search", name = "search-indexer-worker", version = "v1", group = "apps" }, action = "restart" }
+
+[[solution.call]]
+endpoint = "argocd"
+tool = "get_application_resource_tree"
+arguments = { applicationName = "search-indexer", applicationNamespace = "argocd" }

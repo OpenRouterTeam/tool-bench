@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/exa/find-vp-engineering-profile",
+  "scenario_sha256": "sha256:1ddee7f0c4228a702d163f605e17edffdd132031d4543ed4ffe2252af565b445",
+  "dataset_sha256": "sha256:e0da727a09c7ec44aada55d1bbb1bb4b6f2a0f0865e5ccc0cd21eaa77b9403e6",
+  "contract_sha256": "sha256:e9b337b2c07fd999d965ce9e50c43194023de0f099546d1f9e763128afc46814"
+}

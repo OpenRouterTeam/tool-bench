@@ -16,14 +16,20 @@ pub const REGISTRY: &str = "us-docker.pkg.dev/openrouter-ci/harbor";
 
 const WORLD_INPUTS: &[&str] = &[
     ".dockerignore",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
     "Cargo.toml",
     "Cargo.lock",
     "crates",
+    "catalog/services.toml",
     "scenarios",
     "images/world",
+    "deploy/runner",
 ];
 const TOOLS_INPUTS: &[&str] = &[
     ".dockerignore",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
     "Cargo.toml",
     "Cargo.lock",
     "crates",
@@ -32,7 +38,7 @@ const TOOLS_INPUTS: &[&str] = &[
     "images/tools",
 ];
 /// Directory names the build context excludes (see `.dockerignore`).
-const SKIPPED_DIRS: &[&str] = &["target", ".git", "node_modules"];
+const SKIPPED_DIRS: &[&str] = &["target", ".git", "node_modules", "__pycache__"];
 const TAG_HEX_LEN: usize = 16;
 
 /// The published images for the sources under `root` (the repository root).

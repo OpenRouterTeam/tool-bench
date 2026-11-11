@@ -447,8 +447,11 @@ fn update_discussion_note(w: &mut WorldState, r: &Req) -> Response {
     };
     let body = r.s("body");
     let resolved = r.bool("resolved");
-    if body.is_none() && resolved.is_none() {
-        return bad_request("body, resolved are missing, exactly one parameter must be provided");
+    if body.is_some() == resolved.is_some() {
+        return bad_request("exactly one of body or resolved must be provided");
+    }
+    if body.is_some() && n["system"].as_bool().unwrap_or(false) {
+        return forbidden();
     }
     if resolved.is_some() && !n["resolvable"].as_bool().unwrap_or(false) {
         return bad_request("Note is not resolvable");
@@ -461,7 +464,9 @@ fn update_discussion_note(w: &mut WorldState, r: &Req) -> Response {
         doc["body"] = json!(b);
         doc["updated_at"] = json!(now);
     }
-    if let Some(res) = resolved {
+    if let Some(res) = resolved
+        && n["resolved"].as_bool().unwrap_or(false) != res
+    {
         doc["resolved"] = json!(res);
         doc["resolved_by"] = if res { json!(current) } else { Value::Null };
         doc["resolved_at"] = if res { json!(now) } else { Value::Null };
@@ -622,12 +627,24 @@ fn reply_to_discussion(w: &mut WorldState, r: &Req) -> Response {
     } else {
         "DiscussionNote"
     };
+    let resolvable: Vec<_> = d["notes"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter(|note| note["resolvable"] == true)
+        .collect();
+    let extra = if !resolvable.is_empty() && resolvable.iter().all(|note| note["resolved"] == true)
+    {
+        json!({"resolved":true,"resolved_by":current_username(store(w)),"resolved_at":now(w)})
+    } else {
+        json!({})
+    };
     let doc = insert_note(
         w,
         &key,
         &body,
         Some((did, Some(ty.into()))),
-        json!({}),
+        extra,
         r.s("created_at"),
     );
     created(render_note(store(w), &r.base, &doc))
@@ -665,6 +682,7 @@ fn resolve_discussion(w: &mut WorldState, r: &Req) -> Response {
     for id in ids {
         if let Some(n) = st.collection_mut("notes").get_mut(&id)
             && n["resolvable"].as_bool().unwrap_or(false)
+            && n["resolved"].as_bool().unwrap_or(false) != resolved
         {
             n["resolved"] = json!(resolved);
             n["resolved_by"] = if resolved {

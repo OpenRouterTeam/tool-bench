@@ -7,12 +7,54 @@ services = ["google"]
 tags = ["lookup", "single-service", "google", "gmail", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 1
+rationale = "October invoice INV-20931 says $12,480.00 replaces the $11,900.00 draft figure; paid September INV-20544 (PO-47790) and Northwood Logistics INV-7781 (PO-48899) compete; answer needs PO-48213 and 12,480."
+
 # INV-20931 (PO-48213, $12,480.00, due 2026-11-20) is the October invoice. Distractors:
 # the paid September invoice INV-20544 (PO-47790, $9,150.00), Northwood Logistics'
 # INV-7781 (PO-48899, $3,200.00), and the superseded $11,900.00 draft figure.
-[expect.answer]
-contains = ["PO-48213"]
-regex = "12,?480"
+[expect]
+version = 2
+audit_history = true
+
+# The invoice email itself: sent by Northwind Traders, subject "Invoice ... October ...".
+# The three facts are read from the labelled lines of its body, so the superseded draft
+# figure in the same email is not the amount.
+[expect.answer.record_facts]
+requirement = "From the invoice email Northwind Traders sent for October services, give the PO number it references, the amount due in US dollars, and the due date."
+mode = "statements"
+context = [
+  "this replaces the earlier draft figure of ${draft_amount}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/google/gmail_messages"
+field_patterns = { "/headers/From" = "^Northwind Traders\\b", "/headers/Subject" = "^Invoice\\b.*\\bOctober\\b" }
+
+[expect.answer.record_facts.facts.po]
+field = "/body_text"
+capture = '(?m)^PO number: (\S+)$'
+kind = "identifier"
+
+[expect.answer.record_facts.facts.amount]
+field = "/body_text"
+capture = '(?m)^Amount due: \$([\d,]+(?:\.\d+)?)$'
+kind = "money"
+
+[expect.answer.record_facts.facts.due]
+field = "/body_text"
+capture = '(?m)^Due date: (.+)$'
+kind = "date"
+
+[expect.answer.record_facts.facts.draft_amount]
+field = "/body_text"
+capture = 'draft figure of \$(\d[\d,]*(?:\.\d+)?)'
+kind = "money"
+optional = true
 
 [[expect.forbidden_calls]]
 service = "google"
@@ -35,4 +77,4 @@ tool = "get_gmail_message_content"
 arguments = { message_id = "b26a427d1034a022" }
 
 [solution]
-answer = "Northwind's October invoice INV-20931 references PO-48213. Amount due: $12,480.00, due November 20, 2026.\n"
+answer = "PO: PO-48213. Amount due: $12,480.00. Due: November 20, 2026."

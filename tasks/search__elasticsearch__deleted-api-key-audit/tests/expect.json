@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "elasticsearch",
@@ -9,14 +14,107 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "m.okafor"
-    ],
-    "regex": "16:42"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the actor of the successful api_key.delete audit event for the key ci-deploy-bot on 2026-10-29 UTC, and state the UTC time (hour and minute) of that event.",
+      "selector": {
+        "collection": "/services/elasticsearch/docs",
+        "matching": {
+          "event_action": "api_key.delete",
+          "event_outcome": "success",
+          "target_name": "ci-deploy-bot"
+        },
+        "field_patterns": {
+          "/@timestamp": "^2026-10-29T"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "denied_actor": {
+          "field": "/actor",
+          "kind": "identifier",
+          "optional": true,
+          "record": "denied_event"
+        },
+        "denied_time": {
+          "field": "/@timestamp",
+          "kind": "text",
+          "optional": true,
+          "record": "denied_event",
+          "clock": true
+        },
+        "replacement_key": {
+          "field": "/target_name",
+          "kind": "identifier",
+          "optional": true,
+          "record": "replacement_event"
+        },
+        "replacement_time": {
+          "field": "/@timestamp",
+          "kind": "text",
+          "optional": true,
+          "record": "replacement_event",
+          "clock": true
+        },
+        "time": {
+          "field": "/@timestamp",
+          "kind": "text",
+          "clock": true
+        },
+        "user": {
+          "field": "/actor",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "denied_event": {
+          "allow_absence": true,
+          "collection": "/services/elasticsearch/docs",
+          "filter": {
+            "matching": {
+              "/event_action": "api_key.delete",
+              "/event_outcome": "failure",
+              "/target_name": "ci-deploy-bot"
+            },
+            "patterns": {
+              "/@timestamp": "^2026-10-29T"
+            }
+          }
+        },
+        "replacement_event": {
+          "allow_absence": true,
+          "collection": "/services/elasticsearch/docs",
+          "filter": {
+            "matching": {
+              "/actor": "m.okafor",
+              "/event_action": "api_key.create"
+            },
+            "patterns": {
+              "/@timestamp": "^2026-10-29T"
+            }
+          }
+        }
+      },
+      "context": [
+        "on October 29",
+        "then created ${replacement_key} at ${replacement_time}",
+        "An earlier delete attempt by ${denied_actor} at ${denied_time} was denied"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

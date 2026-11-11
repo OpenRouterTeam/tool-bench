@@ -7,13 +7,86 @@ services = ["kubernetes", "pagerduty"]
 tags = ["lookup", "multi-service", "kubernetes", "pagerduty", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "payments pod ledger-worker-...-gdg8j crash-loops on password auth while payments-staging ...-v45ss crash-loops on a config panic; Payments policy has Priya Raman on an override today over scheduled Riya Patel."
+
 # Kubernetes: ledger-worker-zx4mrndj8b-gdg8j in `payments` is in CrashLoopBackOff because the
 # ledger DB rejects its password. Decoy: payments-staging/ledger-worker-c64m9bbw8-v45ss also
 # crash-loops (config panic, 31 restarts). PagerDuty: ledger-worker uses the "Payments" policy;
 # Riya Patel is scheduled but Priya Raman has an override for today; level 2 is Marcus Chen.
 # Look-alike policies: "Payments Gateway (Legacy)" (Jordan Alvarez), "Payouts" (Riya Patel).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
-contains = ["ledger-worker-zx4mrndj8b-gdg8j", "password authentication failed", "Priya Raman", "Marcus Chen"]
+ [expect.answer.record_facts]
+ requirement = "Name the crash-looping production pod, its error from the logs, and who is on call (level 1 and 2) for its service."
+ mode = "statements"
+ order = ["oncall1", "oncall2"]
+rejected = ["${oncall2} is on call and ${oncall1} is the backup"]
+ context = [
+   "covering Riya Patel via a schedule override",
+   "covering Riya Patel",
+   "override covering Riya Patel",
+   "(override for Riya Patel)",
+ ]
+
+ [expect.answer.record_facts.selector]
+ collection = "/services/kubernetes/pods"
+ matching = { metadata = { namespace = "payments" }, status = { containerStatuses = [{ state = { waiting = { reason = "CrashLoopBackOff" } } }] } }
+
+ # Pod logs joined by key prefix
+ [expect.answer.record_facts.related.logs]
+ collection = "/services/kubernetes/pod_logs"
+ on = { "/_key" = "/_key" }
+ capture_from = { "/_key" = "^(.+)$" }
+ capture = { "/_key" = "^(.+)/" }
+
+ # PD escalation policy for Payments
+ [expect.answer.record_facts.related.policy]
+ collection = "/services/pagerduty/escalation_policies"
+ filter = { matching = { "/name" = "Payments" } }
+
+ [expect.answer.record_facts.related.schedule]
+ from = "policy"
+ collection = "/services/pagerduty/schedules"
+ on = { "/id" = "/escalation_rules/0/targets/0/id" }
+ pick = { oncall = { overrides = "/services/pagerduty/overrides" } }
+
+ [expect.answer.record_facts.related.level1]
+ from = "schedule"
+ collection = "/services/pagerduty/users"
+ on = { "/id" = "/id" }
+
+ [expect.answer.record_facts.related.level2]
+ from = "policy"
+ collection = "/services/pagerduty/users"
+ on = { "/id" = "/escalation_rules/1/targets/0/id" }
+
+ [expect.answer.record_facts.facts.pod]
+ field = "/metadata/name"
+ kind = "identifier"
+
+ [expect.answer.record_facts.facts.error]
+ record = "logs"
+ field = "/current/2"
+ kind = "text"
+ capture = 'pq: (password authentication failed[^"]*)'
+
+ [expect.answer.record_facts.facts.oncall1]
+ record = "level1"
+ field = "/name"
+ kind = "text"
+
+ [expect.answer.record_facts.facts.oncall2]
+ record = "level2"
+ field = "/name"
+ kind = "text"
 
 [[expect.required_calls]]
 service = "kubernetes"
@@ -59,14 +132,4 @@ tool = "list_oncalls"
 arguments = { escalation_policy_ids = ["PEPPAY1"] }
 
 [solution]
-answer = """
-Crash-looping pod: `ledger-worker-zx4mrndj8b-gdg8j` in the production `payments` namespace (CrashLoopBackOff).
-It exits right after start-up because the ledger database rejects its credentials:
-
-    ERROR db: connect ledger-db.payments.svc:5432: pq: password authentication failed for user "ledger"
-    FATAL could not initialise ledger store, exiting (exit code 1)
-
-On call for the ledger-worker service (escalation policy "Payments") right now:
-- Level 1: Priya Raman (override covering Riya Patel until 2026-10-31 06:00 UTC)
-- Level 2: Marcus Chen
-"""
+answer = "Pod ledger-worker-zx4mrndj8b-gdg8j, error: password authentication failed for user. On call: Priya Raman, backup Marcus Chen."

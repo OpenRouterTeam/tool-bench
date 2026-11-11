@@ -1,0 +1,154 @@
+{
+  "schema_version": 2,
+  "adapter": {
+    "name": "host-proxy-native-anthropic-messages-v1",
+    "code_sha256": "sha256:0467bcbe368adb088f2e099862d3e4b9ba720092fdb6bced55c333509dd1d7e5"
+  },
+  "classification": "completed",
+  "turns": [
+    {
+      "turn": 0,
+      "kind": "tool_use",
+      "input_tokens": 100,
+      "output_tokens": 7,
+      "retried": false,
+      "retry_count": 0,
+      "cost_usd": null,
+      "observed_model": "provider-model-1",
+      "response_id": "msg_1"
+    },
+    {
+      "turn": 1,
+      "kind": "final_response",
+      "input_tokens": 100,
+      "output_tokens": 7,
+      "retried": false,
+      "retry_count": 0,
+      "cost_usd": null,
+      "observed_model": "provider-model-1",
+      "response_id": "msg_2"
+    }
+  ],
+  "final_response": {
+    "text": "Maya",
+    "turn": 1,
+    "finalization": "normal",
+    "resumed": false
+  },
+  "cost": {
+    "total_input_tokens": 200,
+    "total_output_tokens": 14,
+    "total_cost_usd": null,
+    "retry_input_tokens": 0,
+    "retry_output_tokens": 0,
+    "retry_cost_usd": 0.0,
+    "successful_turns": 2,
+    "retried_turns": 0,
+    "total_retry_attempts": 0
+  },
+  "identity": {
+    "configured_model": "anthropic/claude-fixture",
+    "configured_provider": "127.0.0.1",
+    "observed_model": "provider-model-1",
+    "observed_revision": null,
+    "sampling": {
+      "arm": "off",
+      "client_tool_search": false,
+      "proxy_universal_control": false
+    },
+    "budget": {
+      "max_turns": 8
+    }
+  },
+  "scripted": false,
+  "finalization": "normal",
+  "scenario": "example/github/basic",
+  "session_id": "trial__env",
+  "transport": {
+    "seam": "host_provider_proxy",
+    "wire_format": "anthropic_messages",
+    "exchanges": [
+      {
+        "sequence": 2,
+        "role": "main",
+        "turn": 0,
+        "request_sha256": "sha256:778d269d48e984131859700c798200d92539a2b9ada59ca29298118268c5ed1b",
+        "response_sha256": "sha256:d556390175c41edce4d51ea307b9cb84f88639455c1330997e18c2f65d02ccf2",
+        "status": 200,
+        "streamed": true,
+        "complete": true,
+        "latency_ms": 2,
+        "first_byte_ms": 2,
+        "response_id": "msg_1",
+        "observed_model": "provider-model-1",
+        "stop_reason": "tool_use",
+        "failure": null,
+        "input_tokens": 10,
+        "cache_read_input_tokens": 90,
+        "cache_creation_input_tokens": 0,
+        "output_tokens": 7,
+        "cost_usd": null
+      },
+      {
+        "sequence": 4,
+        "role": "auxiliary",
+        "turn": null,
+        "request_sha256": "sha256:d6a29bf9322e6ca5dff6169a3e24d3da3b4c9be89a7fa841250bf83631d51b29",
+        "response_sha256": "sha256:c7830bd783698b96a065bff9807b6fd9524659a378c8de73ba00665180d90fbb",
+        "status": 200,
+        "streamed": true,
+        "complete": true,
+        "latency_ms": 1,
+        "first_byte_ms": 1,
+        "response_id": "msg_title",
+        "observed_model": "provider-model-1",
+        "stop_reason": "end_turn",
+        "failure": null,
+        "input_tokens": 10,
+        "cache_read_input_tokens": 90,
+        "cache_creation_input_tokens": 0,
+        "output_tokens": 7,
+        "cost_usd": null
+      },
+      {
+        "sequence": 6,
+        "role": "main",
+        "turn": 1,
+        "request_sha256": "sha256:64214d921feba61ab0cbe4befb356066598a6d6c55c94d46bfc36eb26bf5ded8",
+        "response_sha256": "sha256:e064d5a2baab89a25d7e61da09efd0ff8a2d6757b8a5df8aeef0ac7f2fbadf0a",
+        "status": 200,
+        "streamed": true,
+        "complete": true,
+        "latency_ms": 1,
+        "first_byte_ms": 1,
+        "response_id": "msg_2",
+        "observed_model": "provider-model-1",
+        "stop_reason": "end_turn",
+        "failure": null,
+        "input_tokens": 10,
+        "cache_read_input_tokens": 90,
+        "cache_creation_input_tokens": 0,
+        "output_tokens": 7,
+        "cost_usd": null
+      }
+    ],
+    "capture_faults": [],
+    "rejected_requests": 1,
+    "other_requests": 0,
+    "interrupted": false,
+    "resumed": false,
+    "wall_clock_ms": 7,
+    "exchanges_without_usage": 0,
+    "auxiliary": {
+      "requests": 1,
+      "input_tokens": 100,
+      "output_tokens": 7,
+      "cost_usd": null
+    },
+    "host_stdout": {
+      "seam": "host_stdout_stream_json",
+      "result_sha256": "sha256:031e45c699d1aace4e9471a1071ae1a296025b44fc925d400f6ccee598c7ec69",
+      "faults": []
+    }
+  }
+}

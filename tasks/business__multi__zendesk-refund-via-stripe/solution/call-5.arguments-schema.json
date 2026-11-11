@@ -1,0 +1,1 @@
+{"type":"object","properties":{"ticket_id":{"type":"integer","description":"The ID of the ticket to comment on"},"comment":{"type":"string","description":"The comment text. Markdown, plain text, and HTML are all accepted."},"public":{"type":"boolean","description":"Whether the comment should be public","default":true}},"required":["ticket_id","comment"]}

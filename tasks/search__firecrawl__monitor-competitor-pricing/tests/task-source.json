@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/firecrawl/monitor-competitor-pricing",
+  "scenario_sha256": "sha256:3f9d738899cccc65e57115b5bd7443ab08c7a811269f9b2789a4134673f5c7b9",
+  "dataset_sha256": "sha256:8db665fc1fc8ab0383a1f41134fca6e2137889082a55772198b4ef81f48b9161",
+  "contract_sha256": "sha256:29c0c3aa8bdd2670ae02203b5d1273717605ec0cc501cdf7a2f7036277949c7c"
+}

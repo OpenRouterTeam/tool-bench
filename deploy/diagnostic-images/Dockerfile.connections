@@ -1,0 +1,19 @@
+ARG RUST_IMAGE=rust:1.99-bookworm
+ARG BASE_TOOLS_IMAGE=tool-bench-tools:refine-e14-publications-final
+FROM ${RUST_IMAGE} AS build
+ENV CARGO_INCREMENTAL=0
+WORKDIR /src
+COPY Cargo.toml Cargo.lock ./
+COPY crates crates
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/src/target,sharing=locked \
+    find crates -name '*.rs' -exec touch {} + \
+ && cargo build --release --locked -p catalog --bin tools-supervisor --bin catalog \
+ && cp target/release/tools-supervisor /tools-supervisor \
+ && cp target/release/catalog /catalog
+FROM ${BASE_TOOLS_IMAGE}
+COPY --from=build /tools-supervisor /opt/bin/tools-supervisor
+COPY --from=build /catalog /opt/bin/catalog
+COPY catalog/services.toml /etc/tool-bench/services.toml
+COPY servers/snapshots /opt/tool-bench/snapshots
+COPY servers/extensions /etc/tool-bench/extensions

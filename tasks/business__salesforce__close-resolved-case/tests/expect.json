@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/Status",
@@ -6,7 +7,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/Reason",
@@ -14,7 +18,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/IsClosed",
@@ -22,48 +29,101 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/salesforce/Case/5005g00000DXqN3AAL/Status",
-      "equals": "Working",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/salesforce/Case/5005g000004FwGBAA0/Status",
-      "equals": "New",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
-  "required_calls": [
-    {
-      "service": "salesforce",
-      "method": "PATCH",
-      "path": null,
-      "path_regex": "^/services/data/v[0-9.]+/(composite/sobjects|sobjects/Case/5005g00000spz8M(AAQ)?)$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "salesforce",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/Status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/Reason",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/IsClosed",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/ClosedDate",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/LastModifiedDate",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/LastModifiedById",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/salesforce/Case/5005g00000spz8MAAQ/SystemModstamp",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

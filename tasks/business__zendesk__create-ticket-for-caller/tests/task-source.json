@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/zendesk/create-ticket-for-caller",
+  "scenario_sha256": "sha256:8e8d792d9dbe8aecaf6eb33086391e8233d9a9928ef6ecd5b81b4dd8641a0b9b",
+  "dataset_sha256": "sha256:884c4112ecc3cab364c337efb267809eaf1db25eb13fd5ec9012ec2f28172ae4",
+  "contract_sha256": "sha256:1c8fec97665ca578ce43f5e5ac0ca3f6b5b1f46e5237143d73258acb075ef506"
+}

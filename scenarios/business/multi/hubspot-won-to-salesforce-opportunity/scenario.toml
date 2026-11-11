@@ -7,6 +7,13 @@ services = ["hubspot", "salesforce"]
 tags = ["write", "multi-service", "hubspot", "salesforce", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "reconciliation"
+secondary = ["cross_system_identity", "entity_ambiguity"]
+dependency_depth = 2
+rationale = "HubSpot deal 9100104 is closedwon at 176500 on 2026-10-28 while Salesforce opp 0065g00000IDWm1AAH still shows Negotiation at 184000; contract relates both amounts; Initrode opp also carries 176500."
+
 # HubSpot deal 9100104 "Initech – Data Warehouse Migration" moved to closedwon yesterday
 # (closedate 2026-10-28) with a final amount of 176,500 (down from 184,000). The matching
 # Salesforce opportunity is 0065g00000IDWm1AAH on the Initech account, still at
@@ -14,82 +21,128 @@ timeout_sec = 1200
 # both systems), Initech's open support renewal, and "Initrode - Data Warehouse Migration"
 # (another account, whose amount happens to be 176,500).
 
-[[expect.state]]
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/salesforce/Opportunity", matching = { Id = "0065g00000IDWm1AAH" } }
+equals = 1
+fields = { "/StageName" = "Closed Won", "/IsWon" = true, "/IsClosed" = true, "/CloseDate" = "2026-10-28" }
+numeric_fields = { "/Amount" = 176500, "/Probability" = 100, "/ExpectedRevenue" = 176500 }
+
+[[expect.records]]
+selector = { collection = "/services/hubspot/notes", created = true }
+equals = 1
+fields = { "/archived" = false }
+reviewed_text = { "/properties/hs_note_body" = { format = "html", requirement = "Say that the Initech warehouse deal has been synced to Salesforce and give the ID of its opportunity, 0065g00000IDWm1AAH (15-character form 0065g00000IDWm1). A bare ID is not a sync note.", accepted = ["Synced to Salesforce opportunity 0065g00000IDWm1AAH.", "Synced to Salesforce opportunity 0065g00000IDWm1.", "Synced to Salesforce: opportunity 0065g00000IDWm1AAH marked Closed Won ($176,500, closed 2026-10-28)."], rejected = ["Synced to Salesforce opportunity 0065g00000IRdw1AAD.", "Synced to Salesforce opportunity 0065g00000IDWp0AAH."], mentions = [["0065g00000IDWm1AAH", "0065g00000IDWm1"], ["synced", "sync", "syncing", "synchronized", "synchronised", "synchronization", "synchronisation", "mirrored", "updated", "matches", "match", "matched"]] } }
+
+[[expect.records]]
+selector = { collection = "/services/hubspot/associations", created = true }
+min_count = 1
+max_count = 3
+fields = { "/toObjectType" = "notes" }
+
+[[expect.records]]
+selector = { collection = "/services/hubspot/associations", created = true, matching = { fromObjectType = "deals", fromObjectId = "9100104", toObjectType = "notes", types = [{ associationCategory = "HUBSPOT_DEFINED", associationTypeId = 213 }] } }
+equals = 1
+
+[[expect.relations]]
+source = { collection = "/services/hubspot/deals", matching = { id = "9100104" } }
+source_field = "/properties/amount"
+target = { collection = "/services/salesforce/Opportunity", matching = { Id = "0065g00000IDWm1AAH" } }
+target_field = "/Amount"
+kind = "numeric_equals"
+
+[[expect.relations]]
+source = { collection = "/services/hubspot/associations", created = true }
+source_field = "/toObjectId"
+target = { collection = "/services/hubspot/notes", created = true }
+target_field = "/id"
+kind = "foreign_key"
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/salesforce/Opportunity", matching = { Id = "0065g00000IDWm1AAH" } }, field = "/StageName", equals = "Closed Won" }
+action = { selector = { collection = "/services/hubspot/notes", created = true }, field = "/properties/hs_note_body", nonempty_text = true }
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/salesforce/Opportunity", matching = { Id = "0065g00000IDWm1AAH" } }, field = "/Amount", numeric_equals = 176500 }
+action = { selector = { collection = "/services/hubspot/notes", created = true }, field = "/properties/hs_note_body", nonempty_text = true }
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/salesforce/Opportunity", matching = { Id = "0065g00000IDWm1AAH" } }, field = "/CloseDate", equals = "2026-10-28" }
+action = { selector = { collection = "/services/hubspot/notes", created = true }, field = "/properties/hs_note_body", nonempty_text = true }
+
+[[expect.preservation.allow]]
 pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/StageName"
-equals = "Closed Won"
 
-[[expect.state]]
-pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/IsWon"
-equals = true
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/Amount"
 
-[[expect.state]]
+[[expect.preservation.allow]]
 pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/CloseDate"
-equals = "2026-10-28"
 
-[[expect.state]]
-pointer = "/services/salesforce/Opportunity/0065g00000IRdw1AAD/StageName"
-equals = "Negotiation/Review"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/IsWon"
 
-[[expect.state]]
-pointer = "/services/salesforce/Opportunity/0065g00000ISup7AAD/StageName"
-equals = "Proposal/Price Quote"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/IsClosed"
 
-[[expect.state]]
-pointer = "/services/salesforce/Opportunity/0065g00000IDWp0AAH/CloseDate"
-equals = "2026-06-12"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/Probability"
+matching = { StageName = "Closed Won", Probability = 100.0 }
 
-# The new note is found by content, not by its id (other writes an agent makes first would
-# shift it). It must be tied to deal 9100104 — on create or via a separate association call —
-# and nothing may be written against the look-alike deal 9100105.
-[[expect.state]]
-pointer = "/services/hubspot/notes"
-any = { properties = { hs_note_body = "0065g00000IDWm1" } }
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/Probability"
+matching = { StageName = "Closed Won", Probability = 100 }
 
-[[expect.required_calls]]
-service = "hubspot"
-method = "POST"
-body_contains = "9100104"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/ExpectedRevenue"
 
-[[expect.forbidden_calls]]
-service = "hubspot"
-method = "POST"
-body_contains = "9100105"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/ForecastCategory"
 
-[[expect.state]]
-pointer = "/services/hubspot/deals/9100104/properties/dealstage"
-equals = "closedwon"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/ForecastCategoryName"
+matching = { StageName = "Closed Won", ForecastCategoryName = "Closed" }
 
-[[expect.required_calls]]
-service = "salesforce"
-method = "PATCH"
-path_regex = "^/services/data/v[0-9.]+/(composite/sobjects|sobjects/Opportunity/0065g00000IDWm1(AAH)?)$"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/Fiscal"
 
-# The amount is checked on the update call rather than in state: the mock stores a string
-# amount ("176500") as a float, so an exact state check would fail some correct agents.
-[[expect.required_calls]]
-service = "salesforce"
-method = "PATCH"
-path_regex = "^/services/data/v[0-9.]+/(composite/sobjects|sobjects/Opportunity/0065g00000IDWm1(AAH)?)$"
-body_contains = "176500"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/FiscalYear"
 
-[[expect.required_calls]]
-service = "hubspot"
-method = "POST"
-path_regex = "^/(engagements/v1/engagements|crm/v3/objects/(notes|note|0-46)/batch/create)$"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/FiscalQuarter"
 
-[[expect.forbidden_calls]]
-service = "salesforce"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/LastModifiedDate"
 
-[[expect.forbidden_calls]]
-service = "salesforce"
-method = "POST"
-path_regex = "^/services/data/v[0-9.]+/(composite/sobjects|sobjects/Opportunity)$"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/LastModifiedById"
 
-[[expect.forbidden_calls]]
-service = "hubspot"
-method = "POST"
-path_regex = "^/crm/v3/objects/(deals|deal|0-3)/batch/(update|create)$"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g00000IDWm1AAH/SystemModstamp"
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/notes/*"
+kind = "create"
+matching = { archived = false }
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/associations/*"
+kind = "create"
+matching = { fromObjectType = "deals", fromObjectId = "9100104", toObjectType = "notes" }
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/associations/*"
+kind = "create"
+matching = { fromObjectType = "contacts", fromObjectId = "512005", toObjectType = "notes" }
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/associations/*"
+kind = "create"
+matching = { fromObjectType = "companies", fromObjectId = "18234002", toObjectType = "notes" }
 
 [[solution.call]]
 endpoint = "hubspot"

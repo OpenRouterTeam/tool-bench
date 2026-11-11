@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "elasticsearch",
@@ -9,15 +14,47 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "ORD-109002",
-      "ORD-109003"
-    ],
-    "regex": "86[.,]4"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Among the orders of jordan.lee@example.com, state the order ID of every order that shares the one total charged more than once, and state that total in US dollars.",
+      "selector": {
+        "collection": "/services/elasticsearch/docs",
+        "matching": {
+          "customer_email": "jordan.lee@example.com"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "by": "/total",
+          "measure": "count",
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "amount": {
+          "field": "/key",
+          "kind": "money"
+        },
+        "orders": {
+          "field": "/members/order_id",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements"
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/stripe/charges/ch_r1lxhPeTsZKQxIfuhPANytDa/amount_refunded",
@@ -6,7 +7,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/charges/ch_ITHHURD4dPMFtMW9vBBsbgLF/amount_refunded",
@@ -14,7 +18,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/charges/ch_L2nRrQf84XcsM4hBtIVCqlBW/amount_refunded",
@@ -22,7 +29,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/charges/ch_zoapAkuqpaPPo276IGPjweZf/amount_refunded",
@@ -30,7 +40,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/zendesk/tickets/5102/status",
@@ -38,18 +51,21 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
-      "pointer": "/services/zendesk/comments",
-      "equals": null,
+      "pointer": "/services/stripe/charges/ch_r1lxhPeTsZKQxIfuhPANytDa/refunded",
+      "equals": true,
       "exists": null,
       "contains": null,
-      "any": {
-        "body": "re_SwUQQGI4jAit1effr2iLjUEs",
-        "public": true
-      },
-      "key_prefix": "5102/"
+      "any": null,
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/zendesk/tickets/5104/status",
@@ -57,7 +73,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/zendesk/tickets/5109/status",
@@ -65,41 +84,464 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
-  "required_calls": [
+  "records": [
     {
-      "service": "stripe",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "stripe_api_operation_id": "PostRefunds"
+      "selector": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa"
         },
-        "name": "stripe_api_write"
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": null,
+      "min_count": 1,
+      "max_count": 48000,
+      "fields": {
+        "/currency": "usd",
+        "/payment_intent": "pi_qZ8HsvmHI2loKwRfwA0eFYWI",
+        "/reason": "duplicate",
+        "/status": "succeeded"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/amount": 48000
+      },
+      "integer_bounds": {
+        "/amount": {
+          "min": 1,
+          "max": 48000
+        }
+      }
     },
     {
-      "service": "zendesk",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 5102
+      "selector": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
         },
-        "name": "create_ticket_comment"
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": null,
+      "min_count": 1,
+      "max_count": 48000,
+      "fields": {
+        "/currency": "usd",
+        "/fee": 0,
+        "/fee_details": [],
+        "/status": "available"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/amount": -48000,
+        "/net": -48000
+      },
+      "integer_bounds": {
+        "/amount": {
+          "min": -48000,
+          "max": -1
+        },
+        "/net": {
+          "min": -48000,
+          "max": -1
+        }
+      }
+    },
+    {
+      "selector": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/public": true,
+        "/ticket_id": 5102
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/body": {
+          "requirement": "Tell the customer that the duplicate payment was refunded and cite every actual Stripe refund ID. The ticket supplies Hannah and the order; a greeting, signature, amount, order, date or statement about the original charge is not required. A bare ID does not say it was refunded.",
+          "accepted": [],
+          "mentions": [
+            "${refund_ids}",
+            [
+              "refund",
+              "refunded",
+              "refunds",
+              "refunding",
+              "reversed",
+              "returned",
+              "credited"
+            ]
+          ],
+          "format": "plain",
+          "bound": {
+            "identities": {
+              "refund_ids": {
+                "selector": {
+                  "collection": "/services/stripe/refunds",
+                  "matching": {
+                    "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+                  },
+                  "key_prefix": null,
+                  "created": true,
+                  "identity_field": null
+                },
+                "field": "/id",
+                "separator": ", "
+              }
+            },
+            "examples": [
+              "Hi Hannah,\n\nWe refunded the duplicate $480.00 charge for order #1077 in full. The Stripe refund reference is ${refund_ids}. The original charge remains in place.",
+              "Hannah, the full duplicate payment of $480.00 for order #1077 has been refunded. Stripe refund references: ${refund_ids}. The original payment is unchanged.",
+              "The duplicate charge has been refunded in full. Stripe refund reference: ${refund_ids}.",
+              "Your duplicate payment was refunded. Stripe refund references: ${refund_ids}."
+            ]
+          }
+        },
+        "/html_body": {
+          "requirement": "The rendered public reply must say the duplicate payment was refunded and show every actual Stripe refund ID, without hidden content. The ticket supplies Hannah and the order; a greeting, signature, amount, order, date or statement about the original charge is not required.",
+          "accepted": [],
+          "mentions": [
+            "${refund_ids}",
+            [
+              "refund",
+              "refunded",
+              "refunds",
+              "refunding",
+              "reversed",
+              "returned",
+              "credited"
+            ]
+          ],
+          "format": "zendesk_html",
+          "bound": {
+            "identities": {
+              "refund_ids": {
+                "selector": {
+                  "collection": "/services/stripe/refunds",
+                  "matching": {
+                    "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+                  },
+                  "key_prefix": null,
+                  "created": true,
+                  "identity_field": null
+                },
+                "field": "/id",
+                "separator": ", "
+              }
+            },
+            "examples": [
+              "Hi Hannah,\n\nWe refunded the duplicate $480.00 charge for order #1077 in full. The Stripe refund reference is ${refund_ids}. The original charge remains in place.",
+              "Hannah, the full duplicate payment of $480.00 for order #1077 has been refunded. Stripe refund references: ${refund_ids}. The original payment is unchanged.",
+              "The duplicate charge has been refunded in full. Stripe refund reference: ${refund_ids}.",
+              "Your duplicate payment was refunded. Stripe refund references: ${refund_ids}."
+            ]
+          }
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 48000,
+      "fields": {
+        "/data/object/charge": "ch_r1lxhPeTsZKQxIfuhPANytDa",
+        "/data/object/currency": "usd",
+        "/data/object/reason": "duplicate"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/data/object/amount": 48000
+      },
+      "integer_bounds": {
+        "/data/object/amount": {
+          "min": 1,
+          "max": 48000
+        }
+      }
+    },
+    {
+      "selector": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "charge.refunded"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 48000,
+      "fields": {
+        "/data/object/currency": "usd",
+        "/data/object/id": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {
+        "/data/object/amount_refunded": {
+          "min": 1,
+          "max": 48000
+        }
+      }
     }
   ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/balance_transaction",
+      "target": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": [
+        {
+          "source_field": "/amount",
+          "target_field": "/amount",
+          "kind": "negated_integer"
+        },
+        {
+          "source_field": "/amount",
+          "target_field": "/net",
+          "kind": "negated_integer"
+        },
+        {
+          "source_field": "/currency",
+          "target_field": "/currency",
+          "kind": "equals"
+        }
+      ]
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/source",
+      "target": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/data/object/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/request/id",
+      "target": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "charge.refunded"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/request/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/audit_id",
+      "target": {
+        "collection": "/services/zendesk/audits",
+        "matching": {
+          "ticket_id": 5102
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/stripe/charges",
+          "matching": {
+            "id": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/amount_refunded",
+        "equals": 48000
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/zendesk/comments",
+          "matching": {
+            "public": true
+          },
+          "key_prefix": "5102/",
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/public",
+        "equals": true
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    },
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/stripe/charges",
+          "matching": {
+            "id": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/amount_refunded",
+        "equals": 48000
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/zendesk/tickets",
+          "matching": {
+            "id": 5102
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/status",
+        "equals": "solved"
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    }
+  ],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "stripe",
@@ -117,7 +559,9 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "stripe",
@@ -135,7 +579,9 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "zendesk",
@@ -150,7 +596,9 @@
         "name": "create_ticket_comment"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "zendesk",
@@ -165,7 +613,9 @@
         "name": "update_ticket"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "zendesk",
@@ -180,7 +630,9 @@
         "name": "create_ticket_comment"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "zendesk",
@@ -195,8 +647,154 @@
         "name": "update_ticket"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/stripe/charges/ch_r1lxhPeTsZKQxIfuhPANytDa/amount_refunded",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/charges/ch_r1lxhPeTsZKQxIfuhPANytDa/refunded",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/tickets/5102/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/tickets/5102/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/refunds/*",
+        "kind": "create",
+        "matching": {
+          "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa",
+          "currency": "usd",
+          "reason": "duplicate",
+          "status": "succeeded"
+        },
+        "max_count": 48000,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/balance_transactions/*",
+        "kind": "create",
+        "matching": {
+          "currency": "usd",
+          "type": "refund"
+        },
+        "max_count": 48000,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/events/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "object": {
+              "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+            }
+          },
+          "type": "refund.created"
+        },
+        "max_count": 48000,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/events/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "object": {
+              "id": "ch_r1lxhPeTsZKQxIfuhPANytDa"
+            }
+          },
+          "type": "charge.refunded"
+        },
+        "max_count": 48000,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/comments/*",
+        "kind": "create",
+        "matching": {
+          "public": true,
+          "ticket_id": 5102
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/audits/*",
+        "kind": "create",
+        "matching": {
+          "ticket_id": 5102
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -59,6 +59,63 @@ async fn exec_err(app: &Router, code: &str) -> String {
     text(&result).to_owned()
 }
 
+#[tokio::test]
+async fn code_mode_date_apis_share_business_time_without_replacing_explicit_dates() {
+    let (world, app) = setup();
+    let expected = world.lock().unwrap().clock.now_unix() * 1000;
+    let result = exec(
+        &app,
+        r#"() => {
+      class DerivedDate extends Date {}
+      return {
+        now: Date.now(), iso: new Date().toISOString(),
+        called: Date() === new Date().toString(),
+        explicit: new Date(0).toISOString(),
+        parsed: Date.parse('1970-01-01T00:00:00Z'),
+        utc: Date.UTC(1970, 0, 1),
+        derived: new DerivedDate().getTime(),
+        instance: new DerivedDate() instanceof DerivedDate,
+        brand: Object.prototype.toString.call(new Date()),
+        constructor: Date.prototype.constructor === Date,
+        arity: Date.length,
+        hidden: typeof __business_now_ms
+      };
+    }"#,
+    )
+    .await;
+    assert_eq!(
+        result,
+        json!({
+            "now": expected, "iso": "2026-03-14T09:00:00.000Z",
+            "called": true, "explicit": "1970-01-01T00:00:00.000Z",
+            "parsed": 0, "utc": 0, "derived": expected, "instance": true,
+            "brand": "[object Date]", "constructor": true, "arity": 7, "hidden": "undefined"
+        })
+    );
+    let search = tool(
+        &app,
+        "search",
+        json!({"code": "() => ({now: Date.now(), iso: new Date().toISOString()})"}),
+    )
+    .await;
+    assert!(search.get("isError").is_none(), "{}", text(&search));
+    let search: Value = serde_json::from_str(text(&search)).unwrap();
+    assert_eq!(
+        search,
+        json!({"now": expected, "iso": "2026-03-14T09:00:00.000Z"})
+    );
+    let after = exec(
+        &app,
+        r#"async () => {
+      const before = Date.now();
+      await cloudflare.request({method: 'GET', path: '/user'});
+      return {before, after: Date.now()};
+    }"#,
+    )
+    .await;
+    assert_eq!(after, json!({"before": expected, "after": expected}));
+}
+
 async fn rest(
     app: &Router,
     method: &str,
@@ -269,7 +326,7 @@ async fn execute_creates_a_dns_record_with_a_stable_id() {
     assert_eq!(s["dns_records"][id]["zone_id"], ZONE);
     assert_eq!(
         s["dns_records"][id]["created_on"],
-        "2026-03-14T09:00:14.000000Z"
+        "2026-03-14T09:00:00.000000Z"
     );
 
     // The same record again is the real duplicate error, thrown with Cloudflare's codes.
@@ -293,6 +350,50 @@ async fn execute_creates_a_dns_record_with_a_stable_id() {
     )
     .await;
     assert_eq!(again, json!(id));
+}
+
+#[tokio::test]
+async fn code_mode_preserves_parentage_and_transient_effects_across_blocking_execution() {
+    let (world, app) = setup();
+    let initial = world.lock().unwrap().initial_snapshot();
+    exec(
+        &app,
+        &format!(
+            "async () => {{ const created = (await cloudflare.request({{ method: 'POST', path: '/zones/{ZONE}/dns_records', body: {{ type: 'CNAME', name: 'temporary', content: 'octo.statuspage.io', proxied: false }} }})).result; await cloudflare.request({{ method: 'DELETE', path: `/zones/{ZONE}/dns_records/${{created.id}}` }}); return true; }}"
+        ),
+    )
+    .await;
+    let world = world.lock().unwrap();
+    let events = world.events().entries();
+    let outer = events
+        .iter()
+        .filter_map(|event| event.operation.as_ref())
+        .find(|operation| operation.kind == mock_core::events::OperationKind::Http)
+        .unwrap();
+    let commits: Vec<_> = events
+        .iter()
+        .filter(|event| {
+            matches!(
+                event.event,
+                mock_core::events::EventKind::StateCommitted { .. }
+            )
+        })
+        .collect();
+    assert!(commits.len() >= 2);
+    for commit in commits {
+        let operation = commit.operation.as_ref().unwrap();
+        assert_eq!(operation.kind, mock_core::events::OperationKind::Internal);
+        assert_eq!(operation.parent_id, Some(outer.id));
+    }
+    let failures = mock_core::events::audit(
+        &initial,
+        &world.snapshot(),
+        events,
+        Some(&mock_core::preservation::Preservation::default()),
+        &[],
+    )
+    .unwrap();
+    assert!(!failures.is_empty());
 }
 
 #[tokio::test]

@@ -1,52 +1,162 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/slack/posted/C05DBMIG2RT#1/thread_ts",
-      "equals": "1792600205.318801",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/slack/posted/C05DBMIG2RT#1/text",
-      "equals": null,
-      "exists": null,
-      "contains": "2026-11-07",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/slack/posted/C05DBMIG2RT#1/text",
-      "equals": null,
-      "exists": null,
-      "contains": "22:00",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/slack/posted/C01GENERAL0#1",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
-    {
-      "service": "slack",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "slack_send_message"
+      "selector": {
+        "collection": "/services/slack/posted",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/channel": "C05DBMIG2RT",
+        "/thread_ts": "1792600205.318801",
+        "/user": "U02CMORG8RK"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/text": {
+          "requirement": "Summarize the agreed production cutover: start 2026-11-07 at 22:00 and end at 01:00 the following morning, Central time, led by Sam. The summary must carry the date as YYYY-MM-DD, both 24-hour times, the Central time zone and Sam as lead. The superseded proposal may be mentioned; rollback/verification details are not mandatory.",
+          "accepted": [
+            "Summary: the production cutover window is Saturday 2026-11-07, 22:00-01:00 CT (moved off Nov 6 because of the payments change freeze). Sam leads the cutover, Priya handles payments verification, rollback deadline 00:30 CT.",
+            "Agreed cutover: 2026-11-07 22:00 to 2026-11-08 01:00 Central time. Sam Ortiz leads.",
+            "Summary: 2026-11-07, 22:00-01:00 CT; Sam is the cutover lead."
+          ],
+          "mentions": [
+            "2026-11-07",
+            "22:00",
+            "01:00",
+            [
+              "CT",
+              "Central",
+              "CST",
+              "CDT",
+              "America/Chicago",
+              "US/Central"
+            ],
+            [
+              "Sam",
+              "U05SORTIZ6M"
+            ]
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/slack/messages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/slack/posted",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/ts",
+      "target": {
+        "collection": "/services/slack/messages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/ts",
+      "kind": "bijection",
+      "fields": [
+        {
+          "source_field": "/channel",
+          "target_field": "/channel",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/thread_ts",
+          "target_field": "/thread_ts",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/text",
+          "target_field": "/text",
+          "kind": "equals"
+        }
+      ]
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/slack/posted/*",
+        "kind": "create",
+        "matching": {
+          "channel": "C05DBMIG2RT",
+          "thread_ts": "1792600205.318801",
+          "user": "U02CMORG8RK"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/slack/messages/*",
+        "kind": "create",
+        "matching": {
+          "channel": "C05DBMIG2RT",
+          "thread_ts": "1792600205.318801",
+          "user": "U02CMORG8RK"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

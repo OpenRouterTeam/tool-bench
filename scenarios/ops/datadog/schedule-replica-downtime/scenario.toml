@@ -7,43 +7,35 @@ services = ["datadog"]
 tags = ["write", "single-service", "datadog"]
 timeout_sec = 900
 
-# The new downtime gets id max(existing) + 1 = 2318857.
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318857/monitor_id"
-equals = 7301
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Monitors 7301 Postgres replication lag (env:prod), 7302 same name with (staging), 7304 MySQL replication lag and 7305 replica disk usage; contract requires monitor_id 7301 and forbids a downtime on 7302."
 
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318857/scope"
-contains = "host:pg-prod-replica-2"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318857/start"
-equals = 1793412000
+[[expect.records]]
+selector = { collection = "/services/datadog/downtimes", created = true }
+equals = 1
+fields = { "/monitor_id" = 7301, "/disabled" = false, "/active" = false, "/creator_id" = 1445416 }
+numeric_fields = { "/start" = 1793412000, "/end" = 1793419200 }
+null_fields = ["/recurrence", "/canceled", "/parent_id", "/active_child", "/updater_id"]
+tag_scope = { field = "/scope", equals = { host = "pg-prod-replica-2" }, context = { selector = { collection = "/services/datadog/hosts", matching = { name = "pg-prod-replica-2" } }, field = "/tags_by_source" } }
 
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318857/end"
-equals = 1793419200
+[[expect.records]]
+selector = { collection = "/services/datadog/downtimes", created = true, field_patterns = { "/message" = '(^|[^[:alnum:]_])(?i-u:CHG-5012)([^[:alnum:]_]|$)' } }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318857/message"
-contains = "CHG-5012"
-
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318857/disabled"
-equals = false
-
-# Existing downtimes are untouched and no second downtime was created.
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318849/disabled"
-equals = false
-
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318856/disabled"
-equals = false
-
-[[expect.state]]
-pointer = "/services/datadog/downtimes/2318858"
-exists = false
+[[expect.relations]]
+source = { collection = "/services/datadog/downtimes", created = true }
+source_field = "/monitor_id"
+target = { collection = "/services/datadog/monitors", matching = { name = "Postgres replication lag", tags = ["env:prod", "service:postgres"] } }
+target_field = "/id"
+kind = "foreign_key"
 
 [[expect.required_calls]]
 service = "datadog"
@@ -60,6 +52,11 @@ service = "datadog"
 method = "POST"
 path = "/api/v1/downtime"
 body = { monitor_id = 7302 }
+
+[expect.preservation]
+allow = [
+  { pointer = "/services/datadog/downtimes/*", kind = "create", matching = { monitor_id = 7301, disabled = false, active = false, creator_id = 1445416 }, numeric_fields = { "/start" = 1793412000, "/end" = 1793419200 }, field_patterns = { "/message" = '(^|[^[:alnum:]_])(?i-u:CHG-5012)([^[:alnum:]_]|$)' }, cause = { service = "datadog", methods = ["POST"], path_regex = "^/api/v1/downtime$" } },
+]
 
 [[solution.call]]
 endpoint = "datadog"

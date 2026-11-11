@@ -1,0 +1,1 @@
+The invoice attachment is on ticket 3108: Lumen-Invoice-INV-20931.pdf.

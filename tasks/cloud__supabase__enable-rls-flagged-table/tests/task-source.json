@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/supabase/enable-rls-flagged-table",
+  "scenario_sha256": "sha256:289ff241a107be88d01da0fac6aabfc7564eccec1c4b5488efd8a42aed134aa0",
+  "dataset_sha256": "sha256:446db5aa3f4b18f573193eb918aa5ad0bc4111c5cbd6a7b5a82b4575af5bd29e",
+  "contract_sha256": "sha256:da2d7f4ce633b12f4bccf01bdc5a05c26a5189885ff1c93fe9930563d31b29a3"
+}

@@ -1,4 +1,4 @@
-//! ES|QL (`POST /_query`): a pipeline of `FROM`, `WHERE`, `EVAL`, `STATS ... BY`,
+//! ES|QL (`POST /_query`): a pipeline of `FROM` or `ROW`, `WHERE`, `EVAL`, `STATS ... BY`,
 //! `SORT`, `LIMIT`, `KEEP`, `DROP` and `RENAME`, with comparison, boolean, arithmetic,
 //! `LIKE`/`RLIKE`, `IN`, `IS [NOT] NULL`, time spans (`NOW() - 1 hour`) and the common
 //! scalar and aggregate functions. Errors use the real `parsing_exception` /
@@ -334,6 +334,8 @@ enum E {
 #[derive(Debug)]
 enum Cmd {
     From(Vec<String>, bool, usize),
+    /// `ROW a = 1, b = NOW()`: one row of computed values, without an index.
+    Row(Vec<(String, E)>),
     Where(E),
     Eval(Vec<(String, E)>),
     Stats(Vec<(String, E)>, Vec<(String, E)>),
@@ -513,6 +515,7 @@ impl<'a> P<'a> {
                     }
                     Cmd::From(idx, metadata, tok.col)
                 }
+                "ROW" if cmds.is_empty() => Cmd::Row(self.assignments()?),
                 "WHERE" => Cmd::Where(self.expr()?),
                 "EVAL" => Cmd::Eval(self.assignments()?),
                 "STATS" => {
@@ -622,7 +625,7 @@ impl<'a> P<'a> {
                 }
             }
         }
-        if !matches!(cmds.first(), Some(Cmd::From(..))) {
+        if !matches!(cmds.first(), Some(Cmd::From(..) | Cmd::Row(..))) {
             return Err(parse_err(
                 1,
                 "mismatched input expecting {'from', 'row', 'show'}",
@@ -1627,6 +1630,30 @@ pub fn run(query: &str, all: &[Index], now_ms: i64) -> Result<Value, EsError> {
                     })
                     .collect();
                 table = Table { cols: fields, rows };
+            }
+            Cmd::Row(assigns) => {
+                // Each value is computed on its own: a column cannot read an earlier one.
+                let empty = Table {
+                    cols: Vec::new(),
+                    rows: Vec::new(),
+                };
+                let mut row = Vec::new();
+                for (name, e) in assigns {
+                    check_fields(e, &empty)?;
+                    if contains_agg(e) {
+                        return Err(EsError::verification(&[
+                            "aggregate function not allowed in ROW".into(),
+                        ]));
+                    }
+                    // Only the rightmost of two columns with one name is kept.
+                    if let Some(earlier) = table.col(name) {
+                        table.cols.remove(earlier);
+                        row.remove(earlier);
+                    }
+                    table.cols.push((name.clone(), type_of(e, &empty)));
+                    row.push(eval(e, &[], &empty, &env));
+                }
+                table.rows = vec![row];
             }
             Cmd::Where(e) => {
                 check_fields(e, &table)?;

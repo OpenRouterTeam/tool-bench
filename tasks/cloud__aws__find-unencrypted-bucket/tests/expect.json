@@ -1,5 +1,39 @@
 {
+  "version": 2,
   "state": [],
+  "records": [
+    {
+      "selector": {
+        "collection": "/services/aws/buckets",
+        "matching": {
+          "Encryption": {
+            "SSEAlgorithm": "AES256"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/Name": "northwind-legacy-exports"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    }
+  ],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "aws",
@@ -9,7 +43,11 @@
       "query_contains": "encryption",
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [
+        200
+      ],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -21,7 +59,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "aws",
@@ -31,11 +71,47 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
     "contains": [],
-    "regex": "^\\W*northwind-legacy-exports\\W*$"
-  }
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the S3 bucket whose default encryption is SSE-S3 (SSEAlgorithm AES256) instead of SSE-KMS, and no other bucket.",
+      "selector": {
+        "collection": "/services/aws/buckets",
+        "matching": {
+          "Encryption": {
+            "SSEAlgorithm": "AES256"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "bucket": {
+          "field": "/Name",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "(default encryption SSE-S3, AES256)",
+        "(AES256)"
+      ],
+      "contradictions": [
+        "uses kms",
+        "uses sse-kms",
+        "uses aws:kms"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

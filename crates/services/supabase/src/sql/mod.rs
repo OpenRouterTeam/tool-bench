@@ -15,11 +15,28 @@ pub use exec::{Db, Table, execute};
 pub struct SqlError {
     pub code: &'static str,
     pub message: String,
+    capability_gap: bool,
 }
 
 impl SqlError {
     pub fn new(code: &'static str, message: String) -> Self {
-        Self { code, message }
+        Self {
+            code,
+            message,
+            capability_gap: false,
+        }
+    }
+
+    pub fn unsupported() -> Self {
+        Self {
+            code: "0A000",
+            message: "SQL statement is not supported".to_owned(),
+            capability_gap: true,
+        }
+    }
+
+    pub fn is_capability_gap(&self) -> bool {
+        self.capability_gap
     }
 
     pub fn syntax_end() -> Self {
@@ -41,6 +58,7 @@ fn default_true() -> bool {
 
 /// One column as stored in the `tables` collection of the dataset.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ColumnInfo {
     pub name: String,
     /// pg format name: int8, int4, text, varchar, bool, numeric, timestamptz, date, uuid,
@@ -64,6 +82,7 @@ pub struct ColumnInfo {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ForeignKey {
     pub name: String,
     pub columns: Vec<String>,
@@ -75,6 +94,7 @@ pub struct ForeignKey {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct IndexDef {
     pub name: String,
     pub columns: Vec<String>,
@@ -83,6 +103,7 @@ pub struct IndexDef {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct PolicyDef {
     pub name: String,
     pub command: String,
@@ -95,6 +116,7 @@ pub struct PolicyDef {
 
 /// A table definition (`dataset/supabase/tables.json`, keyed `<ref>.<schema>.<name>`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct TableDef {
     pub id: i64,
     pub schema: String,

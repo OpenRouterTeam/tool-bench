@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -10,7 +15,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "terraform",
@@ -20,7 +27,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "terraform",
@@ -30,16 +39,106 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "run-Gy4tBHGggKx49nbH",
-      "aws_db_instance.payments",
-      "InvalidParameterCombination",
-      "1 to add, 1 to change, 0 to destroy"
-    ],
-    "regex": null
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Give the ID of the latest run of the payments-api-prod workspace, the resource address and the AWS error code its apply log reports, and how many resources that run's plan said it would add, change and destroy, in Terraform's format.",
+      "selector": {
+        "collection": "/services/terraform/workspaces",
+        "matching": {
+          "name": "payments-api-prod",
+          "organization": "acme-platform"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "error_code": {
+          "field": "/log",
+          "kind": "identifier",
+          "record": "apply",
+          "capture": "api error (\\w+):"
+        },
+        "resource": {
+          "field": "/log",
+          "kind": "identifier",
+          "record": "apply",
+          "capture": "(?m)^\\s+with ([^,\\s]+),$"
+        },
+        "run": {
+          "field": "/id",
+          "kind": "identifier",
+          "record": "run"
+        },
+        "to_add": {
+          "field": "/resource-additions",
+          "kind": "number",
+          "record": "plan",
+          "units": [
+            "to add"
+          ],
+          "require_unit": true
+        },
+        "to_change": {
+          "field": "/resource-changes",
+          "kind": "number",
+          "record": "plan",
+          "units": [
+            "to change"
+          ],
+          "require_unit": true
+        },
+        "to_destroy": {
+          "field": "/resource-destructions",
+          "kind": "number",
+          "record": "plan",
+          "units": [
+            "to destroy"
+          ],
+          "require_unit": true
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "apply": {
+          "from": "run",
+          "collection": "/services/terraform/applies",
+          "on": {
+            "/id": "/apply"
+          }
+        },
+        "plan": {
+          "from": "run",
+          "collection": "/services/terraform/plans",
+          "on": {
+            "/id": "/plan"
+          }
+        },
+        "run": {
+          "collection": "/services/terraform/runs",
+          "on": {
+            "/id": "/latest-run"
+          }
+        }
+      },
+      "context": [
+        "the apply got as far as 1 added, 0 changed, 0 destroyed",
+        "Its plan was"
+      ],
+      "predicates": [
+        "Cannot upgrade postgres"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

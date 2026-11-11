@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/datadog/schedule-replica-downtime",
+  "scenario_sha256": "sha256:8c9536392f1171771b717ef9543015ca7a37f283f7613f236104da0b287bc07b",
+  "dataset_sha256": "sha256:227b432d61306e8737d693110828f0497ca284927dc82dd1f9253478aa5c5f24",
+  "contract_sha256": "sha256:3584a0eceb9d83ff39ae9d24c1d7c6f1b58c2c4a2c7a53dc79c4723ac0330cda"
+}

@@ -11,8 +11,8 @@ use crate::directory::related_service_ids;
 use crate::records::{filtered_log_entries, log_entry, render_change_event};
 use crate::schedules::oncall_users_at_level;
 use crate::util::{
-    ApiErr, Ctx, Kind, Req, Res, classic, created, default, derived_hex, derived_id, fmt, ok,
-    ref_id, run, stored_ref, time_of,
+    ApiErr, Ctx, Kind, Req, Res, classic, created, default, derived_hex, derived_id, exact_time_of,
+    fmt, nanos, ok, ref_id, run, stored_ref, time_of,
 };
 
 const DAY: i64 = 86_400;
@@ -183,14 +183,17 @@ fn sort_incidents(items: &mut [Value], sort_by: Option<&str>) {
             (field.trim().to_owned(), dir.trim() == "desc")
         })
         .collect();
-    let key_of = |v: &Value, field: &str| -> (i64, String) {
+    let key_of = |v: &Value, field: &str| -> (i128, String) {
         match field {
-            "incident_number" => (v["incident_number"].as_i64().unwrap_or(0), String::new()),
-            "urgency" => (
-                i64::from(v["urgency"].as_str().unwrap_or("high") == "high"),
+            "incident_number" => (
+                i128::from(v["incident_number"].as_i64().unwrap_or(0)),
                 String::new(),
             ),
-            f => (time_of(v, f).unwrap_or(i64::MIN), String::new()),
+            "urgency" => (
+                i128::from(v["urgency"].as_str().unwrap_or("high") == "high"),
+                String::new(),
+            ),
+            field => (exact_time_of(v, field).unwrap_or(i128::MIN), String::new()),
         }
     };
     items.sort_by(|a, b| {
@@ -213,12 +216,12 @@ pub async fn list_incidents(State(world): State<SharedWorld>, req: Req) -> Respo
         let window = if q.get("date_range") == Some("all") {
             None
         } else {
-            let until = q.time("until")?.unwrap_or(ctx.now);
-            let since = q.time("since")?.unwrap_or(until - 30 * DAY);
+            let until = q.exact_time("until")?.unwrap_or(nanos(ctx.now));
+            let since = q.exact_time("since")?.unwrap_or(until - nanos(30 * DAY));
             if since > until {
                 return Err(ApiErr::invalid("Since must be before until"));
             }
-            if until - since > 183 * DAY {
+            if until - since > nanos(183 * DAY) {
                 return Err(ApiErr::invalid(
                     "The maximum range between since and until is 6 months",
                 ));
@@ -238,8 +241,9 @@ pub async fn list_incidents(State(world): State<SharedWorld>, req: Req) -> Respo
             .into_iter()
             .map(|i| render_incident(ctx, i))
             .filter(|i| {
-                window
-                    .is_none_or(|(s, u)| time_of(i, "created_at").is_some_and(|t| t >= s && t < u))
+                window.is_none_or(|(s, u)| {
+                    exact_time_of(i, "created_at").is_some_and(|t| t >= s && t < u)
+                })
             })
             .filter(|i| statuses.is_empty() || statuses.iter().any(|s| i["status"] == s.as_str()))
             .filter(|i| {

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/multi/supabase-slack-referral-signups",
+  "scenario_sha256": "sha256:d9afaf6648133f123592532189f510b4697c419293064ff925745fc20310b628",
+  "dataset_sha256": "sha256:ac457a39f89a5eda64363a1e3dbfe7cc6d228fa0527baeb5eef4c654d1c5fd56",
+  "contract_sha256": "sha256:874fba88c3cf70f30a5c5a95301b764af960b94f444145d555119ad1c2703a5d"
+}

@@ -1,108 +1,138 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/title",
-      "equals": "Site Reliability Engineer",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/okta/users",
+        "matching": {
+          "profile": {
+            "login": "maria.gonzalez@octo-corp.example"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/profile/department": "Platform Engineering",
+        "/profile/title": "Site Reliability Engineer",
+        "/status": "ACTIVE"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/department",
-      "equals": "Platform Engineering",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/okta/group_members",
+        "matching": {},
+        "references": [
+          {
+            "source_field": "/userId",
+            "target": {
+              "collection": "/services/okta/users",
+              "matching": {
+                "profile": {
+                  "login": "maria.gonzalez@octo-corp.example"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/groupId",
+            "target": {
+              "collection": "/services/okta/groups",
+              "matching": {
+                "profile": {
+                  "name": "Platform Engineering"
+                },
+                "type": "OKTA_GROUP"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/login",
-      "equals": "maria.gonzalez@octo-corp.example",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/lastName",
-      "equals": "Gonzalez",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/employeeNumber",
-      "equals": "1120",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/status",
-      "equals": "ACTIVE",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/group_members/00g2pltfrm7Gh8Ij9x7~100u1mrgnzlz6Wx3Yz4x7",
-      "equals": null,
-      "exists": true,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/group_members/00g2spprt12Ac5Ef6x7~100u1mrgnzlz6Wx3Yz4x7",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/group_members/00g1evrybdy0000000x1~100u1mrgnzlz6Wx3Yz4x7",
-      "equals": null,
-      "exists": true,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/okta/group_members/00g2spprt12Ac5Ef6x7~100u1tylrbrk0Ef7Gh8x7",
-      "equals": null,
-      "exists": true,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/okta/group_members",
+        "matching": {
+          "groupId": "00g2spprt12Ac5Ef6x7"
+        },
+        "references": [
+          {
+            "source_field": "/userId",
+            "target": {
+              "collection": "/services/okta/users",
+              "matching": {
+                "profile": {
+                  "login": "maria.gonzalez@octo-corp.example"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 0,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "okta",
-      "method": "PUT",
-      "path": "/api/v1/groups/00g2pltfrm7Gh8Ij9x7/users/00u1mrgnzlz6Wx3Yz4x7",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "okta",
-      "method": "DELETE",
-      "path": "/api/v1/groups/00g2spprt12Ac5Ef6x7/users/00u1mrgnzlz6Wx3Yz4x7",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "okta",
@@ -112,18 +142,329 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "okta",
       "method": "DELETE",
       "path": null,
-      "path_regex": "^/api/v1/(users|groups/[^/]+$)",
+      "path_regex": "^/api/v1/(users/|groups/[^/]+$)",
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/title",
+        "kind": "update",
+        "matching": {
+          "profile": {
+            "title": "Site Reliability Engineer"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "POST",
+            "PUT"
+          ],
+          "path_regex": "(?i)^/api/v1/users/(00u1mrgnzlz6Wx3Yz4x7|maria\\.gonzalez((@|%40)octo-corp\\.example)?)$"
+        }
+      },
+      {
+        "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/profile/department",
+        "kind": "update",
+        "matching": {
+          "profile": {
+            "department": "Platform Engineering"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "POST",
+            "PUT"
+          ],
+          "path_regex": "(?i)^/api/v1/users/(00u1mrgnzlz6Wx3Yz4x7|maria\\.gonzalez((@|%40)octo-corp\\.example)?)$"
+        }
+      },
+      {
+        "pointer": "/services/okta/users/00u1mrgnzlz6Wx3Yz4x7/lastUpdated",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "POST",
+            "PUT"
+          ],
+          "path_regex": "(?i)^/api/v1/users/(00u1mrgnzlz6Wx3Yz4x7|maria\\.gonzalez((@|%40)octo-corp\\.example)?)$"
+        }
+      },
+      {
+        "pointer": "/services/okta/group_members/00g2pltfrm7Gh8Ij9x7~100u1mrgnzlz6Wx3Yz4x7",
+        "kind": "create",
+        "matching": {
+          "groupId": "00g2pltfrm7Gh8Ij9x7",
+          "userId": "00u1mrgnzlz6Wx3Yz4x7"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/v1/groups/00g2pltfrm7Gh8Ij9x7/users/00u1mrgnzlz6Wx3Yz4x7$"
+        }
+      },
+      {
+        "pointer": "/services/okta/group_members/00g2spprt12Ac5Ef6x7~100u1mrgnzlz6Wx3Yz4x7",
+        "kind": "delete",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "DELETE"
+          ],
+          "path_regex": "^/api/v1/groups/00g2spprt12Ac5Ef6x7/users/00u1mrgnzlz6Wx3Yz4x7$"
+        }
+      },
+      {
+        "pointer": "/services/okta/groups/00g2pltfrm7Gh8Ij9x7/lastMembershipUpdated",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/v1/groups/00g2pltfrm7Gh8Ij9x7/users/00u1mrgnzlz6Wx3Yz4x7$"
+        }
+      },
+      {
+        "pointer": "/services/okta/groups/00g2spprt12Ac5Ef6x7/lastMembershipUpdated",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "DELETE"
+          ],
+          "path_regex": "^/api/v1/groups/00g2spprt12Ac5Ef6x7/users/00u1mrgnzlz6Wx3Yz4x7$"
+        }
+      },
+      {
+        "pointer": "/services/okta/logs/*",
+        "kind": "create",
+        "matching": {
+          "actor": {
+            "id": "0oa8wq4n2Yc6Ds7Rt0x7"
+          },
+          "eventType": "user.account.update_profile",
+          "outcome": {
+            "result": "SUCCESS"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/target/0/id",
+            "target": {
+              "collection": "/services/okta/users",
+              "matching": {
+                "profile": {
+                  "login": "maria.gonzalez@octo-corp.example"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "POST",
+            "PUT"
+          ],
+          "path_regex": "(?i)^/api/v1/users/(00u1mrgnzlz6Wx3Yz4x7|maria\\.gonzalez((@|%40)octo-corp\\.example)?)$"
+        }
+      },
+      {
+        "pointer": "/services/okta/logs/*",
+        "kind": "create",
+        "matching": {
+          "actor": {
+            "id": "0oa8wq4n2Yc6Ds7Rt0x7"
+          },
+          "eventType": "group.user_membership.add",
+          "outcome": {
+            "result": "SUCCESS"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/target/0/id",
+            "target": {
+              "collection": "/services/okta/users",
+              "matching": {
+                "profile": {
+                  "login": "maria.gonzalez@octo-corp.example"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/target/1/id",
+            "target": {
+              "collection": "/services/okta/groups",
+              "matching": {
+                "profile": {
+                  "name": "Platform Engineering"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/v1/groups/00g2pltfrm7Gh8Ij9x7/users/00u1mrgnzlz6Wx3Yz4x7$"
+        }
+      },
+      {
+        "pointer": "/services/okta/logs/*",
+        "kind": "create",
+        "matching": {
+          "actor": {
+            "id": "0oa8wq4n2Yc6Ds7Rt0x7"
+          },
+          "eventType": "group.user_membership.remove",
+          "outcome": {
+            "result": "SUCCESS"
+          }
+        },
+        "references": [
+          {
+            "source_field": "/target/0/id",
+            "target": {
+              "collection": "/services/okta/users",
+              "matching": {
+                "profile": {
+                  "login": "maria.gonzalez@octo-corp.example"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/target/1/id",
+            "target": {
+              "collection": "/services/okta/groups",
+              "matching": {
+                "profile": {
+                  "name": "Support Agents"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "okta",
+          "methods": [
+            "DELETE"
+          ],
+          "path_regex": "^/api/v1/groups/00g2spprt12Ac5Ef6x7/users/00u1mrgnzlz6Wx3Yz4x7$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

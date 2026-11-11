@@ -309,6 +309,94 @@ async fn search_filters_sorts_and_pages() {
     assert_eq!(ids(&by_company), ["9100101", "9100102", "9100103"]);
 }
 
+/// HubSpot sets `hs_is_closed`, `hs_is_closed_won` and `hs_is_closed_lost` on every deal
+/// from its stage; they can be read, filtered and sorted on, and never written.
+#[tokio::test]
+async fn deal_closed_flags_follow_the_stage() {
+    let w = world();
+    let app = service_app(w.clone(), &Hubspot);
+    let flags = ["hs_is_closed", "hs_is_closed_won", "hs_is_closed_lost"];
+    let by_flag = |operator: &str, value: &str| {
+        json!({"filterGroups": [{"filters": [{"propertyName": "hs_is_closed", "operator": operator, "value": value}]}],
+               "sorts": [{"propertyName": "amount", "direction": "DESCENDING"}],
+               "properties": ["amount", "dealstage", "hs_is_closed", "hs_is_closed_won", "hs_is_closed_lost"], "limit": 100})
+    };
+    let by_stage = search(
+        &app,
+        "deals",
+        json!({"filterGroups": [{"filters": [{"propertyName": "dealstage", "operator": "NOT_IN", "values": ["closedwon", "closedlost"]}]}],
+               "sorts": [{"propertyName": "amount", "direction": "DESCENDING"}], "limit": 100}),
+    )
+    .await;
+    for open in [
+        search(&app, "deals", by_flag("EQ", "false")).await,
+        search(&app, "deals", by_flag("NEQ", "true")).await,
+    ] {
+        assert_eq!(ids(&open), ids(&by_stage));
+        assert_eq!(ids(&open)[0], "9100106");
+        for deal in open["results"].as_array().unwrap() {
+            for flag in flags {
+                assert_eq!(deal["properties"][flag], "false", "{deal}");
+            }
+        }
+    }
+    let closed = search(&app, "deals", by_flag("EQ", "true")).await;
+    assert_eq!(closed["total"], 5);
+    for deal in closed["results"].as_array().unwrap() {
+        let won = deal["properties"]["dealstage"] == "closedwon";
+        assert_eq!(deal["properties"]["hs_is_closed_won"], won.to_string());
+        assert_eq!(deal["properties"]["hs_is_closed_lost"], (!won).to_string());
+    }
+
+    // Not a default property, and listed as a calculated read-only definition.
+    let (_, deal) = get(&app, "/crm/v3/objects/deals/9100102").await;
+    assert!(deal["properties"].get("hs_is_closed").is_none(), "{deal}");
+    let (_, deal) = get(
+        &app,
+        "/crm/v3/objects/deals/9100102?properties=hs_is_closed",
+    )
+    .await;
+    assert_eq!(deal["properties"]["hs_is_closed"], "true");
+    let (status, definition) = get(&app, "/crm/v3/properties/deals/hs_is_closed_won").await;
+    assert_eq!(status, StatusCode::OK, "{definition}");
+    assert_eq!(definition["type"], "bool");
+    assert_eq!(definition["calculated"], true);
+    assert_eq!(definition["modificationMetadata"]["readOnlyValue"], true);
+
+    // Moving the stage moves the flags; the flags themselves are never stored or settable.
+    let before = state(&w);
+    let (status, bad) = post(
+        &app,
+        "/crm/v3/objects/deals/batch/update",
+        json!({"inputs": [{"id": "9100101", "properties": {"hs_is_closed": "true"}}]}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(
+        bad["message"].as_str().unwrap().contains("READ_ONLY_VALUE"),
+        "{bad}"
+    );
+    assert_eq!(state(&w), before);
+    let (status, _) = post(
+        &app,
+        "/crm/v3/objects/deals/batch/update",
+        json!({"inputs": [{"id": "9100101", "properties": {"dealstage": "closedlost"}}]}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (_, deal) = get(
+        &app,
+        "/crm/v3/objects/deals/9100101?properties=hs_is_closed,hs_is_closed_lost",
+    )
+    .await;
+    assert_eq!(deal["properties"]["hs_is_closed"], "true");
+    assert_eq!(deal["properties"]["hs_is_closed_lost"], "true");
+    let stored = &state(&w)["deals"]["9100101"]["properties"];
+    for flag in flags {
+        assert!(stored.get(flag).is_none(), "{stored}");
+    }
+}
+
 #[tokio::test]
 async fn search_query_tokens_and_presence() {
     let app = service_app(world(), &Hubspot);
@@ -401,7 +489,7 @@ async fn batch_update_validates_and_writes_state() {
     let r = &body["results"][0];
     assert_eq!(r["properties"]["dealstage"], "contractsent");
     assert_eq!(r["properties"]["closedate"], "2026-11-20T00:00:00.000Z");
-    assert_eq!(r["updatedAt"], "2026-10-29T14:00:07.000Z");
+    assert_eq!(r["updatedAt"], "2026-10-29T14:00:00.000Z");
 
     let s = state(&w);
     assert_eq!(
@@ -410,7 +498,7 @@ async fn batch_update_validates_and_writes_state() {
     );
     assert_eq!(
         s["deals"]["9100101"]["properties"]["hs_lastmodifieddate"],
-        "2026-10-29T14:00:07.000Z"
+        "2026-10-29T14:00:00.000Z"
     );
 
     let (status, bad) = post(
@@ -464,7 +552,7 @@ async fn batch_create_assigns_ids_and_associations() {
     let created = &body["results"][0];
     assert_eq!(created["id"], "512011");
     assert_eq!(created["properties"]["firstname"], "Jared");
-    assert_eq!(created["createdAt"], "2026-10-29T14:00:07.000Z");
+    assert_eq!(created["createdAt"], "2026-10-29T14:00:00.000Z");
     let s = state(&w);
     assert_eq!(
         s["contacts"]["512011"]["properties"]["email"],
@@ -554,7 +642,7 @@ async fn property_definitions_crud() {
                      "options": [{"label": "Low", "value": "low"}, {"label": "High", "value": "high"}]});
     let (status, created) = post(&app, "/crm/v3/properties/deals", def.clone()).await;
     assert_eq!(status, StatusCode::CREATED, "{created}");
-    assert_eq!(created["createdAt"], "2026-10-29T14:00:07.000Z");
+    assert_eq!(created["createdAt"], "2026-10-29T14:00:00.000Z");
     assert_eq!(created["options"][1]["displayOrder"], 1);
     assert_eq!(
         state(&w)["properties"]["deals/renewal_risk"]["label"],
@@ -696,7 +784,7 @@ async fn engagements_v1_create_get_update() {
     assert_eq!(created["engagement"]["type"], "NOTE");
     assert_eq!(created["engagement"]["ownerId"], 81234501);
     assert_eq!(created["engagement"]["timestamp"], 1793282400000_i64);
-    assert_eq!(created["engagement"]["createdAt"], 1793282407000_i64);
+    assert_eq!(created["engagement"]["createdAt"], 1793282400000_i64);
     assert_eq!(created["associations"]["dealIds"], json!([9100104]));
     assert_eq!(created["associations"]["contactIds"], json!([512005]));
     assert_eq!(

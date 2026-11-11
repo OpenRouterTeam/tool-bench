@@ -6,6 +6,7 @@ publish.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+catalog.workspace = true
 axum.workspace = true
 axum-server.workspace = true
 rcgen.workspace = true
@@ -46,4 +47,5 @@ reqwest.workspace = true
 tokio.workspace = true
 
 [dev-dependencies]
-catalog.workspace = true
+scenario = { path = "../scenario" }
+tempfile.workspace = true

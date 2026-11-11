@@ -1,129 +1,885 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/terraform/vars/var-4eRpJG8P0JYsXLTJ/value",
-      "equals": "4",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/vars",
+        "matching": {
+          "category": "terraform",
+          "key": "desired_count",
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/hcl": false,
+        "/id": "var-4eRpJG8P0JYsXLTJ",
+        "/sensitive": false
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/value": 4
+      }
     },
     {
-      "pointer": "/services/terraform/vars/var-FwwYKSi27hH9ISlj/value",
-      "equals": "6",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/runs",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/auto-apply": false,
+        "/is-destroy": false,
+        "/message": "Scale checkout staging to 4 tasks for load test",
+        "/plan-only": false,
+        "/refresh-only": false,
+        "/replace-addrs": [],
+        "/status": "planned",
+        "/target-addrs": []
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/input-variables/desired_count": 4
+      }
     },
     {
-      "pointer": "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run-summary/input-variables/desired_count",
-      "equals": "4",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/plans",
+        "matching": {},
+        "references": [
+          {
+            "source_field": "/run",
+            "target": {
+              "collection": "/services/terraform/runs",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/has-changes": true,
+        "/status": "finished"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/resource-additions": 0,
+        "/resource-changes": 2,
+        "/resource-destructions": 0
+      }
     },
     {
-      "pointer": "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run-summary/status",
-      "equals": "planned",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/plan_changes",
+        "matching": {
+          "address": "aws_ecs_service.checkout"
+        },
+        "references": [
+          {
+            "source_field": "/plan",
+            "target": {
+              "collection": "/services/terraform/plans",
+              "matching": {},
+              "references": [
+                {
+                  "source_field": "/run",
+                  "target": {
+                    "collection": "/services/terraform/runs",
+                    "matching": {
+                      "workspace": "ws-FxCPzmnaeIMOUbSd"
+                    },
+                    "key_prefix": null,
+                    "created": true,
+                    "identity_field": null
+                  },
+                  "target_field": "/id"
+                }
+              ],
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/actions": [
+          "update"
+        ],
+        "/after-unknown": {}
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/after/desired_count": 4,
+        "/before/desired_count": 2
+      }
     },
     {
-      "pointer": "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run-summary/message",
-      "equals": null,
-      "exists": null,
-      "contains": "Scale checkout staging to 4 tasks",
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/plan_changes",
+        "matching": {
+          "address": "aws_appautoscaling_target.checkout"
+        },
+        "references": [
+          {
+            "source_field": "/plan",
+            "target": {
+              "collection": "/services/terraform/plans",
+              "matching": {},
+              "references": [
+                {
+                  "source_field": "/run",
+                  "target": {
+                    "collection": "/services/terraform/runs",
+                    "matching": {
+                      "workspace": "ws-FxCPzmnaeIMOUbSd"
+                    },
+                    "key_prefix": null,
+                    "created": true,
+                    "identity_field": null
+                  },
+                  "target_field": "/id"
+                }
+              ],
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/actions": [
+          "update"
+        ],
+        "/after-unknown": {}
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/after/max_capacity": 6,
+        "/after/min_capacity": 4,
+        "/before/min_capacity": 2
+      }
+    },
+    {
+      "selector": {
+        "collection": "/services/terraform/run_inputs",
+        "matching": {
+          "category": "terraform",
+          "key": "desired_count",
+          "variable": "var-4eRpJG8P0JYsXLTJ",
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/hcl": false,
+        "/sensitive": false
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "numeric_fields": {
+        "/value": 4
+      }
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "terraform",
-      "method": "PATCH",
-      "path": "/api/v2/workspaces/ws-FxCPzmnaeIMOUbSd/vars/var-4eRpJG8P0JYsXLTJ",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/terraform/run_inputs",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/variable",
+      "target": {
+        "collection": "/services/terraform/vars",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": [
+        {
+          "source_field": "/key",
+          "target_field": "/key",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/category",
+          "target_field": "/category",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/hcl",
+          "target_field": "/hcl",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/sensitive",
+          "target_field": "/sensitive",
+          "kind": "equals"
+        }
+      ]
     },
     {
-      "service": "terraform",
-      "method": "POST",
-      "path": "/api/v2/runs",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "ws-FxCPzmnaeIMOUbSd",
-      "min_count": 1
+      "source": {
+        "collection": "/services/terraform/run_inputs",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/run",
+      "target": {
+        "collection": "/services/terraform/runs",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/terraform/workspaces",
+        "matching": {
+          "id": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/current-run",
+      "target": {
+        "collection": "/services/terraform/runs",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/terraform/workspaces",
+        "matching": {
+          "id": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/latest-run-summary/id",
+      "target": {
+        "collection": "/services/terraform/runs",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/terraform/runs",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/plan",
+      "target": {
+        "collection": "/services/terraform/plans",
+        "matching": {},
+        "references": [
+          {
+            "source_field": "/run",
+            "target": {
+              "collection": "/services/terraform/runs",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
     }
   ],
+  "audit_history": true,
+  "ordering": [
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/terraform/vars",
+          "matching": {
+            "category": "terraform",
+            "id": "var-4eRpJG8P0JYsXLTJ"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/value",
+        "numeric_equals": 4
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/terraform/runs",
+          "matching": {
+            "workspace": "ws-FxCPzmnaeIMOUbSd"
+          },
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/status",
+        "equals": "planned"
+      },
+      "require_transition": true,
+      "allow_same_commit": false
+    }
+  ],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "terraform",
       "method": "POST",
-      "path": "/api/v2/runs",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "ws-ZQ7RjwWMr2evfIuC",
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "PATCH",
       "path": null,
-      "path_regex": "^/api/v2/workspaces/ws-ZQ7RjwWMr2evfIuC",
+      "path_regex": "^/api/v2/runs/[^/]+/actions/apply$",
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v2/workspaces/ws-ZQ7RjwWMr2evfIuC",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "PATCH",
-      "path": "/api/v2/organizations/acme-platform/workspaces/checkout-service-prod",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v2/runs/[^/]+/actions/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/terraform/vars/var-4eRpJG8P0JYsXLTJ/value",
+        "kind": "update",
+        "matching": null,
+        "numeric_fields": {
+          "/value": 4
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "PATCH"
+          ],
+          "path_regex": "^/api/v2/workspaces/ws-FxCPzmnaeIMOUbSd/vars/var-4eRpJG8P0JYsXLTJ$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/runs/*",
+        "kind": "create",
+        "matching": {
+          "auto-apply": false,
+          "is-destroy": false,
+          "message": "Scale checkout staging to 4 tasks for load test",
+          "plan-only": false,
+          "refresh-only": false,
+          "replace-addrs": [],
+          "status": "planned",
+          "target-addrs": [],
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "numeric_fields": {
+          "/input-variables/desired_count": 4
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/plans/*",
+        "kind": "create",
+        "matching": {
+          "status": "finished"
+        },
+        "references": [
+          {
+            "source_field": "/run",
+            "target": {
+              "collection": "/services/terraform/runs",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/applies/*",
+        "kind": "create",
+        "matching": {
+          "status": "pending"
+        },
+        "references": [
+          {
+            "source_field": "/run",
+            "target": {
+              "collection": "/services/terraform/runs",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/plan_changes/*",
+        "kind": "create",
+        "matching": {
+          "actions": [
+            "update"
+          ],
+          "address": "aws_ecs_service.checkout"
+        },
+        "numeric_fields": {
+          "/after/desired_count": 4
+        },
+        "references": [
+          {
+            "source_field": "/plan",
+            "target": {
+              "collection": "/services/terraform/plans",
+              "matching": {},
+              "references": [
+                {
+                  "source_field": "/run",
+                  "target": {
+                    "collection": "/services/terraform/runs",
+                    "matching": {
+                      "workspace": "ws-FxCPzmnaeIMOUbSd"
+                    },
+                    "key_prefix": null,
+                    "created": true,
+                    "identity_field": null
+                  },
+                  "target_field": "/id"
+                }
+              ],
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/plan_changes/*",
+        "kind": "create",
+        "matching": {
+          "actions": [
+            "update"
+          ],
+          "address": "aws_appautoscaling_target.checkout"
+        },
+        "numeric_fields": {
+          "/after/max_capacity": 6,
+          "/after/min_capacity": 4
+        },
+        "references": [
+          {
+            "source_field": "/plan",
+            "target": {
+              "collection": "/services/terraform/plans",
+              "matching": {},
+              "references": [
+                {
+                  "source_field": "/run",
+                  "target": {
+                    "collection": "/services/terraform/runs",
+                    "matching": {
+                      "workspace": "ws-FxCPzmnaeIMOUbSd"
+                    },
+                    "key_prefix": null,
+                    "created": true,
+                    "identity_field": null
+                  },
+                  "target_field": "/id"
+                }
+              ],
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/run_inputs/*",
+        "kind": "create",
+        "matching": {
+          "workspace": "ws-FxCPzmnaeIMOUbSd"
+        },
+        "references": [
+          {
+            "source_field": "/run",
+            "target": {
+              "collection": "/services/terraform/runs",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/variable",
+            "target": {
+              "collection": "/services/terraform/vars",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 6,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/current-run",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/current-run",
+            "target": {
+              "collection": "/services/terraform/runs",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/latest-run",
+            "target": {
+              "collection": "/services/terraform/runs",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/latest-run-summary",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/latest-run-summary/id",
+            "target": {
+              "collection": "/services/terraform/runs",
+              "matching": {
+                "workspace": "ws-FxCPzmnaeIMOUbSd"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/workspaces/ws-FxCPzmnaeIMOUbSd/updated-at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

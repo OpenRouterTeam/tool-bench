@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/multi/oom-limit-and-sentry-resolve",
+  "instruction_sha256": "sha256:4d3dfa6b0fa433dbdfdaa8eaa3beb10135182b10b90537e1a4da59cf37466233",
+  "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
+  "framing_sha256": "sha256:e7b582959c77212e99a0449b006a4ddef50ecb4cfa8bdb3e02f6463860e99397",
+  "environment_files": {
+    "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
+    "docker-compose.yaml": "sha256:f3fbc24e152f58a0943d4354e910c9ab78946b9594896db7c0a632299bb53dc4"
+  },
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6",
+  "connector_env_sha256": {
+    "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
+    "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",
+    "GITLAB_GRAPHQL_URL": "sha256:2bcf2e0ea397c95358dc7c585bf9b2c1e2f03dac4546cf1c7c2e5c3de00d72a5",
+    "GRAFANA_URL": "sha256:8bd1e965a4c9bea85fe11b6874e2bad23b224e8c2320a4e4717c7458a0f34df9",
+    "PAGERDUTY_API_HOST": "sha256:cabebf5eecc72736f0ce0a1bb2359d97f47d0d9caf4bda64ed783aa8c0c81d00",
+    "SENTRY_URL": "sha256:512d2da48937e07d146746c614a87d380bbeb14b4055a338a877bd127db7a974",
+    "TFE_ADDRESS": "sha256:dbbaea8eb57f330940dbeba66d3acae2aa6b726969fd37b70d80105faeb71030"
+  }
+}

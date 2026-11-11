@@ -7,22 +7,33 @@ services = ["github"]
 tags = ["single-service", "write", "github"]
 timeout_sec = 900
 
-[[expect.state]]
-pointer = "/services/github/issues/octo-org~1app#4/title"
-equals = "Login page returns 500"
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 0
+rationale = "Repo octo-org/app, the exact title and deploy 412 are all in the instruction; one issue create call; existing issues #1-#3 (incl. Flaky login test) are different topics and are not selected among."
 
-[[expect.state]]
-pointer = "/services/github/issues/octo-org~1app#4/body"
-contains = "412"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.required_calls]]
-service = "github"
-method = "POST"
-path = "/api/v3/repos/octo-org/app/issues"
+[[expect.records]]
+selector = { collection = "/services/github/issues", created = true }
+equals = 1
 
-[[expect.forbidden_calls]]
-service = "github"
-method = "PATCH"
+[[expect.records]]
+selector = { collection = "/services/github/issues", key_prefix = "octo-org/app#", created = true }
+equals = 1
+fields = { "/title" = "Login page returns 500", "/state" = "open", "/user" = "mona", "/assignees" = [] }
+optional_fields = { "/locked" = false, "/milestone" = "", "/type" = "", "/parent" = "" }
+null_fields = ["/closed_at"]
+reviewed_text = { "/body" = { requirement = "Mention deploy 412 in the new login HTTP-500 bug's description. The exact title already supplies the login failure context; no particular prose or level of detail is required.", accepted = ["The login page has returned HTTP 500 since deploy 412.", "Observed after deploy 412.", "Deploy 412."], mentions = ["412", ["deploy", "deployment", "deployed", "deploys"]] } }
+
+[[expect.preservation.allow]]
+pointer = "/services/github/issues/*"
+kind = "create"
+matching = { user = "mona" }
 
 [[solution.call]]
 endpoint = "github"

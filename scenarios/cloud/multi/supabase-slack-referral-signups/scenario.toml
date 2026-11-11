@@ -7,13 +7,69 @@ services = ["supabase", "slack"]
 tags = ["lookup", "multi-service", "supabase", "slack", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 3
+rationale = "FALL26 prod customers are 1201, 1202, 1205, 1207 after dropping QA 1203 and 1208 (@octo-shop.com); retired FALL25 rows 1198 and 1204, cancelled order 5103 and six staging FALL26 load-test rows are traps."
+
 # storefront-prod customers with referral_code FALL26, minus @octo-shop.com QA accounts:
 # 1201, 1202, 1205, 1207 = 4. Their non-cancelled orders: 120.00 + 80.50 + 210.00 = 410.50
 # (5103 is cancelled). Traps: QA accounts 1203/1208 (999.00 and 450.00 orders), the FALL25
 # code (1198, 1204), and six FALL26 load-test sign-ups in storefront-staging.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
-contains = ["410.5"]
-regex = '(?i)(\b4\s+(new\s+)?(customers|signups|sign-ups|users|people|referr)|(customers|signups|sign-ups|sign ups|users|people)[^0-9\n]{0,40}\b4\b)'
+ [expect.answer.record_facts]
+ requirement = "State the number of FALL26 referral customers (excluding QA accounts) in the production storefront and their total non-cancelled order spend in dollars."
+ mode = "statements"
+
+ [expect.answer.record_facts.selector]
+ collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers"
+ matching = { referral_code = "FALL26" }
+
+ [expect.answer.record_facts.filter]
+ excluding = [
+   { "/email" = "qa+ref1@octo-shop.com" },
+   { "/email" = "qa+ref2@octo-shop.com" },
+ ]
+
+ [expect.answer.record_facts.selection.group]
+ measure = "count"
+ pick = "only"
+
+ # Independent aggregate for order total
+ [expect.answer.record_facts.related.order_total]
+ collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders"
+
+ [expect.answer.record_facts.related.order_total.group]
+ measure = { sum = "/total" }
+ pick = "only"
+
+ [expect.answer.record_facts.related.order_total.group.row_related.customer]
+ collection = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers"
+ on = { "/id" = "/customer_id" }
+
+ [expect.answer.record_facts.related.order_total.group.rows]
+ matching = { "/row_related/customer/referral_code" = "FALL26" }
+ excluding = [
+   { "/row_related/customer/email" = "qa+ref1@octo-shop.com" },
+   { "/row_related/customer/email" = "qa+ref2@octo-shop.com" },
+   { "/status" = "cancelled" },
+ ]
+
+ [expect.answer.record_facts.facts.customer_count]
+ field = "/value"
+ kind = "number"
+
+ [expect.answer.record_facts.facts.total_spend]
+ record = "order_total"
+ field = "/value"
+ kind = "money"
+ units = ["$", "usd"]
 
 [[expect.forbidden_calls]]
 service = "slack"
@@ -59,4 +115,4 @@ tool = "execute_sql"
 arguments = { project_id = "qmvbxtzkplrnwdhyfaco", query = "select sum(o.total) as spend from public.orders o join public.customers c on c.id = o.customer_id where c.referral_code = 'FALL26' and c.email not like '%@octo-shop.com' and o.status <> 'cancelled'" }
 
 [solution]
-answer = "FALL26 referral campaign (production storefront, excluding @octo-shop.com QA accounts): 4 customers have signed up with the code, and they have spent $410.50 in total (cancelled orders excluded).\n"
+answer = "4 customers have signed up, spending $410.50 in total."

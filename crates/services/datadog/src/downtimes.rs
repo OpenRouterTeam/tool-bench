@@ -22,11 +22,11 @@ pub const CURRENT_USER_ID: i64 = 1_445_416;
 pub fn is_live(d: &Value, now: i64) -> bool {
     d["canceled"].is_null()
         && !d["disabled"].as_bool().unwrap_or(false)
-        && d["end"].as_i64().is_none_or(|end| end > now)
+        && d["end"].as_f64().is_none_or(|end| end > now as f64)
 }
 
 fn is_active(d: &Value, now: i64) -> bool {
-    is_live(d, now) && d["start"].as_i64().is_none_or(|s| s <= now)
+    is_live(d, now) && d["start"].as_f64().is_none_or(|start| start <= now as f64)
 }
 
 fn render(d: &Value, now: i64) -> Value {
@@ -60,10 +60,10 @@ pub async fn get(State(world): State<SharedWorld>, Path(downtime_id): Path<Strin
     }
 }
 
-fn epoch(v: Option<&Value>, field: &str) -> Result<Option<i64>, Response> {
-    match v {
+fn epoch(value: Option<&Value>, field: &str) -> Result<Option<Value>, Response> {
+    match value {
         None | Some(Value::Null) => Ok(None),
-        Some(v) => v.as_f64().map(|f| Some(f as i64)).ok_or_else(|| {
+        Some(value) => value.as_f64().map(|_| Some(value.clone())).ok_or_else(|| {
             errors::bad_request(&format!(
                 "Invalid value for '{field}': expected a POSIX timestamp"
             ))
@@ -85,7 +85,7 @@ fn strings(v: Option<&Value>, field: &str) -> Result<Option<Vec<String>>, Respon
     }
 }
 
-fn recurrence(v: Option<&Value>, start: i64) -> Result<Value, Response> {
+fn recurrence(v: Option<&Value>, start: f64) -> Result<Value, Response> {
     let Some(r) = v.filter(|r| !r.is_null()) else {
         return Ok(Value::Null);
     };
@@ -100,7 +100,11 @@ fn recurrence(v: Option<&Value>, start: i64) -> Result<Value, Response> {
         return Err(errors::bad_request("Recurrence period must be at least 1"));
     }
     let until_date = epoch(r.get("until_date"), "until_date")?;
-    if until_date.is_some_and(|u| u <= start) {
+    if until_date
+        .as_ref()
+        .and_then(Value::as_f64)
+        .is_some_and(|until| until <= start)
+    {
         return Err(errors::bad_request(
             "Recurrence until_date must be after start",
         ));
@@ -122,14 +126,36 @@ pub async fn create(State(world): State<SharedWorld>, body: Bytes) -> Response {
     if !input.is_object() {
         return errors::bad_request("Invalid JSON body");
     }
+    let timezone = match input.get("timezone") {
+        None | Some(Value::Null) => "UTC",
+        Some(Value::String(timezone)) if timezone.parse::<chrono_tz::Tz>().is_ok() => timezone,
+        Some(_) => return errors::bad_request("Invalid timezone: expected an IANA time zone"),
+    };
+    if !input["monitor_id"].is_null() && !input["monitor_tags"].is_null() {
+        if let Some(operation) = mock_core::events::current() {
+            world.fail_operation(
+                &operation,
+                "datadog_monitor_selector_unsupported",
+                "combined downtime monitor-ID and monitor-tag selection has no qualified precedence",
+            );
+        }
+        return errors::error(
+            StatusCode::NOT_IMPLEMENTED,
+            "Selected downtime options are unavailable for this connection",
+        );
+    }
     let scope = match strings(input.get("scope"), "scope") {
-        // `"host:a,env:prod"` in one entry means two scope tags.
-        Ok(Some(s)) if !s.is_empty() && s.iter().all(|p| !p.trim().is_empty()) => s
-            .iter()
-            .flat_map(|p| p.split(','))
-            .map(|p| p.trim().to_owned())
-            .filter(|p| !p.is_empty())
-            .collect::<Vec<_>>(),
+        Ok(Some(scopes)) if !scopes.is_empty() => {
+            let scopes = scopes
+                .iter()
+                .flat_map(|scope| scope.split(','))
+                .map(|scope| scope.trim().to_owned())
+                .collect::<Vec<_>>();
+            if scopes.iter().any(String::is_empty) {
+                return errors::bad_request("Invalid scope: a downtime requires nonempty tags");
+            }
+            scopes
+        }
         Ok(_) => return errors::bad_request("Invalid scope: a downtime requires a scope"),
         Err(r) => return r,
     };
@@ -146,8 +172,12 @@ pub async fn create(State(world): State<SharedWorld>, body: Bytes) -> Response {
     };
     let monitor_id = match input.get("monitor_id") {
         None | Some(Value::Null) => None,
-        Some(v) => match v.as_f64() {
-            Some(f) if f.fract() == 0.0 => Some(f as i64),
+        Some(value) => match value
+            .is_number()
+            .then(|| mock_core::exact_integer(value))
+            .flatten()
+        {
+            Some(identity) => Some(identity),
             _ => return errors::bad_request("Invalid value for 'monitor_id'"),
         },
     };
@@ -155,14 +185,23 @@ pub async fn create(State(world): State<SharedWorld>, body: Bytes) -> Response {
     let mut guard = world.lock().expect("world lock");
     let world = &mut *guard;
     let now = world.clock.now_unix();
-    let start = start.unwrap_or(now);
-    if end.is_some_and(|e| e <= start) {
+    let start = start.unwrap_or_else(|| json_value!(now));
+    let start_time = start.as_f64().expect("validated numeric downtime start");
+    if end
+        .as_ref()
+        .and_then(Value::as_f64)
+        .is_some_and(|end| end <= start_time)
+    {
         return errors::bad_request("Downtime end time must be after the start time");
     }
-    if end.is_some_and(|e| e <= now) {
+    if end
+        .as_ref()
+        .and_then(Value::as_f64)
+        .is_some_and(|end| end <= now as f64)
+    {
         return errors::bad_request("Downtime end time must be in the future");
     }
-    let rec = match recurrence(input.get("recurrence"), start) {
+    let rec = match recurrence(input.get("recurrence"), start_time) {
         Ok(r) => r,
         Err(r) => return r,
     };
@@ -196,7 +235,7 @@ pub async fn create(State(world): State<SharedWorld>, body: Bytes) -> Response {
         "recurrence": rec,
         "scope": scope,
         "start": start,
-        "timezone": input.get("timezone").and_then(Value::as_str).unwrap_or("UTC"),
+        "timezone": timezone,
         "updater_id": null,
     });
     world

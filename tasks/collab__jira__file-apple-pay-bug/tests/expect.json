@@ -1,73 +1,127 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/jira/issues/WEB-56/fields/issuetype",
-      "equals": "Bug",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/jira/issues",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/jira/issues/WEB-56/fields/summary",
-      "equals": null,
-      "exists": null,
-      "contains": "Apple Pay",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/WEB-56/fields/priority",
-      "equals": "High",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/WEB-56/fields/assignee",
-      "equals": "alex.kim",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/WEB-56/fields/components",
-      "equals": [
-        "Checkout"
+      "selector": {
+        "collection": "/services/jira/issues",
+        "matching": {
+          "fields": {
+            "components": [
+              "Checkout"
+            ],
+            "labels": [
+              "ios"
+            ],
+            "project": "WEB"
+          }
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/fields/assignee": "alex.kim",
+        "/fields/issuetype": "Bug",
+        "/fields/priority": "High"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [
+        "/fields/resolution",
+        "/fields/resolutiondate"
       ],
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/WEB-56/fields/labels",
-      "equals": null,
-      "exists": null,
-      "contains": "ios",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/WEB-57",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/WEB-53/fields/status",
-      "equals": "Done",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": {
+        "requirement": "The summary and optional description together must report that the Apple Pay button is missing at checkout on iOS 18 Safari: they must name Apple Pay, checkout, iOS 18 and Safari. Facts may be conveyed in the summary alone or distributed across these fields; no exact title or description is requested.",
+        "accepted": [
+          {
+            "/fields/description": "The Apple Pay button does not render on the checkout payment step in Safari on iOS 18.",
+            "/fields/summary": "Apple Pay button missing at checkout on iOS 18 Safari"
+          },
+          {
+            "/fields/description": "",
+            "/fields/summary": "Apple Pay button missing at checkout on iOS 18 Safari"
+          },
+          {
+            "/fields/description": "At checkout in Safari on iOS 18, the Apple Pay button is missing.",
+            "/fields/summary": "Missing Apple Pay button"
+          }
+        ],
+        "mentions": [
+          [
+            "Apple Pay",
+            "ApplePay"
+          ],
+          [
+            "checkout",
+            "check-out",
+            "check out"
+          ],
+          [
+            "iOS 18",
+            "iOS18"
+          ],
+          "Safari"
+        ]
+      },
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/jira/issues/*",
+        "kind": "create",
+        "matching": {
+          "fields": {
+            "project": "WEB"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

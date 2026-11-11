@@ -55,12 +55,26 @@ pub struct Store {
 }
 
 impl Store {
+    pub fn has_record_key(&self, key: &str) -> bool {
+        self.collections
+            .values()
+            .any(|collection| collection.contains(key))
+    }
+
+    pub fn take_collection(&mut self, name: &str) -> Option<Collection> {
+        self.collections.remove(name)
+    }
+
     pub fn collection(&self, name: &str) -> Option<&Collection> {
         self.collections.get(name)
     }
 
     pub fn collection_mut(&mut self, name: &str) -> &mut Collection {
         self.collections.entry(name.to_owned()).or_default()
+    }
+
+    pub fn collection_names(&self) -> impl Iterator<Item = &str> {
+        self.collections.keys().map(String::as_str)
     }
 
     /// `{ "<collection>": { "<key>": doc, ... }, ... }`, collections sorted by name.

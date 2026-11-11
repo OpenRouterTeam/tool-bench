@@ -7,40 +7,51 @@ services = ["cloudflare"]
 tags = ["write", "single-service", "cloudflare", "disambiguation"]
 timeout_sec = 900
 
-# Two accounts (so account_id must be chosen) and three namespaces with a checkout_v2 key:
-# production storefront-flags (c8f1...), production storefront-flags-preview (a3e7...) and
-# the staging account's storefront-flags (6f2a...). Only the first may change, keeping
-# owner and fallback.
-[[expect.state]]
-pointer = "/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1checkout_v2/value_json"
-equals = { enabled = true, rollout = 25, owner = "payments", fallback = "checkout_v1" }
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 3
+rationale = "KV namespace title storefront-flags exists in both Octo Corp and Octo Corp Staging accounts plus storefront-flags-preview, each with a checkout_v2 key; only namespace c8f1b5e9... may change."
 
-[[expect.state]]
-pointer = "/services/cloudflare/kv_values/a3e7c1f5b9d2a6e0c4f8b2d6a0e4c8f2~1checkout_v2/value_json"
-equals = { enabled = true, rollout = 100, owner = "payments", fallback = "checkout_v1" }
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/cloudflare/kv_values/6f2a9c4e1b8d5f3a7c0e9b2d4f6a8c1e~1checkout_v2/value_json"
-equals = { enabled = true, rollout = 100, owner = "payments", fallback = "checkout_v1" }
+[expect.preservation]
+json_strings = ["/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1checkout_v2/value"]
 
-[[expect.state]]
-pointer = "/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1search_v3/value_json"
-equals = { enabled = true, rollout = 50, owner = "discovery" }
+[[expect.records]]
+selector = { collection = "/services/cloudflare/kv_values", matching = { namespace_id = "c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8", key = "checkout_v2" } }
+equals = 1
+json_fields = { "/value" = { enabled = true, rollout = 25, owner = "payments", fallback = "checkout_v1" } }
+optional_fields = { "/metadata" = { updated_by = "deploy-bot", ticket = "PAY-2210" } }
 
-[[expect.required_calls]]
-service = "cloudflare"
-method = "PUT"
-path_regex = "^/client/v4/accounts/4f8a2c1e9b7d6a5f3e2d1c0b9a8f7e6d/storage/kv/namespaces/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8/(values/checkout_v2|bulk)$"
+[[expect.relations]]
+source = { collection = "/services/cloudflare/kv_values", matching = { namespace_id = "c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8", key = "checkout_v2" } }
+source_field = "/namespace_id"
+target = { collection = "/services/cloudflare/kv_namespaces", matching = { id = "c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8", title = "storefront-flags", account_id = "4f8a2c1e9b7d6a5f3e2d1c0b9a8f7e6d" } }
+target_field = "/id"
 
-[[expect.forbidden_calls]]
-service = "cloudflare"
-path_regex = "^/client/v4/accounts/9e8d7c6b5a4f3e2d1c0b9a8f7e6d5c4b/storage/kv/namespaces/6f2a9c4e1b8d5f3a7c0e9b2d4f6a8c1e/(values|bulk)"
-method = "PUT"
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1checkout_v2/value/enabled"
 
-[[expect.forbidden_calls]]
-service = "cloudflare"
-method = "DELETE"
-path_regex = "/storage/kv/"
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1checkout_v2/value/rollout"
+
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1checkout_v2/value_json/enabled"
+
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1checkout_v2/value_json/rollout"
+
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1checkout_v2/metadata"
+kind = "remove_field"
+
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/kv_values/c8f1b5e9a3d7c2f6b0e4a8d2c6f0b4e8~1checkout_v2/metadata"
+kind = "restore_field"
 
 [[solution.call]]
 endpoint = "cloudflare"
@@ -57,7 +68,11 @@ async () => {
   const path = `/accounts/${accountId}/storage/kv/namespaces/${ns.id}/values/checkout_v2`;
   const current = JSON.parse((await cloudflare.request({ method: 'GET', path })).result);
   const next = { ...current, enabled: true, rollout: 25 };
-  await cloudflare.request({ method: 'PUT', path, body: next });
+  const metadata = (await cloudflare.request({ method: 'GET', path: `/accounts/${accountId}/storage/kv/namespaces/${ns.id}/metadata/checkout_v2` })).result;
+  const form = new FormData();
+  form.set('value', JSON.stringify(next));
+  form.set('metadata', JSON.stringify(metadata));
+  await cloudflare.request({ method: 'PUT', path, body: form });
   return { namespace: ns.id, before: current, after: next };
 }
 """ }

@@ -7,66 +7,40 @@ services = ["shopify"]
 tags = ["single-service", "write", "shopify"]
 timeout_sec = 900
 
-# Marcus Bell (7202) keeps his existing tags and gains VIP.
-[[expect.state]]
-pointer = "/services/shopify/customers/7202/tags"
-contains = "VIP"
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Marcus Bell 7202 has orders #1021, #1027 and latest #1034 (5234); look-alike Marcia Bell 7203 has the newer #1035; contract allows tag changes only on customer 7202 and order 5234."
+
+[expect]
+version = 2
+audit_history = true
 
 [[expect.state]]
 pointer = "/services/shopify/customers/7202/tags"
-contains = "newsletter"
-
-[[expect.state]]
-pointer = "/services/shopify/customers/7202/tags"
-contains = "wholesale"
-
-# His most recent order is #1034 (5234), which keeps its "gift" tag.
-[[expect.state]]
-pointer = "/services/shopify/orders/5234/tags"
-contains = "VIP"
+member_ascii_ci = "VIP"
 
 [[expect.state]]
 pointer = "/services/shopify/orders/5234/tags"
-contains = "gift"
+member_ascii_ci = "VIP"
 
-# Older orders and look-alikes stay as they were.
-[[expect.state]]
-pointer = "/services/shopify/orders/5221/tags"
-equals = ["wholesale"]
+[[expect.preservation.allow]]
+pointer = "/services/shopify/customers/7202/tags"
+add_set_values = ["VIP"]
+ascii_case_insensitive = true
 
-[[expect.state]]
-pointer = "/services/shopify/orders/5227/tags"
-equals = []
+[[expect.preservation.allow]]
+pointer = "/services/shopify/customers/7202/updatedAt"
 
-[[expect.state]]
-pointer = "/services/shopify/orders/5235/tags"
-equals = []
+[[expect.preservation.allow]]
+pointer = "/services/shopify/orders/5234/tags"
+add_set_values = ["VIP"]
+ascii_case_insensitive = true
 
-[[expect.state]]
-pointer = "/services/shopify/customers/7203/tags"
-equals = ["newsletter"]
-
-[[expect.required_calls]]
-service = "shopify"
-method = "POST"
-body_contains = "customerUpdate"
-
-[[expect.required_calls]]
-service = "shopify"
-method = "POST"
-body_contains = "orderUpdate"
-
-[[expect.forbidden_calls]]
-service = "shopify"
-body = { variables = { input = { id = "gid://shopify/Order/5221" } } }
-
-[[expect.forbidden_calls]]
-service = "shopify"
-body = { variables = { input = { id = "gid://shopify/Order/5227" } } }
-
-[[expect.forbidden_calls]]
-service = "shopify"
-body = { variables = { input = { id = "gid://shopify/Order/5235" } } }
+[[expect.preservation.allow]]
+pointer = "/services/shopify/orders/5234/updatedAt"
 
 [[solution.call]]
 endpoint = "shopify"

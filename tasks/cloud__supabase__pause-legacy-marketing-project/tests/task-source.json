@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/supabase/pause-legacy-marketing-project",
+  "scenario_sha256": "sha256:09d065a2324152c4ab5fe9812d91a5f11a4a893432e2140244ecaa6b90827251",
+  "dataset_sha256": "sha256:446db5aa3f4b18f573193eb918aa5ad0bc4111c5cbd6a7b5a82b4575af5bd29e",
+  "contract_sha256": "sha256:acb1def976e04a529fb27024a36a0800c1ee0ea3c34f2dc217ab924319d22e5a"
+}

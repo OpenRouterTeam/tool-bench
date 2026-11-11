@@ -7,12 +7,62 @@ services = ["elasticsearch"]
 tags = ["lookup", "single-service", "elasticsearch", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "With now 14:00Z, prod payment-gateway has 7 5xx since 13:00; cart-api's 9 errors fall in 12:00-13:00, yesterday's index holds 8 more payment-gateway errors, and staging has 12 inventory errors."
+
 # Last hour in prod: payment-gateway 7 (6x "upstream timeout from acquirer", 1x tokenization),
 # cart-api 3, inventory 2. Distractors: cart-api's 9 errors between 12:00 and 13:00, staging's
 # 12 inventory errors, and yesterday's payment-gateway errors in the 2026.10.29 index.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
-contains = ["payment-gateway", "upstream timeout"]
-regex = '(?i)\b(7|seven)\b'
+ [expect.answer.record_facts]
+ requirement = "Name the service with the most production 5xx errors in the last hour, state the count, and name the most frequent error message within that service."
+ mode = "statements"
+ contradictions = ["fewest", "the least"]
+
+ [expect.answer.record_facts.selector]
+ collection = "/services/elasticsearch/docs"
+ key_prefix = "logs-checkout-prod-2026.10.30/"
+ field_patterns = { "/@timestamp" = "^2026-10-30T13:" }
+
+ [expect.answer.record_facts.filter]
+ ranges = { "/status_code" = { min = "500", max = "599" } }
+
+ [expect.answer.record_facts.selection.group]
+ by = "/service"
+ measure = "count"
+ pick = "largest"
+
+ [expect.answer.record_facts.selection.group.second_level]
+ by = "/message"
+ measure = "count"
+ pick = "largest"
+
+ [expect.answer.record_facts.facts.service]
+ field = "/key"
+ kind = "identifier"
+
+ [expect.answer.record_facts.facts.count]
+ field = "/value"
+ kind = "number"
+
+ [expect.answer.record_facts.facts.message]
+ record = "_second_level"
+ field = "/key"
+ kind = "text"
+
+ [expect.answer.record_facts.facts.message_count]
+ record = "_second_level"
+ field = "/value"
+ kind = "number"
+ optional = true
 
 [[expect.required_calls]]
 service = "elasticsearch"
@@ -20,7 +70,7 @@ method = "POST"
 path_regex = "(_search|_query)$"
 
 [solution]
-answer = "payment-gateway had the most production 5xx errors in the last hour (7: 6x HTTP 502, 1x HTTP 500). Most frequent message: \"upstream timeout from acquirer after 30000ms\" (6 occurrences).\n"
+answer = "payment-gateway: 7 errors. Top message: upstream timeout from acquirer after 30000ms (6)."
 
 [[solution.call]]
 endpoint = "elasticsearch"

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/vercel/rollback-storefront-production",
+  "scenario_sha256": "sha256:9a6e17ebe98dc187437f93534fae52f60436458a17168f68edbfa70e599577d8",
+  "dataset_sha256": "sha256:890a9a85b565c11b742132e14da07332eacb7599d262ecbb16eb7f6ff5d328a5",
+  "contract_sha256": "sha256:73cfc80144ea8ec0db8ccfad11fec846a05359a1522cb00161cb4cb5d102097f"
+}

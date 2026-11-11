@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -10,7 +15,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "pagerduty",
@@ -20,7 +27,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "pagerduty",
@@ -30,14 +39,82 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "Priya Raman",
-      "Marcus Chen"
-    ],
-    "regex": null
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the level-1 and level-2 on-call people for the Payments escalation policy right now.",
+      "selector": {
+        "collection": "/services/pagerduty/escalation_policies",
+        "matching": {
+          "name": "Payments"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "oncall1": {
+          "field": "/name",
+          "kind": "text",
+          "record": "level1"
+        },
+        "oncall2": {
+          "field": "/name",
+          "kind": "text",
+          "record": "level2"
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "${oncall2} is on call and ${oncall1} is the backup",
+        "${oncall2} and ${oncall1}"
+      ],
+      "related": {
+        "level1": {
+          "from": "schedule",
+          "collection": "/services/pagerduty/users",
+          "on": {
+            "/id": "/id"
+          }
+        },
+        "level2": {
+          "collection": "/services/pagerduty/users",
+          "on": {
+            "/id": "/escalation_rules/1/targets/0/id"
+          }
+        },
+        "schedule": {
+          "collection": "/services/pagerduty/schedules",
+          "on": {
+            "/id": "/escalation_rules/0/targets/0/id"
+          },
+          "pick": {
+            "oncall": {
+              "overrides": "/services/pagerduty/overrides"
+            }
+          }
+        }
+      },
+      "context": [
+        "covering Riya Patel via a schedule override",
+        "covering Riya Patel",
+        "override covering Riya Patel",
+        "(override for Riya Patel)"
+      ],
+      "order": [
+        "oncall1",
+        "oncall2"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

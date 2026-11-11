@@ -7,74 +7,207 @@ services = ["kubernetes", "sentry"]
 tags = ["write", "multi-service", "kubernetes", "sentry", "disambiguation"]
 timeout_sec = 900
 
-# Kubernetes: analytics/report-builder pods are OOMKilled (512Mi limit). report-api,
-# report-scheduler (one old exit-1 restart) and analytics-staging/report-builder stay as-is.
-# Sentry: REPORT-BUILDER-4T is the SIGKILL WorkerLostError. Look-alikes: BILLING-EXPORTER-2D
-# (identical title, other project) and REPORT-BUILDER-4Q (another unresolved error, same project).
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/0/resources/limits/memory"
-equals = "1Gi"
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity"]
+dependency_depth = 2
+rationale = "analytics/report-builder pods are OOMKilled while analytics-staging/report-builder is healthy; Sentry REPORT-BUILDER-4T shares its WorkerLostError title with BILLING-EXPORTER-2D; only report-builder and 4T may change."
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/0/image"
-equals = "ghcr.io/lumen-labs/report-builder:3.2.0"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/replicas"
-equals = 2
+[[expect.records]]
+selector = { collection = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers", identity_field = "/name", matching = { name = "report-builder" } }
+equals = 1
+quantity_fields = { "/resources/limits/memory" = "1Gi" }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics~1report-api/spec/template/spec/containers/0/resources/limits/memory"
-equals = "512Mi"
+[[expect.records]]
+selector = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318", project = "report-builder" } }
+equals = 1
+fields = { "/status" = "resolved" }
+null_fields = ["/substatus"]
+optional_choices = { "/statusDetails/inNextRelease" = [false] }
 
-[[expect.state]]
-pointer = "/services/kubernetes/deployments.apps/analytics-staging~1report-builder/spec/template/spec/containers/0/resources/limits/memory"
-equals = "512Mi"
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers", identity_field = "/name", matching = { name = "report-builder" } }, field = "/resources/limits/memory", quantity_equals = "1Gi" }
+action = { selector = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318" } }, field = "/status", equals = "resolved" }
 
-[[expect.state]]
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/apiVersion"
+matching = { apiVersion = "apps/v1", kind = "Deployment" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/kind"
+matching = { apiVersion = "apps/v1", kind = "Deployment" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/spec/template/spec/containers/*/resources/limits/memory"
+element_matching = { name = "report-builder" }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/resourceVersion"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/generation"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/managedFields"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+# Changing the pod template starts a rollout, and the Deployment controller's part of it is
+# not the agent's doing: the Deployment records a new revision and recounts its pods, a
+# ReplicaSet for the new template appears and runs them, and the ReplicaSet of the old
+# template is scaled to zero and loses its pods. Only the write to this Deployment may
+# cause any of it; deleting pods or editing a ReplicaSet directly stays unauthorized.
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/metadata/annotations/deployment.kubernetes.io~1revision"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/deployments.apps/analytics~1report-builder/status"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+# One write creates at most one ReplicaSet and scales down the one it replaces.
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/*"
+kind = "create"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/apiVersion"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/kind"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/spec/replicas"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/status"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/resourceVersion"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/generation"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/replicasets.apps/analytics~1report-builder-t2h6vx4p7r/metadata/annotations"
+matching = { apiVersion = "apps/v1", kind = "ReplicaSet", metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } }
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "delete"
+matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", name = "report-builder-t2h6vx4p7r", uid = "e023e374-4901-434f-a316-f43449a6f943", controller = true }] } }
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "create"
+matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", controller = true }] } }
+references = [{ source_field = "/metadata/ownerReferences/0/uid", target = { collection = "/services/kubernetes/replicasets.apps", created = true, matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } } }, target_field = "/metadata/uid" }]
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+# A limit that is set and then corrected rolls out twice, and one that is put back returns to
+# the old ReplicaSet: the pods of an intermediate revision go, and the old one runs pods again.
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "delete"
+matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", controller = true }] } }
+references = [{ source_field = "/metadata/ownerReferences/0/uid", target = { collection = "/services/kubernetes/replicasets.apps", created = true, matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "Deployment", name = "report-builder", uid = "44a9880e-ab05-46e4-ad71-4e6b00c34f85", controller = true }] } } }, target_field = "/metadata/uid" }]
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/kubernetes/pods/*"
+kind = "create"
+matching = { metadata = { namespace = "analytics", ownerReferences = [{ apiVersion = "apps/v1", kind = "ReplicaSet", name = "report-builder-t2h6vx4p7r", uid = "e023e374-4901-434f-a316-f43449a6f943", controller = true }] } }
+max_count = 2
+count_scope = "per_commit"
+cause = { service = "kubernetes", methods = ["PATCH", "PUT"], path_regex = "^/apis/apps/v1/namespaces/analytics/deployments/report-builder$" }
+
+[[expect.preservation.allow]]
 pointer = "/services/sentry/issues/REPORT-BUILDER-4T/status"
-equals = "resolved"
+matching = { status = "resolved" }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/BILLING-EXPORTER-2D/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/REPORT-BUILDER-4T/substatus"
+matching = { status = "resolved" }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.state]]
-pointer = "/services/sentry/issues/REPORT-BUILDER-4Q/status"
-equals = "unresolved"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/issues/REPORT-BUILDER-4T/resolvedAt"
+matching = { status = "resolved" }
+field_patterns = { "/resolvedAt" = '\S' }
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.required_calls]]
-service = "kubernetes"
-path = "/apis/apps/v1/namespaces/analytics/deployments/report-builder"
-body_contains = "1Gi"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "set_resolved" }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318" } }, target_field = "/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.required_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)^/api/0/organizations/lumen-labs/issues/(REPORT-BUILDER-4T|6184422318)/$"
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "assigned", data = { assigneeType = "team" } }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318" } }, target_field = "/id" },
+  { source_field = "/data/assignee", target = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", assignedTo = { type = "team" } } }, target_field = "/assignedTo/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$" }
 
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "DELETE"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "PATCH"
-path_regex = "/namespaces/analytics-staging/|/deployments/report-(api|scheduler)"
-
-[[expect.forbidden_calls]]
-service = "kubernetes"
-method = "PUT"
-path_regex = "/namespaces/analytics-staging/|/deployments/report-(api|scheduler)"
-
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "PUT"
-path_regex = "(?i)/issues/(BILLING-EXPORTER-2D|6184421777|REPORT-BUILDER-4Q|6184422290)/$"
-
-[[expect.forbidden_calls]]
-service = "sentry"
-method = "DELETE"
+# `update_issue` takes an optional `reason`, which the server posts as a comment on the issue it
+# updates. The request does not ask for one and does not rule one out for the resolved issue.
+[[expect.preservation.allow]]
+pointer = "/services/sentry/activities/*"
+kind = "create"
+matching = { type = "note" }
+field_patterns = { "/data/text" = '\S' }
+references = [
+  { source_field = "/issue", target = { collection = "/services/sentry/issues", matching = { shortId = "REPORT-BUILDER-4T", id = "6184422318" } }, target_field = "/id" },
+  { source_field = "/user", target = { collection = "/services/sentry/users", matching = { email = "priya@lumenlabs.dev" } }, target_field = "/id" },
+]
+max_count = 1
+cause = { service = "sentry", methods = ["POST"], path_regex = "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/notes/$" }
 
 [[solution.call]]
 endpoint = "kubernetes"

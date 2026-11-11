@@ -1,11 +1,7 @@
 //! The four Code Mode tools of cloudflare/mcp@68c7ec0: `docs`, `search`, `execute`, `whoami`.
 //! Result and error texts follow `src/tools/*.ts`.
 
-use mock_core::{
-    journal::{JournalEntry, body_value},
-    mcp::ToolCall,
-    world::SharedWorld,
-};
+use mock_core::{journal::body_value, mcp::ToolCall, world::SharedWorld};
 use serde_json::{Value, json};
 
 use crate::{
@@ -25,7 +21,7 @@ pub fn call(world: &SharedWorld, call: &ToolCall, source: &str) -> Value {
             None => invalid("docs", "query"),
         },
         "search" => match call.arguments.get("code").and_then(Value::as_str) {
-            Some(code) => search(code, truncate_arg(&call.arguments)),
+            Some(code) => search(world, code, truncate_arg(&call.arguments)),
             None => invalid("search", "code"),
         },
         "execute" => match call.arguments.get("code").and_then(Value::as_str) {
@@ -234,8 +230,9 @@ pub fn docs(query: &str) -> Value {
 
 // ── search ───────────────────────────────────────────────────────────────────
 
-pub fn search(code: &str, truncate: Option<bool>) -> Value {
-    match js::run(Mode::Search { spec: SPEC }, code, truncate) {
+pub fn search(world: &SharedWorld, code: &str, truncate: Option<bool>) -> Value {
+    let now_ms = world.lock().expect("world lock").clock.now_unix() * 1000;
+    match js::run(Mode::Search { spec: SPEC }, code, truncate, now_ms) {
         Outcome::Ok(t) => text(t),
         Outcome::Err(e) => format_error(&e),
     }
@@ -297,7 +294,8 @@ pub fn execute(
         unresolved_message: missing_account_message(&accounts),
         fetch: Box::new(move |req: String| host_fetch(&fetch_world, &req, &source)),
     };
-    match js::run(mode, code, truncate) {
+    let now_ms = world.lock().expect("world lock").clock.now_unix() * 1000;
+    match js::run(mode, code, truncate, now_ms) {
         Outcome::Ok(t) => text(t),
         Outcome::Err(message) => {
             let mut failure = format!("Error: {message}");
@@ -386,33 +384,56 @@ fn host_fetch(world: &SharedWorld, request: &str, source: &str) -> String {
         _ => Body::None,
     };
 
-    let mut w = world.lock().expect("world lock");
-    if api::is_mutating(&req.method) {
-        w.clock.tick();
-    }
-    let response = api::handle(&mut w, &req);
-    let entry = JournalEntry {
-        seq: w.journal.next_seq(),
-        time: w.clock.now_rfc3339(),
-        service: NAME.to_owned(),
-        source: source.to_owned(),
-        method: req.method.clone(),
-        // Recorded from inside a tool call; world-replay skips "internal" entries because
-        // replaying the enclosing /_mcp/tools/call reproduces them.
-        host: None,
-        scheme: "internal".to_owned(),
-        content_type: None,
-        path: format!("/client/v4{}", req.path),
-        query: req.query_string(),
-        request_body: req.journal_body(),
-        status: response.status,
-        response_body: body_value(&response.body),
+    let operation = match world.begin_operation(
+        mock_core::events::OperationKind::Internal,
+        NAME,
+        source,
+        &req.method,
+        &format!("/client/v4{}", req.path),
+    ) {
+        Ok(operation) => operation,
+        Err(_) => return json!({
+            "status": 503,
+            "contentType": "application/json",
+                "bytes": br#"{"success":false,"errors":[{"message":"service unavailable"}]}"#.as_slice(),
+        }).to_string(),
     };
-    w.journal.push(entry);
-    json!({
-        "status": response.status,
-        "contentType": response.content_type,
-        "bytes": response.body,
+    operation.record_head(mock_core::request::RequestHead {
+        host: None,
+        scheme: "internal".into(),
+        content_type: req.content_type.clone(),
+        query: req.query_string(),
+        headers: Vec::new(),
+    });
+    operation.record_body(mock_core::request::CapturedBody::capture(
+        &serde_json::to_vec(&req.journal_body()).expect("request body serialization"),
+    ));
+    if api::is_mutating(&req.method)
+        && let Err(error) = world.transport_clock_step()
+    {
+        world.fail_operation(&operation, "business_clock_invalid", &error.to_string());
+        let body = json!({"success": false, "errors": [{"message": "service unavailable"}]});
+        operation.record_response(mock_core::journal::ResponseRecord {
+            status: 503,
+            response_body: body.clone(),
+        });
+        operation.finish(503, true);
+        return json!({"status": 503, "contentType": "application/json", "bytes": serde_json::to_vec(&body).expect("error serialization")}).to_string();
+    }
+    mock_core::events::sync_scope(Some(operation.context().clone()), || {
+        let mut w = world.lock().expect("world lock");
+        let response = api::handle(&mut w, &req);
+        drop(w);
+        operation.record_response(mock_core::journal::ResponseRecord {
+            status: response.status,
+            response_body: body_value(&response.body),
+        });
+        operation.finish(response.status, true);
+        json!({
+            "status": response.status,
+            "contentType": response.content_type,
+            "bytes": response.body,
+        })
+        .to_string()
     })
-    .to_string()
 }

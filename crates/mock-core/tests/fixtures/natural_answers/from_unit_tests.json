@@ -1,0 +1,55 @@
+{
+  "business/multi/zendesk-order-status-shopify": [
+    {
+      "style": "names_another_record_after",
+      "expect": "pass",
+      "answer": "Order #1063 is unfulfilled ($176.00); order #1051 was fulfilled."
+    }
+  ],
+  "code/gitlab/diagnose-failed-pipeline": [
+    {
+      "style": "names_another_record_beside",
+      "expect": "pass",
+      "known": "unresolved",
+      "answer": "Pipelines 5511 and 5520 both failed on main; 5520 failed in integration-tests on refund_reason."
+    }
+  ],
+  "code/vercel/storefront-production-status": [
+    {
+      "style": "plain_wording",
+      "expect": "pass",
+      "answer": "Production is on c3a9f12 (Fix tax rounding for EU orders). The newest preview went over the function size limit."
+    }
+  ],
+  "collab/google/northwind-invoice-lookup": [
+    {
+      "style": "names_another_record_after",
+      "expect": "pass",
+      "known": "unresolved",
+      "answer": "PO-48213, $12,480.00, due November 20, 2026; the September invoice was PO-47790."
+    }
+  ],
+  "search/brave/keynote-recording": [
+    {
+      "style": "names_another_record_after",
+      "expect": "pass",
+      "known": "unresolved",
+      "answer": "Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c. The 12:05 highlights cut is https://www.youtube.com/watch?v=r8Kq2PgN7aE."
+    }
+  ],
+  "search/exa/sdk-timeout-default": [
+    {
+      "style": "names_another_record_after",
+      "expect": "pass",
+      "known": "unresolved",
+      "answer": "timeout_seconds (default 30 seconds); in v3 it was request_timeout (default 60 seconds)."
+    }
+  ],
+  "search/multi/api-key-deletion-audit-github": [
+    {
+      "style": "names_another_record_after",
+      "expect": "pass",
+      "answer": "m.okafor (16:42 UTC) is GitHub user mokafor; PR #58 is open. rchen's PR #57 was merged."
+    }
+  ]
+}

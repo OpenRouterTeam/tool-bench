@@ -446,7 +446,17 @@ fn get_issue(ctx: &Ctx, repo: &str, n: &str) -> Response {
     if v.is_null() { not_found() } else { ok(v) }
 }
 
+pub(crate) const ARCHIVED_ISSUES_MESSAGE: &str =
+    "Repository is archived and read-only; new issues cannot be created.";
+
+pub(crate) fn repo_is_archived(svc: &ServiceState, repo: &str) -> bool {
+    get(svc, "repos", repo).is_some_and(|doc| b(doc, "archived"))
+}
+
 fn create_issue(ctx: &mut Ctx, repo: &str) -> Response {
+    if repo_is_archived(ctx.svc, repo) {
+        return error(StatusCode::FORBIDDEN, ARCHIVED_ISSUES_MESSAGE);
+    }
     let body = match ctx.req.json() {
         Ok(b) => b,
         Err(e) => return e,
@@ -575,10 +585,6 @@ fn update_issue(ctx: &mut Ctx, repo: &str, n: &str) -> Response {
             Err(e) => return e,
         }
     }
-    if let Some(lv) = body.get("labels") {
-        let names = names_of(lv.as_array().map(Vec::as_slice).unwrap_or(&[]));
-        doc["labels"] = json!(ensure_labels(ctx, repo, &names));
-    }
     if let Some(state) = opt_s(&body, "state") {
         match state.as_str() {
             "closed" if s(&doc, "state") != "closed" => {
@@ -603,6 +609,10 @@ fn update_issue(ctx: &mut Ctx, repo: &str, n: &str) -> Response {
             }
             _ => return validation("Issue", "state", "invalid"),
         }
+    }
+    if let Some(lv) = body.get("labels") {
+        let names = names_of(lv.as_array().map(Vec::as_slice).unwrap_or(&[]));
+        doc["labels"] = json!(ensure_labels(ctx, repo, &names));
     }
     doc["updated_at"] = json!(ctx.now);
     ctx.svc.store.collection_mut(coll).insert(key.clone(), doc);

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/cloudflare/enable-checkout-flag",
+  "scenario_sha256": "sha256:0b3c9383b534fcf02ac6510c743b01d645d62160147121ffa97c18d52ab205c9",
+  "dataset_sha256": "sha256:799b549eb4f5eb0add455a54c98ed8c2506218abac4f52e9770c2e6237d0e4eb",
+  "contract_sha256": "sha256:98250dc66b331c41ef511e09c6bf799b408709992b4e0f3cb668c1b27d19cb72"
+}

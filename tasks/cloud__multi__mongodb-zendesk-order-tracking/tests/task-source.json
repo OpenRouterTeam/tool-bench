@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/multi/mongodb-zendesk-order-tracking",
+  "scenario_sha256": "sha256:2511438b2e962d5bd4f8c754b529bfd0448631cc75bafadd9ef5798034671492",
+  "dataset_sha256": "sha256:1463a80f53a2e6cd1b9c51bf4dbd2c97f4d368f9ce9edf4fe8c7444bcb393ad0",
+  "contract_sha256": "sha256:393e936df7116ad39f04d2dfcbc3bfbfc701f7ffe61bd94d7cc3893e7895190d"
+}

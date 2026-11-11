@@ -1,95 +1,88 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/zone_id",
-      "equals": "023e105f4ecef8ad9ca31a8372d0c353",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/name",
-      "equals": "status.octo-corp.com",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/type",
-      "equals": "CNAME",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/content",
-      "equals": "octocorp.statuspage.io",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/proxied",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/dns_records/1e8b4d2f7a0c5e9b3d6f1a8c4e2b7d0f/content",
-      "equals": "octocorp.status.example-hosting.net",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/cloudflare/dns_records/61be7a5c0d3f8b2e6a9c4d1f7b5e0a3c/content",
-      "equals": "octocorp-staging.statuspage.io",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/cloudflare/dns_records",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/content": "octocorp.statuspage.io",
+        "/name": "status.octo-corp.com",
+        "/proxied": false,
+        "/type": "CNAME",
+        "/zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "cloudflare",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/client/v4/zones/023e105f4ecef8ad9ca31a8372d0c353/dns_records(/batch)?$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/cloudflare/dns_records",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/zone_id",
+      "target": {
+        "collection": "/services/cloudflare/zones",
+        "matching": {
+          "id": "023e105f4ecef8ad9ca31a8372d0c353",
+          "name": "octo-corp.com"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "cloudflare",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": "/dns_records",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "cloudflare",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/client/v4/zones/(3b7e1d9c5a2f8e4b6d0c3a7f1e9b5d2c|e9a7c5b3d1f0e8c6a4b2d0f9e7c5a3b1)/dns_records",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/cloudflare/dns_records/*",
+        "kind": "create",
+        "matching": {
+          "content": "octocorp.statuspage.io",
+          "name": "status.octo-corp.com",
+          "proxied": false,
+          "type": "CNAME",
+          "zone_id": "023e105f4ecef8ad9ca31a8372d0c353"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

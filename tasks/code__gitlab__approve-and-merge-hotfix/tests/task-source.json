@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/gitlab/approve-and-merge-hotfix",
+  "scenario_sha256": "sha256:87c4b195902fd6655392d1ab8996c13228d52b14f2256609f786f7f73e0697aa",
+  "dataset_sha256": "sha256:7e2d7437cca04c1f6425477c2b37f5b7e41671dd3aa2c7eb91b6cc79a4309906",
+  "contract_sha256": "sha256:9fb1173fe52e61137764bbe48dc004166a67c2c94cff7d183e718b10912afdb9"
+}

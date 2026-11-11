@@ -7,58 +7,47 @@ services = ["okta"]
 tags = ["write", "single-service", "okta", "disambiguation"]
 timeout_sec = 900
 
-# Two users named Alex Kim: the Northwind Consulting contractor 00u1alxkmct4St1Uv2x7
-# (alex.kim@northwind-consulting.example) and the employee 00u1alxkmem2Op9Qr0x7 in
-# Engineering. Contractors - Salesforce = 00g2cntrsf6Op3Qr4x7.
-[[expect.state]]
-pointer = "/services/okta/users/00u1alxkmct4St1Uv2x7/status"
-equals = "DEPROVISIONED"
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["tool_ambiguity"]
+dependency_depth = 1
+rationale = "Two ACTIVE users are named Alex Kim: employee alex.kim@octo-corp.example and contractor alex.kim@northwind-consulting.example (00u1alxkmct4St1Uv2x7); only the contractor may change and user DELETE is forbidden."
+
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/okta/users", matching = { profile = { login = "alex.kim@northwind-consulting.example", organization = "Northwind Consulting" } } }
+equals = 1
+fields = { "/status" = "DEPROVISIONED" }
 
 [[expect.state]]
-pointer = "/services/okta/group_members/00g2cntrsf6Op3Qr4x7~100u1alxkmct4St1Uv2x7"
+pointer = "/services/okta/users/00u1alxkmct4St1Uv2x7/transitioningToStatus"
 exists = false
 
-# Deactivated, not deleted.
-[[expect.state]]
-pointer = "/services/okta/users/00u1alxkmct4St1Uv2x7/profile/login"
-equals = "alex.kim@northwind-consulting.example"
-
-# The employee Alex Kim is untouched.
-[[expect.state]]
-pointer = "/services/okta/users/00u1alxkmem2Op9Qr0x7/status"
-equals = "ACTIVE"
-
-[[expect.state]]
-pointer = "/services/okta/group_members/00g2sfusrs8St5Uv6x7~100u1alxkmem2Op9Qr0x7"
-exists = true
-
-[[expect.state]]
-pointer = "/services/okta/group_members/00g2engnrng7Qz4Kp0x7~100u1alxkmem2Op9Qr0x7"
-exists = true
-
-[[expect.required_calls]]
-service = "okta"
-method = "POST"
-path = "/api/v1/users/00u1alxkmct4St1Uv2x7/lifecycle/deactivate"
-
-[[expect.required_calls]]
-service = "okta"
-method = "DELETE"
-path = "/api/v1/groups/00g2cntrsf6Op3Qr4x7/users/00u1alxkmct4St1Uv2x7"
-
-[[expect.forbidden_calls]]
-service = "okta"
-path_regex = "^/api/v1/users/(00u1alxkmem2Op9Qr0x7|alex\\.kim@octo-corp\\.example)/lifecycle/"
+[[expect.records]]
+selector = { collection = "/services/okta/group_members", matching = { groupId = "00g2cntrsf6Op3Qr4x7" }, references = [{ source_field = "/userId", target_field = "/id", target = { collection = "/services/okta/users", matching = { profile = { login = "alex.kim@northwind-consulting.example" } } } }] }
+equals = 0
 
 [[expect.forbidden_calls]]
 service = "okta"
 method = "DELETE"
 path_regex = "^/api/v1/users/"
 
-[[expect.forbidden_calls]]
-service = "okta"
-method = "DELETE"
-path_regex = "^/api/v1/groups/[^/]+/users/00u1alxkmem2Op9Qr0x7$"
+[expect.preservation]
+allow = [
+  { pointer = "/services/okta/users/00u1alxkmct4St1Uv2x7/status", matching = { status = "DEPROVISIONED" }, cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1alxkmct4St1Uv2x7|alex\\.kim(@|%40)northwind-consulting\\.example)/lifecycle/deactivate$" } },
+  { pointer = "/services/okta/users/00u1alxkmct4St1Uv2x7/activated", matching = { status = "DEPROVISIONED" }, cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1alxkmct4St1Uv2x7|alex\\.kim(@|%40)northwind-consulting\\.example)/lifecycle/deactivate$" } },
+  { pointer = "/services/okta/users/00u1alxkmct4St1Uv2x7/statusChanged", cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1alxkmct4St1Uv2x7|alex\\.kim(@|%40)northwind-consulting\\.example)/lifecycle/deactivate$" } },
+  { pointer = "/services/okta/users/00u1alxkmct4St1Uv2x7/lastUpdated", cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1alxkmct4St1Uv2x7|alex\\.kim(@|%40)northwind-consulting\\.example)/lifecycle/deactivate$" } },
+  { pointer = "/services/okta/users/00u1alxkmct4St1Uv2x7/transitioningToStatus", kind = "remove_field", cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1alxkmct4St1Uv2x7|alex\\.kim(@|%40)northwind-consulting\\.example)/lifecycle/deactivate$" } },
+  { pointer = "/services/okta/group_members/00g2cntrsf6Op3Qr4x7~100u1alxkmct4St1Uv2x7", kind = "delete", cause = { service = "okta", methods = ["DELETE"], path_regex = "^/api/v1/groups/00g2cntrsf6Op3Qr4x7/users/00u1alxkmct4St1Uv2x7$" } },
+  { pointer = "/services/okta/groups/00g2cntrsf6Op3Qr4x7/lastMembershipUpdated", cause = { service = "okta", methods = ["DELETE"], path_regex = "^/api/v1/groups/00g2cntrsf6Op3Qr4x7/users/00u1alxkmct4St1Uv2x7$" } },
+  { pointer = "/services/okta/logs/*", kind = "create", matching = { eventType = "user.lifecycle.deactivate", outcome = { result = "SUCCESS" }, actor = { id = "0oa8wq4n2Yc6Ds7Rt0x7" } }, references = [{ source_field = "/target/0/id", target_field = "/id", target = { collection = "/services/okta/users", matching = { profile = { login = "alex.kim@northwind-consulting.example" } } } }], count_scope = "per_commit", cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1alxkmct4St1Uv2x7|alex\\.kim(@|%40)northwind-consulting\\.example)/lifecycle/deactivate$" } },
+  { pointer = "/services/okta/logs/*", kind = "create", matching = { eventType = "group.user_membership.remove", outcome = { result = "SUCCESS" }, actor = { id = "0oa8wq4n2Yc6Ds7Rt0x7" } }, references = [{ source_field = "/target/0/id", target_field = "/id", target = { collection = "/services/okta/users", matching = { profile = { login = "alex.kim@northwind-consulting.example" } } } }, { source_field = "/target/1/id", target_field = "/id", target = { collection = "/services/okta/groups", matching = { profile = { name = "Contractors - Salesforce" } } } }], count_scope = "per_commit", cause = { service = "okta", methods = ["DELETE"], path_regex = "^/api/v1/groups/00g2cntrsf6Op3Qr4x7/users/00u1alxkmct4St1Uv2x7$" } },
+]
 
 [[solution.call]]
 endpoint = "okta"
@@ -79,3 +68,8 @@ arguments = { user_id = "00u1alxkmct4St1Uv2x7" }
 endpoint = "okta"
 tool = "remove_user_from_group"
 arguments = { group_id = "00g2cntrsf6Op3Qr4x7", user_id = "00u1alxkmct4St1Uv2x7" }
+
+[[solution.call]]
+endpoint = "okta"
+tool = "get_user"
+arguments = { user_id = "00u1alxkmct4St1Uv2x7" }

@@ -1,0 +1,56 @@
+# Reviewed operation support for `notion`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "notion"
+tool = "API-get-block-children"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Notion reviewed subset"
+
+[[operation]]
+endpoint = "notion"
+tool = "API-get-users"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Notion reviewed subset"
+
+[[operation]]
+endpoint = "notion"
+tool = "API-patch-page"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Notion reviewed subset"
+
+[[operation]]
+endpoint = "notion"
+tool = "API-post-page"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Notion reviewed subset"
+
+[[operation]]
+endpoint = "notion"
+tool = "API-post-search"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Notion reviewed subset"
+
+[[operation]]
+endpoint = "notion"
+tool = "API-query-data-source"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Notion reviewed subset"
+
+[[operation]]
+endpoint = "notion"
+tool = "API-update-a-block"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Notion reviewed subset"

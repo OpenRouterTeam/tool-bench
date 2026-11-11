@@ -1,1 +1,1 @@
-Northwind Logistics has the largest open deal: "Northwind Logistics – Fleet Telemetry", worth $412,000 (stage: Contract Sent).
+Northwind Logistics has the largest open deal, worth $412,000.

@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -12,7 +17,9 @@
         "name": "vercel-create-deployment"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "vercel",
@@ -24,13 +31,157 @@
         "name": "vercel-delete-project"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "c3a9f12"
-    ],
-    "regex": "(?i)(250\\s*MB|function size|maximum size|size limit)"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the commit SHA and commit message that storefront's current production deployment serves, and why the project's most recent preview deployment failed (its error code, or a plain wording of it).",
+      "selector": {
+        "collection": "/services/vercel/deployments",
+        "matching": {
+          "name": "storefront",
+          "readyState": "READY",
+          "target": "production"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "largest": {
+          "field": "/createdAt"
+        }
+      },
+      "facts": {
+        "commit": {
+          "field": "/meta/githubCommitSha",
+          "kind": "identifier",
+          "min_prefix": 7
+        },
+        "failed_prod_commit": {
+          "field": "/meta/githubCommitSha",
+          "kind": "identifier",
+          "optional": true,
+          "record": "failed_prod",
+          "min_prefix": 7
+        },
+        "failed_prod_message": {
+          "field": "/meta/githubCommitMessage",
+          "kind": "text",
+          "optional": true,
+          "record": "failed_prod",
+          "capture": "^(.*?)(?: \\(#\\d+\\))?$"
+        },
+        "failed_prod_pr": {
+          "field": "/meta/githubCommitMessage",
+          "kind": "identifier",
+          "optional": true,
+          "record": "failed_prod",
+          "capture": "\\(#(\\d+)\\)$"
+        },
+        "message": {
+          "field": "/meta/githubCommitMessage",
+          "kind": "text",
+          "capture": "^(.*?)(?: \\(#\\d+\\))?$"
+        },
+        "preview_branch": {
+          "field": "/meta/githubCommitRef",
+          "kind": "identifier",
+          "optional": true,
+          "record": "preview"
+        },
+        "preview_commit": {
+          "field": "/meta/githubCommitSha",
+          "kind": "identifier",
+          "optional": true,
+          "record": "preview",
+          "min_prefix": 7
+        },
+        "prod_pr": {
+          "field": "/meta/githubCommitMessage",
+          "kind": "identifier",
+          "optional": true,
+          "capture": "\\(#(\\d+)\\)$"
+        },
+        "reason": {
+          "field": "/errorCode",
+          "kind": "text",
+          "record": "preview",
+          "also": [
+            "/errorMessage"
+          ],
+          "wordings": {
+            "FUNCTION_SIZE_EXCEEDED": [
+              "function size",
+              "maximum size",
+              "size limit",
+              "250 MB",
+              "250MB",
+              "too large",
+              "too big",
+              "over 250 MB",
+              "over 250MB",
+              "over the 250 MB",
+              "over the 250MB",
+              "over the function size",
+              "over the maximum size",
+              "over the size limit",
+              "over the limit"
+            ]
+          }
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "failed_prod": {
+          "allow_absence": true,
+          "collection": "/services/vercel/deployments",
+          "filter": {
+            "matching": {
+              "/readyState": "ERROR",
+              "/target": "production"
+            }
+          },
+          "on": {
+            "/projectId": "/projectId"
+          },
+          "pick": {
+            "largest": "/createdAt"
+          }
+        },
+        "preview": {
+          "collection": "/services/vercel/deployments",
+          "filter": {
+            "excluding": [
+              {
+                "/target": "production"
+              }
+            ]
+          },
+          "on": {
+            "/projectId": "/projectId"
+          },
+          "pick": {
+            "largest": "/createdAt"
+          }
+        }
+      },
+      "context": [
+        "The newer production deployment for ${failed_prod_message} (${failed_prod_commit}) failed its build, so it never went live",
+        "(branch ${preview_branch}, commit ${preview_commit})",
+        "PR #${prod_pr}",
+        "PR #${failed_prod_pr}",
+        "1.",
+        "2."
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

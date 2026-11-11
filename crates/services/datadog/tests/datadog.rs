@@ -590,9 +590,8 @@ async fn downtimes_list_create_and_cancel() {
     assert_eq!(split["id"], 3100205);
     assert_eq!(split["scope"], json!(["host:web-prod-01", "env:prod"]));
     assert_eq!(
-        split["start"],
-        NOW + 14,
-        "start defaults to now (two POST ticks in)"
+        split["start"], NOW,
+        "start defaults to the fixed business reference time"
     );
 
     let (status, got) = call(&app, "GET", "/api/v1/downtime/3100204", "").await;

@@ -1,96 +1,268 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/zendesk/tickets/5109/subject",
-      "equals": "Barcode scanners not syncing after update",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/zendesk/tickets/5109/requester_id",
-      "equals": 9010301,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/zendesk/tickets/5109/priority",
-      "equals": "high",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/zendesk/tickets/5109/type",
-      "equals": "incident",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/zendesk/tickets/5109/description",
-      "equals": null,
-      "exists": null,
-      "contains": "Bergen",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/zendesk/tickets/5110",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
-    {
-      "service": "zendesk",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "requester_id": 9010301
+      "selector": {
+        "collection": "/services/zendesk/tickets",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/priority": "high",
+        "/requester_id": 9010301,
+        "/subject": "Barcode scanners not syncing after update",
+        "/type": "incident"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/description": {
+          "requirement": "Record what Elena reported: since this morning's app update, the barcode scanners in the Bergen warehouse have stopped syncing inventory counts. The requester supplies who she is.",
+          "accepted": [
+            "Elena Petrova (Fjord Outfitters) called in: since this morning's app update, the barcode scanners in their Bergen warehouse have stopped syncing inventory counts.",
+            "Elena Petrova of Fjord Outfitters reports that the barcode scanners in the Bergen warehouse stopped syncing inventory counts after this morning's app update."
+          ],
+          "mentions": [
+            "Bergen",
+            [
+              "scanners",
+              "scanner"
+            ],
+            [
+              "syncing",
+              "sync",
+              "synced",
+              "syncs",
+              "synchronizing",
+              "synchronising",
+              "synchronize",
+              "synchronise",
+              "synchronized",
+              "synchronised",
+              "synchronization",
+              "synchronisation"
+            ],
+            [
+              "update",
+              "updated",
+              "updating"
+            ]
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [
+        {
+          "/status": "new"
         },
-        "name": "create_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
+        {
+          "/status": "open"
+        }
+      ],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "create_ticket_comment"
+      "selector": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/zendesk/audits",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "answer": null
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/ticket_id",
+      "target": {
+        "collection": "/services/zendesk/tickets",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/body",
+      "target": {
+        "collection": "/services/zendesk/tickets",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/description",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/zendesk/audits",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/ticket_id",
+      "target": {
+        "collection": "/services/zendesk/tickets",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/audit_id",
+      "target": {
+        "collection": "/services/zendesk/audits",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/zendesk/tickets/*",
+        "kind": "create",
+        "matching": {
+          "requester_id": 9010301,
+          "status": "new"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/tickets/*",
+        "kind": "create",
+        "matching": {
+          "requester_id": 9010301,
+          "status": "open"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/comments/*",
+        "kind": "create",
+        "matching": {
+          "author_id": 9010001
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/audits/*",
+        "kind": "create",
+        "matching": {
+          "author_id": 9010001
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -1,99 +1,780 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status",
-      "equals": "applied",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/runs",
+        "matching": {
+          "id": "run-1q2oy8I2MqSd5oM4"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/confirm-comment": "Approved per CHG-2291",
+        "/status": "applied"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/confirm-comment",
-      "equals": null,
-      "exists": null,
-      "contains": "CHG-2291",
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/workspaces",
+        "matching": {
+          "id": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/locked": false
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [
+        "/locked-by"
+      ],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/locked",
-      "equals": false,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/managed_resources",
+        "matching": {
+          "address": "aws_eip.nat_b",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "field_patterns": {
+          "/attributes/id": "^.+$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/attributes/domain": "vpc",
+        "/attributes/tags/Name": "core-prod-nat-b"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/terraform/runs/run-blTtGlrNXHe62r7y/status",
-      "equals": "planned",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/managed_resources",
+        "matching": {
+          "address": "aws_nat_gateway.b",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "field_patterns": {
+          "/attributes/id": "^.+$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/attributes/connectivity_type": "public",
+        "/attributes/subnet_id": "subnet-0e1f2a3b4c5d6e7f8"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/terraform/workspaces/ws-aM6dcH7sRwt97v2D/locked",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/terraform/state_versions",
+        "matching": {
+          "run": "run-1q2oy8I2MqSd5oM4",
+          "status": "finalized",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {
+        "/serial": {
+          "min": 97,
+          "max": 9223372036854775807
+        }
+      }
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "terraform",
-      "method": "POST",
-      "path": "/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/terraform/managed_resources",
+        "matching": {
+          "address": "aws_nat_gateway.b",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/attributes/allocation_id",
+      "target": {
+        "collection": "/services/terraform/managed_resources",
+        "matching": {
+          "address": "aws_eip.nat_b",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/attributes/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/terraform/managed_resources",
+        "matching": {
+          "address": "aws_route_table.private[1]",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/attributes/nat_gateway_id",
+      "target": {
+        "collection": "/services/terraform/managed_resources",
+        "matching": {
+          "address": "aws_nat_gateway.b",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/attributes/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/terraform/workspaces",
+        "matching": {
+          "id": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/current-state-version",
+      "target": {
+        "collection": "/services/terraform/state_versions",
+        "matching": {
+          "run": "run-1q2oy8I2MqSd5oM4",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/terraform/applies",
+        "matching": {
+          "id": "apply-rGXcdrhL17Kg8DnD",
+          "run": "run-1q2oy8I2MqSd5oM4",
+          "status": "finished"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/state-version",
+      "target": {
+        "collection": "/services/terraform/state_versions",
+        "matching": {
+          "run": "run-1q2oy8I2MqSd5oM4",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/terraform/state_versions",
+        "matching": {
+          "run": "run-1q2oy8I2MqSd5oM4",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/lineage",
+      "target": {
+        "collection": "/services/terraform/state_versions",
+        "matching": {
+          "id": "sv-2HkRH31vgu6V7Nh1"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/lineage",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/terraform/managed_resources",
+        "matching": {
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/address",
+      "target": {
+        "collection": "/services/terraform/workspaces",
+        "matching": {
+          "id": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/resource-count",
+      "kind": "count_equals",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "terraform",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v2/runs/run-blTtGlrNXHe62r7y/actions/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/(discard|cancel|force-cancel)$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "POST",
-      "path": null,
-      "path_regex": "^/api/v2/workspaces/[^/]+/actions/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "terraform",
-      "method": "POST",
-      "path": "/api/v2/runs",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status",
+        "kind": "update",
+        "matching": {
+          "status": "applied"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/confirm-comment",
+        "kind": "update",
+        "matching": {
+          "confirm-comment": "Approved per CHG-2291"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/confirmed-by",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status-timestamps/confirmed-at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status-timestamps/apply-queued-at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status-timestamps/applying-at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/runs/run-1q2oy8I2MqSd5oM4/status-timestamps/applied-at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/status",
+        "kind": "update",
+        "matching": {
+          "status": "finished"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/resource-additions",
+        "kind": "update",
+        "matching": null,
+        "numeric_fields": {
+          "/resource-additions": 2
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/resource-changes",
+        "kind": "update",
+        "matching": null,
+        "numeric_fields": {
+          "/resource-changes": 1
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/resource-destructions",
+        "kind": "update",
+        "matching": null,
+        "numeric_fields": {
+          "/resource-destructions": 0
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/status-timestamps",
+        "kind": "update",
+        "matching": {
+          "status": "finished"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/applies/apply-rGXcdrhL17Kg8DnD/state-version",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/state-version",
+            "target": {
+              "collection": "/services/terraform/state_versions",
+              "matching": {
+                "run": "run-1q2oy8I2MqSd5oM4",
+                "workspace": "ws-X6Cm5W6LhJnKhlo2"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/locked",
+        "kind": "update",
+        "matching": {
+          "locked": false
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/locked-by",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/resource-count",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/workspaces/ws-X6Cm5W6LhJnKhlo2/current-state-version",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/current-state-version",
+            "target": {
+              "collection": "/services/terraform/state_versions",
+              "matching": {
+                "run": "run-1q2oy8I2MqSd5oM4",
+                "workspace": "ws-X6Cm5W6LhJnKhlo2"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/state_versions/*",
+        "kind": "create",
+        "matching": {
+          "run": "run-1q2oy8I2MqSd5oM4",
+          "status": "finalized",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/managed_resources/ws-X6Cm5W6LhJnKhlo2~1aws_eip.nat_b",
+        "kind": "create",
+        "matching": {
+          "address": "aws_eip.nat_b",
+          "name": "nat_b",
+          "type": "aws_eip",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/managed_resources/ws-X6Cm5W6LhJnKhlo2~1aws_nat_gateway.b",
+        "kind": "create",
+        "matching": {
+          "address": "aws_nat_gateway.b",
+          "name": "b",
+          "type": "aws_nat_gateway",
+          "workspace": "ws-X6Cm5W6LhJnKhlo2"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      },
+      {
+        "pointer": "/services/terraform/managed_resources/ws-X6Cm5W6LhJnKhlo2~1aws_route_table.private[1]/attributes/nat_gateway_id",
+        "kind": "update",
+        "matching": null,
+        "references": [
+          {
+            "source_field": "/attributes/nat_gateway_id",
+            "target": {
+              "collection": "/services/terraform/managed_resources",
+              "matching": {
+                "address": "aws_nat_gateway.b",
+                "workspace": "ws-X6Cm5W6LhJnKhlo2"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/attributes/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "terraform",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v2/runs/run-1q2oy8I2MqSd5oM4/actions/apply$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

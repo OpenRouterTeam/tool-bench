@@ -1,79 +1,16 @@
 {
+  "version": 2,
   "state": [
-    {
-      "pointer": "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/name",
-      "equals": "stopped",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/aws/instances/i-07b9d1f3a5c8e2046/tagSet",
-      "equals": null,
-      "exists": null,
-      "contains": {
-        "key": "DecommissionTicket",
-        "value": "OPS-34"
-      },
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/aws/instances/i-0e4a6c8b2d1f35790/instanceState/name",
-      "equals": "running",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/aws/instances/i-0e4a6c8b2d1f35790/tagSet",
-      "equals": [
-        {
-          "key": "Name",
-          "value": "reporting-worker-legacy"
-        },
-        {
-          "key": "Environment",
-          "value": "staging"
-        },
-        {
-          "key": "Team",
-          "value": "data-eng"
-        }
-      ],
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/aws/instances/i-0a3f5c7e9b1d24680/instanceState/name",
-      "equals": "running",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/aws/instances/i-0c8e2a4f6b1d39057/tagSet",
-      "equals": null,
-      "exists": null,
-      "contains": {
-        "key": "DecommissionTicket",
-        "value": "OPS-33"
-      },
-      "any": null,
-      "key_prefix": null
-    },
     {
       "pointer": "/services/jira/issues/OPS-34/fields/status",
       "equals": "Done",
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/jira/issues/OPS-34/fields/resolution",
@@ -81,60 +18,325 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
-      "pointer": "/services/jira/comments",
+      "pointer": "/services/jira/issues/OPS-34/fields/resolutiondate",
       "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "author": "jordan.lee",
-        "issue": "OPS-34"
-      },
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/OPS-33/fields/status",
-      "equals": "Done",
-      "exists": null,
+      "exists": true,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": false,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
-  "required_calls": [
+  "records": [
     {
-      "service": "aws",
-      "method": "POST",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "Action=StopInstances",
-      "min_count": 1
+      "selector": {
+        "collection": "/services/aws/instances",
+        "matching": {
+          "instanceId": "i-07b9d1f3a5c8e2046"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/instanceState/code": 80,
+        "/instanceState/name": "stopped",
+        "/rootDeviceType": "ebs"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "service": "aws",
-      "method": "POST",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "Action=CreateTags",
-      "min_count": 1
+      "selector": {
+        "collection": "/services/aws/instances/i-07b9d1f3a5c8e2046/tagSet",
+        "matching": {
+          "key": "DecommissionTicket"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": "/key"
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/value": "OPS-34"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "service": "jira",
-      "method": "POST",
-      "path": "/rest/api/2/issue/OPS-34/transitions",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "selector": {
+        "collection": "/services/aws/volumes",
+        "matching": {
+          "attachmentSet": [
+            {
+              "instanceId": "i-07b9d1f3a5c8e2046"
+            }
+          ]
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": null,
+      "fields": {
+        "/status": "in-use"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/jira/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/author": "jordan.lee",
+        "/issue": "OPS-34"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/body": {
+          "requirement": "Tell the OPS-34 ticket what was done: the instance was stopped (not terminated) and tagged. The ticket supplies which instance and which tag; the instance ID, the tag's key and value, the retained disk and the untouched staging copy are optional. A comment that omits the stop or the tag is not acceptable.",
+          "accepted": [
+            "Stopped (not terminated) the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34. Its EBS volume is kept. The staging copy (i-0e4a6c8b2d1f35790) is still running.",
+            "Stopped (not terminated) the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34. Its EBS volume is kept.",
+            "Stopped (not terminated) the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34. The staging copy (i-0e4a6c8b2d1f35790) is still running.",
+            "Stopped (not terminated) the production instance reporting-worker-legacy and tagged it DecommissionTicket=OPS-34.",
+            "Stopped production reporting-worker-legacy (i-07b9d1f3a5c8e2046) without terminating it and tagged it DecommissionTicket=OPS-34.",
+            "Stopped the prod reporting-worker-legacy instance (kept, not terminated) and tagged it DecommissionTicket=OPS-34. Staging was left running."
+          ],
+          "rejected": [
+            "Terminated the production instance reporting-worker-legacy (i-07b9d1f3a5c8e2046) and tagged it DecommissionTicket=OPS-34.",
+            "Stopped the staging instance reporting-worker-legacy (i-0e4a6c8b2d1f35790) and tagged it DecommissionTicket=OPS-34."
+          ],
+          "mentions": [
+            [
+              "stopped",
+              "stop",
+              "stopping",
+              "StopInstances",
+              "shut down",
+              "shutdown",
+              "shut off",
+              "powered off"
+            ],
+            [
+              "tagged",
+              "tag",
+              "tags",
+              "tagging",
+              "DecommissionTicket"
+            ]
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/aws/instances/i-07b9d1f3a5c8e2046/blockDeviceMapping",
+        "matching": {},
+        "key_prefix": "/dev/",
+        "created": false,
+        "identity_field": "/deviceName"
+      },
+      "source_field": "/ebs/volumeId",
+      "target": {
+        "collection": "/services/aws/volumes",
+        "matching": {
+          "attachmentSet": [
+            {
+              "instanceId": "i-07b9d1f3a5c8e2046"
+            }
+          ]
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/volumeId",
+      "kind": "foreign_key",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/aws/instances",
+          "matching": {
+            "instanceId": "i-07b9d1f3a5c8e2046"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/instanceState/name",
+        "equals": "stopped"
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/jira/comments",
+          "matching": {},
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/body",
+        "nonempty_text": true
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    },
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/aws/instances",
+          "matching": {
+            "instanceId": "i-07b9d1f3a5c8e2046"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/tagSet",
+        "has_value": {
+          "key": "DecommissionTicket",
+          "value": "OPS-34"
+        }
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/jira/comments",
+          "matching": {},
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/body",
+        "nonempty_text": true
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    },
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/aws/instances",
+          "matching": {
+            "instanceId": "i-07b9d1f3a5c8e2046"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/instanceState/name",
+        "equals": "stopped"
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/jira/issues",
+          "matching": {
+            "key": "OPS-34"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/fields/status",
+        "equals": "Done"
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    },
+    {
+      "prerequisite": {
+        "selector": {
+          "collection": "/services/aws/instances",
+          "matching": {
+            "instanceId": "i-07b9d1f3a5c8e2046"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/tagSet",
+        "has_value": {
+          "key": "DecommissionTicket",
+          "value": "OPS-34"
+        }
+      },
+      "action": {
+        "selector": {
+          "collection": "/services/jira/issues",
+          "matching": {
+            "key": "OPS-34"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/fields/status",
+        "equals": "Done"
+      },
+      "require_transition": false,
+      "allow_same_commit": false
+    }
+  ],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "aws",
@@ -144,17 +346,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": "Action=TerminateInstances",
-      "min_count": 1
-    },
-    {
-      "service": "aws",
-      "method": "POST",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "i-0e4a6c8b2d1f35790",
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "jira",
@@ -164,8 +358,179 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/name",
+        "kind": "update",
+        "matching": {
+          "instanceState": {
+            "code": 80,
+            "name": "stopped"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/code",
+        "kind": "update",
+        "matching": {
+          "instanceState": {
+            "code": 80,
+            "name": "stopped"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/aws/instances/i-07b9d1f3a5c8e2046/reason",
+        "kind": "update",
+        "matching": {
+          "instanceState": {
+            "code": 80,
+            "name": "stopped"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/aws/instances/i-07b9d1f3a5c8e2046/publicIpAddress",
+        "kind": "remove_field",
+        "matching": {
+          "instanceState": {
+            "code": 80,
+            "name": "stopped"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/aws/instances/i-07b9d1f3a5c8e2046/ipAddress",
+        "kind": "remove_field",
+        "matching": {
+          "instanceState": {
+            "code": 80,
+            "name": "stopped"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/aws/instances/i-07b9d1f3a5c8e2046/tagSet",
+        "kind": "append",
+        "matching": {
+          "key": "DecommissionTicket",
+          "value": "OPS-34"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": "/key"
+      },
+      {
+        "pointer": "/services/jira/issues/OPS-34/fields/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/issues/OPS-34/fields/resolution",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/issues/OPS-34/fields/resolutiondate",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/issues/OPS-34/fields/updated",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/issues/OPS-34/changelog",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/comments/*",
+        "kind": "create",
+        "matching": {
+          "issue": "OPS-34"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

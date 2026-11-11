@@ -1,0 +1,42 @@
+# Reviewed operation support for `github`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "github"
+tool = "issue_write"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "GitHub reviewed subset"
+
+[[operation]]
+endpoint = "github"
+tool = "list_commits"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "GitHub reviewed subset"
+
+[[operation]]
+endpoint = "github"
+tool = "merge_pull_request"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "GitHub reviewed subset"
+
+[[operation]]
+endpoint = "github"
+tool = "pull_request_review_write"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "GitHub reviewed subset"
+
+[[operation]]
+endpoint = "github"
+tool = "search_issues"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "GitHub reviewed subset"

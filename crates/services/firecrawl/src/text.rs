@@ -1,5 +1,5 @@
 //! URL normalisation, a small deterministic relevance scorer, markdown helpers, and
-//! monitor schedule parsing.
+//! content projection.
 
 use std::collections::BTreeSet;
 
@@ -9,6 +9,10 @@ use regex::Regex;
 /// `https://www.example.com/pricing/` and `http://example.com/pricing` compare equal.
 pub fn norm_url(url: &str) -> String {
     let url = url.trim();
+    let parsed_url = url::Url::parse(url).ok().filter(|parsed| {
+        matches!(parsed.scheme(), "http" | "https") && parsed.host_str().is_some()
+    });
+    let url = parsed_url.as_ref().map(url::Url::as_str).unwrap_or(url);
     let url = url.split('#').next().unwrap_or("");
     let rest = url.split_once("://").map_or(url, |(_, r)| r);
     let (authority, tail) = match rest.find(['/', '?']) {
@@ -28,7 +32,7 @@ pub fn norm_url(url: &str) -> String {
     }
 }
 
-/// Lowercased host without `www.` (port kept).
+/// Lowercased host without `www.` (non-default port kept).
 pub fn host_of(url: &str) -> String {
     let n = norm_url(url);
     n.split(['/', '?']).next().unwrap_or("").to_owned()
@@ -250,99 +254,6 @@ pub fn summarize(md: &str) -> String {
     }
 }
 
-fn number_word(word: &str) -> Option<u64> {
-    let n = match word {
-        "one" | "a" | "an" => 1,
-        "two" => 2,
-        "three" => 3,
-        "four" => 4,
-        "five" => 5,
-        "six" => 6,
-        "twelve" => 12,
-        "fifteen" => 15,
-        "thirty" => 30,
-        _ => return word.parse().ok(),
-    };
-    Some(n)
-}
-
-/// Minutes between checks for a schedule phrase such as "every 30 minutes", "daily at
-/// 9am", "hourly", or "every monday".
-pub fn schedule_interval_minutes(text: &str) -> Option<u64> {
-    let t = text.to_lowercase();
-    let every =
-        Regex::new(r"every\s+([a-z0-9]+?)\s*(minute|min|month|m|hour|hr|h|day|d|week|wk|w)s?\b")
-            .expect("valid regex");
-    if let Some(c) = every.captures(&t)
-        && let Some(n) = number_word(&c[1])
-    {
-        let unit = match &c[2] {
-            "minute" | "min" | "m" => 1,
-            "hour" | "hr" | "h" => 60,
-            "day" | "d" => 1440,
-            "week" | "wk" | "w" => 10080,
-            _ => 43200,
-        };
-        return Some(n * unit);
-    }
-    let has = |words: &[&str]| words.iter().any(|w| t.contains(w));
-    if has(&["hourly", "every hour", "each hour", "once an hour"]) {
-        Some(60)
-    } else if has(&[
-        "daily",
-        "every day",
-        "each day",
-        "once a day",
-        "per day",
-        "every morning",
-        "every evening",
-        "every night",
-        "nightly",
-        "every weekday",
-    ]) {
-        Some(1440)
-    } else if has(&[
-        "weekly",
-        "every week",
-        "once a week",
-        "each week",
-        "every monday",
-        "every tuesday",
-        "every wednesday",
-        "every thursday",
-        "every friday",
-        "every saturday",
-        "every sunday",
-    ]) {
-        Some(10080)
-    } else if has(&["monthly", "every month", "once a month"]) {
-        Some(43200)
-    } else {
-        cron_interval_minutes(&t)
-    }
-}
-
-/// Minutes between runs for common 5-field cron shapes.
-pub fn cron_interval_minutes(cron: &str) -> Option<u64> {
-    let f: Vec<&str> = cron.split_whitespace().collect();
-    if f.len() != 5 {
-        return None;
-    }
-    let num = |s: &str| s.parse::<u64>().is_ok();
-    let step = |s: &str| s.strip_prefix("*/").and_then(|n| n.parse::<u64>().ok());
-    match (f[0], f[1], f[2], f[3], f[4]) {
-        (m, "*", "*", "*", "*") if step(m).is_some() => step(m),
-        ("*", "*", "*", "*", "*") => Some(1),
-        (m, "*", "*", "*", "*") if num(m) => Some(60),
-        (m, h, "*", "*", "*") if num(m) && step(h).is_some() => step(h).map(|n| n * 60),
-        (m, h, "*", "*", "*") if num(m) && (num(h) || h.contains(',')) => Some(1440),
-        (m, h, "*", "*", d) if num(m) && num(h) && d.contains('-') => Some(1440),
-        (m, h, "*", "*", d) if num(m) && num(h) && d != "*" => Some(10080),
-        (m, h, dom, "*", "*") if num(m) && num(h) && num(dom) => Some(43200),
-        _ => None,
-    }
-}
-
 /// Decodes `application/x-www-form-urlencoded` query text into ordered pairs.
 pub fn parse_query(raw: Option<&str>) -> Vec<(String, String)> {
     raw.unwrap_or("")
@@ -392,6 +303,14 @@ mod tests {
         assert_eq!(path_of("https://docs.x.dev/api/refunds"), "/api/refunds");
         assert_eq!(path_of("https://docs.x.dev"), "/");
         assert_eq!(host_of("https://www.x.dev:8080/a"), "x.dev:8080");
+        assert_eq!(host_of("https://WWW.X.DEV:443/a#section"), "x.dev");
+        assert_eq!(host_of("http://www.x.dev:80/a"), "x.dev");
+        assert_eq!(host_of("http://www.x.dev:443/a"), "x.dev:443");
+        assert_eq!(host_of("https://www.x.dev:80/a"), "x.dev:80");
+        assert_eq!(
+            norm_url("https://DOCS.X.DEV:443/api/../api/overview#reference"),
+            "docs.x.dev/api/overview"
+        );
         assert!(is_http_url("https://x.dev/a"));
         assert!(!is_http_url("ftp://x.dev"));
     }
@@ -407,22 +326,6 @@ mod tests {
         let p = SearchQuery::parse("\"team plan\" cost");
         assert_eq!(p.score("The Team plan costs"), Some(3));
         assert_eq!(p.score("plan for the team"), None);
-    }
-
-    #[test]
-    fn parses_schedules() {
-        assert_eq!(schedule_interval_minutes("every 30 minutes"), Some(30));
-        assert_eq!(schedule_interval_minutes("Daily at 9am"), Some(1440));
-        assert_eq!(schedule_interval_minutes("every day at 08:00"), Some(1440));
-        assert_eq!(schedule_interval_minutes("every 24 hours"), Some(1440));
-        assert_eq!(schedule_interval_minutes("every two hours"), Some(120));
-        assert_eq!(schedule_interval_minutes("every 24h"), Some(1440));
-        assert_eq!(schedule_interval_minutes("every 15m"), Some(15));
-        assert_eq!(schedule_interval_minutes("every 2 months"), Some(86400));
-        assert_eq!(schedule_interval_minutes("every Monday"), Some(10080));
-        assert_eq!(schedule_interval_minutes("0 9 * * *"), Some(1440));
-        assert_eq!(schedule_interval_minutes("*/15 * * * *"), Some(15));
-        assert_eq!(schedule_interval_minutes("whenever"), None);
     }
 
     #[test]

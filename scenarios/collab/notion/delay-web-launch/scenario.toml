@@ -7,34 +7,41 @@ services = ["notion"]
 tags = ["write", "single-service", "notion"]
 timeout_sec = 900
 
-[[expect.state]]
-pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Status/status/name"
-equals = "Delayed"
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 2
+rationale = "Product launches has exactly one row titled Web 4.12 (afa8e804, Planned, 2026-11-03); the only neighbour is the differently named Done row Web 4.11; new status and date are given in the instruction."
 
-[[expect.state]]
-pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Launch date/date/start"
-equals = "2026-11-10"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/notion/pages/e63c9184-7acf-45e0-881d-666e2972532e/properties/Status/status/name"
-equals = "Done"
+[[expect.records]]
+selector = { collection = "/services/notion/pages", matching = { id = "afa8e804-d2ac-4ee2-80e2-e18ed4c05865" } }
+equals = 1
+fields = { "/properties/Status/status" = { id = "d280", name = "Delayed", color = "red" }, "/properties/Launch date/date/start" = "2026-11-10", "/archived" = false, "/in_trash" = false }
+null_fields = ["/properties/Launch date/date/end", "/properties/Launch date/date/time_zone"]
+# The request gives the reason for the slip and the tracker has a Notes column, so recording
+# the reason there is an ordinary extra. The row's existing note must survive it: replacing
+# or clearing the note loses information nobody asked to remove.
+reviewed_text = { "/properties/Notes/rich_text" = { format = "notion_rich_text", requirement = "The row's Notes need not change. If they do, they must still carry the existing note, Release notes screenshots by Alex; text added to it, such as the reason for the slip, is not judged.", accepted = ["Release notes screenshots by Alex."], mentions = ["Release notes screenshots by Alex"] } }
 
-[[expect.state]]
-pointer = "/services/notion/pages/e63c9184-7acf-45e0-881d-666e2972532e/properties/Launch date/date/start"
-equals = "2026-10-06"
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Notes/rich_text"
 
-[[expect.state]]
-pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/in_trash"
-equals = false
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Status/status"
 
-[[expect.required_calls]]
-service = "notion"
-method = "PATCH"
-path_regex = "^/v1/pages/afa8e804-?d2ac-?4ee2-?80e2-?e18ed4c05865$"
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/properties/Launch date/date"
 
-[[expect.forbidden_calls]]
-service = "notion"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/last_edited_time"
+
+[[expect.preservation.allow]]
+pointer = "/services/notion/pages/afa8e804-d2ac-4ee2-80e2-e18ed4c05865/last_edited_by"
 
 [[solution.call]]
 endpoint = "notion"

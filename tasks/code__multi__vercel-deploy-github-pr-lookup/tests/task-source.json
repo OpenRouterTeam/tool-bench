@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/multi/vercel-deploy-github-pr-lookup",
+  "scenario_sha256": "sha256:4bbc4024275b798899693dc09d415d99b70f3348636f2133aa0c6b24de3b50a8",
+  "dataset_sha256": "sha256:e7cb77d21b00bbf602258149b39e4becdc3aae2b5187a5ef8e479106e63bdd98",
+  "contract_sha256": "sha256:6516170eec4550706324d5c005b99d244cd4d702ded817c85e4c5ee738ea3f6b"
+}

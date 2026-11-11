@@ -1,68 +1,223 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/sentry/projects/notification-service/teams",
-      "equals": [
-        "payments"
+      "selector": {
+        "collection": "/services/sentry/projects",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/sentry/projects",
+        "matching": {
+          "name": "notification-service"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/teams": [
+          "payments"
+        ]
+      },
+      "optional_fields": {},
+      "optional_choices": {
+        "/platform": [
+          "node",
+          "other"
+        ]
+      },
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/sentry/keys",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [
+        "/rateLimit"
       ],
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/projects/notification-service/name",
-      "equals": "notification-service",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/keys/notification-service~1Default/isActive",
-      "equals": true,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "sentry",
-      "method": "POST",
-      "path": "/api/0/teams/lumen-labs/payments/projects/",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/sentry/keys",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/project",
+      "target": {
+        "collection": "/services/sentry/projects",
+        "matching": {
+          "name": "notification-service"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/slug",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "sentry",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "sentry",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "^/api/0/projects/lumen-labs/(storefront-web|admin-dashboard|checkout-api|payments-worker|ios-app)/",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
   "answer": {
     "contains": [],
-    "regex": "[0-9a-f]{32}@world:8113/4508812006"
-  }
+    "regex": null,
+    "sentry_dsn": {
+      "requirement": "Return a usable active DSN of the newly created notification-service project owned by Payments. The answer must not deny that DSN, present another credential URL, or say that no project was created.",
+      "project": {
+        "collection": "/services/sentry/projects",
+        "matching": {
+          "name": "notification-service"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "keys": {
+        "collection": "/services/sentry/keys",
+        "matching": {
+          "isActive": true
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "ingestion_origin": {
+        "selector": {
+          "collection": "/services/sentry/instance",
+          "matching": {},
+          "key_prefix": "instance",
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/ingestion_origin",
+        "separator": null
+      },
+      "rejected": [
+        "No project was created",
+        "The project was not created",
+        "could not create the project"
+      ]
+    }
+  },
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/sentry/projects/*",
+        "kind": "create",
+        "matching": {
+          "name": "notification-service",
+          "teams": [
+            "payments"
+          ]
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "POST",
+            "PUT"
+          ],
+          "path_regex": "^/api/0/(teams/(lumen-labs|1180274)/[^/]+/projects/|projects/(lumen-labs|1180274)/[^/]+/)$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/keys/*",
+        "kind": "create",
+        "matching": null,
+        "field_patterns": {
+          "/public": "\\S",
+          "/secret": "\\S"
+        },
+        "references": [
+          {
+            "source_field": "/project",
+            "target": {
+              "collection": "/services/sentry/projects",
+              "matching": {
+                "name": "notification-service"
+              },
+              "key_prefix": null,
+              "created": true,
+              "identity_field": null
+            },
+            "target_field": "/slug"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "POST",
+            "PUT"
+          ],
+          "path_regex": "^/api/0/(teams/(lumen-labs|1180274)/[^/]+/projects/|projects/(lumen-labs|1180274)/[^/]+/(keys/([^/]+/)?)?)$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

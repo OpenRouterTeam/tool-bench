@@ -7,48 +7,66 @@ services = ["aws"]
 tags = ["write", "single-service", "aws", "disambiguation"]
 timeout_sec = 900
 
-[[expect.state]]
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["tool_ambiguity"]
+dependency_depth = 1
+rationale = "Two instances are named reporting-worker-legacy: prod i-07b9d1f3a5c8e2046 and staging i-0e4a6c8b2d1f35790; contract needs the prod one stopped with its volume still in-use and staging untouched."
+
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/aws/instances", matching = { instanceId = "i-07b9d1f3a5c8e2046" } }
+equals = 1
+fields = { "/instanceState/name" = "stopped", "/instanceState/code" = 80, "/rootDeviceType" = "ebs" }
+
+[[expect.records]]
+selector = { collection = "/services/aws/instances/i-07b9d1f3a5c8e2046/tagSet", identity_field = "/key", matching = { key = "DecommissionTicket" } }
+equals = 1
+fields = { "/value" = "OPS-4821" }
+
+[[expect.records]]
+selector = { collection = "/services/aws/volumes", matching = { attachmentSet = [{ instanceId = "i-07b9d1f3a5c8e2046" }] } }
+min_count = 1
+fields = { "/status" = "in-use" }
+
+[[expect.relations]]
+source = { collection = "/services/aws/instances/i-07b9d1f3a5c8e2046/blockDeviceMapping", identity_field = "/deviceName", key_prefix = "/dev/" }
+source_field = "/ebs/volumeId"
+target = { collection = "/services/aws/volumes", matching = { attachmentSet = [{ instanceId = "i-07b9d1f3a5c8e2046" }] } }
+target_field = "/volumeId"
+kind = "foreign_key"
+
+[[expect.preservation.allow]]
 pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/name"
-equals = "stopped"
+matching = { instanceState = { name = "stopped", code = 80 } }
 
-[[expect.state]]
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/code"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/reason"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/publicIpAddress"
+kind = "remove_field"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/ipAddress"
+kind = "remove_field"
+matching = { instanceState = { name = "stopped", code = 80 } }
+
+[[expect.preservation.allow]]
 pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/tagSet"
-contains = { key = "DecommissionTicket", value = "OPS-4821" }
-
-# The staging twin and the other prod workers keep running, untagged.
-[[expect.state]]
-pointer = "/services/aws/instances/i-0e4a6c8b2d1f35790/instanceState/name"
-equals = "running"
-
-[[expect.state]]
-pointer = "/services/aws/instances/i-0e4a6c8b2d1f35790/tagSet"
-equals = [{ key = "Name", value = "reporting-worker-legacy" }, { key = "Environment", value = "staging" }, { key = "Team", value = "data-eng" }]
-
-[[expect.state]]
-pointer = "/services/aws/instances/i-0a3f5c7e9b1d24680/instanceState/name"
-equals = "running"
-
-[[expect.state]]
-pointer = "/services/aws/instances/i-04c1a7e2b9d35f018/instanceState/name"
-equals = "running"
-
-[[expect.state]]
-pointer = "/services/aws/instances/i-0c8e2a4f6b1d39057/instanceState/name"
-equals = "stopped"
-
-[[expect.required_calls]]
-service = "aws"
-method = "POST"
-body_contains = "Action=StopInstances"
-
-[[expect.required_calls]]
-service = "aws"
-method = "POST"
-body_contains = "Action=CreateTags"
-
-[[expect.forbidden_calls]]
-service = "aws"
-body_contains = "Action=TerminateInstances"
+kind = "append"
+identity_field = "/key"
+matching = { key = "DecommissionTicket", value = "OPS-4821" }
 
 [[solution.call]]
 endpoint = "aws-api"

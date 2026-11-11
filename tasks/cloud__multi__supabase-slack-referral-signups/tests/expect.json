@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -12,7 +17,9 @@
         "name": "slack_send_message"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "supabase",
@@ -24,7 +31,9 @@
         "name": "apply_migration"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "supabase",
@@ -34,7 +43,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": "update public.",
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "supabase",
@@ -44,13 +55,95 @@
       "query_contains": null,
       "body": null,
       "body_contains": "delete from",
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "410.5"
-    ],
-    "regex": "(?i)(\\b4\\s+(new\\s+)?(customers|signups|sign-ups|users|people|referr)|(customers|signups|sign-ups|sign ups|users|people)[^0-9\\n]{0,40}\\b4\\b)"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the number of FALL26 referral customers (excluding QA accounts) in the production storefront and their total non-cancelled order spend in dollars.",
+      "selector": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+        "matching": {
+          "referral_code": "FALL26"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "measure": "count",
+          "pick": "only"
+        }
+      },
+      "facts": {
+        "customer_count": {
+          "field": "/value",
+          "kind": "number"
+        },
+        "total_spend": {
+          "field": "/value",
+          "kind": "money",
+          "record": "order_total",
+          "units": [
+            "$",
+            "usd"
+          ]
+        }
+      },
+      "mode": "statements",
+      "filter": {
+        "excluding": [
+          {
+            "/email": "qa+ref1@octo-shop.com"
+          },
+          {
+            "/email": "qa+ref2@octo-shop.com"
+          }
+        ]
+      },
+      "related": {
+        "order_total": {
+          "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders",
+          "group": {
+            "rows": {
+              "matching": {
+                "/row_related/customer/referral_code": "FALL26"
+              },
+              "excluding": [
+                {
+                  "/row_related/customer/email": "qa+ref1@octo-shop.com"
+                },
+                {
+                  "/row_related/customer/email": "qa+ref2@octo-shop.com"
+                },
+                {
+                  "/status": "cancelled"
+                }
+              ]
+            },
+            "measure": {
+              "sum": "/total"
+            },
+            "pick": "only",
+            "row_related": {
+              "customer": {
+                "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+                "on": {
+                  "/id": "/customer_id"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

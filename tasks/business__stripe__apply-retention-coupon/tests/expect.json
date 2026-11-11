@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/stripe/discounts/sub_7fWxXdMb0rsO3dgqzvcplQuy:RETAIN20-3M/subscription",
@@ -6,7 +7,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_7fWxXdMb0rsO3dgqzvcplQuy/discounts/0",
@@ -14,7 +18,10 @@
       "exists": true,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_7fWxXdMb0rsO3dgqzvcplQuy/discounts/1",
@@ -22,7 +29,10 @@
       "exists": false,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_7fWxXdMb0rsO3dgqzvcplQuy/status",
@@ -30,7 +40,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_rgXMKqDnvuQz0FKgeUQUpWDn/discounts",
@@ -38,7 +51,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_2BwOc3Og08AwUPGK5akzzYWH/discounts",
@@ -46,7 +62,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/subscriptions/sub_QVurYL97NwETo29YW2uWzNau/discounts",
@@ -54,26 +73,84 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
+    },
     {
-      "service": "stripe",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "stripe_api_operation_id": "PostSubscriptionsSubscriptionExposedId"
-        },
-        "name": "stripe_api_write"
-      },
-      "body_contains": null,
-      "min_count": 1
+      "pointer": "/services/stripe/coupons/RETAIN20-3M/times_redeemed",
+      "equals": 5,
+      "exists": null,
+      "contains": null,
+      "any": null,
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
+  "records": [
+    {
+      "selector": {
+        "collection": "/services/stripe/discounts",
+        "matching": {
+          "subscription": "sub_7fWxXdMb0rsO3dgqzvcplQuy"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/customer": "cus_pSUd3Vj4eF7gD2",
+        "/end": 1781794800,
+        "/source/coupon": "RETAIN20-3M",
+        "/source/type": "coupon",
+        "/start": 1773846000
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    }
+  ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/stripe/discounts",
+        "matching": {
+          "subscription": "sub_7fWxXdMb0rsO3dgqzvcplQuy"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/stripe/subscriptions",
+        "matching": {
+          "id": "sub_7fWxXdMb0rsO3dgqzvcplQuy"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/discounts/0",
+      "kind": "equals",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "stripe",
@@ -88,7 +165,9 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "stripe",
@@ -103,7 +182,9 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "stripe",
@@ -120,7 +201,9 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "stripe",
@@ -137,8 +220,75 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/stripe/subscriptions/sub_7fWxXdMb0rsO3dgqzvcplQuy/discounts",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/coupons/RETAIN20-3M/times_redeemed",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/discounts/*",
+        "kind": "create",
+        "matching": {
+          "customer": "cus_pSUd3Vj4eF7gD2",
+          "source": {
+            "coupon": "RETAIN20-3M",
+            "type": "coupon"
+          },
+          "subscription": "sub_7fWxXdMb0rsO3dgqzvcplQuy"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/events/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "object": {
+              "id": "sub_7fWxXdMb0rsO3dgqzvcplQuy"
+            }
+          },
+          "type": "customer.subscription.updated"
+        },
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

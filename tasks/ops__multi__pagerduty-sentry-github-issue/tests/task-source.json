@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/multi/pagerduty-sentry-github-issue",
+  "scenario_sha256": "sha256:b002207d2ebd5446e98015f49ee5f031576f9887b4ccd27cf9fce14e11198a4f",
+  "dataset_sha256": "sha256:dd229caa02e52945cd3e4277aaf98cf43b487c1ba687b8572491e08b353c46b3",
+  "contract_sha256": "sha256:379d277764f5f205f646226c67b15b65169ec25369c8ecc1d0253b985eaf4b01"
+}

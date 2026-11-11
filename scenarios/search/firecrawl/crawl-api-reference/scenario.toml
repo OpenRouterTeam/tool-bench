@@ -7,28 +7,38 @@ services = ["firecrawl"]
 tags = ["write", "single-service", "firecrawl"]
 timeout_sec = 900
 
-# The first crawl started in this world gets this ID (deterministic per seed). It must
-# cover exactly the five /api/ pages: no home page, guides, changelog or marketing site.
-[[expect.state]]
-pointer = "/services/firecrawl/crawls/763a0804-9f8a-89f5-a2e0-550cf370d6ae/url"
-contains = "docs.lumenpay.dev"
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Origin https://docs.lumenpay.dev and the /api/ prefix are given; the contract checks the one created crawl that plans pages, scoped to that prefix, beside at most three that planned none, with no competing record to choose between."
 
-[[expect.state]]
-pointer = "/services/firecrawl/crawls/763a0804-9f8a-89f5-a2e0-550cf370d6ae/total"
-equals = 5
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/firecrawl/crawls/763a0804-9f8a-89f5-a2e0-550cf370d6ae/pages"
-contains = "https://docs.lumenpay.dev/api/webhooks"
+# Firecrawl tests the start URL against includePaths too, so the natural first attempt (the
+# site root given in the request with an /api/ filter) completes with no pages, and a crawl
+# cannot be removed afterwards. Such a job indexes nothing and costs no credits, so up to three
+# of them may accompany the requested crawl. Exactly one created crawl may plan any page, and
+# it must plan exactly the API section.
+[[expect.records]]
+selector = { collection = "/services/firecrawl/crawls", created = true, field_patterns = { "/plannedPages/0" = "^https?://" } }
+equals = 1
+firecrawl_crawl = { origin = "https://docs.lumenpay.dev", path_prefix = "/api/" }
 
-[[expect.state]]
-pointer = "/services/firecrawl/crawls/763a0804-9f8a-89f5-a2e0-550cf370d6ae/pages"
-contains = "https://docs.lumenpay.dev/api/overview"
-
-[[expect.required_calls]]
-service = "firecrawl"
-method = "POST"
-path = "/v2/crawl"
+[expect.preservation]
+allow = [
+  { pointer = "/services/firecrawl/crawls/*", kind = "create", field_patterns = { "/status" = "^(queued|scraping|completed)$", "/plannedPages/0" = "^https?://" }, cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/crawl$" } },
+  { pointer = "/services/firecrawl/crawls/*", kind = "create", matching = { total = 0, completed = 0, creditsUsed = 0 }, array_lengths = { "/plannedPages" = 0, "/pages" = 0 }, field_patterns = { "/status" = "^(queued|scraping|completed)$" }, max_count = 3, cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/crawl$" } },
+  { pointer = "/services/firecrawl/crawls/*/status", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/crawls", created = true } }], max_count = 4, cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/crawl/[^/]+$" } },
+  { pointer = "/services/firecrawl/crawls/*/pages", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/crawls", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/crawl/[^/]+$" } },
+  { pointer = "/services/firecrawl/crawls/*/scrapeIds", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/crawls", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/crawl/[^/]+$" } },
+  { pointer = "/services/firecrawl/crawls/*/completed", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/crawls", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/crawl/[^/]+$" } },
+  { pointer = "/services/firecrawl/crawls/*/creditsUsed", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/crawls", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/crawl/[^/]+$" } },
+  { pointer = "/services/firecrawl/crawls/*/expiresAt", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/crawls", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/crawl/[^/]+$" } },
+]
 
 [[expect.forbidden_calls]]
 service = "firecrawl"
@@ -43,4 +53,4 @@ arguments = { url = "https://docs.lumenpay.dev" }
 [[solution.call]]
 endpoint = "firecrawl"
 tool = "firecrawl_crawl"
-arguments = { url = "https://docs.lumenpay.dev", includePaths = ["^/api/.*"], limit = 50 }
+arguments = { url = "https://docs.lumenpay.dev/api/overview", crawlEntireDomain = true, includePaths = ["^/api/.*"], limit = 50 }

@@ -1,0 +1,464 @@
+{
+  "search/firecrawl/northwind-team-pricing": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Northwind Analytics / Team plan\n- annual billing → $79/mo (monthly billing is $99)\n- seats incl: 12, extra seats $8/seat/mo\n- src: northwind-analytics.com/pricing, prices updated 1 Sep 2026"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nNorthwind Analytics currently charges $79 per month for the Team plan when billed annually, and the plan includes 12 seats.\n\nThat is from their live pricing page (https://www.northwind-analytics.com/pricing), which shows prices last updated on September 1, 2026.\n\nBest regards"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "| Item | Value |\n|---|---|\n| Plan | Team (Northwind Analytics) |\n| Price, billed annually | USD 79 per month |\n| Seats included | 12 |\n\nSource: https://www.northwind-analytics.com/pricing (prices updated September 1, 2026)"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "The Team plan costs $79/month on annual billing and comes with 12 seats included.\n\nOne caveat: Northwind's own February 2025 blog post and the G2 listing both still show $69 and 10 seats. I didn't use those because the live pricing page says prices were updated on September 1, 2026, and the changelog entry for that date confirms Team went from 10 to 12 seats."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Searched for Northwind Analytics pricing and separated the product analytics company from Northwind Traders, a food wholesaler with a similar name.\n2. Opened the company's live pricing page at www.northwind-analytics.com/pricing rather than the 2025 blog post or the G2 listing.\n3. Checked the changelog, where the September 1, 2026 entry confirms the Team plan changed.\n4. Result: the Team plan is $79.00 per month on annual billing and includes 12 seats."
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "Northwind Analytics charges $99 per month for its Team plan on annual billing, and the plan includes 12 seats.\n\nSource: https://www.northwind-analytics.com/pricing"
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "Northwind Analytics' Team plan is $79/month when billed annually (source: northwind-analytics.com/pricing).\n\nI could not confirm how many seats that price includes, so the seat count is still open."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Team plan (Northwind Analytics): $79 per month billed annually, with 10 seats included.\n\nThe price is from the current pricing page; the seat count is from Northwind's pricing announcement on their blog."
+    }
+  ],
+  "search/multi/api-key-deletion-audit-github": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "ci-deploy-bot key deletion\n- who: m.okafor (audit-security-2026.10, api_key.delete, success)\n- when: 2026-10-29 16:42:57 UTC\n- GH: mokafor (Mira Okafor, m.okafor@octo-org.example)\n- PR: octo-org/deploy-pipeline #58 → open, not merged yet\n- j.doe attempt at 14:05 was denied, not the one"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi Mona,\n\nThe ci-deploy-bot key was deleted by m.okafor on October 29, 2026 at 16:42 UTC. On GitHub that is Mira Okafor, username mokafor.\n\nTheir pull request to move the deploy pipeline to the replacement key (ci-deploy-bot-v2) is #58 in octo-org/deploy-pipeline. It is still open and has not been merged, which is why deploys keep failing.\n\nI didn't change anything.\n\nThanks"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "User: m.okafor\nDeleted at: 2026-10-29T16:42:57Z\nGitHub username: mokafor\nPull request: #58 (octo-org/deploy-pipeline)\nPR status: open, not merged\nSource: Elasticsearch index audit-security-2026.10; GitHub user and pull request records"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "m.okafor deleted the `ci-deploy-bot` API key at 16:42 UTC on 29 Oct 2026. Their GitHub username is `mokafor`, and they opened PR #58 on octo-org/deploy-pipeline to switch deploys to ci-deploy-bot-v2. That PR is open and not yet merged.\n\nCaveat: there is a second Okafor in the org (Sam Okafor, login `sam`). I matched on the email m.okafor@octo-org.example, which belongs to `mokafor`, so `sam` is not the person who deleted the key. `sam` is only the requested reviewer on #58."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Queried the audit-security indices for api_key.delete events on ci-deploy-bot.\n2. Discarded the 14:05 attempt by j.doe (denied), r.chen's deletion of ci-deploy-bot-staging, and the August deletion on the legacy cluster.\n3. Matched the remaining actor to a GitHub account by email (m.okafor@octo-org.example).\n4. Looked up that user's pull requests in octo-org/deploy-pipeline.\n5. Answer: m.okafor deleted the key on 2026-10-29 at 4:42 pm UTC. GitHub username: mokafor. Pull request: number 58, still open and not merged."
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "The key was deleted by r.chen on 2026-10-29 at 17:30 UTC. Their GitHub username is rchen. The related pull request is #57 in octo-org/deploy-pipeline, and it has already been merged (17:40 UTC the same day)."
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "The audit log shows m.okafor deleted ci-deploy-bot on 2026-10-29 at 16:42:57 UTC.\n\nI wasn't able to match that account to a GitHub user, so I don't have the GitHub username or the pull request details yet."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "m.okafor deleted the ci-deploy-bot key at 16:42 UTC on October 29, 2026. On GitHub that is Sam Okafor, username sam. Sam's pull request on octo-org/deploy-pipeline is #56, which is still open and has not been merged."
+    }
+  ],
+  "search/multi/competitor-funding-and-pricing": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Norvik Analytics brief\n- funding: $45M Series B, lead = Halcyon Ventures (TechBeat, 27 Oct 2026); Fjord Capital participating\n- Growth plan: $890/mo billed annually ($1,090 if billed monthly)\n- pricing src: norvikanalytics.com/pricing, updated 1 Oct 2026"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nFor the Norvik Analytics brief:\n\n1. Funding: they announced a $45 million Series B on October 27, led by Halcyon Ventures.\n2. Pricing: the Growth plan is $890 per month when billed annually, per their live pricing page.\n\nGood luck tomorrow"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "| Question | Answer |\n|---|---|\n| Amount raised | USD 45,000,000 |\n| Round | Series B |\n| Lead investor | Halcyon Ventures |\n| Growth plan, billed annually | USD 890 per month |\n\nSources: TechBeat, 2026-10-27 (https://www.techbeat.io/2026/10/27/norvik-analytics-series-b); https://www.norvikanalytics.com/pricing"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "1. Norvik Analytics raised $45M in a Series B led by Halcyon Ventures, announced October 27, 2026.\n2. The Growth plan is $890/month billed annually.\n\nCaveat on pricing: Capterra and Norvik's own March 2025 blog post list Growth at $690. Both predate the live pricing page, which says prices were updated October 1, 2026, so I went with $890."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Searched this week's news for Norvik Analytics funding and found the TechBeat article from 27 Oct 2026.\n2. Set aside the Norvik Labs story from 28 Oct (a robotics company, unrelated) and the June 2025 Series A coverage.\n3. Scraped the live pricing page at norvikanalytics.com/pricing instead of relying on Capterra.\n4. Findings: the new round is a Series B of $45 million with Halcyon Ventures as lead investor, and the Growth plan costs $890 a month on annual billing."
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "Funding: Norvik announced a $30 million round on October 28, led by Brightline Partners. The coverage calls it new funding without naming a series.\n\nPricing: the Growth package starts at $1,650 per month."
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "Funding: $45M Series B led by Halcyon Ventures (TechBeat, Oct 27, 2026).\n\nPricing: I couldn't load their pricing page, so I don't have a current Growth plan price to give you."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "1. Funding: Norvik Analytics raised $45M in a Series B led by Fjord Capital.\n2. Pricing: Growth is $890 per month, billed annually (norvikanalytics.com/pricing)."
+    }
+  ],
+  "search/exa/sdk-timeout-default": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Driftwood py SDK v4 / timeout\n- option: timeout_seconds (on driftwood.Client)\n- default: 30s\n- v3 request_timeout removed in v4 → rename on upgrade\n- src: docs.driftwood.dev/python/v4/configuration"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nIn v4 of the Driftwood Python SDK the request timeout is set with the timeout_seconds client option, and it defaults to 30 seconds.\n\nThis is from Driftwood's v4 client configuration page. The old v3 option name was removed in v4, so we will need to rename it during the upgrade.\n\nCheers"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "Option: timeout_seconds\nDefault: 30 seconds\nSet on: driftwood.Client(...)\nSource: https://docs.driftwood.dev/python/v4/configuration (published 2026-08-19)"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "In v4 the request timeout is set with `timeout_seconds`, and its default is 30 seconds.\n\nCaveat: the v3 docs and a 2024 Stack Overflow answer say `request_timeout` with a default of 60. That option was removed in v4, so it does not apply to your upgrade."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Searched Driftwood's docs for the Python SDK v4 client configuration.\n2. Opened docs.driftwood.dev/python/v4/configuration and confirmed it covers v4, not the legacy v3 page or the Node.js SDK page.\n3. Read the entry for the request timeout.\n4. Answer: the option is timeout_seconds, and the default value is 30 s."
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "The request timeout in Driftwood SDK v4 is set with the `timeoutMs` option. Its default is 120000 milliseconds (120 seconds).\n\nSource: Driftwood v4 client configuration docs."
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "The v4 option is `timeout_seconds`, passed to driftwood.Client(...).\n\nI could not find a stated default for it, so I can't confirm the default value."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Option: timeout_seconds\nDefault: 60 seconds\n\nThe option name is from the v4 configuration page; the default is the documented request timeout default for the Python client."
+    }
+  ],
+  "search/exa/find-vp-engineering-profile": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Priya Raman / VP Eng @ Tessellate Bio (Boston), 2024-present\n→ linkedin.com/in/priya-raman-tessellate\nprev Benchling; title matches tessellate.bio/team"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nHere is the profile for Tessellate Bio's current VP of Engineering, Priya Raman:\nhttps://www.linkedin.com/in/priya-raman-tessellate\n\nThe profile lists VP of Engineering at Tessellate Bio from 2024 to present, and the company's team page shows the same title.\n\nBest"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "Name: Priya Raman\nRole: VP of Engineering, Tessellate Bio (2024-present)\nLocation: Boston, Massachusetts\nProfile: https://www.linkedin.com/in/priya-raman-tessellate\nSource: LinkedIn profile, cross-checked against https://www.tessellate.bio/team"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "The profile you want is https://www.linkedin.com/in/priya-raman-tessellate (VP of Engineering at Tessellate Bio, Boston, since 2024).\n\nCaveat: another Priya Raman (linkedin.com/in/priya-raman-4b21a9) was Director of Engineering at Tessellate Bio from 2019 to 2023 but is now CTO at Kestrel Genomics. That is the former employee, not the current VP, so don't use that one."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Ran a people search for Priya Raman, VP of Engineering, Tessellate Bio.\n2. Found four profiles with that name and ruled out three: a data scientist at Tessellate Analytics in Chicago, a cardiologist at Mass General Brigham, and a former Tessellate Bio director who is now CTO at Kestrel Genomics.\n3. Checked Tessellate Bio's team page, which lists Priya Raman as VP of Engineering.\n4. The matching profile is www.linkedin.com/in/priya-raman-tessellate"
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "Priya Raman's LinkedIn profile is https://www.linkedin.com/in/priyaraman. The profile was updated in July 2026 and shows a current role at Tessellate."
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "Priya Raman is the VP of Engineering at Tessellate Bio in Boston. LinkedIn profile: https://www.linkedin.com/in/priya-raman-tessellate-bio"
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Priya Raman is VP of Engineering at Tessellate Bio in Boston (since 2024, previously at Benchling).\n\nProfile: https://www.linkedin.com/in/priya-raman-4b21a9"
+    }
+  ],
+  "search/brave/caterer-saturday-hours": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Juniper & Rye Catering, Portland OR (1120 SE Morrison St)\n- ph: 503-555-0142\n- Sat: 9am-2pm\n- closed Sun\n- src: local business listing"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nJuniper & Rye Catering (the Portland, Oregon one on SE Morrison St) can be reached at (503) 555-0142. On Saturdays they are open from 9:00 AM to 2:00 PM, so a brunch booking should fit.\n\nThanks"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "| Field | Value |\n|---|---|\n| Business | Juniper & Rye Catering, 1120 SE Morrison St, Portland, OR 97214 |\n| Phone | +1 503-555-0142 |\n| Saturday hours | 09:00-14:00 |\n\nSource: local business listing for juniperandrye.com"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "Phone: 503.555.0142\nSaturday hours: 9 a.m. to 2 p.m.\n\nCaveat: the Yelp page for this business says it is closed on Saturdays, but that page was last updated in 2023. The current local listing shows Saturday hours, so I used the listing. It is worth confirming by phone before you commit to a date."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Ran a local business search for Juniper & Rye Catering in Portland, Oregon.\n2. Excluded the similarly named Juniper & Rye Catering Co. in Portland, Maine, and Juniper Rye Bakery in the Pearl District.\n3. Pulled the listing details for the caterer at 1120 SE Morrison St.\n4. Result: the phone number is +1 (503) 555-0142, and on Saturdays it opens at 9:00 and closes at 14:00."
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "Phone: 503-555-0177\nSaturday hours: 7:00 AM to 3:00 PM\n\nSource: local listing for the Portland, Oregon business at 730 NW 11th Ave."
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "Juniper & Rye Catering in Portland, OR: phone +1 503-555-0142.\n\nI couldn't find Saturday hours in the listing, so you may need to call them to confirm."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Juniper & Rye Catering\nPhone: 503-555-0142\nSaturday: 10:00-16:00"
+    }
+  ],
+  "search/brave/keynote-recording": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "PGConf Nordic 2026 keynote / 'Scaling Postgres to 1M writes/s'\n- speaker: Marta Lindqvist\n- length: 47:12\n- link: youtube.com/watch?v=Zt4mQeL1x9c (official PGConf Nordic channel, full recording)"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nThe full official recording is on the PGConf Nordic YouTube channel:\nhttps://www.youtube.com/watch?v=Zt4mQeL1x9c\n\nThe keynote was given by Marta Lindqvist, and the video runs 47 minutes 12 seconds.\n\nEnjoy the session"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "| Field | Value |\n|---|---|\n| Speaker | Marta Lindqvist |\n| Duration | 47m 12s |\n| URL | https://www.youtube.com/watch?v=Zt4mQeL1x9c |\n\nSource: PGConf Nordic channel on YouTube, published 2026-10-12"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "Speaker: Marta Lindqvist. Duration: 47:12. Link: https://www.youtube.com/watch?v=Zt4mQeL1x9c\n\nCaveat: the most-viewed result for this title is a 12:05 highlights cut from the DB Clips channel, and there is also a 28:40 meetup version from April 2025. Neither is the full keynote, so I left them out."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Ran a video search for the keynote title plus PGConf Nordic 2026.\n2. Skipped the DB Clips highlights video, the 2025 Oslo meetup version, and a different talk by Tom Ekberg from PGDay Paris.\n3. Picked the upload from the PGConf Nordic channel, which is described as the full recording.\n4. Details: presented by Marta Lindqvist, running time 47 min 12 sec, at www.youtube.com/watch?v=Zt4mQeL1x9c"
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "Speaker: Tom Ekberg\nDuration: 39:55\nLink: https://vimeo.com/987654321"
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "The keynote was given by Marta Lindqvist, and the full recording is 47:12 long. It is published on the PGConf Nordic YouTube channel, but I could not get a direct link to the video."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Speaker: Marta Lindqvist\nDuration: 47:12\nURL: https://www.youtube.com/watch?v=r8Kq2PgN7aE"
+    }
+  ],
+  "search/brave/hosting-sla-lookup": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Ironbark Hosting / Business SLA (eff. 1 Jul 2026)\n- uptime: 99.95% monthly\n- credit: 10% of monthly fee if under 99.95% (25% if under 99.0%)\n- credits must be requested within 30 days\n- src: ironbarkhosting.com/legal/sla"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nIronbark Hosting's current SLA commits the Business plan to 99.95% monthly uptime. If uptime drops just below that, we get a service credit of 10% of the monthly fee.\n\nThis is from the SLA effective July 1, 2026 on their legal page.\n\nRegards"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "| Item | Business plan |\n|---|---|\n| Monthly uptime commitment | 99.95% |\n| Service credit just below the commitment | 10% of the monthly fee |\n| SLA version | Effective 2026-07-01 |\n\nSource: https://www.ironbarkhosting.com/legal/sla"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "The Business plan SLA guarantees 99.95 percent monthly uptime, with a service credit of 10 percent of the monthly fee when uptime falls below that.\n\nCaveat: an archived 2024 version of the SLA (and a 2025 Reddit thread quoting it) gives 99.9% and a 5% credit. That version was replaced on July 1, 2026, so it no longer applies."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Searched for Ironbark Hosting's SLA and the Business plan uptime terms.\n2. Ignored IronBank Hosting (ironbankhosting.net), a different provider with a similar name.\n3. Compared the two Ironbark SLA pages and used the one effective 1 July 2026, which supersedes the archived 2024 version.\n4. Conclusion: Business is committed to 99.95% uptime per month, and the credit is 10% of that month's fee once uptime drops under 99.95%."
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "The Business plan is guaranteed 99.99% uptime, and the service credit is 20%.\n\nSource: the provider's Uptime SLA page, which says the guarantee applies to every plan, including Business."
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "Ironbark Hosting's Business plan commits to 99.95% monthly uptime under the SLA effective July 1, 2026.\n\nI could not find the service credit amount for the Business plan."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Uptime: 99.95% monthly on the Business plan\nService credit: 5% of the monthly fee\n\nSource: Ironbark Hosting SLA pages on ironbarkhosting.com"
+    }
+  ],
+  "search/brave/competitor-funding-news": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Norvik Analytics funding (TechBeat, 27 Oct)\n- $45M\n- Series B\n- lead: Halcyon Ventures\n- total raised now $61M"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nConfirmed: Norvik Analytics announced a $45 million Series B on October 27. The round was led by Halcyon Ventures.\n\nBest"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "Amount: USD 45 million\nRound: Series B\nLead investor: Halcyon Ventures\nAnnounced: 2026-10-27\nSource: TechBeat, https://www.techbeat.io/2026/10/27/norvik-analytics-series-b"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "Norvik Analytics raised $45M in a Series B round led by Halcyon Ventures, reported by TechBeat on 27 October 2026.\n\nCaveat: DealBase still lists a $12M Series A led by Fjord Capital as the latest round. That entry dates from 2025 and has not been updated, so I did not use it."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Searched news from the past week for Norvik Analytics funding.\n2. Found two funding stories and dropped one: Norvik Labs, a Gothenburg robotics company, is unrelated.\n3. Checked older coverage to make sure the June 2025 round was not being re-reported.\n4. So the answer is: a Series B of 45 million US dollars, with Halcyon Ventures leading."
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "They raised $30 million, announced on October 28. Brightline Partners led the round. The article describes it as new funding and does not name a series."
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "Norvik Analytics raised $45M in a Series B this week (TechBeat, October 27).\n\nI could not find who led the round."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Norvik Analytics raised $30 million in a Series B led by Halcyon Ventures, announced this week."
+    }
+  ],
+  "search/tavily/webhook-signature-sunset": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Ferrowave v1 webhook sigs\n- stop sending: 2027-01-15\n- verify instead: Ferrowave-Signature-V2 (HMAC-SHA256)\n- old X-Ferrowave-Sig still sent alongside until then\n- src: docs.ferrowave.dev/guides/webhooks/verify-signatures"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nFerrowave will stop sending v1 webhook signatures on January 15, 2027. Before then we need to verify the Ferrowave-Signature-V2 header.\n\nThe source is the 'Verifying webhook signatures' guide on docs.ferrowave.dev.\n\nThanks"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "| Item | Value |\n|---|---|\n| v1 webhook signatures stop | 15 Jan 2027 |\n| Header to verify instead | `Ferrowave-Signature-V2` |\n\nSource: https://docs.ferrowave.dev/guides/webhooks/verify-signatures"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "v1 webhook signatures stop being sent on 15 January 2027; verify the `Ferrowave-Signature-V2` header instead.\n\nCaveat: the archived v1 webhooks page says v1 webhooks are supported until June 30, 2026. That page was archived in March 2025 and is no longer maintained, and the current guide says the v1 header is still being sent, so I did not use that date."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Mapped docs.ferrowave.dev and opened the Webhooks section.\n2. Read the 'Verifying webhook signatures' guide and its 'Migrating from v1 signatures' section.\n3. Cross-checked the changelog: the other dates there are for legacy v1 API keys (2026-12-01) and the 3.x SDK end of life (2026-11-30), not webhook signatures.\n4. Answer: v1 signatures end on Jan 15, 2027, and the replacement header is Ferrowave-Signature-V2."
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "Ferrowave will stop sending v1 webhook signatures on November 30, 2026. From then on, verify the Ferrowave-Signature-V2 header.\n\nSource: docs.ferrowave.dev/changelog"
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "The header to verify instead is `Ferrowave-Signature-V2`.\n\nOn the date: Ferrowave says it expects to retire v1 signatures sometime in 2027. I could not find an exact date."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Date: January 15, 2027\nHeader to verify: X-Ferrowave-Sig\n\nSource: Ferrowave webhook docs on docs.ferrowave.dev"
+    }
+  ],
+  "search/tavily/vendor-rate-limit": [
+    {
+      "style": "note",
+      "expect": "pass",
+      "answer": "Quillstream API / Business plan\n- 1.2k req/min (per workspace, burst 200)\n- src: docs.quillstream.io/api/rate-limits (v3 ref, updated 14 Sep 2026)\n- 600 = deprecated v2 → ignore"
+    },
+    {
+      "style": "email",
+      "expect": "pass",
+      "answer": "Hi,\n\nThe current rate limit for the Business plan is 1,200 requests per minute. That comes from Quillstream's API v3 rate limits page: https://docs.quillstream.io/api/rate-limits (last updated September 14, 2026).\n\nNote that the limit applies per workspace, not per API key.\n\nCheers"
+    },
+    {
+      "style": "table",
+      "expect": "pass",
+      "answer": "| Field | Value |\n|---|---|\n| Plan | Business |\n| Rate limit | 1200 requests/minute |\n| Scope | Per workspace |\n\nSource: https://docs.quillstream.io/api/rate-limits (Quillstream API v3 Reference, last updated 2026-09-14)"
+    },
+    {
+      "style": "caveated",
+      "expect": "pass",
+      "answer": "Business plan limit: 1,200 requests per minute, per Quillstream's v3 rate limits reference at https://docs.quillstream.io/api/rate-limits.\n\nCaveat: you will see 600 requests per minute quoted in a 2025 review and on the v2 docs page. That figure is for the deprecated v2 API, which is being retired on March 31, 2027, so it should not be used for a new integration."
+    },
+    {
+      "style": "steps",
+      "expect": "pass",
+      "answer": "1. Searched for Quillstream's API rate limits for the Business plan.\n2. Opened the rate limits page in Quillstream's own docs and checked that it covers API v3 (last updated Sept 14, 2026).\n3. Ruled out the deprecated v2 page, a community thread guessing 900, and Quillpad's docs (a different vendor).\n4. Answer: 1,200 requests a minute for Business. Found at docs.quillstream.io/api/rate-limits"
+    },
+    {
+      "style": "confident_wrong",
+      "expect": "reject",
+      "answer": "The Business plan rate limit is 900 requests per minute.\n\nSource: Quillstream Community, https://community.quillstream.io/t/business-plan-rate-limit/4412"
+    },
+    {
+      "style": "partial",
+      "expect": "reject",
+      "answer": "The Business plan allows 1,200 requests per minute."
+    },
+    {
+      "style": "mixed_up",
+      "expect": "reject",
+      "answer": "Business plan: 600 requests per minute.\n\nSource: https://docs.quillstream.io/api/rate-limits (Quillstream API v3 Reference)"
+    }
+  ]
+}

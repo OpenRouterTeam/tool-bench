@@ -7,9 +7,17 @@ services = ["jira"]
 tags = ["write", "multi-step", "single-service", "jira", "confluence", "disambiguation"]
 timeout_sec = 900
 
-# The current launch plan (ENG space, page 100002) names Lena Fischer as the go/no-go
-# criteria owner; the archived 2025 draft (ARCH space) names Marcus Webb. PAY-124 gets
-# assigned to lena.fischer and moves to In Progress. The Confluence pages don't change.
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = []
+dependency_depth = 2
+rationale = "Current ENG page 100002 names Lena Fischer as go/no-go criteria owner while archived page 200002 (2025 draft, replaced) names Marcus Webb; contract requires PAY-124 assignee lena.fischer."
+
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/jira/issues/PAY-124/fields/assignee"
 equals = "lena.fischer"
@@ -18,23 +26,22 @@ equals = "lena.fischer"
 pointer = "/services/jira/issues/PAY-124/fields/status"
 equals = "In Progress"
 
-[[expect.state]]
-pointer = "/services/jira/pages/100002/version"
-equals = 4
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/PAY-124/fields/assignee"
 
-[[expect.state]]
-pointer = "/services/jira/pages/200002/version"
-equals = 1
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/PAY-124/fields/status"
 
-[[expect.required_calls]]
-service = "jira"
-method = "GET"
-path_regex = "^/wiki/rest/api/"
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/PAY-124/fields/updated"
 
-[[expect.forbidden_calls]]
-service = "jira"
-method = "PUT"
-path_regex = "^/wiki/"
+[[expect.preservation.allow]]
+pointer = "/services/jira/issues/PAY-124/changelog"
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/jira/issues", matching = { key = "PAY-124" } }, field = "/fields/assignee", equals = "lena.fischer" }
+action = { selector = { collection = "/services/jira/issues", matching = { key = "PAY-124" } }, field = "/fields/status", equals = "In Progress" }
+allow_same_commit = true
 
 [[solution.call]]
 endpoint = "atlassian"

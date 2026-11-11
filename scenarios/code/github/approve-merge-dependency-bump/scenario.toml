@@ -7,49 +7,124 @@ services = ["github"]
 tags = ["single-service", "write", "github"]
 timeout_sec = 900
 
-# main requires one approval, so the merge only succeeds after an approving review.
-# The repo only allows squash and rebase merges; the user asked for squash.
-[[expect.state]]
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Open Renovate PRs #57 (lodash 4.17.21, security label, ci/test success) and #58 (axios 1.7.4, ci/test failure) plus #55 dark mode; contract allows exactly one review, on #57, and its squash merge."
+
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/github/pulls", matching = { number = 57 }, key_prefix = "octo-org/web#" }
+equals = 1
+fields = { "/state" = "closed", "/merged" = true, "/merge_method" = "squash", "/merged_by" = "mona", "/base" = "main" }
+
+[[expect.records]]
+selector = { collection = "/services/github/reviews", created = true }
+equals = 1
+
+[[expect.records]]
+selector = { collection = "/services/github/reviews", created = true, matching = { repo = "octo-org/web", pull_number = 57, user = "mona" } }
+equals = 1
+fields = { "/state" = "APPROVED" }
+reviewed_text = { "/body" = { optional = true, requirement = "Review narration is optional: the request asks for the approval and the squash merge of the lodash security update, not for review text, so no particular wording is required.", accepted = ["LGTM.", "Approved.", "Security patch for CVE-2021-23337, CI is green. LGTM."] } }
+
+[[expect.records]]
+selector = { collection = "/services/github/commits", created = true }
+equals = 1
+
+[[expect.records]]
+selector = { collection = "/services/github/commits", created = true, key_prefix = "octo-org/web@" }
+equals = 1
+
+[expect.records.fields]
+"/parents" = ["ec9101404d2eae359a8f7a7bd61afcfc080f77b1"]
+"/author_login" = "mona"
+"/files" = [{ filename = "package.json", status = "modified", mode = "100644", content = """
+{
+  "name": "web",
+  "version": "3.2.0",
+  "dependencies": {
+    "axios": "1.6.0",
+    "lodash": "4.17.21",
+    "react": "18.3.1"
+  }
+}
+""" }]
+
+[[expect.relations]]
+source = { collection = "/services/github/reviews", created = true, matching = { repo = "octo-org/web", pull_number = 57, user = "mona" } }
+source_field = "/commit_id"
+target = { collection = "/services/github/branches", key_prefix = "octo-org/web:", matching = { name = "renovate/lodash-4.x" } }
+target_field = "/sha"
+
+[[expect.relations]]
+source = { collection = "/services/github/pulls", matching = { number = 57 }, key_prefix = "octo-org/web#" }
+source_field = "/merge_commit_sha"
+target = { collection = "/services/github/commits", created = true, key_prefix = "octo-org/web@" }
+target_field = "/sha"
+
+[[expect.relations]]
+source = { collection = "/services/github/branches", key_prefix = "octo-org/web:", matching = { name = "main" } }
+source_field = "/sha"
+target = { collection = "/services/github/commits", created = true, key_prefix = "octo-org/web@" }
+target_field = "/sha"
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/github/reviews", created = true, matching = { repo = "octo-org/web", pull_number = 57, user = "mona", state = "APPROVED" } }, field = "/state", equals = "APPROVED" }
+action = { selector = { collection = "/services/github/pulls", key_prefix = "octo-org/web#", matching = { number = 57 } }, field = "/merged", equals = true }
+
+[[expect.preservation.allow]]
+pointer = "/services/github/reviews/*"
+kind = "create"
+matching = { repo = "octo-org/web", pull_number = 57, user = "mona" }
+
+[[expect.preservation.allow]]
+pointer = "/services/github/commits/*"
+kind = "create"
+matching = { author_login = "mona", parents = ["ec9101404d2eae359a8f7a7bd61afcfc080f77b1"] }
+
+[[expect.preservation.allow]]
+pointer = "/services/github/branches/octo-org~1web:main/sha"
+
+[[expect.preservation.allow]]
+pointer = "/services/github/pulls/octo-org~1web#57/state"
+
+[[expect.preservation.allow]]
 pointer = "/services/github/pulls/octo-org~1web#57/merged"
-equals = true
 
-[[expect.state]]
+[[expect.preservation.allow]]
+pointer = "/services/github/pulls/octo-org~1web#57/merged_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/github/pulls/octo-org~1web#57/closed_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/github/pulls/octo-org~1web#57/merged_by"
+
+[[expect.preservation.allow]]
+pointer = "/services/github/pulls/octo-org~1web#57/merge_commit_sha"
+
+[[expect.preservation.allow]]
 pointer = "/services/github/pulls/octo-org~1web#57/merge_method"
-equals = "squash"
 
-[[expect.state]]
-pointer = "/services/github/pulls/octo-org~1web#58/state"
-equals = "open"
+[[expect.preservation.allow]]
+pointer = "/services/github/pulls/octo-org~1web#57/head_sha"
 
-[[expect.state]]
-pointer = "/services/github/pulls/octo-org~1web#55/state"
-equals = "open"
+[[expect.preservation.allow]]
+pointer = "/services/github/pulls/octo-org~1web#57/base_sha"
 
-[[expect.required_calls]]
-service = "github"
-method = "POST"
-path = "/api/graphql"
-body_contains = "\"event\":\"APPROVE\""
-
-[[expect.required_calls]]
-service = "github"
-method = "PUT"
-path = "/api/v3/repos/octo-org/web/pulls/57/merge"
-
-[[expect.forbidden_calls]]
-service = "github"
-method = "PUT"
-path_regex = "^/api/v3/repos/octo-org/web/pulls/(55|58)/merge$"
-
-[[expect.forbidden_calls]]
-service = "github"
-method = "PATCH"
-path_regex = "^/api/v3/repos/octo-org/web/pulls/(55|58)$"
+[[expect.preservation.allow]]
+pointer = "/services/github/pulls/octo-org~1web#57/updated_at"
 
 [[solution.call]]
 endpoint = "github"
 tool = "pull_request_review_write"
-arguments = { method = "create", owner = "octo-org", repo = "web", pullNumber = 57, event = "APPROVE", body = "Security patch for CVE-2021-23337, CI is green. LGTM." }
+arguments = { method = "create", owner = "octo-org", repo = "web", pullNumber = 57, event = "APPROVE" }
 
 [[solution.call]]
 endpoint = "github"

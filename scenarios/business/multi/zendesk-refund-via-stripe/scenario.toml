@@ -7,12 +7,21 @@ services = ["zendesk", "stripe"]
 tags = ["write", "multi-service", "zendesk", "stripe", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity"]
+dependency_depth = 4
+rationale = "Two 48000 charges for order #1077 (ch_ITHH original 17:14, ch_r1lx duplicate 17:16) plus #1080 and Northwind Traders 48000 charges; contract forbids refunding ch_ITHH and touching tickets 5104 and 5109."
+
 # Zendesk ticket 5102 (Hannah Okafor, owner@northwindbakery.com) reports order #1077 charged
 # twice on 2026-03-10. In Stripe, customer Northwind Bakery has two $480.00 charges for #1077:
 # ch_ITHH… (17:14 UTC, original) and ch_r1lx… (17:16 UTC, duplicate). Look-alikes: order #1080
 # ($480.00, same customer, four days later), Northwind Traders' $480.00 lease charge (whose
 # Zendesk ticket 5104 is also open), and Hannah's other tickets 5088 (solved) and 5109 (pending).
-# The first refund the mock mints under this seed is re_SwUQQGI4jAit1effr2iLjUEs.
+[expect]
+version = 2
+audit_history = true
 
 [[expect.state]]
 pointer = "/services/stripe/charges/ch_r1lxhPeTsZKQxIfuhPANytDa/amount_refunded"
@@ -35,9 +44,8 @@ pointer = "/services/zendesk/tickets/5102/status"
 equals = "solved"
 
 [[expect.state]]
-pointer = "/services/zendesk/comments"
-key_prefix = "5102/"
-any = { public = true, body = "re_SwUQQGI4jAit1effr2iLjUEs" }
+pointer = "/services/stripe/charges/ch_r1lxhPeTsZKQxIfuhPANytDa/refunded"
+equals = true
 
 [[expect.state]]
 pointer = "/services/zendesk/tickets/5104/status"
@@ -47,17 +55,171 @@ equals = "open"
 pointer = "/services/zendesk/tickets/5109/status"
 equals = "pending"
 
-[[expect.required_calls]]
-service = "stripe"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostRefunds" } }
+[[expect.records]]
+selector = { collection = "/services/stripe/refunds", matching = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa" }, created = true }
+min_count = 1
+max_count = 48000
+fields = { "/currency" = "usd", "/reason" = "duplicate", "/status" = "succeeded", "/payment_intent" = "pi_qZ8HsvmHI2loKwRfwA0eFYWI" }
+totals = { "/amount" = 48000 }
+integer_bounds = { "/amount" = { min = 1, max = 48000 } }
 
-[[expect.required_calls]]
-service = "zendesk"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment", arguments = { ticket_id = 5102 } }
+[[expect.records]]
+selector = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+min_count = 1
+max_count = 48000
+fields = { "/fee" = 0, "/fee_details" = [], "/currency" = "usd", "/status" = "available" }
+totals = { "/amount" = -48000, "/net" = -48000 }
+integer_bounds = { "/amount" = { min = -48000, max = -1 }, "/net" = { min = -48000, max = -1 } }
+
+[[expect.records]]
+selector = { collection = "/services/zendesk/comments", created = true }
+equals = 1
+fields = { "/ticket_id" = 5102, "/public" = true }
+
+[expect.records.reviewed_text."/body"]
+requirement = "Tell the customer that the duplicate payment was refunded and cite every actual Stripe refund ID. The ticket supplies Hannah and the order; a greeting, signature, amount, order, date or statement about the original charge is not required. A bare ID does not say it was refunded."
+mentions = ["${refund_ids}", ["refund", "refunded", "refunds", "refunding", "reversed", "returned", "credited"]]
+
+[expect.records.reviewed_text."/body".bound]
+examples = [
+  "Hi Hannah,\n\nWe refunded the duplicate $480.00 charge for order #1077 in full. The Stripe refund reference is ${refund_ids}. The original charge remains in place.",
+  "Hannah, the full duplicate payment of $480.00 for order #1077 has been refunded. Stripe refund references: ${refund_ids}. The original payment is unchanged.",
+  "The duplicate charge has been refunded in full. Stripe refund reference: ${refund_ids}.",
+  "Your duplicate payment was refunded. Stripe refund references: ${refund_ids}.",
+]
+
+[expect.records.reviewed_text."/body".bound.identities.refund_ids]
+selector = { collection = "/services/stripe/refunds", matching = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa" }, created = true }
+field = "/id"
+separator = ", "
+
+[expect.records.reviewed_text."/html_body"]
+format = "zendesk_html"
+requirement = "The rendered public reply must say the duplicate payment was refunded and show every actual Stripe refund ID, without hidden content. The ticket supplies Hannah and the order; a greeting, signature, amount, order, date or statement about the original charge is not required."
+mentions = ["${refund_ids}", ["refund", "refunded", "refunds", "refunding", "reversed", "returned", "credited"]]
+
+[expect.records.reviewed_text."/html_body".bound]
+examples = [
+  "Hi Hannah,\n\nWe refunded the duplicate $480.00 charge for order #1077 in full. The Stripe refund reference is ${refund_ids}. The original charge remains in place.",
+  "Hannah, the full duplicate payment of $480.00 for order #1077 has been refunded. Stripe refund references: ${refund_ids}. The original payment is unchanged.",
+  "The duplicate charge has been refunded in full. Stripe refund reference: ${refund_ids}.",
+  "Your duplicate payment was refunded. Stripe refund references: ${refund_ids}.",
+]
+
+[expect.records.reviewed_text."/html_body".bound.identities.refund_ids]
+selector = { collection = "/services/stripe/refunds", matching = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa" }, created = true }
+field = "/id"
+separator = ", "
+
+[[expect.records]]
+selector = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+min_count = 1
+max_count = 48000
+fields = { "/data/object/charge" = "ch_r1lxhPeTsZKQxIfuhPANytDa", "/data/object/reason" = "duplicate", "/data/object/currency" = "usd" }
+totals = { "/data/object/amount" = 48000 }
+integer_bounds = { "/data/object/amount" = { min = 1, max = 48000 } }
+
+[[expect.records]]
+selector = { collection = "/services/stripe/events", matching = { type = "charge.refunded" }, created = true }
+min_count = 1
+max_count = 48000
+fields = { "/data/object/id" = "ch_r1lxhPeTsZKQxIfuhPANytDa", "/data/object/currency" = "usd" }
+integer_bounds = { "/data/object/amount_refunded" = { min = 1, max = 48000 } }
+
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", matching = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa" }, created = true }
+source_field = "/balance_transaction"
+target = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+target_field = "/id"
+kind = "bijection"
+fields = [
+  { source_field = "/amount", target_field = "/amount", kind = "negated_integer" },
+  { source_field = "/amount", target_field = "/net", kind = "negated_integer" },
+  { source_field = "/currency", target_field = "/currency", kind = "equals" },
+]
+
+[[expect.relations]]
+source = { collection = "/services/stripe/balance_transactions", matching = { type = "refund" }, created = true }
+source_field = "/source"
+target = { collection = "/services/stripe/refunds", matching = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa" }, created = true }
+target_field = "/id"
+kind = "bijection"
+
+[[expect.relations]]
+source = { collection = "/services/stripe/refunds", matching = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa" }, created = true }
+source_field = "/id"
+target = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+target_field = "/data/object/id"
+kind = "bijection"
+
+[[expect.relations]]
+source = { collection = "/services/stripe/events", matching = { type = "refund.created" }, created = true }
+source_field = "/request/id"
+target = { collection = "/services/stripe/events", matching = { type = "charge.refunded" }, created = true }
+target_field = "/request/id"
+kind = "bijection"
+
+[[expect.relations]]
+source = { collection = "/services/zendesk/comments", created = true }
+source_field = "/audit_id"
+target = { collection = "/services/zendesk/audits", matching = { ticket_id = 5102 }, created = true }
+target_field = "/id"
+kind = "foreign_key"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/charges/ch_r1lxhPeTsZKQxIfuhPANytDa/amount_refunded"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/charges/ch_r1lxhPeTsZKQxIfuhPANytDa/refunded"
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/5102/status"
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/5102/updated_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/refunds/*"
+kind = "create"
+matching = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa", reason = "duplicate", currency = "usd", status = "succeeded" }
+max_count = 48000
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/balance_transactions/*"
+kind = "create"
+matching = { type = "refund", currency = "usd" }
+max_count = 48000
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "refund.created", data = { object = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa" } } }
+max_count = 48000
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "charge.refunded", data = { object = { id = "ch_r1lxhPeTsZKQxIfuhPANytDa" } } }
+max_count = 48000
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/comments/*"
+kind = "create"
+matching = { ticket_id = 5102, public = true }
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/audits/*"
+kind = "create"
+matching = { ticket_id = 5102 }
+count_scope = "per_commit"
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/stripe/charges", matching = { id = "ch_r1lxhPeTsZKQxIfuhPANytDa" } }, field = "/amount_refunded", equals = 48000 }
+action = { selector = { collection = "/services/zendesk/comments", key_prefix = "5102/", matching = { public = true }, created = true }, field = "/public", equals = true }
+
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/stripe/charges", matching = { id = "ch_r1lxhPeTsZKQxIfuhPANytDa" } }, field = "/amount_refunded", equals = 48000 }
+action = { selector = { collection = "/services/zendesk/tickets", matching = { id = 5102 } }, field = "/status", equals = "solved" }
 
 [[expect.forbidden_calls]]
 service = "stripe"
@@ -116,10 +278,17 @@ endpoint = "stripe"
 tool = "stripe_api_write"
 arguments = { stripe_api_operation_id = "PostRefunds", parameters = { charge = "ch_r1lxhPeTsZKQxIfuhPANytDa", reason = "duplicate" }, stripe_context = "acct_1FwY8bQk2LmN4pRs", livemode = false }
 
+[[solution.call.capture]]
+name = "refund_id"
+pointer = "/content/0/text"
+json_pointer = "/id"
+constraint = { type = "string", pattern = "^re_[A-Za-z0-9_]+$" }
+
 [[solution.call]]
 endpoint = "zendesk"
 tool = "create_ticket_comment"
-arguments = { ticket_id = 5102, public = true, comment = "Hi Hannah,\n\nSorry about that! We found the second $480.00 charge for order #1077 on March 10 and refunded it in full. The refund ID is re_SwUQQGI4jAit1effr2iLjUEs; it should appear on your Visa ending 1881 within 5-10 business days. The original charge for the order stays in place.\n\nBest,\nFernway Support" }
+template = true
+arguments = { ticket_id = 5102, public = true, comment = "Hi Hannah,\n\nWe refunded the duplicate $480.00 charge for order #1077 in full. The Stripe refund reference is ${refund_id}. The original charge remains in place." }
 
 [[solution.call]]
 endpoint = "zendesk"

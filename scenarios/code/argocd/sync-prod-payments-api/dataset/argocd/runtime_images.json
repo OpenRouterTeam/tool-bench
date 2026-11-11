@@ -1,0 +1,16 @@
+[
+  {
+    "_key": "payments-production-3.18.0",
+    "app": "payments/payments-api",
+    "image": "ghcr.io/lumen-retail/payments-api:3.18.0",
+    "pullable": true,
+    "ready": true
+  },
+  {
+    "_key": "payments-staging-3.18.0",
+    "app": "payments-staging/payments-api",
+    "image": "ghcr.io/lumen-retail/payments-api:3.18.0",
+    "pullable": true,
+    "ready": true
+  }
+]

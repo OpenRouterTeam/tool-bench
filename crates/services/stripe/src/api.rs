@@ -764,7 +764,51 @@ pub fn check_params(op: &str, params: &Params) -> Res<()> {
 
 pub fn dispatch(ctx: &mut Ctx, route: &Route, args: &Args, params: &Params) -> Res<Value> {
     check_params(route.op, params)?;
-    (route.handler)(ctx, args, params)
+    let key = ctx
+        .idempotency_key
+        .clone()
+        .filter(|_| route.method == "POST");
+    let fingerprint = crate::idempotency::fingerprint(route.op, args, &params.snapshot());
+    if let Some(cached) = key
+        .as_deref()
+        .and_then(|key| crate::idempotency::check(ctx.world, key, &fingerprint))
+    {
+        return cached;
+    }
+    let resource = if !args.id().is_empty() {
+        Some(args.id().to_owned())
+    } else if route.op == "PostRefunds" {
+        params.str("charge").or_else(|| {
+            let intent = params.str("payment_intent")?;
+            ctx.docs("charges")
+                .iter()
+                .find(|(_, charge)| charge["payment_intent"].as_str() == Some(intent.as_str()))
+                .map(|(key, _)| key.clone())
+        })
+    } else {
+        None
+    };
+    let decision = ctx
+        .world
+        .check_fault(crate::NAME, route.op, resource.as_deref());
+    if let mock_core::faults::FaultDecision::TransientError { status } = decision {
+        return Err(StripeError {
+            kind: if status == 429 {
+                "rate_limit_error"
+            } else {
+                "api_error"
+            },
+            ..StripeError::invalid("Request temporarily unavailable.").status(status)
+        });
+    }
+    let result = (route.handler)(ctx, args, params);
+    if let (Some(key), Ok(value)) = (&key, &result) {
+        crate::idempotency::store(ctx.world, key, route.op, &fingerprint, value);
+    }
+    if result.is_ok() && decision == mock_core::faults::FaultDecision::ResponseLost {
+        ctx.response_lost = true;
+    }
+    result
 }
 
 /// `{"deleted": true}` stub returned by deletes.

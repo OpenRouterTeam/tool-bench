@@ -390,8 +390,7 @@ async fn customer_create_and_update_reflect_in_state() {
     .await;
     let id = c["id"].as_str().unwrap().to_owned();
     assert!(id.starts_with("cus_") && id.len() == 18);
-    // One tick per tool call: 2026-03-18T15:00:07Z.
-    assert_eq!(c["created"], 1_773_846_007);
+    assert_eq!(c["created"], 1_773_846_000);
     let u = write(
         &app,
         "PostCustomersCustomer",

@@ -1,0 +1,1 @@
+[{"name":"worker_uid","pointer":"/content/0/text","json_pointer":"/nodes","select":{"matching":{"kind":"Deployment","name":"search-indexer-worker","namespace":"search"},"pointer":"/uid"},"constraint":{"minLength":1,"type":"string"}}]

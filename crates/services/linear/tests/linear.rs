@@ -311,7 +311,7 @@ async fn create_update_and_assign_issues() {
         issue["stateId"], "0964aa8b-46b3-5ca7-89ef-326f7c8ffadb",
         "team default state (Todo)"
     );
-    assert_eq!(issue["createdAt"], "2026-10-29T15:00:07.000Z");
+    assert_eq!(issue["createdAt"], "2026-10-29T15:00:00.000Z");
     assert_eq!(
         err(
             &app,

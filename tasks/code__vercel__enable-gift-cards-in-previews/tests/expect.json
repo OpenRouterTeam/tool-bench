@@ -1,101 +1,208 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/preview/NEXT_PUBLIC_ENABLE_GIFT_CARDS",
-      "equals": "true",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/vercel/environment_bindings",
+        "matching": {
+          "key": "NEXT_PUBLIC_ENABLE_GIFT_CARDS",
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 2,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/records": 1,
+        "/value": "true"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [
+        {
+          "/scope": "preview"
+        },
+        {
+          "/scope": "development"
+        }
+      ],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/development/NEXT_PUBLIC_ENABLE_GIFT_CARDS",
-      "equals": "true",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/production/NEXT_PUBLIC_ENABLE_GIFT_CARDS",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/preview/PAYMENTS_API_URL",
-      "equals": "https://sandbox.pay.acme-shop.com",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/development/PAYMENTS_API_URL",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/production/PAYMENTS_API_URL",
-      "equals": "https://pay.acme-shop.com",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/vercel/env_by_target/prj_ysFUnRJiXZGcxlQubrXGJqx7GadE/preview/NEXT_PUBLIC_ENABLE_GIFT_CARDS",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/vercel/environment_bindings",
+        "matching": {
+          "key": "PAYMENTS_API_URL",
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+          "scope": "preview"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/records": 1,
+        "/value": "https://sandbox.pay.acme-shop.com"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "vercel",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "vercel-create-environment-variables"
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/vercel/environment_variables/*",
+        "kind": "create",
+        "matching": {
+          "key": "NEXT_PUBLIC_ENABLE_GIFT_CARDS",
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+          "value": "true"
+        },
+        "field_patterns": {
+          "/scope": "^(development|preview|development,preview)$"
+        },
+        "max_count": 2,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "vercel",
-      "method": null,
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "vercel-remove-environment-variable"
+      {
+        "pointer": "/services/vercel/environment_variables/*",
+        "kind": "create",
+        "matching": {
+          "key": "PAYMENTS_API_URL",
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+          "scope": "preview",
+          "value": "https://sandbox.pay.acme-shop.com"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "vercel",
-      "method": null,
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "vercel-delete-project"
+      {
+        "pointer": "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/env",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+      {
+        "pointer": "/services/vercel/projects/prj_3dw2VoUa166qmaLV3P6dm828isAX/updatedAt",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/preview/NEXT_PUBLIC_ENABLE_GIFT_CARDS",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/development/NEXT_PUBLIC_ENABLE_GIFT_CARDS",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/env_by_target/prj_3dw2VoUa166qmaLV3P6dm828isAX/preview/PAYMENTS_API_URL",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/environment_bindings/*",
+        "kind": "create",
+        "matching": {
+          "key": "NEXT_PUBLIC_ENABLE_GIFT_CARDS",
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+          "records": 1,
+          "value": "true"
+        },
+        "field_patterns": {
+          "/scope": "^(preview|development)$"
+        },
+        "max_count": 2,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/vercel/environment_bindings/*",
+        "kind": "create",
+        "matching": {
+          "key": "PAYMENTS_API_URL",
+          "projectId": "prj_3dw2VoUa166qmaLV3P6dm828isAX",
+          "records": 1,
+          "scope": "preview",
+          "value": "https://sandbox.pay.acme-shop.com"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

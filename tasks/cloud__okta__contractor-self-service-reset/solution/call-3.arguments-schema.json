@@ -1,0 +1,1 @@
+{"properties":{"policy_id":{"title":"Policy Id","type":"string"},"rule_id":{"title":"Rule Id","type":"string"},"rule_data":{"additionalProperties":true,"title":"Rule Data","type":"object"}},"required":["policy_id","rule_id","rule_data"],"title":"update_policy_ruleArguments","type":"object"}

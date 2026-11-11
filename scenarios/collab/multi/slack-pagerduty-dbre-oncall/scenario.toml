@@ -7,12 +7,62 @@ services = ["slack", "pagerduty"]
 tags = ["lookup", "multi-service", "slack", "pagerduty", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity", "stale_state"]
+dependency_depth = 3
+rationale = "Slack thread first guesses the staging DB alert, then corrects to production DBRE; PagerDuty has Database Reliability (Dana Nguyen today, then Sam Okafor) and Database Reliability - Staging (Sam Okafor only)."
+
 # The thread starts by guessing the staging DB alert (Database Reliability - Staging, Sam
 # Okafor only), then Sam Ortiz corrects it: production inventory-db, PD #4813, the production
 # DBRE rotation. Database Reliability (PEPDBRE): level 1 is the daily DBRE Primary schedule,
-# Dana Nguyen on 2026-10-30; level 2 is Sam Okafor.
+# Dana Nguyen on 2026-10-30; level 2 is Sam Okafor. PagerDuty agrees with the thread: the
+# inventory-db service and incident #4813 use that policy and the incident is assigned to
+# Dana, so resolving the on-call from the incident's own routing names the same two people.
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
-contains = ["Dana Nguyen", "Sam Okafor"]
+ [expect.answer.record_facts]
+ requirement = "Name the level-1 and level-2 on-call people for the production Database Reliability escalation policy right now."
+ mode = "statements"
+ order = ["oncall1", "oncall2"]
+ rejected = [
+   "Level 1: ${oncall2}",
+   "First on call: ${oncall2}",
+   "Level 2: ${oncall1}",
+   "Backup: ${oncall1}",
+ ]
+
+ [expect.answer.record_facts.selector]
+ collection = "/services/pagerduty/escalation_policies"
+ matching = { name = "Database Reliability" }
+
+ [expect.answer.record_facts.related.schedule]
+ collection = "/services/pagerduty/schedules"
+ on = { "/id" = "/escalation_rules/0/targets/0/id" }
+ pick = { oncall = { overrides = "/services/pagerduty/overrides" } }
+
+ [expect.answer.record_facts.related.level1]
+ from = "schedule"
+ collection = "/services/pagerduty/users"
+ on = { "/id" = "/id" }
+
+ [expect.answer.record_facts.related.level2]
+ collection = "/services/pagerduty/users"
+ on = { "/id" = "/escalation_rules/1/targets/0/id" }
+
+ [expect.answer.record_facts.facts.oncall1]
+ record = "level1"
+ field = "/name"
+ kind = "text"
+
+ [expect.answer.record_facts.facts.oncall2]
+ record = "level2"
+ field = "/name"
+ kind = "text"
 
 [[expect.forbidden_calls]]
 service = "slack"
@@ -59,8 +109,5 @@ arguments = { escalation_policy_ids = ["PEPDBRE"] }
 
 [solution]
 answer = """
-Production DBRE (PagerDuty escalation policy "Database Reliability", for PD #4813 on inventory-db-replica-1):
-
-- First on call: Dana Nguyen (DBRE Primary daily rotation, today 2026-10-30)
-- Backup (level 2): Sam Okafor
+Level 1: Dana Nguyen. Level 2: Sam Okafor.
 """

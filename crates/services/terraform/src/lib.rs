@@ -13,9 +13,11 @@
 #![recursion_limit = "256"]
 
 mod common;
+mod execution;
 mod org;
 mod private_registry;
 mod public_registry;
+mod representation;
 mod resources;
 mod runs;
 mod sets;
@@ -47,7 +49,11 @@ impl MockService for Terraform {
     }
 
     fn hosts(&self) -> &'static [&'static str] {
-        &["registry.terraform.io"]
+        &["app.terraform.io", "registry.terraform.io"]
+    }
+
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(execution::initialize)
     }
 
     fn router(&self) -> Router<SharedWorld> {

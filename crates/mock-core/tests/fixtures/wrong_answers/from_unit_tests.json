@@ -1,0 +1,230 @@
+{
+ "business/stripe/customer-mrr": [
+  {
+   "answer": "Harbor & Pine Coffee Co. has a monthly recurring revenue of $439.",
+   "edit": {
+    "/services/stripe/customers/cus_mxxxdqMeoA1GEc/name": "Harbor & Pine Roasters"
+   },
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-optional-detail"
+  }
+ ],
+ "code/argocd/find-degraded-app": [
+  {
+   "answer": "App: checkout-web. Tag: 2.14.0-rc3. ImagePullBackOff. Pod checkout-web-FAKE-pod.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "fabricated-optional-detail"
+  }
+ ],
+ "code/github/ci-failure-root-cause": [
+  {
+   "answer": "unit-tests failed: TestRetryBackoffCapsAtMaxDelay, \"expected delay 30s, got 32s\". Run 9999.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "fabricated-optional-detail"
+  },
+  {
+   "answer": "unit-tests failed: TestRetryBackoffCapsAtMaxDelay, \"expected delay 30s, got 32s\". At other_test.go:99.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "fabricated-optional-detail"
+  }
+ ],
+ "code/multi/argocd-degraded-gitlab-commit": [
+  {
+   "answer": "checkout-web (2.14.0-rc3). Pipeline 7712: image-publish failed, permission_denied. Commit deadbeef.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "fabricated-optional-detail"
+  },
+  {
+   "answer": "App: checkout-web, failing on image tag 2.14.0-rc3. Pipeline 7712: image-publish failed, permission_denied. Commit a23f2a7.",
+   "edit": {
+    "/services/argocd/applications/argocd~1catalog-api/status/sync/revision": "b84a6d9c21f788c07d95ceaeb529e54b7ae3dbcd",
+    "/services/argocd/applications/argocd~1checkout-web/status/sync/revision": "b84a6d9c21f788c07d95ceaeb529e54b7ae3dbcd",
+    "/services/argocd/applications/argocd~1order-events-consumer/status/sync/revision": "b84a6d9c21f788c07d95ceaeb529e54b7ae3dbcd",
+    "/services/gitlab/commits/lumen-retail~1storefront~1storefront-deploy@a23f2a7b21f788c07d95ceaeb529e54b7ae3dbcd/id": "b84a6d9c21f788c07d95ceaeb529e54b7ae3dbcd"
+   },
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-optional-detail"
+  },
+  {
+   "answer": "checkout-web (2.14.0-rc3). Pipeline 7712: image-publish failed, permission_denied. Scope write:packages.",
+   "edit": {
+    "/services/gitlab/jobs/77123/trace": "Running with gitlab-runner 18.4.0\n$ docker push ghcr.io/lumen-retail/checkout-web:2.14.0-rc3\ndenied: permission_denied: The token provided does not match expected scopes (read:packages). The CI token GHCR_TOKEN expired.\nERROR: Job failed: command terminated with exit code 1"
+   },
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-optional-detail"
+  }
+ ],
+ "collab/google/northwind-invoice-lookup": [
+  {
+   "answer": "PO-48213, $12,480.00, due November 20, 2026. This replaces the earlier draft figure of $11,900.00.",
+   "edit": {
+    "/services/google/gmail_messages/b26a427d1034a022/body_text": "Hello Octo Corp team,\n\nPlease find invoice INV-20931 for October services attached.\n\nPO number: PO-48213\nAmount due: $12,480.00\nDue date: November 20, 2026\n\nNote: this replaces the draft figure of $10,500.00 we mentioned on our call.\n\nThank you,\nNorthwind Traders Billing"
+   },
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-optional-detail"
+  }
+ ],
+ "collab/jira/blocked-sprint-item": [
+  {
+   "answer": "PAY-119 is blocked by PAY-117, assigned to Sam Ortiz. In Progress.",
+   "edit": {
+    "/services/jira/issues/PAY-117/fields/status": "Done"
+   },
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-optional-detail"
+  }
+ ],
+ "collab/multi/jira-sentry-crash-impact": [
+  {
+   "answer": "STOREFRONT-WEB-8D: 2,172 events and 1,318 users, first seen in 5.3.0. Last seen in storefront@5.3.1.",
+   "edit": {
+    "/services/sentry/issues/STOREFRONT-WEB-8D/lastRelease": "storefront@5.4.0"
+   },
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-optional-detail"
+  }
+ ],
+ "collab/slack/observability-decision": [
+  {
+   "answer": "Vendor: Grafana Cloud. Contract start: November 15, 2026. A 3-year term.",
+   "edit": {
+    "/services/slack/messages/C03INFRA9QX~11793131800.099001/text": "Decision: we're going with Grafana Cloud. Contract signed today; it starts 2026-11-15 on a 5-year term. Datadog stays until the migration completes on 2027-01-31."
+   },
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-optional-detail"
+  }
+ ],
+ "ops/datadog/checkout-p95-peak": [
+  {
+   "answer": "Production did not reach 1843 ms at 14:35 UTC.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "negated-verb-before-measured-value"
+  }
+ ],
+ "ops/multi/sentry-release-commit-lookup": [
+  {
+   "answer": "STOREFRONT-WEB-7Q, storefront@5.2.0, PR #57, Sofia Alvarez. The pull request was not the PR numbered #57.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "denied-after-stating"
+  }
+ ],
+ "ops/sentry/top-unresolved-checkout": [
+  {
+   "answer": "CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s) has the fewest events.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate"
+  }
+ ],
+ "search/brave/hosting-sla-lookup": [
+  {
+   "answer": "The SLA commits to 99.9% with a 5% credit. (Another page says 99.95% and 10%.)",
+   "expect": "reject",
+   "known": "pass",
+   "style": "right-value-as-aside"
+  }
+ ],
+ "search/elasticsearch/deleted-api-key-audit": [
+  {
+   "answer": "The key was deleted by m.okafor at 16:42:00 UTC.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-seconds"
+  },
+  {
+   "answer": "The key was deleted by m.okafor at 2026-10-29T16:42:00Z.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "stale-seconds"
+  }
+ ],
+ "search/elasticsearch/duplicate-charge-lookup": [
+  {
+   "answer": "ORD-109002 and ORD-109003 ($86.40 each), plus ORD-109777 ($64.00).",
+   "expect": "reject",
+   "known": "pass",
+   "style": "extra-list-item"
+  }
+ ],
+ "search/elasticsearch/latency-by-region": [
+  {
+   "answer": "The region with the best performance is eu-west-1 at 412.5 ms.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate"
+  },
+  {
+   "answer": "eu-west-1 has the shortest average latency at 412.5 ms.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate"
+  },
+  {
+   "answer": "eu-west-1 leads with the minimum average of 412.5 ms.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate"
+  },
+  {
+   "answer": "eu-west-1 has the least latency, averaging 412.5 ms.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate"
+  },
+  {
+   "answer": "eu-west-1 wins on speed at 412.5 ms.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate"
+  },
+  {
+   "answer": "eu-west-1 averages 412.5 ms. It wins on speed.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate-in-next-sentence"
+  },
+  {
+   "answer": "eu-west-1: 412.5 ms. This result proves every other region is worse.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate-in-next-sentence"
+  },
+  {
+   "answer": "{\"fastest_region\":\"eu-west-1\",\"average\":\"412.5 ms\"}",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate-in-label"
+  },
+  {
+   "answer": "| Fastest region | Average duration |\n| eu-west-1 | 412.5 ms |",
+   "expect": "reject",
+   "known": "pass",
+   "style": "opposite-predicate-in-label"
+  },
+  {
+   "answer": "eu-west-1: 412.5 ms != the result.",
+   "expect": "reject",
+   "known": "pass",
+   "style": "symbolic-denial"
+  },
+  {
+   "answer": "eu-west-1: 412.5 ms ≠",
+   "expect": "reject",
+   "known": "pass",
+   "style": "symbolic-denial"
+  }
+ ]
+}

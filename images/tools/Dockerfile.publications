@@ -1,0 +1,5 @@
+ARG BASE_TOOLS_IMAGE=tool-bench-tools:refine-3b79b43d1f5d
+FROM ${BASE_TOOLS_IMAGE}
+COPY catalog/services.toml /etc/tool-bench/services.toml
+COPY servers/snapshots /opt/tool-bench/snapshots
+COPY servers/extensions /etc/tool-bench/extensions

@@ -1,0 +1,1 @@
+cloud/okta/contractor-self-service-reset

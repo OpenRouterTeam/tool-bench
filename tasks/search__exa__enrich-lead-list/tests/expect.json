@@ -1,54 +1,60 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/exa/agent_runs/agent_run_scs3OiJHAdhPsWK7P8UasA97/status",
-      "equals": "completed",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/exa/agent_runs/agent_run_erVFsP6IfBuF1zdebjP5n3PX",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/exa/agent_runs",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/object": "agent_run",
+        "/status": "completed"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "exa",
-      "method": "POST",
-      "path": "/agent/runs",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "Corvane Robotics",
-      "min_count": 1
-    },
-    {
-      "service": "exa",
-      "method": "POST",
-      "path": "/agent/runs",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "Lumetric Health",
-      "min_count": 1
-    },
-    {
-      "service": "exa",
-      "method": "POST",
-      "path": "/agent/runs",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "Bramblewood Foods",
-      "min_count": 1
+      "source": {
+        "collection": "/services/exa/agent_runs",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/output",
+      "target": {
+        "collection": "/services/exa/agent_outputs",
+        "matching": {
+          "id": "enrich-three-leads"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/output",
+      "kind": "equals",
+      "fields": []
     }
   ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
   "forbidden_calls": [
     {
       "service": "exa",
@@ -58,16 +64,70 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "Pittsburgh",
-      "Austin",
-      "Leeds",
-      "340"
+    "contains": [],
+    "regex": null,
+    "source_facts": {
+      "requirement": "Report every lead with its own headquarters city and approximate employee headcount as related by the authored enrichment output, without swapping, omitting or negating any row.",
+      "source": {
+        "selector": {
+          "collection": "/services/exa/agent_outputs",
+          "matching": {
+            "id": "enrich-three-leads"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/output/content",
+        "separator": null
+      },
+      "key": "company",
+      "rows": "all",
+      "columns": {
+        "city": {
+          "header": "HQ city",
+          "kind": "place",
+          "required": true
+        },
+        "company": {
+          "header": "Company",
+          "kind": "name",
+          "required": true,
+          "short_names": true
+        },
+        "employees": {
+          "header": "Employees (approx.)",
+          "kind": "number",
+          "required": true
+        }
+      }
+    }
+  },
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/exa/agent_runs/*",
+        "kind": "create",
+        "matching": {
+          "object": "agent_run",
+          "status": "completed"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
     ],
-    "regex": "(?s)(1[,. ]?150.*2[,. ]?600|2[,. ]?600.*1[,. ]?150)"
-  }
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

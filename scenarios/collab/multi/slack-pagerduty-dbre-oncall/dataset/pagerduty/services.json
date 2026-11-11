@@ -77,12 +77,12 @@
     "description": "Production inventory PostgreSQL cluster.",
     "status": "active",
     "escalation_policy": {
-      "id": "PEPPLAT",
+      "id": "PEPDBRE",
       "type": "escalation_policy_reference"
     },
     "teams": [
       {
-        "id": "PTPLATF",
+        "id": "PTDBREL",
         "type": "team_reference"
       }
     ],

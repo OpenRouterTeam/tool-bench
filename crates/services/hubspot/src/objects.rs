@@ -21,8 +21,8 @@ use serde_json::{Map, Value, json as json_value};
 use crate::{
     assoc,
     types::{
-        ENGAGEMENT_TYPES, ObjectType, association_defs, default_properties, property_definitions,
-        resolve, searchable_properties,
+        DEAL_CLOSED_PROPS, ENGAGEMENT_TYPES, ObjectType, association_defs, deal_closed_state,
+        default_properties, property_definitions, resolve, searchable_properties,
     },
     util::{
         bad_json, base_url, error, id_order, iso_ms, iso_secs, not_found, numeric, page_window,
@@ -49,6 +49,19 @@ pub fn all_props(ty: &ObjectType, doc: &Value) -> Map<String, Value> {
         && let Some(u) = doc["updatedAt"].as_str()
     {
         props.insert(ty.modified_key().into(), Value::String(u.to_owned()));
+    }
+    // HubSpot derives a deal's closed flags from its stage; they are never stored.
+    if ty.name == "deals"
+        && let Some(flags) = props
+            .get("dealstage")
+            .and_then(Value::as_str)
+            .and_then(deal_closed_state)
+    {
+        for (name, flag) in flags {
+            props
+                .entry(name)
+                .or_insert_with(|| Value::String(flag.to_string()));
+        }
     }
     props
 }
@@ -643,7 +656,9 @@ pub fn validate_properties(
             ));
             continue;
         };
-        if READ_ONLY.contains(&name.as_str()) {
+        if READ_ONLY.contains(&name.as_str())
+            || (ty.name == "deals" && DEAL_CLOSED_PROPS.contains(&name.as_str()))
+        {
             errors.push(invalid(
                 name,
                 "READ_ONLY_VALUE",

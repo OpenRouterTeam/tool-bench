@@ -26,6 +26,7 @@ pub mod db;
 pub mod docs;
 mod feedback;
 pub mod multipart;
+mod native_queries;
 pub mod sql;
 
 use std::collections::HashMap;
@@ -67,6 +68,10 @@ impl MockService for Supabase {
 
     fn hosts(&self) -> &'static [&'static str] {
         &[feedback::HOST]
+    }
+
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(db::initialize)
     }
 
     fn router(&self) -> Router<SharedWorld> {
@@ -564,6 +569,37 @@ fn status_of(w: &mut WorldState, r: &str) -> String {
 }
 
 fn pause_project(w: &mut WorldState, r: &str) -> Response {
+    let service = w.service(NAME).expect("Supabase is initialized");
+    let plan = get_doc(service, "projects", r)
+        .and_then(|project| {
+            project["organization_slug"]
+                .as_str()
+                .or_else(|| project["organization_id"].as_str())
+                .and_then(|organization| get_doc(service, "organizations", organization))
+        })
+        .and_then(|organization| organization["plan"].as_str().map(str::to_owned));
+    match plan.as_deref() {
+        Some("free") => {}
+        Some("pro" | "team" | "enterprise" | "platform") => {
+            return msg(
+                StatusCode::BAD_REQUEST,
+                "Projects under a paid plan cannot be paused.",
+            );
+        }
+        _ => {
+            let operation = mock_core::events::current()
+                .expect("pause eligibility failures require operation context");
+            w.fail_operation(
+                &operation,
+                "unsupported_project_pause_eligibility",
+                "The project organization plan is absent or unsupported.",
+            );
+            return msg(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Project pause eligibility cannot be determined.",
+            );
+        }
+    }
     match status_of(w, r).as_str() {
         "ACTIVE_HEALTHY" | "ACTIVE_UNHEALTHY" => {
             set_status(w, r, "INACTIVE");
@@ -625,26 +661,25 @@ fn run_sql(
     read_only: bool,
 ) -> Result<Vec<Value>, sql::SqlError> {
     let mut d = load_db(w, r);
-    let lower = query.to_lowercase();
-    if lower.contains("relrowsecurity") && lower.contains("pg_namespace") {
-        return Ok(db::introspect_tables(
-            &d,
-            params,
-            lower.contains("where schema not in"),
-        ));
-    }
-    if lower.contains("pg_available_extensions()") {
-        return Ok(db::introspect_extensions(&d));
-    }
-    if lower.contains("supabase_migrations.schema_migrations") {
-        let svc = w.service_mut(NAME);
-        let rows = docs_with_prefix(svc, "migrations", &format!("{r}/"))
-            .into_iter()
-            .map(|(_, m)| json_value!({ "version": m["version"], "name": m["name"], "statements": m.get("statements").cloned().unwrap_or(json_value!([])) }))
-            .collect();
-        return Ok(rows);
-    }
-    let rows = sql::execute(&mut d, query, params, read_only)?;
+    let execution = native_queries::execute(&d, query, params).and_then(|native| match native {
+        Some(rows) => Ok(rows),
+        None => sql::execute(&mut d, query, params, read_only),
+    });
+    let rows = match execution {
+        Ok(rows) => rows,
+        Err(error) => {
+            if error.is_capability_gap() {
+                let operation = mock_core::events::current()
+                    .expect("SQL capability failures require operation context");
+                w.fail_operation(
+                    &operation,
+                    "unsupported_sql_statement",
+                    "The world does not implement this SQL statement family.",
+                );
+            }
+            return Err(error);
+        }
+    };
     if d.dirty {
         save_db(w, r, &d);
     } else {
@@ -685,10 +720,26 @@ fn apply_migration(w: &mut WorldState, r: &str, b: &Value) -> Response {
     let (Some(query), name) = (b["query"].as_str(), b["name"].as_str()) else {
         return msg(StatusCode::BAD_REQUEST, "query must be a string");
     };
+    let mut sequence: u64 = compact_time(&w.clock.now_rfc3339())
+        .parse()
+        .expect("compact timestamp is numeric");
+    while w
+        .service(NAME)
+        .and_then(|service| service.store.collection("migrations"))
+        .is_some_and(|migrations| migrations.contains(&format!("{r}/{sequence:014}")))
+    {
+        let Some(next) = sequence.checked_add(1) else {
+            return msg(
+                StatusCode::SERVICE_UNAVAILABLE,
+                "migration version namespace is exhausted",
+            );
+        };
+        sequence = next;
+    }
+    let version = format!("{sequence:014}");
     if let Err(e) = run_sql(w, r, query, &[], false) {
         return msg(StatusCode::BAD_REQUEST, &e.api_message());
     }
-    let version = compact_time(&w.clock.now_rfc3339());
     let doc = json_value!({ "version": version, "name": name, "statements": [query] });
     w.service_mut(NAME)
         .store
@@ -785,6 +836,7 @@ fn logs(w: &mut WorldState, r: &str, q: &HashMap<String, String>) -> Response {
         .collect();
     let mut d = sql::Db {
         tables: vec![sql::Table { def, rows }],
+        read_only_tables: Vec::new(),
         extensions: Vec::new(),
         now: format_tstz(now),
         ids: svc.ids.clone(),
@@ -1389,6 +1441,7 @@ fn delete_branch(w: &mut WorldState, id: &str) -> Response {
     svc.store.collection_mut("projects").remove(&branch_ref);
     let empty = sql::Db {
         tables: Vec::new(),
+        read_only_tables: Vec::new(),
         extensions: Vec::new(),
         now,
         ids: svc.ids.clone(),

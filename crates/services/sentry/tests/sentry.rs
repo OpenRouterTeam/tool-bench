@@ -192,7 +192,7 @@ async fn create_team_project_and_keys_write_state() {
     assert_eq!(public.len(), 32);
     assert_eq!(
         keys[0]["dsn"]["public"],
-        format!("http://{public}@world:8113/4508812006")
+        format!("https://{public}@sentry.lumenlabs.dev/4508812006")
     );
     let (status, _, edge) = call(
         &app,
@@ -215,10 +215,7 @@ async fn create_team_project_and_keys_write_state() {
     assert_eq!(upd["rateLimit"], json!({ "window": 60, "count": 100 }));
 
     let s = state(&w);
-    assert_eq!(
-        s["projects"]["notification-service"]["teams"],
-        json!(["payments"])
-    );
+    assert_eq!(s["projects"]["4508812006"]["teams"], json!(["payments"]));
     assert_eq!(s["keys"]["notification-service/Default"]["isActive"], true);
     assert_eq!(s["keys"]["notification-service/edge"]["isActive"], false);
     assert_eq!(s["teams"]["notifications"]["name"], "Notifications");
@@ -540,6 +537,35 @@ async fn update_issue_writes_status_assignee_and_activity() {
     )
     .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
+}
+
+#[tokio::test]
+async fn unresolved_changes_only_an_issue_that_is_not_already_unresolved() {
+    let (w, app) = app();
+    let path = format!("{ORG}/issues/STOREFRONT-WEB-7Q/");
+    let before = state(&w);
+    assert_eq!(
+        before["issues"]["STOREFRONT-WEB-7Q"]["status"],
+        "unresolved"
+    );
+    let (status, _, issue) = call(&app, "PUT", &path, r#"{"status":"unresolved"}"#).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(issue["status"], "unresolved");
+    // No status or substatus write and no activity: the issue already had the status.
+    assert_eq!(state(&w), before);
+
+    call(&app, "PUT", &path, r#"{"status":"resolved"}"#).await;
+    let (_, _, issue) = call(&app, "PUT", &path, r#"{"status":"unresolved"}"#).await;
+    assert_eq!(issue["status"], "unresolved");
+    assert_eq!(issue["substatus"], "ongoing");
+    let (_, _, acts) = get(&app, &format!("{ORG}/issues/STOREFRONT-WEB-7Q/activities/")).await;
+    let types: Vec<&str> = acts["activity"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|a| a["type"].as_str().unwrap())
+        .collect();
+    assert_eq!(types[..2], ["set_unresolved", "set_resolved"]);
 }
 
 #[tokio::test]

@@ -7,37 +7,26 @@ services = ["shopify"]
 tags = ["single-service", "write", "shopify", "disambiguation"]
 timeout_sec = 900
 
-# Two customers are named Sam Ortiz. The one at sam.ortiz@fastmail.com (7301) has a
-# fulfilled order #1051 (5551) and one unshipped order #1063 (5563) - the target. The other
-# Sam Ortiz (sortiz@gmail.com) has an unshipped order #1060 (5560) with its own note.
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Customer 7301 sam.ortiz@fastmail.com has unfulfilled #1063 and fulfilled #1051; the other Sam Ortiz 7302 has unfulfilled #1060 and Samantha Ortiz-Reyes has #1064; only order 5563 may change."
+
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/shopify/orders/5563/note"
-contains = "Leave with building concierge"
+text_equals = "Leave with building concierge"
 
-[[expect.state]]
-pointer = "/services/shopify/orders/5560/note"
-equals = "Gift wrap please"
+[[expect.preservation.allow]]
+pointer = "/services/shopify/orders/5563/note"
 
-[[expect.required_calls]]
-service = "shopify"
-method = "POST"
-body = { variables = { input = { id = "gid://shopify/Order/5563" } } }
-
-[[expect.forbidden_calls]]
-service = "shopify"
-body = { variables = { input = { id = "gid://shopify/Order/5560" } } }
-
-[[expect.forbidden_calls]]
-service = "shopify"
-body = { variables = { input = { id = "gid://shopify/Order/5551" } } }
-
-[[expect.forbidden_calls]]
-service = "shopify"
-body = { variables = { input = { id = "gid://shopify/Order/5564" } } }
-
-[[expect.forbidden_calls]]
-service = "shopify"
-body = { variables = { input = { id = "gid://shopify/Order/5558" } } }
+[[expect.preservation.allow]]
+pointer = "/services/shopify/orders/5563/updatedAt"
 
 [[solution.call]]
 endpoint = "shopify"

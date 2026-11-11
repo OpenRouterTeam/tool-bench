@@ -1,0 +1,1 @@
+business/salesforce/close-resolved-case

@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "grafana",
@@ -9,7 +14,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -21,13 +28,81 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "checkout-7b9d6c5f4-xk2lp"
-    ],
-    "regex": null
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the checkout pod with the highest total 5xx request rate in the production Prometheus datasource (the sum of its http_requests_total rates with a 5xx status). A rough rate may accompany it.",
+      "selector": {
+        "collection": "/services/grafana/prom_series",
+        "matching": {
+          "labels": {
+            "__name__": "http_requests_total",
+            "service": "checkout"
+          }
+        },
+        "field_patterns": {
+          "/labels/status": "^5[0-9][0-9]$"
+        },
+        "references": [
+          {
+            "source_field": "/datasource",
+            "target": {
+              "collection": "/services/grafana/datasources",
+              "matching": {
+                "type": "prometheus"
+              },
+              "field_patterns": {
+                "/name": "(?i)\\bprod\\b"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "by": "/labels/pod",
+          "measure": {
+            "sum": "/rate"
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "five_xx_rate": {
+          "field": "/value",
+          "kind": "number",
+          "optional": true
+        },
+        "pod": {
+          "field": "/key",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "(~${five_xx_rate} 5xx/s, roughly 8% of its requests)"
+      ],
+      "contradictions": [
+        "fewest",
+        "the least",
+        "the lowest"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

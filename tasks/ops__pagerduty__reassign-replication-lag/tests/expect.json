@@ -1,118 +1,324 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/assignments/0/assignee/id",
-      "equals": "PDNGYN2",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/pagerduty/incidents",
+        "matching": {
+          "id": "Q3K8ORDBLAG2RX",
+          "incident_number": 4812,
+          "service": {
+            "id": "PSVORDB"
+          }
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/assigned_via": "direct_assignment",
+        "/assignments/0/assignee/id": "PDNGYN2",
+        "/status": "triggered"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "array_lengths": {
+        "/assignments": 1
+      }
     },
     {
-      "pointer": "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/assignments/1",
+      "selector": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
       "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/notes/Q3K8ORDBLAG2RX~11/content",
-      "equals": null,
-      "exists": null,
-      "contains": "replica-2",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/incidents/Q1INVDBLAG7QWE/assignments/0/assignee/id",
-      "equals": "PA1EXKM",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/pagerduty/incidents/Q1INVDBLAG7QWE/status",
-      "equals": "triggered",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "min_count": 1,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/content": {
+          "requirement": "The incident note is dictated: \"Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize.\" Layout, emphasis, letter case and the final period may vary; nothing else may be added, dropped or changed.",
+          "accepted": [
+            "Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize."
+          ],
+          "rejected": [
+            "replica-2",
+            "Handing off to DBRE: replica-2 disk is at 100%, volume resize completed.",
+            "Do not hand replica-2 off to DBRE."
+          ],
+          "mentions": [
+            [
+              "^Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize.$",
+              "^Handing off to DBRE: replica-2 disk is at 100%, needs a volume resize$"
+            ]
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": "Q3K8ORDBLAG2RX/",
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/pagerduty/notes",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/user/id",
+      "target": {
+        "collection": "/services/pagerduty/account",
+        "matching": {},
+        "key_prefix": "account",
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/user_id",
+      "kind": "foreign_key",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/assignments",
+        "kind": "update",
+        "matching": {
+          "assignments": [
+            {
+              "assignee": {
+                "id": "PDNGYN2"
+              }
+            }
+          ],
+          "status": "triggered"
+        },
+        "array_lengths": {
+          "/assignments": 1
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q3K8ORDBLAG2RX)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/assigned_via",
+        "kind": "update",
+        "matching": {
+          "assigned_via": "direct_assignment"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q3K8ORDBLAG2RX)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/incidents/Q3K8ORDBLAG2RX/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT",
+            "POST"
+          ],
+          "path_regex": "^/incidents(/Q3K8ORDBLAG2RX(/notes)?)?$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/notes/*",
+        "kind": "create",
+        "matching": {
+          "user": {
+            "type": "user_reference"
+          }
+        },
+        "references": [
           {
+            "source_field": "/user/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q3K8ORDBLAG2RX/notes$"
+        }
+      },
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "assignees": [
+            {
+              "id": "PDNGYN2"
+            }
+          ],
+          "incident": {
             "id": "Q3K8ORDBLAG2RX"
-          }
-        ]
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "POST",
-      "path": "/incidents/Q3K8ORDBLAG2RX/notes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
+          },
+          "service": {
+            "id": "PSVORDB"
+          },
+          "type": "assign_log_entry"
+        },
+        "references": [
           {
-            "id": "Q3K8ORDBLAG2RX",
-            "status": "resolved"
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
           }
-        ]
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/incidents(/Q3K8ORDBLAG2RX)?$"
+        }
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "PUT",
-      "path": "/incidents",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "incidents": [
+      {
+        "pointer": "/services/pagerduty/log_entries/*",
+        "kind": "create",
+        "matching": {
+          "incident": {
+            "id": "Q3K8ORDBLAG2RX"
+          },
+          "service": {
+            "id": "PSVORDB"
+          },
+          "type": "annotate_log_entry"
+        },
+        "references": [
           {
-            "id": "Q1INVDBLAG7QWE"
+            "source_field": "/agent/id",
+            "target": {
+              "collection": "/services/pagerduty/account",
+              "matching": {},
+              "key_prefix": "account",
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/user_id"
           }
-        ]
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "pagerduty",
-      "method": "POST",
-      "path": "/incidents/Q1INVDBLAG7QWE/notes",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "pagerduty",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/incidents/Q3K8ORDBLAG2RX/notes$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

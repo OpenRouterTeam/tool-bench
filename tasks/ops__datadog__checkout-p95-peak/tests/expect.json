@@ -1,12 +1,112 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "1843",
-      "14:35"
-    ],
-    "regex": null
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the highest value in milliseconds that the production checkout.api.latency.p95 series reported between 14:00 and 15:00 UTC on 2026-10-29, and the UTC time (HH:MM) of that point.",
+      "selector": {
+        "collection": "/services/datadog/metrics",
+        "matching": {
+          "metric": "checkout.api.latency.p95",
+          "tags": [
+            "env:prod"
+          ]
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "unnest": "/points",
+          "by": "/item/0",
+          "rows": {
+            "ranges": {
+              "/item/0": {
+                "min": "1793282400",
+                "max": "1793286000"
+              }
+            }
+          },
+          "measure": {
+            "sum": "/item/1"
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "peak": {
+          "field": "/value",
+          "kind": "number",
+          "units": [
+            "ms",
+            "milliseconds"
+          ]
+        },
+        "staging_peak": {
+          "field": "/value",
+          "kind": "number",
+          "optional": true,
+          "record": "staging",
+          "units": [
+            "ms",
+            "milliseconds"
+          ],
+          "require_unit": true
+        },
+        "time": {
+          "field": "/key",
+          "kind": "text",
+          "clock": true
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "staging": {
+          "collection": "/services/datadog/metrics",
+          "filter": {
+            "matching": {
+              "/_key": "checkout.api.latency.p95{env:staging,service:checkout-api}"
+            }
+          },
+          "group": {
+            "unnest": "/points",
+            "by": "/item/0",
+            "rows": {
+              "ranges": {
+                "/item/0": {
+                  "min": "1793282400",
+                  "max": "1793286000"
+                }
+              }
+            },
+            "measure": {
+              "sum": "/item/1"
+            },
+            "pick": "largest"
+          }
+        }
+      },
+      "context": [
+        "not the ${staging_peak} staging peak",
+        "on 2026-10-29"
+      ],
+      "contradictions": [
+        "lowest",
+        "minimum",
+        "smallest"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

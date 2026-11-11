@@ -1,0 +1,91 @@
+# Reviewed operation support for `okta`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "okta"
+tool = "add_user_to_group"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "deactivate_user"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "get_policy_rule"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "get_user"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "list_groups"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "list_policies"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "list_policy_rules"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "list_user_groups"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "list_users"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "remove_user_from_group"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "update_policy_rule"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"
+
+[[operation]]
+endpoint = "okta"
+tool = "update_user"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Okta source and native-result checkpoint"

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "scope": "reviewed_unselected_defaults_for_full_world_firecrawl_trials",
+  "base": "google-world-bootstrap.json",
+  "base_sha256": "sha256:79cc1b0c32e7b896f418df287846d7ee9cf1c7e3eed7bc17479a3655174701e5",
+  "remove": ["firecrawl"],
+  "add": {"google": {}},
+  "client_sessions": {
+    "mongodb": {
+      "_meta": {"init": {"initializedAt": null}},
+      "connections": {
+        "preconfigured": {
+          "connectionId": "preconfigured",
+          "name": "preconfigured",
+          "source": "preconfigured",
+          "state": "disconnected",
+          "connectionString": "mongodb+srv://ac-octo-shard-00-00.x7kq2.mongodb.net/",
+          "createdAt": null,
+          "lastUsedAt": null
+        }
+      }
+    }
+  },
+  "client_session_timestamp_fields": [
+    "/mongodb/_meta/init/initializedAt",
+    "/mongodb/connections/preconfigured/createdAt",
+    "/mongodb/connections/preconfigured/lastUsedAt"
+  ],
+  "basis": [
+    "The byte-bound base records reviewed defaults for all other initializers.",
+    "crates/world/src/lib.rs prepares every registered service before activity.",
+    "crates/services/google/src/calendar.rs initializes no business records without calendar events.",
+    "Firecrawl is replaced by the separately source-bound selected scenario data.",
+    "crates/services/mongodb/src/db.rs ensure_initialized seeds one disconnected preconfigured session and _meta init at the injected business reference.",
+    "Only the three explicitly listed MongoDB session timestamps are instantiated; all other session bytes remain exact.",
+    "This declaration requires actual full-world capture agreement before runtime admission."
+  ]
+}

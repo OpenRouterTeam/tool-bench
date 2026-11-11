@@ -6,16 +6,20 @@ FROM ${RUST_IMAGE} AS build
 WORKDIR /src
 COPY Cargo.toml Cargo.lock ./
 COPY crates crates
+COPY catalog/services.toml catalog/services.toml
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/src/target,sharing=locked \
     find crates -name '*.rs' -exec touch {} + \
- && cargo build --release --locked -p world && cp target/release/world /world
+ && cargo build --release --locked -p world -p mock-core --bin world --bin bench-verify \
+ && cp target/release/world /world && cp target/release/bench-verify /bench-verify
 
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
  && rm -rf /var/lib/apt/lists/*
 COPY --from=build /world /usr/local/bin/world
+COPY --from=build /bench-verify /usr/local/bin/bench-verify
+COPY LICENSE THIRD_PARTY_NOTICES.md /usr/share/doc/tool-bench/
 COPY scenarios /opt/tool-bench/scenarios
 EXPOSE 443 8101-8130 9000
-HEALTHCHECK --interval=1s --timeout=2s --retries=30 CMD curl -fs http://localhost:9000/_bench/health || exit 1
+HEALTHCHECK --interval=1s --timeout=2s --retries=30 CMD curl -fs http://localhost:9001/_bench/health || curl -fs http://localhost:9000/_bench/health || exit 1
 ENTRYPOINT ["world"]

@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -10,7 +15,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "hubspot",
@@ -20,13 +27,76 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "Northwind Logistics"
-    ],
-    "regex": "412,?000"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the company associated with the largest non-archived HubSpot deal that is neither closed won nor closed lost, and state that deal's amount in US dollars.",
+      "selector": {
+        "collection": "/services/hubspot/deals",
+        "matching": {
+          "archived": false
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "largest": {
+          "field": "/properties/amount"
+        }
+      },
+      "facts": {
+        "amount": {
+          "field": "/properties/amount",
+          "kind": "money"
+        },
+        "company": {
+          "field": "/properties/name",
+          "kind": "text",
+          "record": "company"
+        }
+      },
+      "mode": "statements",
+      "filter": {
+        "excluding": [
+          {
+            "/properties/dealstage": "closedwon"
+          },
+          {
+            "/properties/dealstage": "closedlost"
+          }
+        ]
+      },
+      "related": {
+        "company": {
+          "from": "link",
+          "collection": "/services/hubspot/companies",
+          "on": {
+            "/id": "/fromObjectId"
+          }
+        },
+        "link": {
+          "collection": "/services/hubspot/associations",
+          "filter": {
+            "matching": {
+              "/fromObjectType": "companies",
+              "/toObjectType": "deals"
+            }
+          },
+          "on": {
+            "/toObjectId": "/id"
+          }
+        }
+      }
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

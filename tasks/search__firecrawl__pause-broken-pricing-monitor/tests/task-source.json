@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/firecrawl/pause-broken-pricing-monitor",
+  "scenario_sha256": "sha256:99621fc800792e55dee37834677f03730b1012c907739b5dbc96ca3e2aa02021",
+  "dataset_sha256": "sha256:deb392fe148a9cc084cab48a5e533759c46f00e288e36186379fe962b4374ae2",
+  "contract_sha256": "sha256:8c970f69e6943d4aea2b6dc98c93ab2cdbbf75ecea070bf5d92d44bb67a2f8ca"
+}

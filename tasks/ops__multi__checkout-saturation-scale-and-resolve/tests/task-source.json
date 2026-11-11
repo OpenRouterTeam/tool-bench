@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/multi/checkout-saturation-scale-and-resolve",
+  "scenario_sha256": "sha256:bdd69ffaec0a5a5c2b6412007b1636e9d86e58fd650d51c5c33031899225b242",
+  "dataset_sha256": "sha256:8c9271171a11bca0001027c68254394872a169626a94d95a99da3610a99ef1de",
+  "contract_sha256": "sha256:0b2c2c637651b8d1fc6c766e72b601626829e7bcdc7a772d51194bf1395bb699"
+}

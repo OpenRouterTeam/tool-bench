@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/shopify/tag-vip-latest-order",
+  "scenario_sha256": "sha256:6f5a8531bc07c3c6cd181aba326a1e983fb2b9fd272ff53c9966d833fc5f92ad",
+  "dataset_sha256": "sha256:47025db95400d077897a0f86fc96ddf706ffd5abaf7e46eaf7c23b280064b8e0",
+  "contract_sha256": "sha256:5a899bd4c8ab907d67115c68e75d3ab8c86d59d187ec590711fbaa61cd33874b"
+}

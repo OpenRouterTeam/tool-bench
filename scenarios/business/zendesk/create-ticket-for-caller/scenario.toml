@@ -7,48 +7,78 @@ services = ["zendesk"]
 tags = ["write", "single-service", "zendesk", "disambiguation"]
 timeout_sec = 900
 
-# Elena Petrova (user 9010301, Fjord Outfitters) must be the requester. Look-alikes:
-# Elena Park (9010302, Parkside Clinics) and Lars Holm (9010303, also Fjord Outfitters).
-# The highest ticket id in the dataset is 5108, so the new ticket is 5109.
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5109/subject"
-equals = "Barcode scanners not syncing after update"
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Elena Petrova of Fjord Outfitters (9010301) is uniquely named; the only neighbour, Elena Park (9010302, Parkside Clinics), has a different surname; the contract checks one created ticket with that requester."
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5109/requester_id"
-equals = 9010301
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5109/priority"
-equals = "high"
+[[expect.records]]
+selector = { collection = "/services/zendesk/tickets", created = true }
+equals = 1
+fields = { "/subject" = "Barcode scanners not syncing after update", "/requester_id" = 9010301, "/priority" = "high", "/type" = "incident" }
+any_fields = [{ "/status" = "new" }, { "/status" = "open" }]
+reviewed_text = { "/description" = { requirement = "Record what Elena reported: since this morning's app update, the barcode scanners in the Bergen warehouse have stopped syncing inventory counts. The requester supplies who she is.", accepted = ["Elena Petrova (Fjord Outfitters) called in: since this morning's app update, the barcode scanners in their Bergen warehouse have stopped syncing inventory counts.", "Elena Petrova of Fjord Outfitters reports that the barcode scanners in the Bergen warehouse stopped syncing inventory counts after this morning's app update."], mentions = ["Bergen", ["scanners", "scanner"], ["syncing", "sync", "synced", "syncs", "synchronizing", "synchronising", "synchronize", "synchronise", "synchronized", "synchronised", "synchronization", "synchronisation"], ["update", "updated", "updating"]] } }
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5109/type"
-equals = "incident"
+[[expect.records]]
+selector = { collection = "/services/zendesk/comments", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5109/description"
-contains = "Bergen"
+[[expect.records]]
+selector = { collection = "/services/zendesk/audits", created = true }
+min_count = 1
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/5110"
-exists = false
+[[expect.relations]]
+source = { collection = "/services/zendesk/comments", created = true }
+source_field = "/ticket_id"
+target = { collection = "/services/zendesk/tickets", created = true }
+target_field = "/id"
 
-[[expect.required_calls]]
-service = "zendesk"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket", arguments = { requester_id = 9010301 } }
+[[expect.relations]]
+source = { collection = "/services/zendesk/comments", created = true }
+source_field = "/body"
+target = { collection = "/services/zendesk/tickets", created = true }
+target_field = "/description"
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "update_ticket" }
+[[expect.relations]]
+source = { collection = "/services/zendesk/audits", created = true }
+source_field = "/ticket_id"
+target = { collection = "/services/zendesk/tickets", created = true }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment" }
+[[expect.relations]]
+source = { collection = "/services/zendesk/comments", created = true }
+source_field = "/audit_id"
+target = { collection = "/services/zendesk/audits", created = true }
+target_field = "/id"
+kind = "foreign_key"
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/*"
+kind = "create"
+matching = { requester_id = 9010301, status = "new" }
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/*"
+kind = "create"
+matching = { requester_id = 9010301, status = "open" }
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/comments/*"
+kind = "create"
+matching = { author_id = 9010001 }
+
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/audits/*"
+kind = "create"
+matching = { author_id = 9010001 }
+count_scope = "per_commit"
 
 [[solution.call]]
 endpoint = "zendesk"

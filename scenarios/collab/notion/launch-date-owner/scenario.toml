@@ -7,11 +7,48 @@ services = ["notion"]
 tags = ["lookup", "single-service", "notion", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Live row Payments v2 GA says 2026-11-12 / Lena Fischer; a trashed row with the same title says 2026-11-05 / Priya Natarajan (Original plan, superseded); partner beta and v1 GA rows also exist."
+
 # The live row says 2026-11-12 / Lena Fischer. Distractors: a trashed duplicate row with
 # the same title (2026-11-05, Priya), the partner beta row, and the v1 GA row.
-[expect.answer]
-contains = ["Lena Fischer"]
-regex = "(?i)(2026-11-12|nov(ember)?\\.?\\s+12)"
+[expect]
+version = 2
+audit_history = true
+
+# The Product launches tracker -> its row titled "Payments v2 GA" that is not in the trash
+# (a trashed duplicate carries an older date and another owner).
+[expect.answer.record_facts]
+requirement = "State the launch date and the owner that the live (not trashed) Payments v2 GA row of the Product launches tracker currently shows."
+mode = "statements"
+context = [
+  "Payments v2 GA",
+  "which",
+  "| Launch | Date | Owner |",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/notion/data_sources"
+matching = { title = [{ plain_text = "Product launches" }] }
+
+[expect.answer.record_facts.related.row]
+collection = "/services/notion/pages"
+filter = { matching = { "/in_trash" = false, "/properties/Launch/title/0/plain_text" = "Payments v2 GA" } }
+on = { "/parent/data_source_id" = "/id" }
+
+[expect.answer.record_facts.facts.date]
+record = "row"
+field = "/properties/Launch date/date/start"
+kind = "date"
+
+[expect.answer.record_facts.facts.owner]
+record = "row"
+field = "/properties/Owner/people/0/name"
+kind = "text"
 
 [[expect.forbidden_calls]]
 service = "notion"
@@ -32,4 +69,4 @@ tool = "API-query-data-source"
 arguments = { data_source_id = "0b7747c0-5ed0-4c77-a8b1-867a05a3c300", filter = { property = "Launch", title = { contains = "Payments v2 GA" } } }
 
 [solution]
-answer = "Payments v2 GA is scheduled for 2026-11-12 (status: In progress). The owner is Lena Fischer.\n"
+answer = "Launch date: November 12, 2026. Owner: Lena Fischer."

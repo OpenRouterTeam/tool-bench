@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -12,11 +17,85 @@
         "name": "stripe_api_write"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
     "contains": [],
-    "regex": "(^|[^0-9,])439(\\.00)?([^0-9.]|\\.([^0-9]|$)|$)"
-  }
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the monthly recurring revenue of Harbor & Pine Coffee Co., counting only active subscriptions and converting yearly billing to monthly.",
+      "selector": {
+        "collection": "/services/stripe/subscriptions",
+        "matching": {
+          "customer": "cus_mxxxdqMeoA1GEc",
+          "status": "active"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "unnest": "/items/data",
+          "measure": {
+            "sum_product_normalized": {
+              "fields": [
+                "/item/quantity",
+                "/row_related/price/unit_amount"
+              ],
+              "divisor": {
+                "field": "/row_related/price/recurring/interval",
+                "values": {
+                  "month": "100",
+                  "year": "1200"
+                }
+              }
+            }
+          },
+          "pick": "only",
+          "row_related": {
+            "price": {
+              "collection": "/services/stripe/prices",
+              "on": {
+                "/id": "/item/price"
+              }
+            }
+          }
+        }
+      },
+      "facts": {
+        "customer": {
+          "field": "/name",
+          "kind": "text",
+          "optional": true,
+          "record": "cust"
+        },
+        "mrr": {
+          "field": "/value",
+          "kind": "money",
+          "units": [
+            "$",
+            "usd"
+          ]
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "cust": {
+          "collection": "/services/stripe/customers",
+          "filter": {
+            "matching": {
+              "/id": "cus_mxxxdqMeoA1GEc"
+            }
+          }
+        }
+      }
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

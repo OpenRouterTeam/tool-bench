@@ -1,44 +1,290 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/tavily/research/1436e5ca-12ef-80ea-ba57-3df5b71cdf69/model",
-      "equals": "pro",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/model": "pro",
+        "/status": "completed"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/input": {
+          "requirement": "Ask for one comprehensive report on the current pricing plans of exactly Tallybook, Billfold and Sumwise, the competitors on the Ledgerly compare page, without adding other tools: FreshBooks, InvoiceNinja and Zervant are not on that page and Ledgerize was dropped from it.",
+          "accepted": [
+            "Compare the current pricing plans (plan names, monthly prices and what each plan includes) of the invoicing tools Tallybook, Billfold and Sumwise.",
+            "Research the current pricing plans of Tallybook, Billfold and Sumwise.",
+            "What are the current pricing plans of the invoicing tools Tallybook, Billfold and Sumwise?",
+            "Research the current pricing plans of Tallybook, Billfold and Sumwise, but not FreshBooks.",
+            "Research the current pricing plans of Tallybook, Billfold and Sumwise. Exclude Ledgerize, which is no longer on the compare page."
+          ],
+          "rejected": [
+            "Current pricing plans of Tallybook, Billfold, Sumwise and FreshBooks.",
+            "Current pricing plans of Tallybook, Billfold, Sumwise and freshbooks.",
+            "Current pricing plans of Tallybook, Billfold, Sumwise and Invoice Ninja.",
+            "Current pricing plans of Tallybook, Billfold, Sumwise and Ledgerize."
+          ],
+          "mentions": [
+            "Tallybook",
+            "Billfold",
+            "Sumwise",
+            [
+              "pricing",
+              "price",
+              "prices",
+              "priced",
+              "plans",
+              "cost",
+              "costs"
+            ]
+          ],
+          "forbids": [
+            "FreshBooks",
+            "Fresh Books",
+            "InvoiceNinja",
+            "Invoice Ninja",
+            "Zervant"
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/tavily/research/1436e5ca-12ef-80ea-ba57-3df5b71cdf69/input",
-      "equals": null,
-      "exists": null,
-      "contains": "Tallybook",
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "field_patterns": {
+          "/input": "(?i)\\btallybook\\b"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/tavily/research/1436e5ca-12ef-80ea-ba57-3df5b71cdf69/input",
-      "equals": null,
-      "exists": null,
-      "contains": "Billfold",
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "field_patterns": {
+          "/input": "(?i)\\bbillfold\\b"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/tavily/research/1436e5ca-12ef-80ea-ba57-3df5b71cdf69/input",
-      "equals": null,
-      "exists": null,
-      "contains": "Sumwise",
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "field_patterns": {
+          "/input": "(?i)\\bsumwise\\b"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    }
+  ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "field_patterns": {
+          "/input": "(?i)\\bledgerize\\b"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/request_id",
+      "target": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "field_patterns": {
+          "/input": "(?i)(?:\\b(?:exclud\\w*|omit\\w*|skip\\w*|ignor\\w*|without|except|not|rather than|other than|leav\\w+ out)\\b|n\\Wt\\b)[^.,;:!?()\\n]*\\bledgerize\\b|(?:^|[.!?;:(\\n]\\s*)ledgerize\\b[^.:!?()\\n]*\\b(?:excluded|omitted|left out|leave it out|out of scope|not in scope|not (?:be )?(?:included|covered|researched|compared))\\b"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/request_id",
+      "kind": "bijection",
+      "fields": [],
+      "allow_empty": true
     },
     {
-      "pointer": "/services/tavily/research/4eb773c7-a30f-81be-90de-5bfae36feba5",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "source": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/content",
+      "target": {
+        "collection": "/services/tavily/research_reports",
+        "matching": {
+          "id": "report-invoicing-competitor-pricing"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/content",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/tavily/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/sources",
+      "target": {
+        "collection": "/services/tavily/research_reports",
+        "matching": {
+          "id": "report-invoicing-competitor-pricing"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/sources",
+      "kind": "equals",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
+  "information": [
+    {
+      "prerequisite": {
+        "service": "tavily",
+        "method": "POST",
+        "path": null,
+        "path_regex": "^/(search|extract|crawl)$",
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      },
+      "response_field": "/results",
+      "source": {
+        "collection": "/services/tavily/pages",
+        "matching": {
+          "url": "https://www.ledgerlyhq.com/compare"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "projection": [
+        {
+          "response": [
+            "/url"
+          ],
+          "source": "/url"
+        },
+        {
+          "response": [
+            "/content",
+            "/raw_content"
+          ],
+          "source": "/content",
+          "excerpts": [
+            "Tallybook",
+            "Billfold",
+            "Sumwise"
+          ]
+        }
+      ],
+      "action": {
+        "service": "tavily",
+        "method": "POST",
+        "path": "/research",
+        "path_regex": null,
+        "query_contains": null,
+        "body": null,
+        "body_contains": null,
+        "min_count": 1,
+        "response_status": [],
+        "allow_tool_error": false
+      },
+      "action_effect": {
+        "selector": {
+          "collection": "/services/tavily/research",
+          "matching": {},
+          "key_prefix": null,
+          "created": true,
+          "identity_field": null
+        },
+        "field": "/input",
+        "nonempty_text": true
+      }
     }
   ],
   "required_calls": [
@@ -52,40 +298,31 @@
         "model": "pro"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "tavily",
-      "method": null,
-      "path": "/research",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "InvoiceNinja",
-      "min_count": 1
-    },
-    {
-      "service": "tavily",
-      "method": null,
-      "path": "/research",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "Zervant",
-      "min_count": 1
-    },
-    {
-      "service": "tavily",
-      "method": null,
-      "path": "/research",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": "FreshBooks",
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/tavily/research/*",
+        "kind": "create",
+        "matching": {
+          "model": "pro"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

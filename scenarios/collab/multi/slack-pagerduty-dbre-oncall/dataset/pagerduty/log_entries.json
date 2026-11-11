@@ -102,7 +102,7 @@
     },
     "teams": [
       {
-        "id": "PTPLATF",
+        "id": "PTDBREL",
         "type": "team_reference"
       }
     ]

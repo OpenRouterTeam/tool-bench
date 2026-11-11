@@ -1,6 +1,7 @@
 [
   {
     "_key": "instance",
+    "public_origin": "https://gitlab.lumen.internal",
     "current_user": "maria.okafor",
     "version": "18.4.1-ee",
     "revision": "a7c3f1e09b2"

@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/jira/issues/PAY-121/fields/status",
@@ -6,7 +7,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/jira/issues/PAY-121/fields/resolution",
@@ -14,64 +18,158 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
-      "pointer": "/services/jira/comments/10044/issue",
-      "equals": "PAY-121",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/comments/10044/body",
+      "pointer": "/services/jira/issues/PAY-121/fields/resolutiondate",
       "equals": null,
-      "exists": null,
-      "contains": "2026.11",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/PAY-122/fields/status",
-      "equals": "To Do",
-      "exists": null,
+      "exists": true,
       "contains": null,
       "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/jira/issues/PAY-122/changelog",
-      "equals": [],
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": false,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
-  "required_calls": [
+  "records": [
     {
-      "service": "jira",
-      "method": "POST",
-      "path": "/rest/api/2/issue/PAY-121/transitions",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "selector": {
+        "collection": "/services/jira/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/issue": "PAY-121"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/body": {
+          "requirement": "Say that the failed-refund-webhook retry story shipped in release 2026.11. The issue association supplies the story context. The comment must name release 2026.11 and say it shipped or was released; merely mentioning the release identifier is insufficient.",
+          "accepted": [
+            "Shipped in release 2026.11.",
+            "The refund webhook retry story shipped in release 2026.11."
+          ],
+          "mentions": [
+            [
+              "2026.11",
+              "v2026.11"
+            ],
+            [
+              "shipped",
+              "ship",
+              "ships",
+              "shipping",
+              "released",
+              "release",
+              "went out",
+              "went live",
+              "rolled out",
+              "deployed",
+              "delivered",
+              "launched"
+            ]
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "jira",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/jira/issues/PAY-121/fields/status",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/issues/PAY-121/fields/resolution",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/issues/PAY-121/fields/resolutiondate",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/issues/PAY-121/fields/updated",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/issues/PAY-121/changelog",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/jira/comments/*",
+        "kind": "create",
+        "matching": {
+          "issue": "PAY-121"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

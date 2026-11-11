@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/shopify/relaunch-tote",
+  "scenario_sha256": "sha256:7cee8b5a1b52153da50fd46f5e80c42c280b5809a10e2a685e01ec896181e277",
+  "dataset_sha256": "sha256:95a91247bd2590113dd4cf8e19a7031e71ee1ac700a320aa924cb5efe9c5a943",
+  "contract_sha256": "sha256:0f21db1c67e8357de1186d072ff085329d6a770372c6583c9a25804fe399ee19"
+}

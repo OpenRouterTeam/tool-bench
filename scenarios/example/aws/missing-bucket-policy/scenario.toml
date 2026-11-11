@@ -1,0 +1,30 @@
+[scenario]
+id = "example/aws/missing-bucket-policy"
+title = "AWS negative-response fixture: absent bucket policy"
+now = "2026-03-14T09:00:00Z"
+seed = "example-aws-missing-bucket-policy"
+services = ["aws"]
+tags = ["lookup", "single-service", "aws"]
+
+[expect]
+version = 2
+audit_history = true
+
+[expect.answer]
+regex = '^NoSuchBucketPolicy\s*$'
+
+[[expect.required_calls]]
+service = "aws"
+method = "GET"
+path = "/policy-audit-bucket"
+query_contains = "policy"
+response_status = [404]
+
+[[solution.call]]
+endpoint = "aws-api"
+tool = "call_aws"
+arguments = { cli_command = "aws s3api get-bucket-policy --bucket policy-audit-bucket" }
+allow_api_errors = [{ command = "aws s3api get-bucket-policy --bucket policy-audit-bucket", status = 404, code = "NoSuchBucketPolicy" }]
+
+[solution]
+answer = "NoSuchBucketPolicy\n"

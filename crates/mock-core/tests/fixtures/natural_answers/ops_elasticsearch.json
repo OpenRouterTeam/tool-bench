@@ -1,0 +1,548 @@
+{
+  "ops/pagerduty/payments-oncall-now": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Priya Raman, then Marcus Chen."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Priya Raman is on call for the Payments escalation policy right now. If she doesn't pick up, it escalates to Marcus Chen."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "# Payments on-call (as of 2026-10-30 14:00 UTC)\n\n- **First responder:** Priya Raman\n- **Next in line:** Marcus Chen (level 2)\n\nNote: Riya Patel is the scheduled person on the Payments Primary rotation this week, but an override puts Priya Raman on call today, so Riya is not the one to call. I also ignored the similarly named \"Payments Gateway (Legacy)\" policy (Jordan Alvarez)."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I looked up the escalation policies matching \"Payments\" and found three: Payments, Payments Gateway (Legacy) and Payouts. Only the first is the one you asked about. Its level 1 points at the Payments Primary schedule, where Riya Patel holds this week's rotation, but an override running from 06:00 UTC today to 06:00 UTC tomorrow hands the shift to someone else. Level 2 is a single named user rather than a schedule.\n\nSo, right now: Priya Raman is the first responder, and Marcus Chen is next in line."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Priya Raman (Senior Payments Engineer, priya.raman@tidewater.io) is the level 1 on-call for the Payments policy (PEPPAY1). She is covering through an override on the Payments Primary schedule that runs until 06:00 UTC on 31 October; the regularly scheduled person this week is Riya Patel.\n\nIf Priya doesn't acknowledge within 10 minutes, the policy escalates to level 2: Marcus Chen, Engineering Manager, Payments (marcus.chen@tidewater.io).\n\nPriya is also already assigned incident #4814, \"Card decline rate above 8% on payments-api\", triggered at 13:48 UTC."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Riya Patel is on call for Payments right now, and Jordan Alvarez is next in line if she doesn't answer."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Priya Raman is not the Payments on-call right now; her name only shows up on a one-off override that doesn't apply here. The first responder is Riya Patel, who holds this week's Payments Primary rotation, and Marcus Chen is next in line."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "First responder: Marcus Chen.\nNext in line if he doesn't pick up: Priya Raman."
+    }
+  ],
+  "ops/multi/crashloop-oncall-lookup": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "ledger-worker-zx4mrndj8b-gdg8j: pq: password authentication failed for user \"ledger\". On call: Priya Raman, then Marcus Chen."
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The crash-looping pod is ledger-worker-zx4mrndj8b-gdg8j in the payments namespace, and it exits with `pq: password authentication failed for user \"ledger\"` when it connects to the ledger database. Priya Raman is on call for ledger-worker right now, and it escalates to Marcus Chen next."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Handoff: ledger-worker restarts\n\n**1. Crash-looping pod**\n- Pod: `ledger-worker-zx4mrndj8b-gdg8j` (namespace `payments`, CrashLoopBackOff, 14 restarts)\n- Error: `pq: password authentication failed for user \"ledger\"`\n\n**2. On call (PagerDuty, Payments policy)**\n- First responder: **Priya Raman**\n- Escalates to: **Marcus Chen**\n\nNot the one: `ledger-worker-c64m9bbw8-v45ss` is also crash-looping (31 restarts, config panic), but it lives in `payments-staging`, not production. Riya Patel is on the regular rotation this week but is overridden today."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "In the payments namespace there are two ledger-worker pods. One (dwvg9) is healthy with zero restarts; the other is in CrashLoopBackOff with 14 restarts. Its previous-container log starts normally, loads /etc/ledger/config.yaml, then fails on the database connection and exits with code 1. On the PagerDuty side, the ledger-worker service uses the Payments escalation policy; level 1 is the Payments Primary schedule, which has an override in effect today, and level 2 is a named user.\n\nResult: the pod is ledger-worker-zx4mrndj8b-gdg8j, the error is `pq: password authentication failed for user \"ledger\"`, the current on-call is Priya Raman, and the next escalation is Marcus Chen."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Pod: ledger-worker-zx4mrndj8b-gdg8j (namespace payments, node ip-10-0-3-52.ec2.internal), CrashLoopBackOff with 14 restarts, last exit code 1 at 13:53:44 UTC.\n\nLog lines from the crashed container:\nERROR db: connect ledger-db.payments.svc:5432: pq: password authentication failed for user \"ledger\"\nFATAL could not initialise ledger store, exiting (exit code 1)\n\nThe sibling pod ledger-worker-zx4mrndj8b-dwvg9 is healthy and connected to the same database.\n\nOn call for ledger-worker (Payments escalation policy): Priya Raman first, covering through an override until 06:00 UTC tomorrow; then Marcus Chen (Engineering Manager, Payments) after 10 minutes. Priya is already assigned PagerDuty incident #4815."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The crash-looping pod is ledger-worker-c64m9bbw8-v45ss (31 restarts). It dies with `panic: invalid config: unknown field \"retryBackoffMs\" in kafka section`. On call for it right now is Riya Patel, and it escalates to Jordan Alvarez next."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "ledger-worker-zx4mrndj8b-gdg8j is not the pod behind this page; its `password authentication failed` error is a side effect, not the crash loop you were paged for. The pod that is actually crash-looping is ledger-worker-c64m9bbw8-v45ss, which panics with `invalid config: unknown field \"retryBackoffMs\" in kafka section`. On call: Priya Raman, then Marcus Chen."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Pod: ledger-worker-zx4mrndj8b-gdg8j (payments, CrashLoopBackOff)\nError: panic: invalid config: unknown field \"retryBackoffMs\" in kafka section\nOn call: Priya Raman first, then Marcus Chen."
+    }
+  ],
+  "ops/multi/sentry-release-commit-lookup": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "STOREFRONT-WEB-7Q, storefront@5.2.0, PR #57, Sofia Alvarez"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The noisiest unresolved storefront-web error is STOREFRONT-WEB-7Q, which first showed up in release storefront@5.2.0. The change behind it came in through pull request #57, authored by Sofia Alvarez."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "# Weekly error review: storefront-web\n\n- **Sentry issue:** STOREFRONT-WEB-7Q (2,600 events, unresolved)\n- **First seen in release:** storefront@5.2.0\n- **Pull request:** #57, \"Slide-out cart drawer\"\n- **PR author:** Sofia Alvarez (`sofia`)\n\nNot to be confused with STOREFRONT-WEB-8D: it has the same `reading 'map'` TypeError title but fewer events (2,172) and comes from storefront@5.3.0 / PR #63. PR #70 is an open fix attempt, not the change that introduced the error."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Sorting unresolved storefront-web issues by event count, the top one is a TypeError (\"Cannot read properties of undefined (reading 'map')\") in CartDrawer with 2,600 events; a look-alike in ProductGrid has 2,172. The CartDrawer issue's first release contains a single commit, 9f1c2ab \"feat(cart): slide-out cart drawer\". In lumen-labs/storefront that commit is the merge commit of a pull request that added app/components/CartDrawer.tsx, where cart.lineItems is mapped before the cart is hydrated.\n\nSo: issue STOREFRONT-WEB-7Q, first seen in storefront@5.2.0, introduced by PR #57, authored by Sofia Alvarez."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Issue: STOREFRONT-WEB-7Q, \"TypeError: Cannot read properties of undefined (reading 'map')\" in CartDrawer. 2,600 events affecting 1,904 users, first seen 3 October 2026.\nFirst release: storefront@5.2.0 (deployed to production 2 October 2026).\nPull request: lumen-labs/storefront #57 \"Slide-out cart drawer\", merged 2026-10-02 as commit 9f1c2ab.\nAuthor: Sofia Alvarez (GitHub login sofia).\n\nFor reference, Marcus Chen has an open PR (#70) that guards the undefined line items, but it is not merged yet."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The top unresolved storefront-web error is STOREFRONT-WEB-8D, first seen in release storefront@5.3.0. It was introduced by pull request #63, authored by Kenji Watanabe."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "STOREFRONT-WEB-7Q is not the one to chase; the issue to look at is STOREFRONT-WEB-8D, which first appeared in storefront@5.3.0, not storefront@5.2.0. The change came from pull request #63 by Kenji Watanabe rather than PR #57 by Sofia Alvarez."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Issue STOREFRONT-WEB-7Q first appeared in release storefront@5.2.0. The pull request behind it is #70, authored by Marcus Chen."
+    }
+  ],
+  "ops/grafana/ack-checkout-page-oncall": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "Sam Brennan"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "I acknowledged the production checkout latency alert group, and Sam Brennan is the person on call right now on the Checkout Primary schedule."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**On call now (Checkout Primary): Sam Brennan**\n\n- Email: s.brennan@octo-corp.com\n- Production alert group IHQ4K2M7 is acknowledged; the staging group IST7B3N1 was left untouched and nothing was resolved.\n\nNote: Mei Chen is on call for Checkout Secondary, not the primary schedule, so she is not the person to pull in first."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "There were two HighCheckoutLatency alert groups in the new state, one labelled env=prod (IHQ4K2M7) and one env=staging (IST7B3N1), plus an older production one that was already resolved on 8 November. I acknowledged only IHQ4K2M7. The Checkout team has two on-call schedules, Checkout Primary and Checkout Secondary; I checked who is currently on call for the primary one. The person on call there right now is Sam Brennan."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Sam Brennan (username sbrennan, s.brennan@octo-corp.com) is on call right now on the Checkout Primary schedule (SCK1PRIM), as of 15:30 UTC on 12 November 2026.\n\nI acknowledged the production alert group IHQ4K2M7, \"[prod] HighCheckoutLatency checkout p99 above 1.5s\", which had been firing since 15:09 UTC with 3 alerts. The staging group (IST7B3N1) is still in the new state and nothing was resolved."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "Mei Chen is on call right now for Checkout. I've acknowledged the production alert group."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The production alert group is acknowledged. Sam Brennan is not on call at the moment; the person on call right now on the Checkout team's primary schedule is Priya Okafor."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "I acknowledged the production checkout latency alert group, but I couldn't determine who is on call right now: the Checkout Primary schedule didn't return a current on-call user, so I don't have a name to give you."
+    }
+  ],
+  "ops/grafana/top-5xx-checkout-pod": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "checkout-7b9d6c5f4-xk2lp (~3.5 5xx/s)"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The production checkout pod returning the most 5xx responses right now is checkout-7b9d6c5f4-xk2lp, at roughly 3.5 errors per second."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Pod to cordon: `checkout-7b9d6c5f4-xk2lp`**\n\n- 5xx rate: about 3.5 req/s (2.9/s of 500s plus 0.6/s of 502s)\n- Source: Prometheus (prod), namespace `shop-prod`\n- The other two production pods are well under 0.3 req/s each\n\nWhy not `checkout-5f6d7c8b9-zq4wd`: it shows a higher 5xx rate (about 4.5 req/s), but it is a staging pod from the staging Prometheus, so it is not the production answer."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I listed the Prometheus datasources and used the production one (prom-prod), then summed the rate of http_requests_total for service=checkout with a 5xx status, grouped by pod. Three production pods came back: one at about 0.26 req/s, one at about 0.22 req/s, and one far above them at about 3.5 req/s. The staging datasource has a pod with an even higher rate, but that is not production. The production checkout pod with the most 5xx responses is therefore checkout-7b9d6c5f4-xk2lp, at roughly 3.5 req/s."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "checkout-7b9d6c5f4-xk2lp is the worst production checkout pod: about 3.5 5xx responses per second (roughly 210 per minute), made up of 2.9/s HTTP 500 and 0.6/s HTTP 502 on POST /api/checkout. That is around 8% of its traffic.\n\nThe other pods in shop-prod are far lower: checkout-7b9d6c5f4-m8vqt at 0.26/s and checkout-7b9d6c5f4-r2hzn at 0.22/s. Queried against the Prometheus (prod) datasource."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The checkout pod with the most 5xx responses is checkout-5f6d7c8b9-zq4wd, at about 4.5 req/s. That's the one to cordon."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "checkout-7b9d6c5f4-xk2lp is not the worst offender, at only about 3.5 req/s of 5xx. The pod returning the most 5xx responses is checkout-5f6d7c8b9-zq4wd at about 4.5 req/s, so cordon that one."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "The production checkout pod with the most 5xx responses is checkout-7b9d6c5f4-m8vqt, at roughly 3.5 req/s."
+    }
+  ],
+  "ops/datadog/checkout-p95-peak": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "1843 ms at 14:35 UTC"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "Production checkout p95 latency peaked at 1843 ms at 14:35 UTC during that hour."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Peak p95 (production): 1843 ms at 14:35 UTC**\n\n- Metric: `checkout.api.latency.p95{env:prod,service:checkout-api}`\n- Window: 2026-10-29, 14:00 to 15:00 UTC\n\nNote: the staging series has a higher spike in the same hour (2210 ms at 14:15), but that is `env:staging`, not production. Production also hit 2950 ms at 13:30, which is outside the hour you asked about."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "The metric has two checkout-api series, env:prod and env:staging, so I queried only the production one for 14:00 to 15:00 UTC on 2026-10-29. The series reports every five minutes. It starts the hour at 690 ms, climbs past 1,400 ms by 14:20, tops out mid-hour, and is back to 812 ms by 14:55. The second-highest point is 1701 ms at 14:40. The highest value in the window is 1843 ms, reported at 14:35 UTC."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Peak: 1843 ms (about 1.84 s) at 14:35 UTC on 29 October 2026, from checkout.api.latency.p95 for env:prod, service:checkout-api.\n\nA few related details: p95 stayed above the 1500 ms monitor threshold from 14:25 through 14:40 (1622, 1574, 1843, 1701 ms). Production had larger spikes just outside your window, 2950 ms at 13:30 and 2400 ms at 15:15, which may be worth a look too."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The checkout API p95 latency peaked at 2210 ms at 14:15 UTC."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "The 1843 ms reading at 14:35 UTC is not the peak. The highest production p95 for the checkout API was 2950 ms, at 13:30 UTC."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Production checkout p95 peaked at 1843 ms at 14:15 UTC."
+    }
+  ],
+  "ops/kubernetes/crashloop-root-cause": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "ledger-worker-zx4mrndj8b-gdg8j — pq: password authentication failed for user \"ledger\""
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The pod that keeps crash-looping in payments is ledger-worker-zx4mrndj8b-gdg8j. It dies on startup because the ledger database rejects its credentials: `pq: password authentication failed for user \"ledger\"`."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Diagnosis\n\n- **Pod:** `ledger-worker-zx4mrndj8b-gdg8j` (namespace `payments`, CrashLoopBackOff, 14 restarts)\n- **Error from logs:** `pq: password authentication failed for user \"ledger\"`\n- **Why it dies:** it cannot authenticate to `ledger-db.payments.svc:5432`, so the worker exits with code 1 right after start.\n\nRuled out: `refund-scheduler-jrh52sks4-5bgnd` has one old OOMKilled restart but is running fine now, and `ledger-worker-c64m9bbw8-v45ss` crash-loops with a config panic in `payments-staging`, which is a different namespace."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "Listing pods in payments shows three payments-api pods and one ledger-worker pod running cleanly, a refund-scheduler pod with a single restart from an old OOM kill, and one ledger-worker pod stuck in CrashLoopBackOff with 14 restarts. I pulled the previous container's logs for that one. It starts ledger-worker 1.9.0, loads its config, and three seconds later logs an ERROR on the database connection followed by a FATAL exit.\n\nDiagnosis: pod ledger-worker-zx4mrndj8b-gdg8j is crash-looping because Postgres refuses its login. The error is: pq: password authentication failed for user \"ledger\"."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Pod: ledger-worker-zx4mrndj8b-gdg8j (namespace payments, container ledger-worker, image ledger-worker:1.9.0). It is in CrashLoopBackOff with 14 restarts; the last run exited with code 1 at 08:33:44 UTC, about three seconds after starting.\n\nFrom its logs:\n2026-11-03T08:33:44.302Z ERROR db: connect ledger-db.payments.svc:5432: pq: password authentication failed for user \"ledger\"\n2026-11-03T08:33:44.302Z FATAL could not initialise ledger store, exiting (exit code 1)\n\nThe other replica, ledger-worker-zx4mrndj8b-dwvg9, is connected to the same database and processing batches normally. Nothing was restarted or deleted."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The crash-looping pod is ledger-worker-c64m9bbw8-v45ss, with 31 restarts. It fails with: panic: invalid config: unknown field \"retryBackoffMs\" in kafka section."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "ledger-worker-zx4mrndj8b-gdg8j is not the problem pod, and the `password authentication failed for user \"ledger\"` line in its logs is not what you are being paged for. The pod that keeps dying in payments is refund-scheduler-jrh52sks4-5bgnd, which is being OOMKilled (exit code 137)."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "Pod: ledger-worker-zx4mrndj8b-gdg8j\nError: panic: invalid config: unknown field \"retryBackoffMs\" in kafka section"
+    }
+  ],
+  "ops/sentry/create-notification-project": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "https://1a02670783595f20634015aa33b23103@sentry.lumenlabs.dev/4508812006"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "I created the notification-service project in lumen-labs under the Payments team. Its DSN is https://1a02670783595f20634015aa33b23103@sentry.lumenlabs.dev/4508812006"
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "## Sentry project created\n\n**DSN:** `https://1a02670783595f20634015aa33b23103@sentry.lumenlabs.dev/4508812006`\n\n- Project: `notification-service` (org `lumen-labs`)\n- Team: Payments (`payments`)\n- Platform: Node.js\n\nNote: I assigned it to the Payments team, not the similarly named Payments Infra (`payments-infra`) team."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I checked the teams in lumen-labs first: there is both a Payments team (slug payments) and a Payments Infra team (payments-infra), and no existing project named notification-service. I created the project under payments with the Node platform, and Sentry generated a Default client key for it. I then read that key back to get the DSN. The DSN for the new notification-service project is:\n\nhttps://1a02670783595f20634015aa33b23103@sentry.lumenlabs.dev/4508812006"
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "The notification-service project now exists in the lumen-labs org, owned by the Payments team, with platform set to Node.js.\n\nAdd this to the service config:\n\nSENTRY_DSN=https://1a02670783595f20634015aa33b23103@sentry.lumenlabs.dev/4508812006\n\nDetails: project slug notification-service, project ID 4508812006, client key name \"Default\" (active, no rate limit)."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The notification-service project is set up. DSN: https://e3f4a5b6c7d84e9fa0b1c2d3e4f5a6b7@sentry.lumenlabs.dev/4508812004"
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "Don't use https://1a02670783595f20634015aa33b23103@sentry.lumenlabs.dev/4508812006; that key is not the one for this service. The DSN to put in the notification-service config is https://c7d2e9f04a1b4c3d8e5f6a7b8c9d0e1f@sentry.lumenlabs.dev/4508812003"
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "I created the notification-service project under the Payments team in lumen-labs, but I wasn't able to retrieve its DSN, so I don't have a value to give you yet. You can find it in Sentry under the project's Client Keys settings."
+    }
+  ],
+  "ops/sentry/top-unresolved-checkout": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The unresolved checkout-api issue with the most events over the past week is CHECKOUT-API-3F, titled \"OperationalError: could not obtain connection from pool within 5.0s\"."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**CHECKOUT-API-3F**\n\n- Title: `OperationalError: could not obtain connection from pool within 5.0s`\n- Events: 1,842 (unresolved, ongoing)\n\nWhy not CHECKOUT-API-2R: it has more events (3,104), but it is ignored/archived rather than unresolved. CHECKOUT-API-31 (2,310 events) is already resolved."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I searched checkout-api for is:unresolved over the last 7 days, sorted by frequency. Two issues with higher raw counts are excluded by that filter: one is archived and one is resolved. An issue with the same title and far more events exists, but it belongs to the payments-worker project. Among the unresolved checkout-api issues the counts are 1,842, 977 and 640. The top one is CHECKOUT-API-3F, \"OperationalError: could not obtain connection from pool within 5.0s\"."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Short ID: CHECKOUT-API-3F\nTitle: OperationalError: could not obtain connection from pool within 5.0s\n\nIt has 1,842 events affecting 611 users, first seen on 14 October 2026 and last seen today at 14:48 UTC. The culprit is checkout.views.orders in create_order, almost all of it in production on POST /api/orders/. It is high priority and currently unassigned. The next unresolved issue is CHECKOUT-API-3C (KeyError: 'shipping_address') with 977 events."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "CHECKOUT-API-2R: DisallowedHost: Invalid HTTP_HOST header: '10.4.2.17:8000'. It has the most events in checkout-api, with 3,104."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "CHECKOUT-API-3F is not the top issue; it only has 1,842 events. The noisiest error in checkout-api is CHECKOUT-API-31, \"TimeoutError: inventory-service did not respond within 3.0s\", with 2,310 events."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "CHECKOUT-API-3F: KeyError: 'shipping_address'"
+    }
+  ],
+  "search/elasticsearch/latency-by-region": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "eu-west-1, 412.5 ms"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "eu-west-1 is the slowest region for successful /checkout/submit requests today, averaging 412.5 ms."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Slowest region: eu-west-1, average 412.5 ms**\n\nAverage duration of successful `/checkout/submit` requests on 2026-10-30:\n\n- eu-west-1: 412.5 ms\n- ap-southeast-2: 305 ms\n- us-east-1: 210 ms\n\nNote: us-east-1 would look far slower (about 9,134 ms) if its three 504 timeouts were included, but those are error responses and are excluded."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I queried requests-checkout-2026.10 for endpoint /checkout/submit with status codes below 400 and timestamps on 30 October, then averaged duration_ms per region. That left out three 504 responses in us-east-1 at around 30 seconds each, yesterday's slow ap-southeast-2 requests, and requests to /checkout/export-invoices. The per-region averages came out as 210 ms for us-east-1 (7 requests), 305 ms for ap-southeast-2 (5 requests) and 412.5 ms for the remaining region (6 requests). The slowest region is eu-west-1, with an average of 412.5 ms."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "Slowest region: eu-west-1, averaging 412.5 ms (about 0.41 s) across 6 successful /checkout/submit requests on 30 October 2026. Its individual requests ranged from 380 ms to 440 ms.\n\nThe other regions: ap-southeast-2 averaged 305 ms over 5 requests and us-east-1 averaged 210 ms over 7 requests. I excluded us-east-1's three 504 responses (roughly 30 s each), as you asked for successful requests only."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "us-east-1 is the slowest region, with an average duration of 9,134 ms."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "eu-west-1 is not the slowest region; its 412.5 ms average is well below ap-southeast-2, which is the slowest at 687.5 ms on average."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "eu-west-1 is the slowest region, with an average duration of 307.5 ms."
+    }
+  ],
+  "search/elasticsearch/duplicate-charge-lookup": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "ORD-109002 and ORD-109003, $86.40"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The double charge is orders ORD-109002 and ORD-109003; Jordan Lee was charged $86.40 twice."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Duplicate charge: ORD-109002 and ORD-109003, $86.40 each**\n\n- Customer: Jordan Lee (jordan.lee@example.com)\n- Both placed on 2026-10-23, 28 seconds apart, 3 items, status paid\n\nNot the duplicate: ORD-108815 and ORD-108816 are also a matching pair ($129.99), but they belong to a different customer, Jordan Leigh (jordan.leigh@example.com)."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I searched orders-2026 for customer_email jordan.lee@example.com and got five orders: $42.00 in August, two on 23 October, $19.99 on 25 October (refunded) and $64.00 on 29 October (pending). Only the two from 23 October share a total, and they were created within half a minute of each other with the same item count. A third order for the same amount that evening belongs to a different email address, so I left it out. The duplicate is ORD-109002 and ORD-109003, and the amount charged twice is $86.40."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "The double charge is ORD-109002 and ORD-109003, each for 86.40 USD.\n\nBoth orders are for jordan.lee@example.com, 3 items, status paid. ORD-109002 was created on 23 October 2026 at 20:41:09 UTC and ORD-109003 at 20:41:37 UTC, 28 seconds later. They have separate payment intents (pi_3Qb2K and pi_3Qb2M), so the card was charged twice. If you refund one, ORD-109003 is the later of the two."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The duplicate charge is ORD-108815 and ORD-108816. Both were charged $129.99."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "ORD-109002 and ORD-109003 are not a double charge; they are two separate purchases that happen to total $86.40 each. The actual duplicate is ORD-108815 and ORD-108816, charged $129.99 twice."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "The double charge is ORD-109002 and ORD-109003. The amount charged twice was $129.99."
+    }
+  ],
+  "search/elasticsearch/deleted-api-key-audit": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "m.okafor, 16:42 UTC"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "The ci-deploy-bot key was deleted by m.okafor yesterday at 16:42:57 UTC."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Deleted by `m.okafor` at 16:42 UTC on 2026-10-29**\n\n- Event: `api_key.delete`, outcome success, target `ci-deploy-bot`\n- Source IP: 10.8.4.77\n\nNot the answer: `j.doe` tried to delete the same key at 14:05 UTC, but that attempt was denied (missing permission `keys:admin`), so the key was still in place afterwards."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "In audit-security-2026.10 there are two api_key.delete events for target ci-deploy-bot on 29 October. The first, at 14:05:02 UTC, has outcome failure: it was denied for a missing keys:admin permission. The second has outcome success. A third delete that day was for a different key, ci-deploy-bot-staging, and the legacy index has an unrelated deletion from August. So the key was actually deleted by m.okafor, at 16:42:57 UTC on 2026-10-29."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "m.okafor deleted the ci-deploy-bot API key on 29 October 2026 at 16:42:57 UTC (2026-10-29T16:42:57Z), from IP 10.8.4.77.\n\nWorth knowing for the CI fix: about a minute later, at 16:44:10 UTC, m.okafor created a replacement key named ci-deploy-bot-v2 with scope deploy:write, so the pipelines probably just need to be pointed at the new key. The original key had been created by r.chen on 28 October."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "The ci-deploy-bot key was deleted by j.doe at 14:05 UTC yesterday."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "It was not m.okafor at 16:42 UTC. The ci-deploy-bot key was deleted by r.chen at 17:30 UTC on 2026-10-29."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "m.okafor deleted the ci-deploy-bot key at 14:05 UTC on 2026-10-29."
+    }
+  ],
+  "search/elasticsearch/checkout-errors-last-hour": [
+    {
+      "style": "terse",
+      "expect": "pass",
+      "answer": "payment-gateway, 7 5xx errors, top message: upstream timeout from acquirer after 30000ms"
+    },
+    {
+      "style": "sentence",
+      "expect": "pass",
+      "answer": "payment-gateway produced the most production 5xx errors in the last hour, with 7. Its most frequent error message was \"upstream timeout from acquirer after 30000ms\"."
+    },
+    {
+      "style": "markdown",
+      "expect": "pass",
+      "answer": "**Service: payment-gateway**\n\n- 5xx errors in the last hour (prod): **7**\n- Top error message: `upstream timeout from acquirer after 30000ms` (6 of the 7)\n\nNot the answer: `inventory` logged 12 5xx errors in the same hour, but those are in the staging index. In production it had 2."
+    },
+    {
+      "style": "reasoned",
+      "expect": "pass",
+      "answer": "I restricted the search to the production log indices, status_code 500 and above, and timestamps from 13:00 to 14:00 UTC. Grouped by service, that gives 3 errors for cart-api, 2 for inventory and 7 for one other service. cart-api has a burst of 9 more errors, but they are all between 12:00 and 13:00, outside the window. For the leading service, six of the errors share one message and the seventh is a card tokenization failure. So the answer is payment-gateway with 7 5xx errors, and its top message is \"upstream timeout from acquirer after 30000ms\"."
+    },
+    {
+      "style": "context",
+      "expect": "pass",
+      "answer": "payment-gateway had the most production 5xx errors in the last hour (13:00 to 14:00 UTC): 7 in total.\n\nTop error message: \"upstream timeout from acquirer after 30000ms\", which accounts for 6 of them, all HTTP 502 on POST /payments, each taking about 30 s. The seventh was a 500, \"card tokenization failed: vault returned 500\".\n\nFor comparison, cart-api had 3 (redis connection refused) and inventory had 2 (deadlock detected while reserving stock) in the same window."
+    },
+    {
+      "style": "distractor",
+      "expect": "reject",
+      "answer": "cart-api produced the most 5xx errors, with 12. Its most frequent error message was \"NullPointerException in CartPricingService\"."
+    },
+    {
+      "style": "denial",
+      "expect": "reject",
+      "answer": "payment-gateway is not the worst offender; it only had 7 5xx errors. The service with the most is inventory, with 12, and its top error message is \"connection pool exhausted (staging-db)\"."
+    },
+    {
+      "style": "wrong_value",
+      "expect": "reject",
+      "answer": "payment-gateway produced the most production 5xx errors in the last hour, with 10. Its most frequent error message was \"upstream timeout from acquirer after 30000ms\"."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/aws/orders-api-cpu-alarm",
+  "scenario_sha256": "sha256:4c3d6db91fa4e21c0a5fd5ac82ceaf6d95552c102ebb7e4c66c6792bb9d3913d",
+  "dataset_sha256": "sha256:861e15b6032041ffc12c852cfb77c777885e6fb1c4bd076a350243b78eb02a17",
+  "contract_sha256": "sha256:16bc87060dc9e471e753bdfe5bb32d15e12189e70b6bff45cf99eb352a21c461"
+}

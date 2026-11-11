@@ -13,7 +13,7 @@ use crate::{
     },
 };
 
-pub const DEFAULT_USER_TYPE: &str = "oty1toolbench0000001";
+pub const DEFAULT_USER_TYPE: &str = crate::account::USER_TYPE_ID;
 
 pub fn handle(w: &mut WorldState, req: &Req) -> Res {
     let s: Vec<&str> = req.segs.iter().map(String::as_str).collect();
@@ -153,7 +153,10 @@ pub fn render(u: &Value) -> Value {
     }
     links.insert(
         "schema".into(),
-        href("/api/v1/meta/schemas/user/osc1toolbench0000001"),
+        href(&format!(
+            "/api/v1/meta/schemas/user/{}",
+            crate::account::USER_SCHEMA_ID
+        )),
     );
     let type_id = u["type"]["id"]
         .as_str()
@@ -444,6 +447,9 @@ fn set_status(w: &mut WorldState, user: &mut Value, status: &str) {
     }
     if status == "DEPROVISIONED" {
         user["activated"] = Value::Null;
+        user.as_object_mut()
+            .expect("user object")
+            .shift_remove("transitioningToStatus");
     }
     let uid = id_of(user);
     put(w, "users", &uid, user.clone());
@@ -494,9 +500,10 @@ fn lifecycle(w: &mut WorldState, req: &Req, id: &str, op: &str) -> Res {
             )
         }
         "deactivate" => {
-            if status != "DEPROVISIONED" {
-                set_status(w, &mut user, "DEPROVISIONED");
+            if status == "DEPROVISIONED" {
+                return Err(validation(&["status: The user is already deprovisioned"]));
             }
+            set_status(w, &mut user, "DEPROVISIONED");
             (
                 "user.lifecycle.deactivate",
                 "Deactivate Okta user",
@@ -590,7 +597,11 @@ fn lifecycle(w: &mut WorldState, req: &Req, id: &str, op: &str) -> Res {
         _ => return Err(crate::util::endpoint_not_found()),
     };
     log_event(w, event, display, vec![user_target(&user)]);
-    Ok(Reply::ok(reply))
+    if op == "deactivate" {
+        Ok(Reply::Empty(StatusCode::OK))
+    } else {
+        Ok(Reply::ok(reply))
+    }
 }
 
 /// Groups the user belongs to, in group dataset order.

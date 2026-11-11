@@ -1,0 +1,102 @@
+{
+  "schema_version": 2,
+  "adapter": {
+    "name": "host-proxy-native-anthropic-messages-v1",
+    "code_sha256": "sha256:0467bcbe368adb088f2e099862d3e4b9ba720092fdb6bced55c333509dd1d7e5"
+  },
+  "classification": "failed_finalization",
+  "turns": [],
+  "final_response": null,
+  "cost": {
+    "total_input_tokens": null,
+    "total_output_tokens": null,
+    "total_cost_usd": null,
+    "retry_input_tokens": null,
+    "retry_output_tokens": null,
+    "retry_cost_usd": null,
+    "successful_turns": 0,
+    "retried_turns": null,
+    "total_retry_attempts": null
+  },
+  "identity": {
+    "configured_model": "anthropic/claude-fixture",
+    "configured_provider": "127.0.0.1",
+    "observed_model": null,
+    "observed_revision": null,
+    "sampling": {
+      "arm": "off",
+      "client_tool_search": false,
+      "proxy_universal_control": false
+    },
+    "budget": {
+      "max_turns": 8
+    }
+  },
+  "scripted": false,
+  "finalization": "capture_failed",
+  "scenario": "example/github/basic",
+  "session_id": "trial__env",
+  "transport": {
+    "seam": "host_provider_proxy",
+    "wire_format": "anthropic_messages",
+    "exchanges": [
+      {
+        "sequence": 1,
+        "role": "main",
+        "turn": null,
+        "request_sha256": "sha256:778d269d48e984131859700c798200d92539a2b9ada59ca29298118268c5ed1b",
+        "response_sha256": "sha256:69bb24a1512444bf731f8136d2db164534eb2658f540182db26c67098c280c54",
+        "status": 200,
+        "streamed": true,
+        "complete": true,
+        "latency_ms": 2,
+        "first_byte_ms": 1,
+        "response_id": "msg_1",
+        "observed_model": "provider-model-1",
+        "stop_reason": "tool_use",
+        "failure": null,
+        "input_tokens": 10,
+        "cache_read_input_tokens": 90,
+        "cache_creation_input_tokens": 0,
+        "output_tokens": 7,
+        "cost_usd": null
+      },
+      {
+        "sequence": 3,
+        "role": "main",
+        "turn": null,
+        "request_sha256": "sha256:46cf9ce63e5747d23e379e9eb1a3403673279786b3a26b3cd61d9a9b285328f2",
+        "response_sha256": "sha256:577dbbb1c6b4c2a277c54919a392fc65281c8187e575141d192207d21acb7b19",
+        "status": 200,
+        "streamed": true,
+        "complete": true,
+        "latency_ms": 1,
+        "first_byte_ms": 0,
+        "response_id": "msg_3",
+        "observed_model": "provider-model-1",
+        "stop_reason": "end_turn",
+        "failure": null,
+        "input_tokens": 10,
+        "cache_read_input_tokens": 90,
+        "cache_creation_input_tokens": 0,
+        "output_tokens": 7,
+        "cost_usd": null
+      }
+    ],
+    "capture_faults": [
+      "unobserved_assistant_turn"
+    ],
+    "rejected_requests": 0,
+    "other_requests": 0,
+    "interrupted": false,
+    "resumed": false,
+    "wall_clock_ms": 4,
+    "exchanges_without_usage": 0,
+    "auxiliary": {
+      "requests": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0
+    }
+  }
+}

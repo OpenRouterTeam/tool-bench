@@ -19,6 +19,7 @@ pub mod catalog;
 pub mod commerce;
 pub mod engine;
 pub mod error;
+pub mod idempotency;
 pub mod params;
 pub mod payments;
 pub mod tools;
@@ -66,10 +67,17 @@ impl MockService for Stripe {
     }
 }
 
-async fn tools_call(State(world): State<SharedWorld>, Json(call): Json<ToolCall>) -> Json<Value> {
+async fn tools_call(State(world): State<SharedWorld>, Json(call): Json<ToolCall>) -> Response {
     let mut world = world.lock().expect("world lock");
     let mut ctx = Ctx::new(&mut world);
-    Json(tools::call(&mut ctx, &call.name, &call.arguments))
+    let result = tools::call(&mut ctx, &call.name, &call.arguments);
+    let mut response = json(StatusCode::OK, result);
+    if ctx.response_lost {
+        response
+            .extensions_mut()
+            .insert(mock_core::faults::ResponseDeliveryLost);
+    }
+    response
 }
 
 fn stripe_response(status: u16, body: Value, request_id: &str) -> Response {
@@ -130,12 +138,22 @@ async fn rest(
     let result = match api::match_path(method.as_str(), path) {
         Some((route, args)) => {
             ctx.request_id = Some(request_id.clone());
+            ctx.idempotency_key = headers
+                .get("idempotency-key")
+                .and_then(|v| v.to_str().ok())
+                .map(str::to_owned);
             api::dispatch(&mut ctx, route, &args, &params)
         }
         None => Err(StripeError::unrecognized_url(method.as_str(), path)),
     };
-    match result {
+    let mut response = match result {
         Ok(value) => stripe_response(200, value, &request_id),
         Err(err) => stripe_response(err.status, err.body(), &request_id),
+    };
+    if ctx.response_lost {
+        response
+            .extensions_mut()
+            .insert(mock_core::faults::ResponseDeliveryLost);
     }
+    response
 }

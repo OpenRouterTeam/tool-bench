@@ -333,7 +333,7 @@ async fn research_tasks_are_stored_and_completed() {
     assert_eq!(created["status"], "pending");
     let id = created["researchId"].as_str().unwrap().to_owned();
     assert!(id.starts_with("r_01k"));
-    assert_eq!(created["createdAt"], 1_793_181_607_000_i64);
+    assert_eq!(created["createdAt"], 1_793_181_600_000_i64);
 
     let (status, done) = call(&app, "GET", &format!("/research/v1/{id}"), Value::Null).await;
     assert_eq!(status, StatusCode::OK);

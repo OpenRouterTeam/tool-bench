@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -10,7 +15,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "hubspot",
@@ -20,7 +27,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "salesforce",
@@ -30,7 +39,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "salesforce",
@@ -40,16 +51,123 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "Northwind Logistics",
-      "Daniel Okafor",
-      "00002107",
-      "00002113"
-    ],
-    "regex": null
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the company associated with the largest non-archived HubSpot deal that is neither closed won nor closed lost, the Salesforce user who owns the account of that name, and the case number of every open (not closed) Salesforce case on that account.",
+      "selector": {
+        "collection": "/services/hubspot/deals",
+        "matching": {
+          "archived": false
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "largest": {
+          "field": "/properties/amount"
+        }
+      },
+      "facts": {
+        "cases": {
+          "field": "/CaseNumber",
+          "kind": "identifier",
+          "record": "cases"
+        },
+        "company": {
+          "field": "/properties/name",
+          "kind": "text",
+          "record": "company"
+        },
+        "owner": {
+          "field": "/Name",
+          "kind": "text",
+          "record": "owner"
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "has no open cases",
+        "${cases} is closed",
+        "${cases} are closed"
+      ],
+      "filter": {
+        "excluding": [
+          {
+            "/properties/dealstage": "closedwon"
+          },
+          {
+            "/properties/dealstage": "closedlost"
+          }
+        ]
+      },
+      "related": {
+        "account": {
+          "from": "company",
+          "collection": "/services/salesforce/Account",
+          "on": {
+            "/Name": "/properties/name"
+          }
+        },
+        "cases": {
+          "from": "account",
+          "collection": "/services/salesforce/Case",
+          "filter": {
+            "matching": {
+              "/IsClosed": false
+            }
+          },
+          "on": {
+            "/AccountId": "/Id"
+          },
+          "pick": "all"
+        },
+        "company": {
+          "from": "link",
+          "collection": "/services/hubspot/companies",
+          "on": {
+            "/id": "/fromObjectId"
+          }
+        },
+        "link": {
+          "collection": "/services/hubspot/associations",
+          "filter": {
+            "matching": {
+              "/fromObjectType": "companies",
+              "/toObjectType": "deals"
+            }
+          },
+          "on": {
+            "/toObjectId": "/id"
+          }
+        },
+        "owner": {
+          "from": "account",
+          "collection": "/services/salesforce/User",
+          "on": {
+            "/Id": "/OwnerId"
+          }
+        }
+      },
+      "context": [
+        "(Escalated)",
+        "(Working)",
+        "(New)",
+        "(Closed)",
+        "(High)",
+        "(Medium)",
+        "(Low)"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -3,6 +3,7 @@
 
 pub mod bridge;
 pub mod client;
+pub mod exposure;
 pub mod front;
 pub mod http_client;
 pub mod launch;
@@ -10,6 +11,7 @@ pub mod replica;
 pub mod report;
 pub mod snapshot;
 pub mod stdio;
+pub mod transcript;
 
 /// MCP protocol revision this crate speaks as a client.
 pub const PROTOCOL_VERSION: &str = "2025-06-18";

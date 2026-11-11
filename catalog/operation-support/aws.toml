@@ -1,0 +1,77 @@
+# Reviewed operation support for `aws`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "aws-api"
+tool = "call_aws"
+operation = "cloudwatch put-metric-alarm"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"
+
+[[operation]]
+endpoint = "aws-api"
+tool = "call_aws"
+operation = "ec2 create-tags"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"
+
+[[operation]]
+endpoint = "aws-api"
+tool = "call_aws"
+operation = "ec2 describe-instances"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"
+
+[[operation]]
+endpoint = "aws-api"
+tool = "call_aws"
+operation = "ec2 stop-instances"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"
+
+[[operation]]
+endpoint = "aws-api"
+tool = "call_aws"
+operation = "iam add-user-to-group"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"
+
+[[operation]]
+endpoint = "aws-api"
+tool = "call_aws"
+operation = "iam attach-user-policy"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"
+
+[[operation]]
+endpoint = "aws-api"
+tool = "call_aws"
+operation = "iam list-users"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"
+
+[[operation]]
+endpoint = "aws-cloudwatch"
+tool = "get_active_alarms"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"
+
+[[operation]]
+endpoint = "aws-iam"
+tool = "get_group"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "AWS access, monitoring and shutdown"

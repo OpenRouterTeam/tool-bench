@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "github",
@@ -9,7 +14,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -23,7 +30,9 @@
         "name": "vercel-create-deployment"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "vercel",
@@ -35,7 +44,9 @@
         "name": "vercel-delete-project"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "github",
@@ -45,7 +56,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "github",
@@ -55,7 +68,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "github",
@@ -65,17 +80,208 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "c3a9f12",
-      "482",
-      "mateoalv",
-      "ines-d",
-      "riley-p"
-    ],
-    "regex": null
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the commit SHA that the storefront project's current production deployment serves, the number of the pull request merged as that commit, and who wrote, who approved and who merged that pull request.",
+      "selector": {
+        "collection": "/services/vercel/deployments",
+        "matching": {
+          "name": "storefront",
+          "readyState": "READY",
+          "target": "production"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "largest": {
+          "field": "/createdAt"
+        }
+      },
+      "facts": {
+        "approver": {
+          "field": "/name",
+          "kind": "text",
+          "record": "approver",
+          "also": [
+            "/login"
+          ]
+        },
+        "author": {
+          "field": "/name",
+          "kind": "text",
+          "record": "author",
+          "also": [
+            "/login"
+          ]
+        },
+        "commenter": {
+          "field": "/user",
+          "kind": "text",
+          "optional": true,
+          "record": "comment_review"
+        },
+        "commit": {
+          "field": "/meta/githubCommitSha",
+          "kind": "identifier",
+          "min_prefix": 7
+        },
+        "failed_commit": {
+          "field": "/meta/githubCommitSha",
+          "kind": "identifier",
+          "optional": true,
+          "record": "failed_deploy",
+          "min_prefix": 7
+        },
+        "merger": {
+          "field": "/name",
+          "kind": "text",
+          "record": "merger",
+          "also": [
+            "/login"
+          ]
+        },
+        "pr": {
+          "field": "/number",
+          "kind": "identifier",
+          "record": "pull"
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "approved by ${author}",
+        "approved by: ${author}",
+        "approved by ${merger}",
+        "approved by: ${merger}",
+        "approver: ${author}",
+        "approver: ${merger}",
+        "merged by ${author}",
+        "merged by: ${author}",
+        "merged by ${approver}",
+        "merged by: ${approver}",
+        "merger: ${author}",
+        "merger: ${approver}",
+        "written by ${approver}",
+        "written by: ${approver}",
+        "written by ${merger}",
+        "written by: ${merger}",
+        "authored by ${approver}",
+        "authored by: ${approver}",
+        "authored by ${merger}",
+        "authored by: ${merger}",
+        "author: ${approver}",
+        "author: ${merger}",
+        "${approver} wrote it",
+        "${approver} wrote the",
+        "${approver} authored it",
+        "${approver} authored the",
+        "${merger} wrote it",
+        "${merger} wrote the",
+        "${merger} authored it",
+        "${merger} authored the",
+        "${author} approved it",
+        "${author} approved the",
+        "${merger} approved it",
+        "${merger} approved the",
+        "${author} merged it",
+        "${author} merged the",
+        "${approver} merged it",
+        "${approver} merged the"
+      ],
+      "related": {
+        "approval": {
+          "from": "pull",
+          "collection": "/services/github/reviews",
+          "filter": {
+            "matching": {
+              "/state": "APPROVED"
+            }
+          },
+          "on": {
+            "/pull_number": "/number"
+          }
+        },
+        "approver": {
+          "from": "approval",
+          "collection": "/services/github/users",
+          "on": {
+            "/login": "/user"
+          }
+        },
+        "author": {
+          "from": "pull",
+          "collection": "/services/github/users",
+          "on": {
+            "/login": "/user"
+          }
+        },
+        "comment_review": {
+          "allow_absence": true,
+          "from": "pull",
+          "collection": "/services/github/reviews",
+          "filter": {
+            "matching": {
+              "/state": "COMMENTED"
+            }
+          },
+          "on": {
+            "/pull_number": "/number"
+          }
+        },
+        "failed_deploy": {
+          "allow_absence": true,
+          "collection": "/services/vercel/deployments",
+          "filter": {
+            "matching": {
+              "/readyState": "ERROR",
+              "/target": "production"
+            }
+          },
+          "on": {
+            "/projectId": "/projectId"
+          },
+          "pick": {
+            "largest": "/createdAt"
+          }
+        },
+        "merger": {
+          "from": "pull",
+          "collection": "/services/github/users",
+          "on": {
+            "/login": "/merged_by"
+          }
+        },
+        "pull": {
+          "collection": "/services/github/pulls",
+          "on": {
+            "/merge_commit_sha": "/meta/githubCommitSha"
+          }
+        }
+      },
+      "context": [
+        "The newer production deployment of ${failed_commit} failed, so it never went live",
+        "it supersedes the unmerged PR",
+        "${commenter} only left a comment",
+        "${commenter} left a comment",
+        "${commenter} left a review comment",
+        "${commenter} only commented",
+        "${commenter} commented",
+        "${commenter}: commented",
+        "${commenter} (commented)",
+        "${commenter} (comment only)",
+        "${commenter} (comment)"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -417,6 +417,7 @@ pub fn run(db: &Db, run: &Value) -> Value {
             "discard-comment",
             "cancel-comment",
             "input-variables",
+            "input-bindings",
             "configuration-version",
         ],
     );
@@ -467,7 +468,15 @@ pub fn plan(db: &Db, base: &str, plan: &Value) -> Value {
             "log-read-url": format!("{base}/archivist/v1/object/plan-log-{id}")
         }),
         plan,
-        &["run", "log", "resource-changes-detail", "json-output"],
+        &[
+            "run",
+            "log",
+            "resource-changes-detail",
+            "json-output",
+            "base-state-version",
+            "base-serial",
+            "base-lineage",
+        ],
     );
     let exports: Vec<String> = db
         .filter("plan_exports", |e| str_field(e, "plan") == id)
@@ -885,7 +894,14 @@ pub fn state_version(base: &str, sv: &Value) -> Value {
             "billable-rum-count": 0
         }),
         sv,
-        &["workspace", "run", "outputs", "created-by"],
+        &[
+            "workspace",
+            "run",
+            "outputs",
+            "created-by",
+            "resource-instances",
+            "lineage",
+        ],
     );
     json!({
         "id": id,

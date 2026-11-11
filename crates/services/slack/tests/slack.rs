@@ -238,7 +238,7 @@ async fn profiles() {
     let v = ok(&app, "slack_read_user_profile", json!({})).await;
     assert_eq!(
         v["result"],
-        "User ID: U0TOOLBNCH1\nUsername: casey.morgan\nDisplay Name: casey\nReal Name: Casey Morgan\nPronouns: \nTitle: Engineering Operations Lead\nEmail: casey.morgan@octo-corp.example\nOrganization Name: Octo Corp\nPhone: \nStatus: :coffee: Heads down until noon \nTimezone: America/Chicago\nAdmin: No\nOwner: No\nBot: No\nRestricted: No\n"
+        "User ID: U02CMORG8RK\nUsername: casey.morgan\nDisplay Name: casey\nReal Name: Casey Morgan\nPronouns: \nTitle: Engineering Operations Lead\nEmail: casey.morgan@octo-corp.example\nOrganization Name: Octo Corp\nPhone: \nStatus: :coffee: Heads down until noon \nTimezone: America/Chicago\nAdmin: No\nOwner: No\nBot: No\nRestricted: No\n"
     );
     let v = ok(
         &app,
@@ -346,7 +346,7 @@ async fn sending_messages_threads_and_dms() {
     let r = v["result"].as_str().unwrap();
     assert!(
         r.starts_with(
-            "Message sent successfully to #db-migration (ID: C05DBMIG2RT).\nMessage_ts: 1793286007."
+            "Message sent successfully to #db-migration (ID: C05DBMIG2RT).\nMessage_ts: 1793286000."
         ),
         "{r}"
     );
@@ -361,7 +361,7 @@ async fn sending_messages_threads_and_dms() {
         s["posted"]["C05DBMIG2RT#1"]["thread_ts"],
         "1792600205.318801"
     );
-    assert_eq!(s["posted"]["C05DBMIG2RT#1"]["user"], "U0TOOLBNCH1");
+    assert_eq!(s["posted"]["C05DBMIG2RT#1"]["user"], "U02CMORG8RK");
     let ts = s["posted"]["C05DBMIG2RT#1"]["ts"]
         .as_str()
         .unwrap()
@@ -534,7 +534,7 @@ async fn conversations_members_and_channel_lists() {
     assert_eq!(s["channels"][&id]["name"], "web-4-12-launch");
     assert_eq!(
         s["channels"][&id]["members"],
-        json!(["U0TOOLBNCH1", "U06AKIM3D2Q"])
+        json!(["U02CMORG8RK", "U06AKIM3D2Q"])
     );
     let v = ok(
         &app,
@@ -631,7 +631,7 @@ async fn reactions() {
     .await;
     let r = v["result"].as_str().unwrap();
     assert!(
-        r.contains("- :eyes: (3) - priya (U03PRIYAN4T), lena (U07LFISCH2R), casey (U0TOOLBNCH1)"),
+        r.contains("- :eyes: (3) - priya (U03PRIYAN4T), lena (U07LFISCH2R), casey (U02CMORG8RK)"),
         "{r}"
     );
     assert!(r.contains("- :shipit: (1)"));
@@ -928,7 +928,7 @@ async fn web_api_methods() {
         "",
     )
     .await;
-    assert_eq!(v["user_id"], "U0TOOLBNCH1");
+    assert_eq!(v["user_id"], "U02CMORG8RK");
     assert_eq!(v["url"], "https://octo-corp.slack.com/");
     let (_, v) = raw(
         &app,

@@ -7,11 +7,82 @@ services = ["brave"]
 tags = ["lookup", "single-service", "brave"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 1
+rationale = "This week's 45M Series B led by Halcyon (2026-10-27) competes with the 2025 12M Series A led by Fjord Capital and a DealBase page still listing Series A as latest; Norvik Labs 30M is a look-alike."
+
 # This week: $45M Series B led by Halcyon Ventures. Distractors: the 2025 Series A
 # ($12M, Fjord Capital), a stale funding database, and look-alike Norvik Labs ($30M, Brightline).
-[expect.answer]
-contains = ["Halcyon", "Series B"]
-regex = '(?i)\$?\s?45\s?(m\b|mn\b|million)'
+[expect]
+version = 2
+audit_history = true
+
+# The article is found by what the instruction states: a news headline about Norvik
+# Analytics raising money, published in the week of the scenario clock (2026-10-29).
+[expect.answer.record_facts]
+requirement = "State the amount (in millions of US dollars), the round and the lead investor of the funding round that Norvik Analytics announced in the news during the week of 2026-10-29."
+mode = "statements"
+context = [
+  "existing investor ${participating_investor} also participated",
+  "bringing total funding to ${total_funding}",
+  "with ${participating_investor} participating",
+  "reported by ${news_source} on ${news_date}",
+  "${participating_investor} participating",
+  "${participating_investor} participated",
+  "${participating_investor} also participated",
+  "participation from existing investor ${participating_investor}",
+  "participation from ${participating_investor}",
+]
+# The same article names an existing investor that took part without leading.
+
+
+[expect.answer.record_facts.selector]
+collection = "/services/brave/news"
+field_patterns = { "/title" = '^Norvik Analytics (raises|closes|secures|announces) ', "/page_age" = '^2026-10-2[3-9]T' }
+
+[expect.answer.record_facts.facts.amount]
+field = "/title"
+capture = '\$(\d+(?:\.\d+)?)M\b'
+kind = "money"
+units = ["million", "m", "mn"]
+require_unit = true
+
+[expect.answer.record_facts.facts.round]
+field = "/title"
+capture = '\b(Series [A-Z])\b'
+kind = "text"
+
+[expect.answer.record_facts.facts.lead]
+field = "/description"
+capture = 'led by ([A-Z][A-Za-z]+(?: [A-Z][A-Za-z]+)*)'
+kind = "text"
+
+[expect.answer.record_facts.facts.participating_investor]
+field = "/description"
+capture = 'participation from (?:existing investor )?([A-Z][A-Za-z]+(?: [A-Z][A-Za-z]+)*)'
+kind = "text"
+optional = true
+
+[expect.answer.record_facts.facts.total_funding]
+field = "/extra_snippets/0"
+capture = 'total funding to \$(\d+)'
+kind = "money"
+units = ["million", "m", "mn"]
+require_unit = true
+optional = true
+
+[expect.answer.record_facts.facts.news_source]
+field = "/source"
+kind = "text"
+optional = true
+
+[expect.answer.record_facts.facts.news_date]
+field = "/page_age"
+kind = "date"
+optional = true
 
 [[expect.required_calls]]
 service = "brave"
@@ -19,7 +90,7 @@ method = "GET"
 path_regex = "^/res/v1/"
 
 [solution]
-answer = "Norvik Analytics raised a $45 million Series B led by Halcyon Ventures (with Fjord Capital participating), reported by TechBeat on 2026-10-27.\n"
+answer = "Amount: $45M Round: Series B Lead investor: Halcyon Ventures"
 
 [[solution.call]]
 endpoint = "brave-search"

@@ -18,6 +18,15 @@ pub enum Out {
     Bytes(String, Vec<u8>),
 }
 
+impl Out {
+    pub fn into_result(self) -> Result<Self, Self> {
+        match &self {
+            Self::Json(status, _) | Self::Empty(status) if !status.is_success() => Err(self),
+            _ => Ok(self),
+        }
+    }
+}
+
 pub fn ok(v: Value) -> Out {
     Out::Json(StatusCode::OK, v)
 }
@@ -146,6 +155,20 @@ pub fn s<'a>(v: &'a Value, k: &str) -> &'a str {
 }
 
 impl Ctx<'_> {
+    pub fn transaction<Output>(
+        &mut self,
+        operation: impl FnOnce(&mut Ctx<'_>) -> Result<Output, Out>,
+    ) -> Result<Output, Out> {
+        let mut staged = self.st.clone();
+        let output = operation(&mut Ctx {
+            st: &mut staged,
+            now: self.now,
+            base: self.base.clone(),
+        })?;
+        *self.st = staged;
+        Ok(output)
+    }
+
     pub fn all(&self, coll: &str) -> Vec<Value> {
         self.st
             .store

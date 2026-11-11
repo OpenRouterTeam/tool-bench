@@ -35,12 +35,163 @@ const ORG_ACCESS: [&str; 15] = [
     "alerts:write",
 ];
 
+const INVALID_PROJECT_SLUG: &str = "Enter a valid slug consisting of lowercase letters, numbers, underscores or hyphens. It cannot be entirely numeric.";
+
+fn valid_project_slug(slug: &str) -> bool {
+    !slug.is_empty()
+        && !slug.bytes().all(|byte| byte.is_ascii_digit())
+        && slug.chars().all(|character| {
+            character.is_ascii_lowercase()
+                || character.is_ascii_digit()
+                || matches!(character, '-' | '_')
+        })
+}
+
+/// Platform identifiers Sentry accepts for a project, besides none and `other`
+/// (`GETTING_STARTED_DOCS_PLATFORMS` in `sentry/models/project.py`).
+const PLATFORMS: [&str; 113] = [
+    "android",
+    "apple",
+    "apple-ios",
+    "apple-macos",
+    "bun",
+    "capacitor",
+    "cordova",
+    "dart",
+    "deno",
+    "dotnet",
+    "dotnet-aspnet",
+    "dotnet-aspnetcore",
+    "dotnet-awslambda",
+    "dotnet-gcpfunctions",
+    "dotnet-maui",
+    "dotnet-uwp",
+    "dotnet-winforms",
+    "dotnet-wpf",
+    "dotnet-xamarin",
+    "electron",
+    "elixir",
+    "flutter",
+    "go",
+    "go-echo",
+    "go-fasthttp",
+    "go-fiber",
+    "go-gin",
+    "go-http",
+    "go-iris",
+    "go-martini",
+    "go-negroni",
+    "godot",
+    "ionic",
+    "java",
+    "java-log4j2",
+    "java-logback",
+    "java-spring",
+    "java-spring-boot",
+    "javascript",
+    "javascript-angular",
+    "javascript-astro",
+    "javascript-ember",
+    "javascript-gatsby",
+    "javascript-nextjs",
+    "javascript-nuxt",
+    "javascript-react",
+    "javascript-react-router",
+    "javascript-remix",
+    "javascript-solid",
+    "javascript-solidstart",
+    "javascript-svelte",
+    "javascript-sveltekit",
+    "javascript-tanstackstart-react",
+    "javascript-vue",
+    "kotlin",
+    "minidump",
+    "native",
+    "native-qt",
+    "nintendo-switch",
+    "node",
+    "node-awslambda",
+    "node-azurefunctions",
+    "node-cloudflare-pages",
+    "node-cloudflare-workers",
+    "node-connect",
+    "node-eve",
+    "node-express",
+    "node-fastify",
+    "node-flue",
+    "node-gcpfunctions",
+    "node-hapi",
+    "node-hono",
+    "node-koa",
+    "node-mastra",
+    "node-nestjs",
+    "node-pi-durable",
+    "php",
+    "php-laravel",
+    "php-symfony",
+    "playstation",
+    "powershell",
+    "python",
+    "python-aiohttp",
+    "python-asgi",
+    "python-awslambda",
+    "python-bottle",
+    "python-celery",
+    "python-chalice",
+    "python-django",
+    "python-falcon",
+    "python-fastapi",
+    "python-flask",
+    "python-gcpfunctions",
+    "python-litestar",
+    "python-pylons",
+    "python-pymongo",
+    "python-pyramid",
+    "python-quart",
+    "python-rq",
+    "python-sanic",
+    "python-serverless",
+    "python-starlette",
+    "python-tornado",
+    "python-tryton",
+    "python-wsgi",
+    "react-native",
+    "ruby",
+    "ruby-rack",
+    "ruby-rails",
+    "rust",
+    "unity",
+    "unreal",
+    "xbox",
+];
+
+/// Sentry's `Project.is_valid_platform`: a missing or empty platform, `other`, or a listed one.
+/// The project serializers answer anything else with `{"platform": ["Invalid platform"]}`.
+fn valid_platform(platform: &Value) -> bool {
+    match platform {
+        Value::Null => true,
+        Value::String(name) => {
+            name.is_empty() || name == "other" || PLATFORMS.contains(&name.as_str())
+        }
+        _ => false,
+    }
+}
+
 // ---------------------------------------------------------------------------------------
 // Lookups shared with other modules
 // ---------------------------------------------------------------------------------------
 
-pub fn org_exists(world: &WorldState, slug: &str) -> bool {
-    collection(world, "organizations").is_some_and(|c| c.contains(slug))
+pub fn org_exists(world: &WorldState, slug_or_id: &str) -> bool {
+    find_org(world, slug_or_id).is_some()
+}
+
+fn find_org<'world>(world: &'world WorldState, slug_or_id: &str) -> Option<&'world Value> {
+    docs(world, "organizations")
+        .into_iter()
+        .find(|organization| {
+            organization["slug"].as_str() == Some(slug_or_id)
+                || str_of(&organization["id"]) == slug_or_id
+        })
 }
 
 pub fn auth_user(world: &WorldState) -> Option<&Value> {
@@ -69,15 +220,21 @@ pub fn find_team<'a>(world: &'a WorldState, needle: &str) -> Option<&'a Value> {
 pub fn find_project<'a>(world: &'a WorldState, slug_or_id: &str) -> Option<&'a Value> {
     collection(world, "projects")?
         .iter()
-        .find(|(k, p)| *k == slug_or_id || str_of(&p["id"]) == slug_or_id)
+        .find(|(_, p)| p["slug"].as_str() == Some(slug_or_id) || str_of(&p["id"]) == slug_or_id)
         .map(|(_, p)| p)
 }
 
 pub fn project_key(world: &WorldState, slug_or_id: &str) -> Option<String> {
     collection(world, "projects")?
         .iter()
-        .find(|(k, p)| *k == slug_or_id || str_of(&p["id"]) == slug_or_id)
+        .find(|(_, p)| p["slug"].as_str() == Some(slug_or_id) || str_of(&p["id"]) == slug_or_id)
         .map(|(k, _)| k.to_owned())
+}
+
+fn project_slug(world: &WorldState, slug_or_id: &str) -> Option<String> {
+    find_project(world, slug_or_id)
+        .and_then(|project| project["slug"].as_str())
+        .map(str::to_owned)
 }
 
 /// `{id, slug, name, platform}` as embedded in issues and releases.
@@ -296,8 +453,21 @@ fn key_json(world: &WorldState, k: &Value, base: &str) -> Value {
     let secret = k["secret"].as_str().unwrap_or("").to_owned();
     let project = find_project(world, k["project"].as_str().unwrap_or(""));
     let project_id = project.map(|p| str_of(&p["id"])).unwrap_or_default();
-    let host = base.split("://").nth(1).unwrap_or(base);
-    let scheme = base.split("://").next().unwrap_or("http");
+    let ingestion = crate::instance::ingestion_url(world);
+    let ingestion_base = ingestion.as_str().trim_end_matches('/');
+    let mut public_dsn = ingestion.clone();
+    public_dsn
+        .path_segments_mut()
+        .expect("HTTP ingestion has a path")
+        .pop_if_empty()
+        .push(&project_id);
+    public_dsn
+        .set_username(&public)
+        .expect("HTTP ingestion accepts a public key");
+    let mut secret_dsn = public_dsn.clone();
+    secret_dsn
+        .set_password(Some(&secret))
+        .expect("HTTP ingestion accepts a secret key");
     json!({
         "id": public,
         "name": k["name"].clone(),
@@ -308,14 +478,14 @@ fn key_json(world: &WorldState, k: &Value, base: &str) -> Value {
         "isActive": k.get("isActive").cloned().unwrap_or(json!(true)),
         "rateLimit": k.get("rateLimit").cloned().unwrap_or(Value::Null),
         "dsn": {
-            "secret": format!("{scheme}://{public}:{secret}@{host}/{project_id}"),
-            "public": format!("{scheme}://{public}@{host}/{project_id}"),
-            "csp": format!("{base}/api/{project_id}/csp-report/?sentry_key={public}"),
-            "security": format!("{base}/api/{project_id}/security/?sentry_key={public}"),
-            "minidump": format!("{base}/api/{project_id}/minidump/?sentry_key={public}"),
-            "nel": format!("{base}/api/{project_id}/nel/?sentry_key={public}"),
-            "unreal": format!("{base}/api/{project_id}/unreal/{public}/"),
-            "crons": format!("{base}/api/{project_id}/cron/___MONITOR_SLUG___/{public}/"),
+            "secret": secret_dsn.as_str(),
+            "public": public_dsn.as_str(),
+            "csp": format!("{ingestion_base}/api/{project_id}/csp-report/?sentry_key={public}"),
+            "security": format!("{ingestion_base}/api/{project_id}/security/?sentry_key={public}"),
+            "minidump": format!("{ingestion_base}/api/{project_id}/minidump/?sentry_key={public}"),
+            "nel": format!("{ingestion_base}/api/{project_id}/nel/?sentry_key={public}"),
+            "unreal": format!("{ingestion_base}/api/{project_id}/unreal/{public}/"),
+            "crons": format!("{ingestion_base}/api/{project_id}/cron/___MONITOR_SLUG___/{public}/"),
             "cdn": format!("{base}/js-sdk-loader/{public}.min.js"),
         },
         "browserSdkVersion": k.get("browserSdkVersion").cloned().unwrap_or(json!("8.x")),
@@ -389,7 +559,7 @@ pub async fn get_org(
     headers: HeaderMap,
 ) -> Response {
     let world = world.lock().expect("world lock");
-    match collection(&world, "organizations").and_then(|c| c.get(&org)) {
+    match find_org(&world, &org) {
         Some(o) => ok(org_detail_json(&world, o, &base_url(&headers))),
         None => not_found(),
     }
@@ -516,7 +686,7 @@ pub async fn list_team_projects(
 
 fn project_detail(world: &WorldState, p: &Value, org: &str, base: &str) -> Value {
     let mut out = project_json(world, p);
-    if let Some(o) = collection(world, "organizations").and_then(|c| c.get(org)) {
+    if let Some(o) = find_org(world, org) {
         out["organization"] = org_json(o, base);
     }
     out["options"] = json!({ "sentry:resolve_age": 0, "sentry:scrub_data": true });
@@ -574,15 +744,11 @@ pub async fn create_project(
         .filter(|s| !s.is_empty())
         .map(str::to_owned)
         .unwrap_or_else(|| slugify(name));
-    if slug.is_empty()
-        || !slug
-            .chars()
-            .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_')
-    {
-        return field_error(
-            "slug",
-            "Enter a valid slug consisting of lowercase letters, numbers, underscores or hyphens. It cannot be entirely numeric.",
-        );
+    if !valid_project_slug(&slug) {
+        return field_error("slug", INVALID_PROJECT_SLUG);
+    }
+    if !valid_platform(&input["platform"]) {
+        return field_error("platform", "Invalid platform");
     }
     if find_project(world, &slug).is_some() {
         return detail(
@@ -605,7 +771,7 @@ pub async fn create_project(
         .service_mut(NAME)
         .store
         .collection_mut("projects")
-        .insert(slug.clone(), project.clone());
+        .insert(id.to_string(), project.clone());
     // Sentry creates a "Default" client key with every new project.
     insert_key(world, &slug, "Default");
     created(project_json(world, &project))
@@ -629,12 +795,19 @@ pub async fn update_project(
     let Some(key) = project_key(world, &project) else {
         return not_found();
     };
-    let new_slug = input["slug"]
-        .as_str()
-        .map(str::trim)
-        .filter(|s| !s.is_empty());
+    let old_slug = find_project(world, &project)
+        .and_then(|project| project["slug"].as_str())
+        .expect("selected project has a slug")
+        .to_owned();
+    let new_slug = input["slug"].as_str().map(str::trim);
+    if new_slug.is_some_and(|slug| !valid_project_slug(slug)) {
+        return field_error("slug", INVALID_PROJECT_SLUG);
+    }
+    if !valid_platform(&input["platform"]) {
+        return field_error("platform", "Invalid platform");
+    }
     if let Some(s) = new_slug
-        && s != key
+        && s != old_slug
         && find_project(world, s).is_some()
     {
         return field_error(
@@ -653,17 +826,19 @@ pub async fn update_project(
             doc[field] = v.clone();
         }
     }
-    let final_key = match new_slug {
-        Some(s) if s != key => {
-            doc["slug"] = json!(s);
-            store.collection_mut("projects").remove(&key);
-            s.to_owned()
+    if let Some(new_slug) = new_slug.filter(|slug| *slug != old_slug) {
+        doc["slug"] = json!(new_slug);
+        let keys = store.collection_mut("keys");
+        let related: Vec<_> = keys
+            .iter()
+            .filter(|(_, key)| key["project"].as_str() == Some(old_slug.as_str()))
+            .map(|(identity, _)| identity.to_owned())
+            .collect();
+        for identity in related {
+            keys.get_mut(&identity).expect("selected key exists")["project"] = json!(new_slug);
         }
-        _ => key,
-    };
-    store
-        .collection_mut("projects")
-        .insert(final_key, doc.clone());
+    }
+    store.collection_mut("projects").insert(key, doc.clone());
     ok(project_detail(world, &doc, &org, &base_url(&headers)))
 }
 
@@ -793,7 +968,7 @@ pub async fn list_keys(
     if !org_exists(&world, &org) {
         return not_found();
     }
-    let Some(slug) = project_key(&world, &project) else {
+    let Some(slug) = project_slug(&world, &project) else {
         return not_found();
     };
     let base = base_url(&headers);
@@ -826,7 +1001,7 @@ pub async fn create_key(
     if !org_exists(world, &org) {
         return not_found();
     }
-    let Some(slug) = project_key(world, &project) else {
+    let Some(slug) = project_slug(world, &project) else {
         return not_found();
     };
     let name = input["name"]
@@ -860,7 +1035,7 @@ pub async fn get_key(
     if !org_exists(&world, &org) {
         return not_found();
     }
-    let Some(slug) = project_key(&world, &project) else {
+    let Some(slug) = project_slug(&world, &project) else {
         return not_found();
     };
     match find_key(&world, &slug, &key_id).and_then(|k| collection(&world, "keys")?.get(&k)) {
@@ -884,7 +1059,7 @@ pub async fn update_key(
     if !org_exists(world, &org) {
         return not_found();
     }
-    let Some(slug) = project_key(world, &project) else {
+    let Some(slug) = project_slug(world, &project) else {
         return not_found();
     };
     let Some(key) = find_key(world, &slug, &key_id) else {
@@ -935,7 +1110,7 @@ pub async fn delete_key(
     if !org_exists(world, &org) {
         return not_found();
     }
-    let Some(slug) = project_key(world, &project) else {
+    let Some(slug) = project_slug(world, &project) else {
         return not_found();
     };
     let Some(key) = find_key(world, &slug, &key_id) else {

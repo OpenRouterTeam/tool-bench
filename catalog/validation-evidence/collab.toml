@@ -1,0 +1,54 @@
+# Validation evidence for scored scenarios in the `collab` group.
+#
+# Each entry names tests that exercise the scenario's contract with an independently
+# authored valid alternative plan and with deliberately wrong near-miss executions.
+# `taskgen` verifies that every file and test function exists and that the file names the
+# scenario; it cannot verify what a test means. Scenarios without a valid alternative and at
+# least one near-miss keep the `validation_evidence_missing` inventory gap.
+# See docs/authoring-admission.md.
+schema_version = 1
+
+[[scenario]]
+id = "collab/google/mark-northwind-renewed"
+valid_alternative = [
+  "crates/world/tests/google_write_contracts.rs::a_preserved_full_target_row_rewrite_is_a_legitimate_plan",
+  "crates/world/tests/google_write_contracts.rs::separate_precise_cell_updates_are_equivalent",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/google_write_contracts.rs::archive_tab_changes_are_not_authorized",
+]
+undone_prohibited_change = [
+  "crates/world/tests/google_write_contracts.rs::an_incorrect_date_claim_is_not_erased_by_restoration",
+]
+
+[[scenario]]
+id = "collab/google/schedule-q1-planning"
+valid_alternative = [
+  "crates/world/tests/google_write_contracts.rs::reordered_guests_and_optional_reminders_are_legitimate",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/google_write_contracts.rs::an_extra_guest_is_not_authorized_by_the_two_requested_names",
+]
+partial = [
+  "crates/world/tests/google_write_contracts.rs::a_meet_type_label_without_a_video_entry_point_is_not_completion",
+]
+
+[[scenario]]
+id = "collab/google/share-soc2-with-contoso"
+valid_alternative = [
+  "crates/world/tests/google_drive_contracts.rs::single_recipient_batch_is_a_legitimate_alternative",
+]
+
+[scenario.near_miss]
+collateral_change = [
+  "crates/world/tests/google_drive_contracts.rs::an_additional_reader_is_not_authorized",
+  "crates/world/tests/google_drive_contracts.rs::changing_the_report_description_is_not_authorized_by_sharing",
+  "crates/world/tests/google_drive_contracts.rs::sharing_a_parent_folder_is_collateral_even_with_the_correct_report_shared",
+]
+undone_prohibited_change = [
+  "crates/world/tests/google_drive_contracts.rs::restored_report_metadata_does_not_erase_unauthorized_history",
+]

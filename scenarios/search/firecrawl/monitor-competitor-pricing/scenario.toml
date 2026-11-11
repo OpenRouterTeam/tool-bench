@@ -7,40 +7,53 @@ services = ["firecrawl"]
 tags = ["write", "single-service", "firecrawl"]
 timeout_sec = 900
 
-# The first monitor created in this world gets this ID (deterministic per seed).
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/name"
-equals = "Fabrikam pricing"
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 0
+rationale = "Name Fabrikam pricing, URL, daily schedule and recipient are all supplied; the task creates one new monitor and existing Contoso blog and Fabrikam careers monitors only need to stay unpatched."
 
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/status"
-equals = "active"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/targets/0/urls/0"
-contains = "fabrikam.io/pricing"
+[[expect.records]]
+selector = { collection = "/services/firecrawl/monitors", created = true }
+equals = 1
+firecrawl_monitor = { name = "Fabrikam pricing", url = "https://www.fabrikam.io/pricing", recipient = "pricing-intel@contoso.example", judged_goal = { requirement = "When an active monitor's judging is enabled, its goal must cover both price changes and plan-limit changes on the pricing page, or every change to that page. Paused setup edits may be revised before reactivation. Broad unjudged markdown tracking is also valid.", accepted = ["Alert when Fabrikam changes any plan price or plan limit.", "Notify when prices or plan limits change.", "Alert on any change to the pricing page."], rejected = ["Alert only about careers. Ignore prices and plan limits.", "Only alert about prices, never plan limits."], mentions = [["price", "prices", "pricing", "priced", "cost", "costs"], ["limit", "limits", "quota", "quotas", "allowance", "allowances", "cap", "caps", "any change", "any changes", "all changes", "every change", "any update", "any updates", "anything changes", "page changes", "page is updated", "changes to the pricing page", "changes on the pricing page"]] } }
 
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/schedule/intervalMinutes"
-equals = 1440
+[[expect.records]]
+selector = { collection = "/services/firecrawl/monitor_checks", created = true }
+max_count = 1
+fields = { "/trigger" = "manual" }
 
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/adf6b65a-6476-82e0-8fc2-15f9b1e90267/notification/email/recipients"
-contains = "pricing-intel@contoso.example"
+[[expect.relations]]
+kind = "foreign_key"
+source = { collection = "/services/firecrawl/monitor_checks", created = true }
+source_field = "/monitorId"
+target = { collection = "/services/firecrawl/monitors", created = true }
+target_field = "/id"
 
-# The existing monitors are untouched.
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/3f6b2a10-5c4e-4d21-9b7a-1e0c2d3f4a02/targets/0/urls/0"
-equals = "https://www.fabrikam.io/careers"
-
-[[expect.state]]
-pointer = "/services/firecrawl/monitors/3f6b2a10-5c4e-4d21-9b7a-1e0c2d3f4a01/status"
-equals = "active"
-
-[[expect.required_calls]]
-service = "firecrawl"
-method = "POST"
-path = "/v2/monitor"
+[expect.preservation]
+allow = [
+  { pointer = "/services/firecrawl/monitors/*", kind = "create", matching = { name = "Fabrikam pricing" }, cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/monitor$" } },
+  { pointer = "/services/firecrawl/monitors/*/notification", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitors/*/goal", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitors/*/judgeEnabled", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitors/*/status", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitors/*/schedule", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitors/*/nextRunAt", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitors/*/updatedAt", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["PATCH"], path_regex = "^/v2/monitor/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitors/*/lastRunAt", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/monitor/[^/]+/run$" } },
+  { pointer = "/services/firecrawl/monitors/*/lastCheckId", references = [{ source_field = "/id", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/monitor/[^/]+/run$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*", kind = "create", matching = { trigger = "manual" }, references = [{ source_field = "/monitorId", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["POST"], path_regex = "^/v2/monitor/[^/]+/run$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/status", references = [{ source_field = "/monitorId", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/[^/]+/checks/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/startedAt", references = [{ source_field = "/monitorId", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/[^/]+/checks/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/completedAt", references = [{ source_field = "/monitorId", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/[^/]+/checks/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/summary", references = [{ source_field = "/monitorId", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/[^/]+/checks/[^/]+$" } },
+  { pointer = "/services/firecrawl/monitor_checks/*/pages", references = [{ source_field = "/monitorId", target_field = "/id", target = { collection = "/services/firecrawl/monitors", created = true } }], cause = { service = "firecrawl", methods = ["GET"], path_regex = "^/v2/monitor/[^/]+/checks/[^/]+$" } },
+]
 
 [[expect.forbidden_calls]]
 service = "firecrawl"

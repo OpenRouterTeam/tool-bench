@@ -7,52 +7,33 @@ services = ["cloudflare"]
 tags = ["write", "single-service", "cloudflare"]
 timeout_sec = 900
 
-# New record ids hash (zone, type, name, content), so the record is addressable whichever way
-# it was created (relative or full name, trailing dot, any case).
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/zone_id"
-equals = "023e105f4ecef8ad9ca31a8372d0c353"
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "Hostname status.octo-corp.com, target and proxied=false are given; only the octo-corp.com zone id must be resolved, and zones octo-corp.co and octo-corp.dev differ by exact name."
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/name"
-equals = "status.octo-corp.com"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/type"
-equals = "CNAME"
+[[expect.records]]
+selector = { collection = "/services/cloudflare/dns_records", created = true }
+equals = 1
+fields = { "/zone_id" = "023e105f4ecef8ad9ca31a8372d0c353", "/type" = "CNAME", "/name" = "status.octo-corp.com", "/content" = "octocorp.statuspage.io", "/proxied" = false }
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/content"
-equals = "octocorp.statuspage.io"
+[[expect.relations]]
+source = { collection = "/services/cloudflare/dns_records", created = true }
+source_field = "/zone_id"
+target = { collection = "/services/cloudflare/zones", matching = { id = "023e105f4ecef8ad9ca31a8372d0c353", name = "octo-corp.com" } }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/bc9852aa03507f9f32653fdd0d65f467/proxied"
-equals = false
-
-# The old provider's record stays untouched.
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/1e8b4d2f7a0c5e9b3d6f1a8c4e2b7d0f/content"
-equals = "octocorp.status.example-hosting.net"
-
-[[expect.state]]
-pointer = "/services/cloudflare/dns_records/61be7a5c0d3f8b2e6a9c4d1f7b5e0a3c/content"
-equals = "octocorp-staging.statuspage.io"
-
-[[expect.required_calls]]
-service = "cloudflare"
-method = "POST"
-path_regex = "^/client/v4/zones/023e105f4ecef8ad9ca31a8372d0c353/dns_records(/batch)?$"
-
-[[expect.forbidden_calls]]
-service = "cloudflare"
-method = "DELETE"
-path_regex = "/dns_records"
-
-# Wrong zones: the octo-corp.co look-alike and the staging zone.
-[[expect.forbidden_calls]]
-service = "cloudflare"
-path_regex = "^/client/v4/zones/(3b7e1d9c5a2f8e4b6d0c3a7f1e9b5d2c|e9a7c5b3d1f0e8c6a4b2d0f9e7c5a3b1)/dns_records"
-method = "POST"
+[[expect.preservation.allow]]
+pointer = "/services/cloudflare/dns_records/*"
+kind = "create"
+matching = { zone_id = "023e105f4ecef8ad9ca31a8372d0c353", type = "CNAME", name = "status.octo-corp.com", content = "octocorp.statuspage.io", proxied = false }
 
 [[solution.call]]
 endpoint = "cloudflare"

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "task_id": "diagnostic/stripe/no-action-already-refunded",
+  "base_id": "synth-ops",
+  "base_revision": 1,
+  "removes": {},
+  "inserts": {
+    "stripe": {
+      "charges": [
+        {
+          "id": "ch_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "object": "charge",
+          "amount": 25000,
+          "amount_captured": 25000,
+          "amount_refunded": 25000,
+          "balance_transaction": "txn_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "calculated_statement_descriptor": "CALDER RIDGE",
+          "captured": true,
+          "created": 1772532240,
+          "currency": "usd",
+          "customer": "cus_dJZayTexJlACKB",
+          "description": "Switchgear parts order #D-101",
+          "disputed": false,
+          "metadata": {
+            "order_id": "D-101"
+          },
+          "paid": true,
+          "payment_intent": "pi_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "payment_method": "pm_dJZayTexJlACKB58vsk3ayCx",
+          "payment_method_details": {
+            "card": {
+              "brand": "visa",
+              "exp_month": 8,
+              "exp_year": 2028,
+              "funding": "credit",
+              "last4": "4242",
+              "network": "visa"
+            },
+            "type": "card"
+          },
+          "refunded": true,
+          "status": "succeeded"
+        }
+      ],
+      "refunds": [
+        {
+          "id": "re_6AYez5LT1vd0g6zTWhpyAP2b",
+          "object": "refund",
+          "amount": 25000,
+          "balance_transaction": "txn_6AYez5LT1vd0g6zTWhpyAP2b",
+          "charge": "ch_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "created": 1772727120,
+          "currency": "usd",
+          "metadata": {},
+          "payment_intent": "pi_wkPmIRePDHbjF1ZhUb3Jf9T3",
+          "reason": "duplicate",
+          "status": "succeeded"
+        }
+      ],
+      "balance_transactions": [
+        {
+          "id": "txn_6AYez5LT1vd0g6zTWhpyAP2b",
+          "object": "balance_transaction",
+          "amount": -25000,
+          "available_on": 1772727120,
+          "created": 1772727120,
+          "currency": "usd",
+          "description": "REFUND FOR CHARGE (Switchgear parts order #D-101)",
+          "fee": 0,
+          "fee_details": [],
+          "net": -25000,
+          "reporting_category": "refund",
+          "source": "re_6AYez5LT1vd0g6zTWhpyAP2b",
+          "status": "available",
+          "type": "refund"
+        }
+      ]
+    }
+  }
+}

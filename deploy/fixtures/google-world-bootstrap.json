@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "scope": "reviewed_unselected_defaults_for_full_world_google_trials",
+  "basis": [
+    "crates/world/src/lib.rs: spawn_with_access prepares every registered service before listeners",
+    "crates/mock-core/src/world.rs: prepare_service captures initialized stores before world activity",
+    "crates/services/okta/src/account.rs: initialize creates user_types and calls custom initialization",
+    "crates/services/okta/src/custom.rs: initialize and default_theme define the literal default brand and theme",
+    "crates/services/sentry/src/instance.rs: initialize uses PUBLIC_ORIGIN for an undeclared instance",
+    "crates/services/argocd/src/rendered.rs: empty applications produce an empty resources collection",
+    "crates/services/mongodb/src/db.rs: empty initialization creates an empty namespaces collection",
+    "Other listed initializers produce no business records without their service datasets"
+  ],
+  "services": {
+    "argocd": {"resources": {}},
+    "aws": {},
+    "firecrawl": {},
+    "mongodb": {"namespaces": {}},
+    "okta": {
+      "brands": {
+        "bnd8ub4n2Yc6Ds7Rt0x7": {
+          "id": "bnd8ub4n2Yc6Ds7Rt0x7",
+          "name": "octo-corp_default",
+          "isDefault": true,
+          "agreeToCustomPrivacyPolicy": false,
+          "customPrivacyPolicyUrl": null,
+          "removePoweredByOkta": false,
+          "locale": "en",
+          "emailDomainId": null,
+          "defaultApp": {
+            "appInstanceId": null,
+            "appLinkName": null,
+            "classicApplicationUri": null
+          }
+        }
+      },
+      "themes": {
+        "bnd8ub4n2Yc6Ds7Rt0x7/thd8ut4n2Yc6Ds7Rt0x7": {
+          "id": "thd8ut4n2Yc6Ds7Rt0x7",
+          "logo": "https://ok12static.oktacdn.com/assets/img/logos/okta-logo.47066819ac7db5c13f4c431b2687cef6.png",
+          "favicon": "https://ok12static.oktacdn.com/assets/img/favicons/favicon.8a4b1d2c4e3f5a6b.ico",
+          "backgroundImage": null,
+          "primaryColorHex": "#1662dd",
+          "primaryColorContrastHex": "#ffffff",
+          "secondaryColorHex": "#ebebed",
+          "secondaryColorContrastHex": "#000000",
+          "signInPageTouchPointVariant": "OKTA_DEFAULT",
+          "endUserDashboardTouchPointVariant": "OKTA_DEFAULT",
+          "errorPageTouchPointVariant": "OKTA_DEFAULT",
+          "emailTemplateTouchPointVariant": "OKTA_DEFAULT",
+          "loadingPageTouchPointVariant": "OKTA_DEFAULT"
+        }
+      },
+      "user_types": {}
+    },
+    "sentry": {
+      "instance": {
+        "instance": {
+          "public_origin": "https://sentry.lumenlabs.dev",
+          "ingestion_origin": "https://sentry.lumenlabs.dev"
+        }
+      }
+    },
+    "shopify": {},
+    "supabase": {},
+    "terraform": {},
+    "vercel": {}
+  }
+}

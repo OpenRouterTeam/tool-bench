@@ -14,8 +14,12 @@
 
 #![allow(clippy::result_large_err)]
 
+mod helm;
+mod metadata;
+mod ownership;
 pub mod proto;
 pub mod registry;
+mod resources;
 pub mod table;
 pub mod util;
 
@@ -460,7 +464,12 @@ impl Kube<'_> {
             })
             .unwrap_or_default();
         if rt.group.is_empty() && rt.plural == "secrets" {
-            items.extend(self.helm_secrets());
+            let virtuals: Vec<_> = self
+                .helm_secrets()
+                .into_iter()
+                .filter(|(key, _)| !items.iter().any(|(stored, _)| stored == key))
+                .collect();
+            items.extend(virtuals);
         }
         items.sort_by(|a, b| a.0.cmp(&b.0));
         items
@@ -496,6 +505,15 @@ impl Kube<'_> {
     }
 
     fn save(&mut self, rt: &ResType, key: &str, obj: Value) {
+        if rt.group.is_empty()
+            && rt.plural == "secrets"
+            && let Ok(Some((release_key, release))) = helm::release(&obj)
+        {
+            self.state
+                .store
+                .collection_mut(HELM_COLLECTION)
+                .insert(release_key, release);
+        }
         self.state
             .store
             .collection_mut(&rt.collection())
@@ -503,19 +521,16 @@ impl Kube<'_> {
     }
 
     fn remove(&mut self, rt: &ResType, key: &str) -> bool {
-        if self
+        let removed = self
             .state
             .store
             .collection_mut(&rt.collection())
             .remove(key)
-            .is_some()
-        {
-            return true;
-        }
+            .is_some();
         if rt.group.is_empty() && rt.plural == "secrets" {
-            return self.remove_helm_secret(key);
+            return self.remove_helm_secret(key) || removed;
         }
-        false
+        removed
     }
 
     // ───────────────────────────── list / watch ─────────────────────────────
@@ -658,13 +673,8 @@ impl Kube<'_> {
                 rt.kind
             ));
         }
-        let body_ns = obj["metadata"]["namespace"].as_str().map(str::to_owned);
-        if let (Some(b), Some(ns)) = (&body_ns, ns)
-            && b != ns
-        {
-            return bad_request(
-                "the namespace of the provided object does not match the namespace sent on the request",
-            );
+        if let Some(response) = bind_namespace(rt, ns, &mut obj) {
+            return response;
         }
         let name = match obj["metadata"]["name"].as_str().filter(|n| !n.is_empty()) {
             Some(n) => n.to_owned(),
@@ -791,10 +801,17 @@ impl Kube<'_> {
                 "the name of the object ({n}) does not match the name on the URL ({name})"
             ));
         }
-        if let Some(rv) = incoming["metadata"]["resourceVersion"].as_str()
-            && Some(rv) != current["metadata"]["resourceVersion"].as_str()
-        {
-            return conflict(rt, name);
+        if let Some(response) = bind_namespace(rt, ns, &mut incoming) {
+            return response;
+        }
+        if let Some(response) = metadata::check(
+            rt,
+            name,
+            &current,
+            &incoming,
+            metadata::UpdateMode::ReplaceOrScale,
+        ) {
+            return response;
         }
         if let Some(resp) = validate_object(rt, name, &incoming) {
             return resp;
@@ -822,6 +839,15 @@ impl Kube<'_> {
         current: &Value,
         mut next: Value,
     ) -> Response {
+        if let Some(response) = metadata::check(
+            rt,
+            name,
+            current,
+            &next,
+            metadata::UpdateMode::ReplaceOrScale,
+        ) {
+            return response;
+        }
         next["apiVersion"] = json_value!(rt.group_version());
         next["kind"] = json_value!(rt.kind);
         if !next["metadata"].is_object() {
@@ -842,9 +868,25 @@ impl Kube<'_> {
             }
         }
         next["metadata"]["name"] = json_value!(name);
+        if rt.group.is_empty()
+            && rt.plural == "secrets"
+            && self.is_helm_virtual(&Self::key(rt, ns, name))
+            && next["type"] != "helm.sh/release.v1"
+        {
+            return bad_request("changing the type of a projected Helm Secret is unsupported");
+        }
+        if rt.group.is_empty()
+            && rt.plural == "secrets"
+            && let Err(reason) = helm::release(&next)
+        {
+            return bad_request(reason);
+        }
         if has_generation(rt) {
             let gen_now = current["metadata"]["generation"].as_i64().unwrap_or(1);
-            let changed = next["spec"] != current["spec"];
+            let changed = next["spec"] != current["spec"]
+                || rt.group == "apps"
+                    && rt.plural == "deployments"
+                    && next["metadata"]["annotations"] != current["metadata"]["annotations"];
             next["metadata"]["generation"] =
                 json_value!(if changed { gen_now + 1 } else { gen_now });
         }
@@ -853,24 +895,196 @@ impl Kube<'_> {
         }
         next["metadata"]["resourceVersion"] = json_value!(self.next_rv());
         let key = Self::key(rt, ns, name);
-        if rt.group.is_empty() && rt.plural == "secrets" && self.is_helm_virtual(&key) {
-            self.remove_helm_secret(&key);
-        }
-        let rescaled = rt.group == "apps"
-            && rt.plural == "deployments"
-            && !current.is_null()
-            && next["spec"]["replicas"] != current["spec"]["replicas"];
+        let deployment = rt.group == "apps" && rt.plural == "deployments" && !current.is_null();
+        let rescaled = deployment && next["spec"]["replicas"] != current["spec"]["replicas"];
+        let retemplated = deployment
+            && !resources::same_template(&next["spec"]["template"], &current["spec"]["template"]);
         self.save(rt, &key, next.clone());
+        if retemplated {
+            self.rollout_deployment(rt, ns, name);
+        }
         if rescaled {
             self.reconcile_deployment(rt, ns, name);
+        }
+        if retemplated || rescaled {
             return json(StatusCode::OK, self.fetch(rt, ns, name).unwrap_or(next));
         }
         json(StatusCode::OK, next)
     }
 
+    /// Does what the Deployment controller would after a pod-template change, taken to its end
+    /// state: a ReplicaSet for the new template (a new one, or the earlier one that already has
+    /// it) becomes the newest revision and runs the desired pods, and every other ReplicaSet of
+    /// the Deployment is scaled to zero and loses its pods. A paused Deployment, or one whose
+    /// ReplicaSets are not in the dataset, is left as it is.
+    fn rollout_deployment(&mut self, rt: &ResType, ns: Option<&str>, name: &str) {
+        let Some(deploy) = self.fetch(rt, ns, name) else {
+            return;
+        };
+        let (Some(rs_rt), Some(pod_rt)) = (
+            find(&self.types, "apps", "v1", "replicasets").cloned(),
+            find(&self.types, "", "v1", "pods").cloned(),
+        ) else {
+            return;
+        };
+        if deploy["spec"]["paused"] == true {
+            return;
+        }
+        let revision = |rs: &Value| {
+            rs["metadata"]["annotations"]["deployment.kubernetes.io/revision"]
+                .as_str()
+                .and_then(|r| r.parse::<i64>().ok())
+                .unwrap_or(0)
+        };
+        let template_of = |rs: &Value| {
+            let mut template = rs["spec"]["template"].clone();
+            if let Some(labels) = template
+                .pointer_mut("/metadata/labels")
+                .and_then(Value::as_object_mut)
+            {
+                labels.remove("pod-template-hash");
+            }
+            template
+        };
+        let owned: Vec<Value> = self
+            .stored(&rs_rt)
+            .into_iter()
+            .map(|(_, r)| r)
+            .filter(|r| ownership::controlled_by(r, &deploy))
+            .collect();
+        let Some(newest) = owned.iter().max_by_key(|r| revision(r)).cloned() else {
+            return;
+        };
+        let template = &deploy["spec"]["template"];
+        if resources::same_template(&template_of(&newest), template) {
+            return;
+        }
+        let replicas = deploy["spec"]["replicas"].as_i64().unwrap_or(1).max(0);
+        let next_revision = (revision(&newest) + 1).to_string();
+        let placement = owned
+            .iter()
+            .find_map(|rs| self.pods_of(&pod_rt, rs).into_iter().next())
+            .map(|(_, pod)| pod);
+
+        // Everything that ran the old templates goes away.
+        for old in &owned {
+            for (key, _) in self.pods_of(&pod_rt, old) {
+                self.remove(&pod_rt, &key);
+            }
+        }
+        let reused = owned
+            .iter()
+            .find(|rs| resources::same_template(&template_of(rs), template))
+            .cloned();
+        let target_name = match &reused {
+            Some(rs) => rs["metadata"]["name"]
+                .as_str()
+                .unwrap_or_default()
+                .to_owned(),
+            None => {
+                let hash = name_suffix(&format!("{name}/{next_revision}/{template}"), 10);
+                let rs_name = format!("{name}-{hash}");
+                let mut pod_template = template.clone();
+                pod_template["metadata"]["labels"]["pod-template-hash"] = json_value!(hash);
+                let mut selector = deploy["spec"]["selector"].clone();
+                selector["matchLabels"]["pod-template-hash"] = json_value!(hash);
+                let mut rs = json_value!({
+                    "metadata": {
+                        "name": rs_name,
+                        "labels": pod_template["metadata"]["labels"],
+                        "annotations": newest["metadata"]["annotations"],
+                        "ownerReferences": [{
+                            "apiVersion": "apps/v1",
+                            "kind": "Deployment",
+                            "name": name,
+                            "uid": deploy["metadata"]["uid"],
+                            "controller": true,
+                            "blockOwnerDeletion": true,
+                        }],
+                    },
+                    "spec": {"replicas": 0, "selector": selector, "template": pod_template},
+                    "status": {"replicas": 0, "observedGeneration": 1},
+                });
+                self.initialize(&rs_rt, ns, &rs_name, &mut rs);
+                self.save(&rs_rt, &Self::key(&rs_rt, ns, &rs_name), rs);
+                rs_name
+            }
+        };
+        for old in &owned {
+            let old_name = old["metadata"]["name"].as_str().unwrap_or_default();
+            if old_name == target_name || old["spec"]["replicas"].as_i64().unwrap_or(0) == 0 {
+                continue;
+            }
+            let mut scaled = old.clone();
+            scaled["spec"]["replicas"] = json_value!(0);
+            scaled["status"] = json_value!({
+                "replicas": 0,
+                "observedGeneration": old["metadata"]["generation"].as_i64().unwrap_or(1) + 1,
+            });
+            self.commit(&rs_rt, ns, old_name, old, scaled);
+        }
+        let Some(target) = self.fetch(&rs_rt, ns, &target_name) else {
+            return;
+        };
+        let mut running = target.clone();
+        running["metadata"]["annotations"]["deployment.kubernetes.io/revision"] =
+            json_value!(next_revision);
+        running["metadata"]["annotations"]["deployment.kubernetes.io/desired-replicas"] =
+            json_value!(replicas.to_string());
+        running["spec"]["replicas"] = json_value!(replicas);
+        for _ in 0..replicas {
+            self.create_running_pod(&pod_rt, ns, &running, placement.as_ref());
+        }
+        let generation = target["metadata"]["generation"].as_i64().unwrap_or(1)
+            + i64::from(target["spec"]["replicas"].as_i64() != Some(replicas));
+        running["status"] = json_value!({
+            "replicas": replicas,
+            "fullyLabeledReplicas": replicas,
+            "readyReplicas": replicas,
+            "availableReplicas": replicas,
+            "observedGeneration": generation,
+        });
+        self.commit(&rs_rt, ns, &target_name, &target, running);
+
+        // The Deployment records the new revision and counts the new pods. This is the
+        // controller's own write: it changes no spec, so the generation stays.
+        let mut next = deploy.clone();
+        next["metadata"]["annotations"]["deployment.kubernetes.io/revision"] =
+            json_value!(next_revision);
+        next["status"]["observedGeneration"] = deploy["metadata"]["generation"].clone();
+        for field in [
+            "replicas",
+            "updatedReplicas",
+            "readyReplicas",
+            "availableReplicas",
+        ] {
+            next["status"][field] = json_value!(replicas);
+        }
+        if let Some(status) = next["status"].as_object_mut() {
+            status.remove("unavailableReplicas");
+        }
+        let now = self.now_str();
+        for condition in next
+            .pointer_mut("/status/conditions")
+            .and_then(Value::as_array_mut)
+            .into_iter()
+            .flatten()
+            .filter(|condition| condition["type"] == "Progressing")
+        {
+            condition["status"] = json_value!("True");
+            condition["reason"] = json_value!("NewReplicaSetAvailable");
+            condition["message"] = json_value!(format!(
+                "ReplicaSet \"{target_name}\" has successfully progressed."
+            ));
+            condition["lastUpdateTime"] = json_value!(now);
+        }
+        next["metadata"]["resourceVersion"] = json_value!(self.next_rv());
+        self.save(rt, &Self::key(rt, ns, name), next);
+    }
+
     /// Does what the Deployment and ReplicaSet controllers would after a replica change: the newest
     /// ReplicaSet and its pods follow the new count, and both statuses are recounted from the pods.
-    /// A change that also edits the pod template is a rollout, which is not simulated.
+    /// A pod-template change is rolled out first, by `rollout_deployment`.
     fn reconcile_deployment(&mut self, rt: &ResType, ns: Option<&str>, name: &str) {
         let Some(deploy) = self.fetch(rt, ns, name) else {
             return;
@@ -894,9 +1108,7 @@ impl Kube<'_> {
             .stored(&rs_rt)
             .into_iter()
             .map(|(_, r)| r)
-            .filter(|r| {
-                r["metadata"]["namespace"].as_str() == ns && owned_by(r, "Deployment", name)
-            })
+            .filter(|r| ownership::controlled_by(r, &deploy))
             .collect();
         let Some(rs) = owned_sets.iter().max_by_key(|r| revision(r)).cloned() else {
             return;
@@ -911,7 +1123,7 @@ impl Kube<'_> {
         let Some(rs_name) = rs["metadata"]["name"].as_str().map(str::to_owned) else {
             return;
         };
-        let mut pods = self.pods_of(&pod_rt, ns, &rs_name);
+        let mut pods = self.pods_of(&pod_rt, &rs);
         let keep = usize::try_from(n).unwrap_or(0);
         for (key, _) in pods.iter().skip(keep) {
             self.remove(&pod_rt, key);
@@ -920,7 +1132,7 @@ impl Kube<'_> {
         for _ in pods.len()..keep {
             self.create_running_pod(&pod_rt, ns, &rs, placement.as_ref());
         }
-        pods = self.pods_of(&pod_rt, ns, &rs_name);
+        pods = self.pods_of(&pod_rt, &rs);
         let ready = pods.iter().filter(|(_, p)| pod_ready(p)).count();
         let generation = rs["metadata"]["generation"].as_i64().unwrap_or(1)
             + i64::from(rs["spec"]["replicas"].as_i64() != Some(n));
@@ -935,11 +1147,7 @@ impl Kube<'_> {
 
         let (mut total, mut total_ready) = (0, 0);
         for set in &owned_sets {
-            let set_pods = self.pods_of(
-                &pod_rt,
-                ns,
-                set["metadata"]["name"].as_str().unwrap_or_default(),
-            );
+            let set_pods = self.pods_of(&pod_rt, set);
             total += set_pods.len();
             total_ready += set_pods.iter().filter(|(_, p)| pod_ready(p)).count();
         }
@@ -958,13 +1166,11 @@ impl Kube<'_> {
         self.commit(rt, ns, name, &deploy, next);
     }
 
-    fn pods_of(&self, pod_rt: &ResType, ns: Option<&str>, rs_name: &str) -> Vec<(String, Value)> {
+    fn pods_of(&self, pod_rt: &ResType, owner: &Value) -> Vec<(String, Value)> {
         let mut pods: Vec<(String, Value)> = self
             .stored(pod_rt)
             .into_iter()
-            .filter(|(_, p)| {
-                p["metadata"]["namespace"].as_str() == ns && owned_by(p, "ReplicaSet", rs_name)
-            })
+            .filter(|(_, p)| ownership::controlled_by(p, owner))
             .collect();
         pods.sort_by(|a, b| a.0.cmp(&b.0));
         pods
@@ -1133,6 +1339,14 @@ impl Kube<'_> {
                 None,
             );
         }
+        if let Some(response) = bind_namespace(rt, ns, &mut next) {
+            return response;
+        }
+        if let Some(response) =
+            metadata::check(rt, name, &current, &next, metadata::UpdateMode::ObjectPatch)
+        {
+            return response;
+        }
         if status_only {
             let mut only = current.clone();
             only["status"] = next["status"].take();
@@ -1161,6 +1375,9 @@ impl Kube<'_> {
         }
         if let Err(msg) = validate_name(rt, name) {
             return invalid(rt, name, &[("FieldValueInvalid", "metadata.name", &msg)]);
+        }
+        if let Some(response) = bind_namespace(rt, ns, &mut obj) {
+            return response;
         }
         if let Some(resp) = validate_object(rt, name, &obj) {
             return resp;
@@ -1281,9 +1498,7 @@ impl Kube<'_> {
                 .stored(&child_rt)
                 .into_iter()
                 .map(|(_, v)| v)
-                .filter(|c| {
-                    c["metadata"]["namespace"].as_str() == ns && owned_by(c, &rt.kind, &name)
-                })
+                .filter(|c| ownership::dependent_of(c, obj))
                 .collect();
             for child in children {
                 let cname = child["metadata"]["name"]
@@ -1303,7 +1518,7 @@ impl Kube<'_> {
     fn replace_pod(&mut self, ns: Option<&str>, pod: &Value) {
         let Some(owner) = pod["metadata"]["ownerReferences"].as_array().and_then(|o| {
             o.iter()
-                .find(|r| r["kind"] == "ReplicaSet" && r["controller"] != false)
+                .find(|r| r["kind"] == "ReplicaSet" && r["controller"] == true)
         }) else {
             return;
         };
@@ -1316,6 +1531,9 @@ impl Kube<'_> {
         let Some(rs) = self.fetch(&rs_rt, ns, rs_name) else {
             return;
         };
+        if !ownership::controlled_by(pod, &rs) {
+            return;
+        }
         let Some(pod_rt) = find(&self.types, "", "v1", "pods").cloned() else {
             return;
         };
@@ -1323,9 +1541,7 @@ impl Kube<'_> {
         let current = self
             .stored(&pod_rt)
             .into_iter()
-            .filter(|(_, p)| {
-                p["metadata"]["namespace"].as_str() == ns && owned_by(p, "ReplicaSet", rs_name)
-            })
+            .filter(|(_, p)| ownership::controlled_by(p, &rs))
             .count() as i64;
         if current >= desired {
             return;
@@ -1551,20 +1767,12 @@ impl Kube<'_> {
             })
         };
         let current_scale = scale_of(&obj);
-        let replicas = match req.method {
+        let desired = match req.method {
             Method::GET => return json(StatusCode::OK, current_scale),
-            Method::PUT => {
-                let body = match req.json_body() {
-                    Ok(v) => v,
-                    Err(r) => return r,
-                };
-                if let Some(rv) = body["metadata"]["resourceVersion"].as_str()
-                    && Some(rv) != obj["metadata"]["resourceVersion"].as_str()
-                {
-                    return conflict(rt, name);
-                }
-                body["spec"]["replicas"].clone()
-            }
+            Method::PUT => match req.json_body() {
+                Ok(value) => value,
+                Err(response) => return response,
+            },
             Method::PATCH => {
                 let patch = match req.json_body() {
                     Ok(v) => v,
@@ -1586,10 +1794,20 @@ impl Kube<'_> {
                 } else {
                     merge_patch(&mut s, &patch);
                 }
-                s["spec"]["replicas"].clone()
+                s
             }
             _ => return method_not_allowed(),
         };
+        if let Some(response) = metadata::check(
+            rt,
+            name,
+            &obj,
+            &desired,
+            metadata::UpdateMode::ReplaceOrScale,
+        ) {
+            return response;
+        }
+        let replicas = desired["spec"]["replicas"].clone();
         let Some(n) = replicas.as_i64().filter(|n| *n >= 0) else {
             let mut d = details(rt, name);
             d["kind"] = json_value!("Scale");
@@ -1961,12 +2179,6 @@ fn pod_ready(pod: &Value) -> bool {
             .is_some_and(|cs| !cs.is_empty() && cs.iter().all(|c| c["ready"] == true))
 }
 
-fn owned_by(obj: &Value, kind: &str, name: &str) -> bool {
-    obj["metadata"]["ownerReferences"]
-        .as_array()
-        .is_some_and(|refs| refs.iter().any(|r| r["kind"] == kind && r["name"] == name))
-}
-
 fn has_generation(rt: &ResType) -> bool {
     !(rt.group.is_empty()
         && matches!(
@@ -2009,7 +2221,36 @@ fn validate_name(rt: &ResType, name: &str) -> Result<(), String> {
 }
 
 /// The few validations agents are likely to trip.
+fn bind_namespace(rt: &ResType, namespace: Option<&str>, object: &mut Value) -> Option<Response> {
+    if !object.is_object() {
+        return Some(bad_request("the object provided must be a JSON object"));
+    }
+    let namespace = namespace.filter(|_| rt.namespaced)?;
+    if object["metadata"].is_null() {
+        object["metadata"] = json_value!({});
+    } else if !object["metadata"].is_object() {
+        return Some(bad_request("metadata must be a JSON object"));
+    }
+    match object["metadata"].get("namespace") {
+        None | Some(Value::Null) => {}
+        Some(Value::String(claimed)) if claimed.is_empty() || claimed == namespace => {}
+        _ => {
+            return Some(bad_request(
+                "the namespace of the provided object does not match the namespace sent on the request",
+            ));
+        }
+    }
+    object["metadata"]["namespace"] = json_value!(namespace);
+    None
+}
+
 fn validate_object(rt: &ResType, name: &str, obj: &Value) -> Option<Response> {
+    if rt.group.is_empty()
+        && rt.plural == "secrets"
+        && let Err(reason) = helm::release(obj)
+    {
+        return Some(bad_request(reason));
+    }
     let containers_required = |spec: &Value, field: &str| {
         if spec["containers"].as_array().is_none_or(Vec::is_empty) {
             Some(invalid(
@@ -2032,6 +2273,10 @@ fn validate_object(rt: &ResType, name: &str, obj: &Value) -> Option<Response> {
                         &[("FieldValueRequired", &f, "Required value")],
                     ));
                 }
+            }
+            let prefix = field.strip_suffix(".containers").unwrap_or(field);
+            if let Some((field, reason)) = resources::validate(spec, prefix) {
+                return Some(invalid(rt, name, &[("FieldValueInvalid", &field, &reason)]));
             }
             None
         }

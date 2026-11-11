@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/zendesk/tickets/6230/priority",
@@ -6,217 +7,229 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/zendesk/tickets/6230/tags",
       "equals": null,
       "exists": null,
-      "contains": "escalated",
+      "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": "escalated"
+    }
+  ],
+  "records": [
+    {
+      "selector": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/public": false,
+        "/ticket_id": 6230
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/body": {
+          "requirement": "Say that the ticket has been escalated to on-call engineering under incident INC-4471. The ticket supplies the customer and the outage.",
+          "accepted": [
+            "Escalated to on-call engineering under incident INC-4471. The 502s are blocking patient check-ins at Northwind Health.",
+            "Escalated the Northwind Health patient portal outage to on-call engineering under incident INC-4471."
+          ],
+          "mentions": [
+            "INC-4471",
+            [
+              "escalated",
+              "escalation",
+              "escalating",
+              "escalate"
+            ],
+            [
+              "on-call",
+              "on call",
+              "oncall"
+            ]
+          ],
+          "format": "plain",
+          "bound": null
+        },
+        "/html_body": {
+          "requirement": "The rendered internal note must say that the ticket has been escalated to on-call engineering under incident INC-4471, without hidden content.",
+          "accepted": [
+            "Escalated to on-call engineering under incident INC-4471. The 502s are blocking patient check-ins at Northwind Health.",
+            "Escalated the Northwind Health patient portal outage to on-call engineering under incident INC-4471."
+          ],
+          "mentions": [
+            "INC-4471",
+            [
+              "escalated",
+              "escalation",
+              "escalating",
+              "escalate"
+            ],
+            [
+              "on-call",
+              "on call",
+              "oncall"
+            ]
+          ],
+          "format": "zendesk_html",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/zendesk/comments",
+      "selector": {
+        "collection": "/services/zendesk/audits",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
       "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "body": "INC-4471",
-        "public": false
+      "min_count": 1,
+      "max_count": null,
+      "fields": {
+        "/ticket_id": 6230
       },
-      "key_prefix": "6230/"
-    },
-    {
-      "pointer": "/services/zendesk/tickets/6230/status",
-      "equals": "open",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "zendesk",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6230
-        },
-        "name": "update_ticket"
+      "source": {
+        "collection": "/services/zendesk/comments",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6230
-        },
-        "name": "create_ticket_comment"
+      "source_field": "/audit_id",
+      "target": {
+        "collection": "/services/zendesk/audits",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "public": true,
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/zendesk/tickets/6230/priority",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/tickets/6230/tags",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": [
+          "escalated"
+        ],
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/tickets/6230/tags",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "value_equals": [
+          "escalated"
+        ],
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/tickets/6230/updated_at",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/zendesk/comments/*",
+        "kind": "create",
+        "matching": {
+          "public": false,
           "ticket_id": 6230
         },
-        "name": "create_ticket_comment"
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6225
+      {
+        "pointer": "/services/zendesk/audits/*",
+        "kind": "create",
+        "matching": {
+          "ticket_id": 6230
         },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6225
-        },
-        "name": "create_ticket_comment"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6201
-        },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6201
-        },
-        "name": "create_ticket_comment"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6232
-        },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6232
-        },
-        "name": "create_ticket_comment"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6233
-        },
-        "name": "update_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "ticket_id": 6233
-        },
-        "name": "create_ticket_comment"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "zendesk",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "create_ticket"
-      },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

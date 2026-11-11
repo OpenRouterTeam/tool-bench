@@ -6,8 +6,8 @@
 //! URLs (`sitemap`), research papers (`papers`), developer and government indexes
 //! (`developer_docs`, `gov_docs`), research-agent answers (`agent_answers`), the team's
 //! credits (`team`), and monitors with their check history (`monitors`, `monitor_checks`).
-//! Jobs created through the API (`crawls`, `agent_jobs`, `monitors`, `monitor_checks`,
-//! `feedback`, `searches`, `scrapes`) are written to the store.
+//! Persistent jobs and monitors use business state; searches and browser scrape
+//! handles use client-session state.
 //!
 //! Like a self-hosted Firecrawl, the team has no Alexandria (exchange) access: those
 //! requests get the real 403, and the MCP server falls back to plain web search.
@@ -16,6 +16,8 @@
 #![allow(clippy::result_large_err)]
 
 mod text;
+
+use std::collections::{BTreeSet, VecDeque};
 
 use axum::{
     Router,
@@ -29,15 +31,18 @@ use axum::{
 use mock_core::{
     clock::format_unix,
     http::json,
+    monitor_schedule::{MonitorSchedule, ScheduleError},
     service::MockService,
-    world::{SharedWorld, WorldState},
+    store::Store,
+    world::{ServiceState, SharedWorld, WorldState},
 };
 use regex::Regex;
 use serde_json::{Map, Value, json as j};
+use uuid::Uuid;
 
 use crate::text::{
     SearchQuery, host_matches, host_of, is_http_url, markdown_images, markdown_links,
-    markdown_to_html, norm_url, parse_query, path_of, schedule_interval_minutes, summarize,
+    markdown_to_html, norm_url, parse_query, path_of, summarize,
 };
 
 pub const NAME: &str = "firecrawl";
@@ -60,7 +65,11 @@ impl MockService for Firecrawl {
     }
 
     fn hosts(&self) -> &'static [&'static str] {
-        &[]
+        &["api.firecrawl.dev"]
+    }
+
+    fn initializer(&self) -> Option<mock_core::service::ServiceInitializer> {
+        Some(initialize)
     }
 
     fn router(&self) -> Router<SharedWorld> {
@@ -108,6 +117,65 @@ impl MockService for Firecrawl {
             .route("/exchange/discover", get(exchange_disabled))
             .fallback(not_found)
             .layer(middleware::from_fn(require_auth))
+    }
+}
+
+fn initialize(service: &mut ServiceState, _now: i64) {
+    for name in ["searches", "scrapes"] {
+        if let Some(collection) = service.store.take_collection(name) {
+            *service.session.collection_mut(name) = collection;
+        }
+    }
+    let monitors: Vec<_> = service
+        .store
+        .collection("monitors")
+        .into_iter()
+        .flat_map(|collection| collection.iter())
+        .map(|(identity, monitor)| (identity.to_owned(), monitor.clone()))
+        .collect();
+    let mut target_ids: BTreeSet<_> = monitors
+        .iter()
+        .flat_map(|(_, monitor)| {
+            monitor["targets"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .filter_map(|target| target.get("id").and_then(Value::as_str).map(str::to_owned))
+        })
+        .collect();
+    for (identity, mut monitor) in monitors {
+        let schedule = MonitorSchedule::from_fixture(
+            &monitor["schedule"],
+            monitor.get("nextRunAt").and_then(Value::as_str),
+        )
+        .expect("authored monitor schedules must be valid");
+        monitor["schedule"] = schedule.normalized();
+        let object = monitor
+            .as_object_mut()
+            .expect("authored monitors must be objects");
+        let judged = object
+            .get("goal")
+            .and_then(Value::as_str)
+            .is_some_and(|goal| !goal.trim().is_empty());
+        object.entry("judgeEnabled").or_insert(j!(judged));
+        object.entry("notification").or_insert(j!({}));
+        if let Some(targets) = monitor["targets"].as_array_mut() {
+            for target in targets {
+                if target.get("id").is_none() {
+                    let candidate = loop {
+                        let candidate = service.ids.next_uuid("monitor_target").to_string();
+                        if target_ids.insert(candidate.clone()) {
+                            break candidate;
+                        }
+                    };
+                    target["id"] = j!(candidate);
+                }
+            }
+        }
+        service
+            .store
+            .collection_mut("monitors")
+            .insert(identity, monitor);
     }
 }
 
@@ -178,30 +246,52 @@ fn base_url(headers: &HeaderMap) -> String {
 }
 
 fn docs<'a>(world: &'a WorldState, collection: &str) -> Vec<(&'a str, &'a Value)> {
-    world
-        .service(NAME)
-        .and_then(|s| s.store.collection(collection))
+    storage(world, collection)
+        .and_then(|store| store.collection(collection))
         .map(|c| c.iter().collect())
         .unwrap_or_default()
 }
 
 fn doc<'a>(world: &'a WorldState, collection: &str, key: &str) -> Option<&'a Value> {
-    world
-        .service(NAME)
-        .and_then(|s| s.store.collection(collection))
+    storage(world, collection)
+        .and_then(|store| store.collection(collection))
         .and_then(|c| c.get(key))
 }
 
 fn insert(world: &mut WorldState, collection: &str, key: &str, value: Value) {
-    world
-        .service_mut(NAME)
-        .store
+    storage_mut(world, collection)
         .collection_mut(collection)
         .insert(key, value);
 }
 
+fn storage<'world>(world: &'world WorldState, collection: &str) -> Option<&'world Store> {
+    world.service(NAME).map(|service| {
+        if matches!(collection, "scrapes" | "searches") {
+            &service.session
+        } else {
+            &service.store
+        }
+    })
+}
+
+fn storage_mut<'world>(world: &'world mut WorldState, collection: &str) -> &'world mut Store {
+    let service = world.service_mut(NAME);
+    if matches!(collection, "scrapes" | "searches") {
+        &mut service.session
+    } else {
+        &mut service.store
+    }
+}
+
 fn uuid(world: &mut WorldState, kind: &str) -> String {
-    world.service_mut(NAME).ids.next_uuid(kind).to_string()
+    loop {
+        let service = world.service_mut(NAME);
+        let candidate = service.ids.next_uuid(kind).to_string();
+        if !service.store.has_record_key(&candidate) && !service.session.has_record_key(&candidate)
+        {
+            return candidate;
+        }
+    }
 }
 
 fn now_iso(world: &WorldState) -> String {
@@ -576,7 +666,7 @@ async fn interact(
     let now = now_iso(w);
     if let Some(s) = w
         .service_mut(NAME)
-        .store
+        .session
         .collection_mut("scrapes")
         .get_mut(&id)
     {
@@ -598,7 +688,7 @@ async fn interact_stop(State(world): State<SharedWorld>, Path(id): Path<String>)
     let now = now_iso(w);
     match w
         .service_mut(NAME)
-        .store
+        .session
         .collection_mut("scrapes")
         .get_mut(&id)
     {
@@ -1274,9 +1364,32 @@ async fn crawl_start(
     };
     let entire_domain = input.get("crawlEntireDomain") == Some(&Value::Bool(true));
     let subdomains = input.get("allowSubdomains") == Some(&Value::Bool(true));
-    let max_depth = usize_of(input.get("maxDiscoveryDepth"));
-    let limit = usize_of(input.get("limit")).unwrap_or(10_000).max(1);
-    let wanted = formats(input.get("scrapeOptions").and_then(|o| o.get("formats")));
+    let external = input.get("allowExternalLinks") == Some(&Value::Bool(true));
+    let integer = |field: &str, default: usize, minimum: usize| -> Result<usize, Response> {
+        match input.get(field) {
+            None => Ok(default),
+            Some(value) if value.is_number() => mock_core::exact_integer(value)
+                .and_then(|value| usize::try_from(value).ok())
+                .filter(|value| *value >= minimum)
+                .ok_or_else(|| bad_request(field, "Expected an integer in the supported range")),
+            _ => Err(bad_request(field, "Expected an integer")),
+        }
+    };
+    let max_depth = match integer("maxDiscoveryDepth", usize::MAX, 0) {
+        Ok(value) => value,
+        Err(response) => return response,
+    };
+    let limit = match integer("limit", 10_000, 1) {
+        Ok(value) => value,
+        Err(response) => return response,
+    };
+    let sitemap = input
+        .get("sitemap")
+        .and_then(Value::as_str)
+        .unwrap_or("include");
+    if !["skip", "include", "only"].contains(&sitemap) {
+        return bad_request("sitemap", "Expected skip, include or only");
+    }
     let host = host_of(&url);
     let start_path = path_of(&url);
 
@@ -1285,52 +1398,66 @@ async fn crawl_start(
     let in_scope = |key: &str| {
         let h = host_of(key);
         let path = path_of(key);
-        (h == host || (subdomains && host_matches(&h, &host)))
+        (h == host || (subdomains && host_matches(&h, &host)) || external)
             && (entire_domain
                 || start_path == "/"
                 || path == start_path
                 || path.starts_with(&format!("{start_path}/")))
             && (include.is_empty() || path_matches(&include, &path))
             && !path_matches(&exclude, &path)
-            // Discovery depth counts link hops; every page here is one hop from the
-            // start page or its sitemap, so only depth 0 (start page alone) narrows it.
-            && (max_depth != Some(0) || path == start_path)
     };
-    let start_key = find_page(w, &url).map(|(k, _)| k.to_owned());
-    let mut pages: Vec<String> = Vec::new();
-    if let Some(k) = &start_key
-        && in_scope(k)
-    {
-        pages.push(k.clone());
+    let mut pending = VecDeque::new();
+    if sitemap != "only" {
+        pending.push_back((url.clone(), 0usize));
     }
-    for (k, _) in docs(w, "pages") {
-        if Some(k) != start_key.as_deref() && in_scope(k) {
-            pages.push(k.to_owned());
+    if sitemap != "skip" {
+        for (key, _) in docs(w, "sitemap") {
+            if host_of(key) == host || subdomains && host_matches(&host_of(key), &host) {
+                pending.push_back((key.to_owned(), 1));
+            }
         }
     }
-    pages.truncate(limit);
-    let per_page = if wanted.iter().any(|(f, _)| f == "json" || f == "query") {
-        5
-    } else {
-        1
-    };
+    let mut visited = BTreeSet::new();
+    let mut pages: Vec<String> = Vec::new();
+    while let Some((candidate, depth)) = pending.pop_front() {
+        if depth > max_depth || !in_scope(&candidate) {
+            continue;
+        }
+        let Some((key, page)) = find_page(w, &candidate) else {
+            continue;
+        };
+        if !visited.insert(key.to_owned()) {
+            continue;
+        }
+        pages.push(key.to_owned());
+        if pages.len() == limit {
+            break;
+        }
+        if sitemap != "only" && depth < max_depth {
+            pending.extend(
+                markdown_links(str_of(page, "markdown"))
+                    .into_iter()
+                    .map(|url| (url, depth + 1)),
+            );
+        }
+    }
     let id = uuid(w, "crawl");
-    let scrape_ids: Vec<String> = pages.iter().map(|_| uuid(w, "scrape")).collect();
     let mut options = input.clone();
     options.remove("url");
     options.remove("origin");
     let job = j!({
         "id": id,
         "url": url,
-        "status": "completed",
+        "status": "queued",
         "total": pages.len(),
-        "completed": pages.len(),
-        "creditsUsed": pages.len() * per_page,
+        "completed": 0,
+        "creditsUsed": 0,
         "createdAt": now_iso(w),
         "expiresAt": iso_after(w, DAY_SECS),
         "options": options,
-        "pages": pages,
-        "scrapeIds": scrape_ids
+        "plannedPages": pages,
+        "pages": [],
+        "scrapeIds": []
     });
     insert(w, "crawls", &id, job);
     ok(j!({
@@ -1350,7 +1477,39 @@ async fn crawl_status(
     let skip = query_value(&pairs, "skip")
         .and_then(|s| s.parse().ok())
         .unwrap_or(0usize);
-    let w = world.lock().expect("world lock");
+    let mut w = world.lock().expect("world lock");
+    if let Some(mut job) = doc(&w, "crawls", &id).cloned() {
+        match job["status"].as_str() {
+            Some("queued") => {
+                job["status"] = j!("scraping");
+                insert(&mut w, "crawls", &id, job);
+            }
+            Some("scraping") if job.get("plannedPages").is_some() => {
+                let pages = strings(job.get("plannedPages"));
+                let per_page = if formats(
+                    job["options"]
+                        .get("scrapeOptions")
+                        .and_then(|options| options.get("formats")),
+                )
+                .iter()
+                .any(|(format, _)| format == "json" || format == "query")
+                {
+                    5
+                } else {
+                    1
+                };
+                let scrape_ids: Vec<_> = pages.iter().map(|_| uuid(&mut w, "scrape")).collect();
+                job["status"] = j!("completed");
+                job["completed"] = j!(pages.len());
+                job["creditsUsed"] = j!(pages.len() * per_page);
+                job["pages"] = j!(pages);
+                job["scrapeIds"] = j!(scrape_ids);
+                job["expiresAt"] = j!(iso_after(&w, DAY_SECS));
+                insert(&mut w, "crawls", &id, job);
+            }
+            _ => {}
+        }
+    }
     let Some(job) = doc(&w, "crawls", &id) else {
         return err(StatusCode::NOT_FOUND, "Job not found");
     };
@@ -1400,7 +1559,7 @@ async fn crawl_cancel(State(world): State<SharedWorld>, Path(id): Path<String>) 
     let Some(job) = doc(w, "crawls", &id) else {
         return err(StatusCode::NOT_FOUND, "Job not found");
     };
-    if job["status"] != "scraping" {
+    if job["status"] != "scraping" && job["status"] != "queued" {
         return err(
             StatusCode::CONFLICT,
             &format!("Crawl job is already {}.", str_of(job, "status")),
@@ -1434,7 +1593,7 @@ async fn crawl_active(State(world): State<SharedWorld>) -> Response {
     let w = world.lock().expect("world lock");
     let crawls: Vec<Value> = docs(&w, "crawls")
         .into_iter()
-        .filter(|(_, c)| c["status"] == "scraping")
+        .filter(|(_, c)| c["status"] == "scraping" || c["status"] == "queued")
         .map(|(_, c)| j!({ "id": c["id"], "url": c["url"], "options": c["options"] }))
         .collect();
     ok(j!({ "success": true, "crawls": crawls }))
@@ -1878,97 +2037,230 @@ async fn credit_usage_historical(
 
 // ───────────────────────────── monitors ─────────────────────────────
 
-fn normalize_schedule(schedule: &Value) -> Result<Value, Response> {
-    let obj = match schedule {
-        Value::String(s) => {
-            let mut o = Map::new();
-            o.insert("text".to_owned(), j!(s));
-            o
+fn normalize_schedule(world: &SharedWorld, schedule: &Value) -> Result<(Value, Value), Response> {
+    let reference = world.lock().expect("world lock").clock.now_unix();
+    let normalized = MonitorSchedule::parse(schedule).and_then(|parsed| {
+        let next = parsed.next_rfc3339(reference)?;
+        Ok((parsed.normalized(), j!(next)))
+    });
+    normalized.map_err(|error| match error {
+        ScheduleError::Invalid(message) => bad_request("schedule", &message),
+        ScheduleError::Unsupported(reason) => {
+            if let Some(operation) = mock_core::events::current() {
+                world.lock().expect("world lock").fail_operation(
+                    &operation,
+                    "firecrawl_schedule_unsupported",
+                    &reason,
+                );
+            }
+            err(
+                StatusCode::NOT_IMPLEMENTED,
+                "Selected schedule options are unavailable for this connection.",
+            )
         }
-        Value::Object(o) => o.clone(),
-        _ => return Err(bad_request("schedule", "Required")),
-    };
-    let text = obj.get("text").and_then(Value::as_str);
-    let cron = obj.get("cron").and_then(Value::as_str);
-    if text.is_none() && cron.is_none() {
-        return Err(bad_request(
-            "schedule",
-            "schedule.text or schedule.cron is required",
-        ));
-    }
-    let interval = text
-        .and_then(schedule_interval_minutes)
-        .or_else(|| cron.and_then(text::cron_interval_minutes))
-        .or_else(|| obj.get("intervalMinutes").and_then(Value::as_u64));
-    let Some(interval) = interval else {
-        return Err(bad_request(
-            "schedule",
-            &format!(
-                "Could not understand the schedule {:?}. Use a phrase like \"every 30 minutes\", \"daily at 9am\", or a cron expression.",
-                text.or(cron).unwrap_or("")
-            ),
-        ));
-    };
-    if interval < 5 {
-        return Err(bad_request(
-            "schedule",
-            "Monitors can run at most every 5 minutes.",
-        ));
-    }
-    let mut out = obj;
-    out.entry("timezone").or_insert(j!("UTC"));
-    out.insert("intervalMinutes".to_owned(), j!(interval));
-    Ok(Value::Object(out))
+    })
 }
 
 fn normalize_targets(targets: Option<&Value>) -> Result<Value, Response> {
-    let Some(list) = targets.and_then(Value::as_array).filter(|t| !t.is_empty()) else {
+    let Some(list) = targets
+        .and_then(Value::as_array)
+        .filter(|targets| !targets.is_empty() && targets.len() <= 50)
+    else {
         return Err(bad_request("targets", "At least one target is required"));
     };
     let mut out = Vec::new();
-    for (i, t) in list.iter().enumerate() {
-        let mut t = t.as_object().cloned().unwrap_or_default();
-        if let Some(Value::String(u)) = t.remove("url") {
-            t.insert("urls".to_owned(), j!([u]));
-        }
-        let kind = t
+    for (index, source) in list.iter().enumerate() {
+        let Some(mut target) = source.as_object().cloned() else {
+            return Err(bad_request("targets", "Expected target objects"));
+        };
+        let kind = source
             .get("type")
             .and_then(Value::as_str)
-            .unwrap_or(if t.contains_key("queries") {
-                "search"
-            } else {
-                "scrape"
-            })
+            .ok_or_else(|| bad_request("targets.type", "A target type is required"))?
             .to_owned();
-        t.insert("type".to_owned(), j!(kind));
+        let allowed: &[&str] = match kind.as_str() {
+            "scrape" => &["id", "type", "urls", "scrapeOptions"],
+            "crawl" => &["id", "type", "url", "crawlOptions", "scrapeOptions"],
+            "search" => {
+                for key in ["depth", "alertMode", "recheckAfter", "scrapeOptions"] {
+                    target.remove(key);
+                }
+                &[
+                    "id",
+                    "type",
+                    "queries",
+                    "searchWindow",
+                    "includeDomains",
+                    "excludeDomains",
+                    "maxResults",
+                ]
+            }
+            _ => {
+                return Err(bad_request(
+                    "targets.type",
+                    "Expected scrape, crawl or search",
+                ));
+            }
+        };
+        if target.keys().any(|key| !allowed.contains(&key.as_str()))
+            || target.get("id").is_some_and(|value| {
+                value
+                    .as_str()
+                    .is_none_or(|value| Uuid::parse_str(value).is_err())
+            })
+        {
+            return Err(bad_request(
+                "targets",
+                "Unknown field or invalid target identity",
+            ));
+        }
         match kind.as_str() {
-            "scrape" | "crawl" => {
-                let urls = strings(t.get("urls"));
-                if urls.is_empty() || urls.iter().any(|u| !is_http_url(u)) {
+            "scrape" => {
+                if target
+                    .get("urls")
+                    .and_then(Value::as_array)
+                    .is_none_or(|urls| {
+                        urls.is_empty()
+                            || urls
+                                .iter()
+                                .any(|url| url.as_str().is_none_or(|url| !is_http_url(url)))
+                    })
+                {
                     return Err(bad_request(
-                        &format!("targets.{i}.urls"),
+                        &format!("targets.{index}.urls"),
                         "Expected one or more valid URLs",
                     ));
                 }
             }
+            "crawl" => {
+                if target
+                    .get("url")
+                    .and_then(Value::as_str)
+                    .is_none_or(|url| !is_http_url(url))
+                {
+                    return Err(bad_request("targets.url", "Expected a valid crawl URL"));
+                }
+                if target
+                    .get("crawlOptions")
+                    .is_some_and(|value| !value.is_object())
+                {
+                    return Err(bad_request("targets.crawlOptions", "Expected an object"));
+                }
+                target.entry("crawlOptions").or_insert(j!({}));
+            }
             "search" => {
-                if strings(t.get("queries")).is_empty() {
+                if target
+                    .get("queries")
+                    .and_then(Value::as_array)
+                    .is_none_or(|queries| {
+                        queries.is_empty()
+                            || queries.len() > 12
+                            || queries.iter().any(|query| {
+                                query.as_str().is_none_or(|query| {
+                                    query.is_empty() || query.encode_utf16().count() > 256
+                                })
+                            })
+                    })
+                {
                     return Err(bad_request(
-                        &format!("targets.{i}.queries"),
+                        &format!("targets.{index}.queries"),
                         "Expected one or more queries",
                     ));
                 }
+                if target.get("searchWindow").is_some_and(|value| {
+                    value.as_str().is_none_or(|value| {
+                        !["5m", "15m", "1h", "6h", "24h", "7d"].contains(&value)
+                    })
+                }) || target.get("maxResults").is_some_and(|value| {
+                    !value.is_number()
+                        || mock_core::exact_integer(value)
+                            .is_none_or(|value| !(1..=50).contains(&value))
+                }) {
+                    return Err(bad_request(
+                        "targets",
+                        "Invalid search window or result limit",
+                    ));
+                }
+                target.entry("searchWindow").or_insert(j!("24h"));
+                target.entry("maxResults").or_insert(j!(10));
+                for field in ["includeDomains", "excludeDomains"] {
+                    if let Some(value) = target.get_mut(field) {
+                        let Some(values) = value.as_array_mut().filter(|values| values.len() <= 50)
+                        else {
+                            return Err(bad_request("targets", "Expected at most 50 domains"));
+                        };
+                        for value in values {
+                            let Some(domain) = value.as_str() else {
+                                return Err(bad_request("targets", "Expected hostname strings"));
+                            };
+                            let domain = domain.trim().to_ascii_lowercase();
+                            if domain.len() > 253
+                                || domain.split('.').count() < 2
+                                || domain.split('.').any(|label| {
+                                    label.is_empty()
+                                        || label.len() > 63
+                                        || label.starts_with('-')
+                                        || label.ends_with('-')
+                                        || !label.bytes().all(|byte| {
+                                            byte.is_ascii_alphanumeric() || byte == b'-'
+                                        })
+                                })
+                            {
+                                return Err(bad_request("targets", "Expected a bare domain name"));
+                            }
+                            *value = j!(domain);
+                        }
+                    }
+                }
+                if ["includeDomains", "excludeDomains"].iter().all(|field| {
+                    target
+                        .get(*field)
+                        .and_then(Value::as_array)
+                        .is_some_and(|values| !values.is_empty())
+                }) {
+                    return Err(bad_request(
+                        "targets",
+                        "Include and exclude domains are mutually exclusive",
+                    ));
+                }
             }
-            _ => {
-                return Err(bad_request(
-                    &format!("targets.{i}.type"),
-                    "Expected 'scrape', 'crawl' or 'search'",
-                ));
-            }
+            _ => unreachable!(),
         }
-        out.push(Value::Object(t));
+        if kind != "search" {
+            if target
+                .get("scrapeOptions")
+                .is_some_and(|value| !value.is_object())
+            {
+                return Err(bad_request("targets.scrapeOptions", "Expected an object"));
+            }
+            target.entry("scrapeOptions").or_insert(j!({}));
+        }
+        out.push(Value::Object(target));
     }
     Ok(Value::Array(out))
+}
+
+fn assign_monitor_target_ids(world: &mut WorldState, targets: &mut Value) {
+    let mut assigned: BTreeSet<_> = docs(world, "monitors")
+        .into_iter()
+        .flat_map(|(_, monitor)| monitor["targets"].as_array().into_iter().flatten())
+        .filter_map(|target| target.get("id").and_then(Value::as_str).map(str::to_owned))
+        .collect();
+    if let Some(targets) = targets.as_array_mut() {
+        for target in targets {
+            if let Some(identity) = target.get("id").and_then(Value::as_str) {
+                assigned.insert(identity.to_owned());
+                continue;
+            }
+            let candidate = loop {
+                let candidate = uuid(world, "monitor_target");
+                if assigned.insert(candidate.clone()) {
+                    break candidate;
+                }
+            };
+            target["id"] = j!(candidate);
+        }
+    }
 }
 
 fn status_from(body: &Map<String, Value>) -> Result<Option<&'static str>, Response> {
@@ -1979,23 +2271,98 @@ fn status_from(body: &Map<String, Value>) -> Result<Option<&'static str>, Respon
             _ => Err(bad_request("status", "Expected 'active' or 'paused'")),
         };
     }
-    if let Some(Value::Bool(a)) = body.get("active").or(body.get("enabled")) {
-        return Ok(Some(if *a { "active" } else { "paused" }));
-    }
-    if let Some(Value::Bool(p)) = body.get("paused") {
-        return Ok(Some(if *p { "paused" } else { "active" }));
-    }
     Ok(None)
 }
 
-fn next_run(world: &WorldState, monitor: &Value) -> Value {
-    if monitor["status"] != "active" {
-        return Value::Null;
+fn validate_monitor_input(input: &Map<String, Value>, create: bool) -> Result<(), Response> {
+    let allowed = [
+        "name",
+        "schedule",
+        "webhook",
+        "notification",
+        "targets",
+        "retentionDays",
+        "goal",
+        "judgeEnabled",
+        "origin",
+    ];
+    if input
+        .keys()
+        .any(|key| !allowed.contains(&key.as_str()) && !(key == "status" && !create))
+    {
+        return Err(bad_request("body", "Unknown monitor field"));
     }
-    match monitor["schedule"]["intervalMinutes"].as_i64() {
-        Some(m) => j!(iso_after(world, m * 60)),
-        None => Value::Null,
+    match input.get("name") {
+        Some(Value::String(name)) if !name.is_empty() && name.encode_utf16().count() <= 256 => {}
+        None if !create => {}
+        _ => return Err(bad_request("name", "Expected a nonempty monitor name")),
     }
+    if input.get("goal").is_some_and(|goal| {
+        !goal.is_null()
+            && goal
+                .as_str()
+                .is_none_or(|goal| goal.encode_utf16().count() > 2000)
+    }) {
+        return Err(bad_request("goal", "Expected text or null"));
+    }
+    if input
+        .get("judgeEnabled")
+        .is_some_and(|value| !value.is_boolean())
+    {
+        return Err(bad_request("judgeEnabled", "Expected a Boolean"));
+    }
+    if input.get("origin").is_some_and(|value| !value.is_string()) {
+        return Err(bad_request("origin", "Expected a string"));
+    }
+    if input.get("retentionDays").is_some_and(|value| {
+        !value.is_number()
+            || mock_core::exact_integer(value).is_none_or(|value| !(1..=365).contains(&value))
+    }) {
+        return Err(bad_request(
+            "retentionDays",
+            "Expected an integer between 1 and 365",
+        ));
+    }
+    if let Some(notification) = input.get("notification") {
+        let Some(channels) = notification.as_object() else {
+            return Err(bad_request("notification", "Expected an object"));
+        };
+        if channels
+            .keys()
+            .any(|key| !["email", "slack"].contains(&key.as_str()))
+        {
+            return Err(bad_request("notification", "Unknown notification field"));
+        }
+        if let Some(email) = channels.get("email") {
+            let Some(email) = email.as_object() else {
+                return Err(bad_request("notification.email", "Expected an object"));
+            };
+            if email
+                .keys()
+                .any(|key| !["enabled", "recipients", "includeDiffs"].contains(&key.as_str()))
+                || ["enabled", "includeDiffs"]
+                    .iter()
+                    .any(|field| email.get(*field).is_some_and(|value| !value.is_boolean()))
+                || email.get("recipients").is_some_and(|value| {
+                    value.as_array().is_none_or(|values| {
+                        values.len() > 25
+                            || values.iter().any(|value| {
+                                value.as_str().is_none_or(|value| {
+                                    value.split('@').count() != 2
+                                        || value.contains(char::is_whitespace)
+                                })
+                            })
+                    })
+                })
+            {
+                return Err(bad_request(
+                    "notification.email",
+                    "Invalid email notification configuration",
+                ));
+            }
+        }
+    }
+    Ok(())
 }
 
 fn monitor_not_found() -> Response {
@@ -2007,35 +2374,27 @@ async fn monitor_create(State(world): State<SharedWorld>, body: Bytes) -> Respon
         Ok(v) => v,
         Err(r) => return r,
     };
-    let targets = match normalize_targets(input.get("targets")) {
+    if let Err(response) = validate_monitor_input(&input, true) {
+        return response;
+    }
+    let mut targets = match normalize_targets(input.get("targets")) {
         Ok(t) => t,
         Err(r) => return r,
     };
-    let schedule = match normalize_schedule(input.get("schedule").unwrap_or(&Value::Null)) {
-        Ok(s) => s,
-        Err(r) => return r,
-    };
-    let status = match status_from(&input) {
-        Ok(s) => s.unwrap_or("active"),
-        Err(r) => return r,
-    };
+    let (schedule, next) =
+        match normalize_schedule(&world, input.get("schedule").unwrap_or(&Value::Null)) {
+            Ok(s) => s,
+            Err(r) => return r,
+        };
+    let status = "active";
     let mut guard = world.lock().expect("world lock");
     let w = &mut *guard;
+    assign_monitor_target_ids(w, &mut targets);
     let id = uuid(w, "monitor");
     let now = now_iso(w);
-    let default_name = targets[0]
-        .get("urls")
-        .and_then(|u| u.get(0))
-        .or(targets[0].get("queries").and_then(|q| q.get(0)))
-        .and_then(Value::as_str)
-        .map(|s| format!("Monitor {s}"))
-        .unwrap_or_else(|| "Monitor".to_owned());
     let mut monitor = Map::new();
     monitor.insert("id".to_owned(), j!(id));
-    monitor.insert(
-        "name".to_owned(),
-        input.get("name").cloned().unwrap_or(j!(default_name)),
-    );
+    monitor.insert("name".to_owned(), input["name"].clone());
     monitor.insert("status".to_owned(), j!(status));
     monitor.insert("schedule".to_owned(), schedule);
     monitor.insert(
@@ -2061,12 +2420,23 @@ async fn monitor_create(State(world): State<SharedWorld>, body: Bytes) -> Respon
         }
     }
     monitor.entry("retentionDays").or_insert(j!(30));
+    monitor.entry("notification").or_insert(j!({}));
+    let judged = input
+        .get("judgeEnabled")
+        .and_then(Value::as_bool)
+        .unwrap_or_else(|| {
+            input
+                .get("goal")
+                .and_then(Value::as_str)
+                .is_some_and(|goal| !goal.trim().is_empty())
+        });
+    monitor.insert("judgeEnabled".into(), j!(judged));
     monitor.insert("createdAt".to_owned(), j!(now));
     monitor.insert("updatedAt".to_owned(), j!(now));
     monitor.insert("lastRunAt".to_owned(), Value::Null);
     monitor.insert("lastCheckId".to_owned(), Value::Null);
     let mut monitor = Value::Object(monitor);
-    monitor["nextRunAt"] = next_run(w, &monitor);
+    monitor["nextRunAt"] = next;
     insert(w, "monitors", &id, monitor.clone());
     ok(j!({ "success": true, "data": monitor }))
 }
@@ -2075,7 +2445,7 @@ async fn monitor_list(State(world): State<SharedWorld>, RawQuery(raw): RawQuery)
     let pairs = parse_query(raw.as_deref());
     let limit = query_value(&pairs, "limit")
         .and_then(|l| l.parse().ok())
-        .unwrap_or(20usize)
+        .unwrap_or(25usize)
         .clamp(1, 100);
     let offset = query_value(&pairs, "offset")
         .and_then(|o| o.parse().ok())
@@ -2115,11 +2485,17 @@ async fn monitor_update(
     if input.is_empty() {
         return bad_request("body", "At least one field must be updated");
     }
+    if let Err(response) = validate_monitor_input(&input, false) {
+        return response;
+    }
     let status = match status_from(&input) {
         Ok(s) => s,
         Err(r) => return r,
     };
-    let schedule = match input.get("schedule").map(normalize_schedule) {
+    let schedule = match input
+        .get("schedule")
+        .map(|schedule| normalize_schedule(&world, schedule))
+    {
         Some(Err(r)) => return r,
         Some(Ok(s)) => Some(s),
         None => None,
@@ -2156,14 +2532,15 @@ async fn monitor_update(
     if let Some(s) = status {
         monitor["status"] = j!(s);
     }
-    if let Some(s) = schedule {
-        monitor["schedule"] = s;
+    if let Some((schedule, next)) = schedule {
+        monitor["schedule"] = schedule;
+        monitor["nextRunAt"] = next;
     }
-    if let Some(t) = targets {
-        monitor["targets"] = t;
+    if let Some(mut targets) = targets {
+        assign_monitor_target_ids(w, &mut targets);
+        monitor["targets"] = targets;
     }
     monitor["updatedAt"] = j!(now_iso(w));
-    monitor["nextRunAt"] = next_run(w, &monitor);
     insert(w, "monitors", &id, monitor.clone());
     ok(j!({ "success": true, "data": monitor }))
 }
@@ -2182,25 +2559,24 @@ async fn monitor_delete(State(world): State<SharedWorld>, Path(id): Path<String>
     }
 }
 
-async fn monitor_run(State(world): State<SharedWorld>, Path(id): Path<String>) -> Response {
-    let mut guard = world.lock().expect("world lock");
-    let w = &mut *guard;
-    let Some(monitor) = doc(w, "monitors", &id).cloned() else {
-        return monitor_not_found();
-    };
+fn monitor_check_result(world: &WorldState, monitor: &Value) -> Value {
     let mut pages = Vec::new();
     for target in monitor["targets"].as_array().cloned().unwrap_or_default() {
         for url in strings(target.get("urls")) {
-            let page = match find_page(w, &url) {
-                Some((_, p))
-                    if p.get("statusCode").and_then(Value::as_u64).unwrap_or(200) < 400 =>
+            let page = match find_page(world, &url) {
+                Some((_, page))
+                    if page
+                        .get("statusCode")
+                        .and_then(Value::as_u64)
+                        .unwrap_or(200)
+                        < 400 =>
                 {
                     j!({ "url": url, "status": "same" })
                 }
                 Some(_) | None => j!({
                     "url": url,
                     "status": "error",
-                    "error": if known_host(w, &host_of(&url)) { "Page returned HTTP 404" } else { "DNS resolution failed" }
+                    "error": if known_host(world, &host_of(&url)) { "Page returned HTTP 404" } else { "DNS resolution failed" }
                 }),
             };
             pages.push(page);
@@ -2211,7 +2587,7 @@ async fn monitor_run(State(world): State<SharedWorld>, Path(id): Path<String>) -
     }
     let count = |s: &str| pages.iter().filter(|p| p["status"] == s).count();
     let summary = j!({
-        "same": count("same"), "new": count("new"), "changed": count("changed"),
+        "totalPages":pages.len(), "same": count("same"), "new": count("new"), "changed": count("changed"),
         "removed": count("removed"), "error": count("error")
     });
     let status = if count("error") == 0 {
@@ -2221,6 +2597,48 @@ async fn monitor_run(State(world): State<SharedWorld>, Path(id): Path<String>) -
     } else {
         "partial"
     };
+    j!({"status":status,"summary":summary,"pages":pages})
+}
+
+async fn monitor_run(State(world): State<SharedWorld>, Path(id): Path<String>) -> Response {
+    let mut guard = world.lock().expect("world lock");
+    let w = &mut *guard;
+    let Some(monitor) = doc(w, "monitors", &id).cloned() else {
+        return monitor_not_found();
+    };
+    if monitor["status"] != "active" {
+        return err(StatusCode::CONFLICT, "Cannot run a paused monitor");
+    }
+    if let Some((_, check)) = docs(w, "monitor_checks").into_iter().find(|(_, check)| {
+        check["monitorId"] == id && matches!(check["status"].as_str(), Some("queued" | "running"))
+    }) {
+        return json(
+            StatusCode::CONFLICT,
+            j!({
+                "success":false,"error":"A check is already in progress","checkId":check["id"]
+            }),
+        );
+    }
+    if monitor["targets"].as_array().is_some_and(|targets| {
+        targets.iter().any(|target| {
+            target["type"] != "scrape"
+                || target
+                    .get("scrapeOptions")
+                    .is_some_and(|options| options != &j!({}))
+        })
+    }) {
+        if let Some(operation) = mock_core::events::current() {
+            w.fail_operation(
+                &operation,
+                "firecrawl_monitor_target_unsupported",
+                "Execution of selected monitor target options is not qualified",
+            );
+        }
+        return err(
+            StatusCode::NOT_IMPLEMENTED,
+            "Selected monitor target options are unavailable for this connection.",
+        );
+    }
     let check_id = uuid(w, "monitor_check");
     let now = now_iso(w);
     insert(
@@ -2228,9 +2646,9 @@ async fn monitor_run(State(world): State<SharedWorld>, Path(id): Path<String>) -
         "monitor_checks",
         &check_id,
         j!({
-            "id": check_id, "monitorId": id, "status": status, "trigger": "manual",
-            "createdAt": now, "startedAt": now, "completedAt": now,
-            "summary": summary, "pages": pages
+            "id": check_id, "monitorId": id, "status": "queued", "trigger": "manual",
+            "createdAt": now, "startedAt": null, "completedAt": null,
+            "summary": {"totalPages":0,"same":0,"new":0,"changed":0,"removed":0,"error":0}, "pages": []
         }),
     );
     if let Some(m) = w
@@ -2244,6 +2662,7 @@ async fn monitor_run(State(world): State<SharedWorld>, Path(id): Path<String>) -
     }
     ok(j!({
         "success": true,
+        "id": check_id,
         "data": { "id": check_id, "monitorId": id, "status": "queued", "trigger": "manual", "createdAt": now }
     }))
 }
@@ -2271,7 +2690,7 @@ async fn monitor_checks(
     let pairs = parse_query(raw.as_deref());
     let limit = query_value(&pairs, "limit")
         .and_then(|l| l.parse().ok())
-        .unwrap_or(20usize)
+        .unwrap_or(25usize)
         .clamp(1, 100);
     let offset = query_value(&pairs, "offset")
         .and_then(|o| o.parse().ok())
@@ -2313,15 +2732,37 @@ async fn monitor_check(
     let pairs = parse_query(raw.as_deref());
     let limit = query_value(&pairs, "limit")
         .and_then(|l| l.parse().ok())
-        .unwrap_or(50usize)
-        .clamp(1, 500);
+        .unwrap_or(25usize)
+        .clamp(1, 100);
     let skip = query_value(&pairs, "skip")
         .and_then(|o| o.parse().ok())
         .unwrap_or(0usize);
     let status = query_value(&pairs, "status");
-    let w = world.lock().expect("world lock");
+    let mut w = world.lock().expect("world lock");
     if doc(&w, "monitors", &id).is_none() {
         return monitor_not_found();
+    }
+    if let Some(mut check) = doc(&w, "monitor_checks", &check_id)
+        .filter(|check| check["monitorId"] == id)
+        .cloned()
+    {
+        match check["status"].as_str() {
+            Some("queued") => {
+                check["status"] = j!("running");
+                check["startedAt"] = j!(now_iso(&w));
+                insert(&mut w, "monitor_checks", &check_id, check);
+            }
+            Some("running") => {
+                let monitor = doc(&w, "monitors", &id).unwrap();
+                let result = monitor_check_result(&w, monitor);
+                check["status"] = result["status"].clone();
+                check["summary"] = result["summary"].clone();
+                check["pages"] = result["pages"].clone();
+                check["completedAt"] = j!(now_iso(&w));
+                insert(&mut w, "monitor_checks", &check_id, check);
+            }
+            _ => {}
+        }
     }
     let Some(check) = doc(&w, "monitor_checks", &check_id).filter(|c| str_of(c, "monitorId") == id)
     else {

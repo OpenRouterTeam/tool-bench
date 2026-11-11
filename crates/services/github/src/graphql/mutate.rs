@@ -8,13 +8,16 @@ use super::{
     resolve::Gh,
 };
 use crate::{
-    issues::{issue_fields, next_issue_db_id, next_number, rename_label_everywhere},
+    issues::{
+        ARCHIVED_ISSUES_MESSAGE, issue_fields, next_issue_db_id, next_number,
+        rename_label_everywhere, repo_is_archived,
+    },
     projects,
     pulls::{
         self, after_submit, event_state, insert_review, insert_review_comment, review_node_id,
     },
     render::{self, all, get, label_doc, split_key, with_prefix},
-    util::{arr, b, login_of, names_of, next_id, node_id, opt_s, s, u},
+    util::{arr, b, names_of, next_id, node_id, opt_s, s, u},
 };
 
 fn input(args: &Map<String, Value>) -> Value {
@@ -131,6 +134,9 @@ impl Gh<'_> {
     fn create_issue(&mut self, inp: &Value) -> FieldResult {
         let repo_obj = self.node_of(s(inp, "repositoryId"), &["Repository"])?;
         let repo = key_of(&repo_obj).unwrap_or_default();
+        if repo_is_archived(self.svc, &repo) {
+            return Err(FieldError::invalid(ARCHIVED_ISSUES_MESSAGE));
+        }
         let title = s(inp, "title").trim().to_owned();
         if title.is_empty() {
             return Err(FieldError::unprocessable("Title can't be blank"));
@@ -467,25 +473,11 @@ impl Gh<'_> {
             )));
         };
         let pull_key = format!("{}#{}", s(&r, "repo"), u(&r, "pull_number"));
-        let p = get(self.svc, "pulls", &pull_key)
-            .cloned()
-            .unwrap_or_default();
-        let author = login_of(p.get("user").unwrap_or(&Value::Null));
-        if author.eq_ignore_ascii_case(&self.viewer)
-            && (state == "APPROVED" || state == "CHANGES_REQUESTED")
-        {
-            return Err(FieldError::unprocessable(if state == "APPROVED" {
-                "Can not approve your own pull request"
-            } else {
-                "Can not request changes on your own pull request"
-            }));
-        }
         if let Some(body) = opt_s(inp, "body") {
             r["body"] = json!(body);
         }
-        if state == "CHANGES_REQUESTED" && s(&r, "body").trim().is_empty() {
-            return Err(FieldError::unprocessable("Body can't be blank"));
-        }
+        pulls::validate_review(self.svc, &pull_key, &self.viewer, s(&r, "body"), state)
+            .map_err(FieldError::unprocessable)?;
         r["state"] = json!(state);
         r["submitted_at"] = json!(self.now);
         let id = u(&r, "id").to_string();

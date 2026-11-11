@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -12,7 +17,9 @@
         "name": "update-many"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "mongodb",
@@ -24,13 +31,62 @@
         "name": "delete-many"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "outdoor"
-    ],
-    "regex": "1,?457\\.5"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the product category with the largest revenue (unit price times quantity over order lines) among delivered shop.orders created in February 2026 UTC, and state that revenue in US dollars.",
+      "selector": {
+        "collection": "/services/mongodb/db.shop.orders",
+        "matching": {
+          "status": "delivered"
+        },
+        "field_patterns": {
+          "/createdAt/$date": "^2026-02-"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "unnest": "/items",
+          "by": "/item/category",
+          "measure": {
+            "sum_product": [
+              "/item/price",
+              "/item/qty"
+            ]
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "category": {
+          "field": "/key",
+          "kind": "text"
+        },
+        "revenue": {
+          "field": "/value",
+          "kind": "money"
+        }
+      },
+      "mode": "statements",
+      "contradictions": [
+        "the least",
+        "the lowest",
+        "the smallest",
+        "least revenue",
+        "lowest revenue"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -1,0 +1,29 @@
+[
+  {
+    "_key": "checkout-desired-count",
+    "workspace": "ws-FxCPzmnaeIMOUbSd",
+    "resource": "aws_ecs_service.checkout",
+    "attribute": "/desired_count",
+    "variable": "desired_count",
+    "category": "terraform",
+    "value-type": "integer"
+  },
+  {
+    "_key": "checkout-min-capacity",
+    "workspace": "ws-FxCPzmnaeIMOUbSd",
+    "resource": "aws_appautoscaling_target.checkout",
+    "attribute": "/min_capacity",
+    "variable": "desired_count",
+    "category": "terraform",
+    "value-type": "integer"
+  },
+  {
+    "_key": "checkout-max-capacity",
+    "workspace": "ws-FxCPzmnaeIMOUbSd",
+    "resource": "aws_appautoscaling_target.checkout",
+    "attribute": "/max_capacity",
+    "variable": "max_capacity",
+    "category": "terraform",
+    "value-type": "integer"
+  }
+]

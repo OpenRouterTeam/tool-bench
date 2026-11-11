@@ -46,10 +46,19 @@ publish = false
 
 [workspace.dependencies]
 anyhow = "1.0.104"
+ed25519-dalek = { version = "=2.2.0", features = ["rand_core"] }
+flate2 = { version = "=1.1.11", default-features = false, features = ["rust_backend"] }
+rand_core = { version = "=0.6.4", features = ["getrandom"] }
+html5ever = "0.40.1"
 axum = "0.8.9"
 axum-server = { version = "0.8.0", features = ["tls-rustls"] }
 indexmap = { version = "2.14.2", features = ["serde"] }
+jsonschema = { version = "=0.60.2", default-features = false }
+chrono-tz = { version = "=0.10.4", default-features = false }
+chrono = { version = "=0.4.45", default-features = false, features = ["std"] }
+croner = { version = "=2.2.0", default-features = false }
 regex = "1.13.1"
+regex-automata = "=0.4.18"
 reqwest = { version = "0.13.5", default-features = false, features = ["json", "rustls", "stream"] }
 rcgen = { version = "0.14.10", default-features = false, features = ["aws_lc_rs", "pem"] }
 serde = { version = "1.0.229", features = ["derive"] }
@@ -64,6 +73,7 @@ tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread", "net", "s
 toml = "1.1.8"
 tower = { version = "0.5.3", features = ["util"] }
 uuid = { version = "1.29.0", features = ["v8", "serde"] }
+url = "=2.5.8"
 mock-core = { path = "crates/mock-core" }
 mock-argocd = { path = "crates/services/argocd" }
 mock-aws = { path = "crates/services/aws" }

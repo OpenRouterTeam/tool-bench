@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/shopify/top-spender",
+  "scenario_sha256": "sha256:abfa8759988579be44192912889f034416c386ace28611188834989e2fd325d7",
+  "dataset_sha256": "sha256:97b7abcc579d03f6fe24aa4cddfba7c7876d29788535c239151495abb8b9da2f",
+  "contract_sha256": "sha256:3fa2f9c087e4fc3fdd01e501255007155925db043dc81c6ed69e028fdd462b9c"
+}

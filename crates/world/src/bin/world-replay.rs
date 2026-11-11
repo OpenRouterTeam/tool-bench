@@ -18,10 +18,10 @@ async fn main() -> anyhow::Result<()> {
     let entries: Vec<JournalEntry> = serde_json::from_value(journal["entries"].clone())?;
     let mismatches = world::replay::replay(&dir, &entries).await?;
     for m in &mismatches {
-        println!("seq {}: {}", m.seq, m.detail);
+        println!("seq {}: {:?}: {}", m.seq, m.kind, m.detail);
     }
     println!(
-        "{} requests replayed, {} mismatches",
+        "{} recorded requests checked, {} replay issues",
         entries.len(),
         mismatches.len()
     );

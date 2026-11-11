@@ -1,16 +1,3 @@
-//! The 15 tools of nganiet/mcp-vercel @e6f9173, answered with the same text the server
-//! produces: its argument validation (zod), the query/body it sends, and its formatting of
-//! the API response. Where the server's `vercelFetch` swallows an API error and returns
-//! `null`, the handler's null branch is reproduced (including the misleading ones).
-//!
-//! Two faithful oddities: `isError: true` sits on the content block, never on the result;
-//! and some handlers print `Error: ZodError: ...` (template string of the error) while
-//! others print `Error: ...` (its message).
-//!
-//! One deliberate deviation: the pinned `index.ts` destructures `request.params.args`
-//! (always undefined), so the real server ignores every argument except for
-//! `vercel-get-environments`. Here arguments are honoured, as the tool schemas intend.
-
 use mock_core::world::WorldState;
 use serde_json::{Map, Value, json};
 
@@ -29,7 +16,12 @@ fn error_block(text: impl Into<String>) -> Value {
 }
 
 fn result(blocks: Vec<Value>) -> Value {
-    json!({ "content": blocks })
+    let failed = blocks.iter().any(|block| block["isError"] == true);
+    let mut result = json!({ "content": blocks });
+    if failed {
+        result["isError"] = json!(true);
+    }
+    result
 }
 
 fn pretty(v: &Value) -> String {
@@ -107,8 +99,20 @@ pub fn call(world: &mut WorldState, name: &str, args: &Value) -> Value {
     }
 }
 
-fn data(r: ApiResult) -> Option<Value> {
-    r.ok().map(|(_, v)| v)
+fn data(response: ApiResult) -> Result<Value, Value> {
+    match response {
+        Ok((_, value)) => Ok(value),
+        Err(error) => {
+            let mut failure = result(vec![error_block(
+                error.body["error"]["message"]
+                    .as_str()
+                    .unwrap_or("Vercel request failed"),
+            )]);
+            failure["structuredContent"] =
+                json!({"status":error.status.as_u16(),"error":error.body["error"]});
+            Err(failure)
+        }
+    }
 }
 
 const LIST_DEPLOYMENTS: &[Field] = &[
@@ -122,7 +126,7 @@ const LIST_DEPLOYMENTS: &[Field] = &[
 
 fn list_all_deployments(world: &mut WorldState, args: &Value) -> Value {
     if let Err(e) = zod::parse(args, LIST_DEPLOYMENTS) {
-        return result(vec![block(format!("Error: ZodError: {e}"))]);
+        return result(vec![error_block(format!("Error: ZodError: {e}"))]);
     }
     let mut query = query_from(args, &["app", "projectId", "state", "target", "teamId"]);
     let limit = if truthy(args.get("limit")) {
@@ -132,26 +136,28 @@ fn list_all_deployments(world: &mut WorldState, args: &Value) -> Value {
     };
     query.insert("limit".into(), limit);
     match data(api::list_deployments(world, &query)) {
-        Some(d) => result(vec![block(pretty(&d["deployments"]))]),
-        None => result(vec![block("Failed to retrieve deployments")]),
+        Ok(d) => result(vec![block(pretty(&d["deployments"]))]),
+        Err(failure) => failure,
     }
 }
 
 fn get_environments(world: &mut WorldState, args: &Value) -> Value {
     if !truthy(Some(args)) {
-        return result(vec![block("Invalid request: Missing required arguments")]);
+        return result(vec![error_block(
+            "Invalid request: Missing required arguments",
+        )]);
     }
     let id_or_name = match args.get("idOrName") {
         Some(Value::String(s)) if !s.is_empty() => s.clone(),
         other => {
             let received = other.map_or("undefined".to_owned(), |v| v.to_string());
-            return result(vec![block(format!(
+            return result(vec![error_block(format!(
                 "Invalid request: idOrName parameter must be a non-empty string, received: {received}"
             ))]);
         }
     };
     match data(api::list_env(world, &id_or_name, &Query::new())) {
-        Some(d) if d["envs"].is_array() => {
+        Ok(d) if d["envs"].is_array() => {
             let n = d["envs"].as_array().map_or(0, Vec::len);
             let plural = if n == 1 { "" } else { "s" };
             result(vec![
@@ -161,7 +167,8 @@ fn get_environments(world: &mut WorldState, args: &Value) -> Value {
                 block(pretty(&d["envs"])),
             ])
         }
-        _ => result(vec![block(format!(
+        Err(failure) => failure,
+        _ => result(vec![error_block(format!(
             "Failed to retrieve environment variables for project: {id_or_name}"
         ))]),
     }
@@ -169,12 +176,12 @@ fn get_environments(world: &mut WorldState, args: &Value) -> Value {
 
 fn get_deployment(world: &mut WorldState, args: &Value) -> Value {
     if let Err(e) = zod::parse(args, &[req("idOrUrl", STR), opt("teamId", STR)]) {
-        return result(vec![block(format!("Error: ZodError: {e}"))]);
+        return result(vec![error_block(format!("Error: ZodError: {e}"))]);
     }
     let query = query_from(args, &["teamId"]);
     match data(api::get_deployment(world, arg_str(args, "idOrUrl"), &query)) {
-        Some(d) => result(vec![block(pretty(&d))]),
-        None => result(vec![block("Failed to retrieve deployment")]),
+        Ok(d) => result(vec![block(pretty(&d))]),
+        Err(failure) => failure,
     }
 }
 
@@ -187,16 +194,15 @@ fn list_deployment_files(world: &mut WorldState, args: &Value) -> Value {
     }
     let id = arg_str(args, "id");
     let query = query_from(args, &["teamId", "slug"]);
-    // The API answers with a bare array; the server reads `data.files`.
     match data(api::deployment_files(world, id, &query)) {
-        Some(d) if d.get("files").is_some_and(|f| !f.is_null()) => {
-            let files = &d["files"];
+        Ok(files) if files.is_array() => {
             let n = files.as_array().map_or(0, Vec::len);
             result(vec![
                 block(format!("Found {n} files in deployment {id}")),
-                block(pretty(files)),
+                block(pretty(&files)),
             ])
         }
+        Err(failure) => failure,
         _ => result(vec![error_block(
             "Failed to retrieve deployment files or no files found",
         )]),
@@ -290,14 +296,14 @@ fn create_deployment(world: &mut WorldState, args: &Value) -> Value {
         query.insert("teamId".into(), js_string(&team));
     }
     match data(api::create_deployment(world, &query, &Value::Object(body))) {
-        Some(d) => result(vec![
+        Ok(d) => result(vec![
             block(format!(
                 "Deployment created successfully: {}",
                 d["url"].as_str().unwrap_or("undefined")
             )),
             block(pretty(&d)),
         ]),
-        None => result(vec![error_block("Failed to create deployment")]),
+        Err(failure) => failure,
     }
 }
 
@@ -326,7 +332,7 @@ fn create_project(world: &mut WorldState, args: &Value) -> Value {
         .filter_map(|f| args.get(f.name).map(|v| (f.name.to_owned(), v.clone())))
         .collect();
     match data(api::create_project(world, &query, &Value::Object(body))) {
-        Some(d) => result(vec![
+        Ok(d) => result(vec![
             block(format!(
                 "Project {} ({}) created successfully",
                 js_string(&d["name"]),
@@ -334,10 +340,7 @@ fn create_project(world: &mut WorldState, args: &Value) -> Value {
             )),
             block(pretty(&d)),
         ]),
-        None => result(vec![
-            block("Project undefined (undefined) created successfully"),
-            block("null"),
-        ]),
+        Err(failure) => failure,
     }
 }
 
@@ -352,18 +355,14 @@ fn list_all_teams(world: &mut WorldState, args: &Value) -> Value {
     }
     let query = query_from(args, &["limit", "since", "until"]);
     match data(api::list_teams(world, &query)) {
-        Some(d) => {
+        Ok(d) => {
             let n = d["teams"].as_array().map_or(0, Vec::len);
             result(vec![
                 block(format!("Found {n} teams")),
                 block(pretty(&d["teams"])),
             ])
         }
-        // `JSON.stringify(undefined)` leaves the block without text.
-        None => result(vec![
-            block("Found undefined teams"),
-            json!({ "type": "text" }),
-        ]),
+        Err(failure) => failure,
     }
 }
 
@@ -386,7 +385,7 @@ fn create_team(world: &mut WorldState, args: &Value) -> Value {
         body["name"] = args["name"].clone();
     }
     match data(api::create_team(world, &body)) {
-        Some(d) => result(vec![
+        Ok(d) => result(vec![
             block(format!(
                 "Team created successfully: {} ({})",
                 js_string(&d["slug"]),
@@ -394,7 +393,7 @@ fn create_team(world: &mut WorldState, args: &Value) -> Value {
             )),
             block(pretty(&d)),
         ]),
-        None => result(vec![error_block("Failed to create team")]),
+        Err(failure) => failure,
     }
 }
 
@@ -443,19 +442,23 @@ fn create_environment_variables(world: &mut WorldState, args: &Value) -> Value {
         &query,
         &Value::Array(items),
     )) {
-        Some(d) => {
+        Ok(d) => {
             let n = d["created"]
                 .as_array()
                 .map_or("undefined".to_owned(), |c| c.len().to_string());
-            result(vec![
-                block(format!("Successfully created {n} environment variables")),
-                block(pretty(&d)),
-            ])
+            let failed = d["failed"].as_array().is_none_or(|items| !items.is_empty());
+            let summary = if failed {
+                error_block(format!(
+                    "Created {n} environment variables; batch has failures"
+                ))
+            } else {
+                block(format!("Successfully created {n} environment variables"))
+            };
+            let mut response = result(vec![summary, block(pretty(&d))]);
+            response["structuredContent"] = d;
+            response
         }
-        None => result(vec![
-            block("Successfully created undefined environment variables"),
-            block("null"),
-        ]),
+        Err(failure) => failure,
     }
 }
 
@@ -492,7 +495,7 @@ fn create_custom_environment(world: &mut WorldState, args: &Value) -> Value {
         }
     }
     if !issues.is_empty() {
-        return result(vec![block(format!(
+        return result(vec![error_block(format!(
             "Invalid request: {}",
             issues.join(", ")
         ))]);
@@ -507,13 +510,14 @@ fn create_custom_environment(world: &mut WorldState, args: &Value) -> Value {
     }
     let query = query_from(args, &["teamId", "slug"]);
     match data(api::create_custom_env(world, id_or_name, &query, &body)) {
-        Some(d) if truthy(d.get("id")) => result(vec![
+        Ok(d) if truthy(d.get("id")) => result(vec![
             block(format!(
                 "Successfully created custom environment '{name}' for project: {id_or_name}"
             )),
             block(pretty(&d)),
         ]),
-        _ => result(vec![block(format!(
+        Err(failure) => failure,
+        _ => result(vec![error_block(format!(
             "Failed to create custom environment for project: {id_or_name}"
         ))]),
     }
@@ -543,13 +547,14 @@ fn list_projects(world: &mut WorldState, args: &Value) -> Value {
         ],
     );
     match data(api::list_projects(world, &query)) {
-        Some(d) if d["projects"].is_array() => {
+        Ok(d) if d["projects"].is_array() => {
             let n = d["projects"].as_array().map_or(0, Vec::len);
             result(vec![
                 block(format!("Found {n} projects")),
                 block(pretty(&d["projects"])),
             ])
         }
+        Err(failure) => failure,
         _ => result(vec![error_block(
             "No projects found or invalid response from API",
         )]),
@@ -567,7 +572,7 @@ fn find_project(world: &mut WorldState, args: &Value) -> Value {
     }
     let query = query_from(args, &["teamId"]);
     match data(api::get_project(world, arg_str(args, "idOrName"), &query)) {
-        Some(d) => result(vec![
+        Ok(d) => result(vec![
             block(format!(
                 "Found project: {} ({})",
                 js_string(&d["name"]),
@@ -575,7 +580,7 @@ fn find_project(world: &mut WorldState, args: &Value) -> Value {
             )),
             block(pretty(&d)),
         ]),
-        None => result(vec![error_block("Project not found")]),
+        Err(failure) => failure,
     }
 }
 
@@ -597,7 +602,7 @@ fn get_project_domain(world: &mut WorldState, args: &Value) -> Value {
         &query,
     );
     match data(r) {
-        Some(d) => result(vec![
+        Ok(d) => result(vec![
             block(format!(
                 "Found domain: {} (verified: {})",
                 js_string(&d["name"]),
@@ -605,7 +610,7 @@ fn get_project_domain(world: &mut WorldState, args: &Value) -> Value {
             )),
             block(pretty(&d)),
         ]),
-        None => result(vec![error_block("Domain not found")]),
+        Err(failure) => failure,
     }
 }
 
@@ -620,11 +625,12 @@ fn delete_project(world: &mut WorldState, args: &Value) -> Value {
     }
     let id_or_name = arg_str(args, "idOrName");
     let query = query_from(args, &["teamId", "slug"]);
-    // The server reports success whatever the API answered.
-    let _ = api::delete_project(world, id_or_name, &query);
-    result(vec![block(format!(
-        "Project {id_or_name} deleted successfully"
-    ))])
+    match data(api::delete_project(world, id_or_name, &query)) {
+        Ok(_) => result(vec![block(format!(
+            "Project {id_or_name} deleted successfully"
+        ))]),
+        Err(failure) => failure,
+    }
 }
 
 fn remove_environment_variable(world: &mut WorldState, args: &Value) -> Value {
@@ -641,13 +647,15 @@ fn remove_environment_variable(world: &mut WorldState, args: &Value) -> Value {
     let id_or_name = arg_str(args, "idOrName");
     let id = arg_str(args, "id");
     let query = query_from(args, &["customEnvironmentId", "teamId", "slug"]);
-    let d = data(api::delete_env(world, id_or_name, id, &query)).unwrap_or(Value::Null);
-    result(vec![
-        block(format!(
-            "Environment variable {id} removed successfully from project {id_or_name}"
-        )),
-        block(pretty(&d)),
-    ])
+    match data(api::delete_env(world, id_or_name, id, &query)) {
+        Ok(value) => result(vec![
+            block(format!(
+                "Environment variable {id} removed successfully from project {id_or_name}"
+            )),
+            block(pretty(&value)),
+        ]),
+        Err(failure) => failure,
+    }
 }
 
 #[cfg(test)]

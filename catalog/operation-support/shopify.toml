@@ -1,0 +1,77 @@
+# Reviewed operation support for `shopify`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "shopify"
+tool = "get-customer-orders"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "get-customers"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "get-product-by-id"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "get-products"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "get-publications"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "manage-product-variants"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "publish-product"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "update-customer"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "update-order"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"
+
+[[operation]]
+endpoint = "shopify"
+tool = "update-product"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Shopify reviewed subset"

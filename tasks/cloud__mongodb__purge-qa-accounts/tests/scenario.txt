@@ -1,0 +1,1 @@
+cloud/mongodb/purge-qa-accounts

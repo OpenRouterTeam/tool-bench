@@ -1,0 +1,56 @@
+# Reviewed operation support for `slack`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "slack"
+tool = "slack_add_list_record"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Linear and Slack Reviewed Subsets"
+
+[[operation]]
+endpoint = "slack"
+tool = "slack_read_list"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Linear and Slack Reviewed Subsets"
+
+[[operation]]
+endpoint = "slack"
+tool = "slack_read_thread"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Linear and Slack Reviewed Subsets"
+
+[[operation]]
+endpoint = "slack"
+tool = "slack_search_channels"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Linear and Slack Reviewed Subsets"
+
+[[operation]]
+endpoint = "slack"
+tool = "slack_search_public"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Linear and Slack Reviewed Subsets"
+
+[[operation]]
+endpoint = "slack"
+tool = "slack_search_users"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Linear and Slack Reviewed Subsets"
+
+[[operation]]
+endpoint = "slack"
+tool = "slack_send_message"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Linear and Slack Reviewed Subsets"

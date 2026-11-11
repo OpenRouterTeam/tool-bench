@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/stripe/apply-retention-coupon",
+  "scenario_sha256": "sha256:e7bd3af94ced2270d4eb65f9746fae6d409d1f2bbc66b18bceea1b58ec84bcca",
+  "dataset_sha256": "sha256:66057f976e03d3cf4847a9a8cea9cf58c5306d3941ee106e57f9ffcb6bb16cd5",
+  "contract_sha256": "sha256:78f1904f795e85d24657c66a1d1d49329bc140993ee368d1810635da84f8a269"
+}

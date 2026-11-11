@@ -1,14 +1,81 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/exa/research/r_01k4fOjR4gU5lXF1HsNUQMnA/model",
-      "equals": "exa-research-pro",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/exa/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/model": "exa-research-pro",
+        "/status": "completed"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/exa/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/output/content",
+      "target": {
+        "collection": "/services/exa/research_reports",
+        "matching": {
+          "id": "report-bidirectional-depot-chargers-de"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/content",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/exa/research",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/citations",
+      "target": {
+        "collection": "/services/exa/research_reports",
+        "matching": {
+          "id": "report-bidirectional-depot-chargers-de"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/citations",
+      "kind": "equals",
+      "fields": []
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "exa",
@@ -20,17 +87,21 @@
         "model": "exa-research-pro"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "exa",
       "method": "GET",
       "path": null,
-      "path_regex": "^/research/v1/r_",
+      "path_regex": "^/research/v1/r_[0-9A-Za-z]+$",
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -44,7 +115,9 @@
         "model": "exa-research-fast"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "exa",
@@ -56,13 +129,75 @@
         "model": "exa-research"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "VoltHaven"
+    "contains": [],
+    "regex": null,
+    "source_facts": {
+      "requirement": "Name the vendor with the largest installed share in the authored depot report and attribute that same vendor's typical 22 kW bidirectional unit price to it, without negation or misattribution.",
+      "source": {
+        "selector": {
+          "collection": "/services/exa/research_reports",
+          "matching": {
+            "id": "report-bidirectional-depot-chargers-de"
+          },
+          "key_prefix": null,
+          "created": false,
+          "identity_field": null
+        },
+        "field": "/content",
+        "separator": null
+      },
+      "key": "vendor",
+      "rows": {
+        "largest": "share"
+      },
+      "columns": {
+        "hq": {
+          "header": "HQ",
+          "kind": "place",
+          "required": false
+        },
+        "price": {
+          "header": "Typical price, 22 kW AC bidirectional unit",
+          "kind": "money",
+          "required": true
+        },
+        "share": {
+          "header": "Share of installed depot V2G units (DE)",
+          "kind": "percent",
+          "required": false
+        },
+        "vendor": {
+          "header": "Vendor",
+          "kind": "name",
+          "required": true
+        }
+      }
+    }
+  },
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/exa/research/*",
+        "kind": "create",
+        "matching": {
+          "model": "exa-research-pro"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
     ],
-    "regex": "6[,.]?900"
-  }
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

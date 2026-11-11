@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/brave/competitor-funding-news",
+  "scenario_sha256": "sha256:66641fe3d6254fee5c97a15513d5d43a70a62feb175aaaa05c56a5377b95a947",
+  "dataset_sha256": "sha256:07b257f9518255408ebcbb4d6093ba501c2caccf8328ce5b5b54ceb5b5748ebc",
+  "contract_sha256": "sha256:474497bff548835859e722411857b7ecaabb992c50b7067eb365d77b5201d400"
+}

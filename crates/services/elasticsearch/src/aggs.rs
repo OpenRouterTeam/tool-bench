@@ -1,6 +1,7 @@
 //! Aggregations: `terms`, `avg`, `sum`, `min`, `max`, `value_count`, `cardinality`,
 //! `stats`, `percentiles`, `date_histogram`, `histogram`, `range`, `filter`, `filters`,
-//! `missing` and `top_hits`, with sub-aggregations on bucket aggregations.
+//! `missing` and `top_hits`, with sub-aggregations on bucket aggregations. `terms` also
+//! buckets by the `_index` metadata field.
 
 use std::collections::BTreeSet;
 
@@ -163,11 +164,19 @@ fn one(name: &str, spec: &Value, docs: &[&Doc], ctx: &Ctx) -> Result<Value, EsEr
                 .and_then(Value::as_u64)
                 .unwrap_or(1) as usize;
             let ty = ctx.ty(f);
+            // `_index` is a metadata field every document has: it buckets by index name.
+            let values = |d: &Doc| {
+                if f == "_index" {
+                    vec![json!(d.index)]
+                } else {
+                    field_values(&d.source, f)
+                }
+            };
             // (key, members) in first-seen order.
             let mut groups: Vec<(Value, Vec<&Doc>)> = Vec::new();
             for d in docs {
                 let mut seen = BTreeSet::new();
-                for v in field_values(&d.source, f) {
+                for v in values(d) {
                     let key = term_key(&v, ty.as_deref());
                     if !seen.insert(key.to_string()) {
                         continue;
@@ -181,7 +190,7 @@ fn one(name: &str, spec: &Value, docs: &[&Doc], ctx: &Ctx) -> Result<Value, EsEr
             if let Some(missing) = body.get("missing") {
                 let members: Vec<&Doc> = docs
                     .iter()
-                    .filter(|d| field_values(&d.source, f).is_empty())
+                    .filter(|d| values(d).is_empty())
                     .copied()
                     .collect();
                 if !members.is_empty() {

@@ -8,8 +8,10 @@ use mock_core::world::SharedWorld;
 use serde_json::{Map, Value, json};
 
 use crate::directory::target_kind;
-use crate::schedules::{Seg, merge_per_user, schedule_segments};
-use crate::util::{ApiErr, Ctx, Kind, Req, fmt, ok, parse_time, ref_id, run, time_of};
+use crate::schedules::{PreciseSeg, merge_per_user, schedule_segments};
+use crate::util::{
+    ApiErr, Ctx, Kind, NANOS_PER_SECOND, Req, fmt, nanos, ok, parse_time, ref_id, run, time_of,
+};
 
 const DAY: i64 = 86_400;
 
@@ -511,8 +513,9 @@ pub async fn incidents_by_team(State(world): State<SharedWorld>, req: Req) -> Re
 
 /// Seconds a user was on call within `[start, end)`: (any level, level 1, level 2+).
 fn oncall_seconds(ctx: &Ctx, user: &str, start: i64, end: i64) -> (i64, i64, i64) {
-    let mut first: Vec<Seg> = Vec::new();
-    let mut later: Vec<Seg> = Vec::new();
+    let (start, end) = (nanos(start), nanos(end));
+    let mut first: Vec<PreciseSeg> = Vec::new();
+    let mut later: Vec<PreciseSeg> = Vec::new();
     for ep in ctx.docs("escalation_policies") {
         for (i, rule) in ep["escalation_rules"]
             .as_array()
@@ -523,7 +526,7 @@ fn oncall_seconds(ctx: &Ctx, user: &str, start: i64, end: i64) -> (i64, i64, i64
             for t in rule["targets"].as_array().into_iter().flatten() {
                 let Some(tid) = ref_id(t) else { continue };
                 let segs = match target_kind(t) {
-                    Kind::User if tid == user => vec![Seg {
+                    Kind::User if tid == user => vec![PreciseSeg {
                         user: user.to_owned(),
                         start,
                         end,
@@ -539,13 +542,14 @@ fn oncall_seconds(ctx: &Ctx, user: &str, start: i64, end: i64) -> (i64, i64, i64
             }
         }
     }
-    let total = |segs: Vec<Seg>| -> i64 {
-        merge_per_user(segs)
+    let total = |segs: Vec<PreciseSeg>| -> i64 {
+        (merge_per_user(segs)
             .iter()
             .map(|s| s.end.min(end) - s.start.max(start))
-            .sum()
+            .sum::<i128>()
+            / NANOS_PER_SECOND) as i64
     };
-    let all: Vec<Seg> = first.iter().chain(later.iter()).cloned().collect();
+    let all: Vec<PreciseSeg> = first.iter().chain(later.iter()).cloned().collect();
     (total(all), total(first), total(later))
 }
 

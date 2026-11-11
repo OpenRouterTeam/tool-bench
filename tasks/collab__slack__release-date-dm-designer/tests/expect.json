@@ -1,60 +1,177 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/slack/posted/D09KIMDM4X1#1/text",
-      "equals": null,
-      "exists": null,
-      "contains": "2026-11-10",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/slack/posted/D0RIVDM2KQ8#1",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/slack/posted/C06RELEASE1#1",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [
-    {
-      "service": "slack",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "slack_send_message"
+      "selector": {
+        "collection": "/services/slack/posted",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/user": "U02CMORG8RK"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {
+        "/text": {
+          "requirement": "Tell Alex Kim in a DM that the current web 4.12 release date is 2026-11-10, written YYYY-MM-DD. The conversation supplies recipient and release context, so the date is the one required fact; no greeting, reason, old date or freeze date is mandatory.",
+          "accepted": [
+            "The web 4.12 release is scheduled for 2026-11-10.",
+            "Hi Alex! The web 4.12 release moved from 2026-11-03 to 2026-11-10 (Tuesday) because of the payments SDK regression. Code freeze is now 2026-11-06."
+          ],
+          "mentions": [
+            "2026-11-10"
+          ],
+          "format": "plain",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    },
+    {
+      "selector": {
+        "collection": "/services/slack/messages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "forbidden_calls": [
+  "relations": [
     {
-      "service": "slack",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "channel_id": "U04ARIVERA9"
+      "source": {
+        "collection": "/services/slack/posted",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/channel",
+      "target": {
+        "collection": "/services/slack/channels",
+        "matching": {
+          "is_im": true,
+          "user": "U06AKIM3D2Q"
         },
-        "name": "slack_send_message"
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "target_field": "/id",
+      "kind": "foreign_key",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/slack/posted",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/ts",
+      "target": {
+        "collection": "/services/slack/messages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/ts",
+      "kind": "bijection",
+      "fields": [
+        {
+          "source_field": "/channel",
+          "target_field": "/channel",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/text",
+          "target_field": "/text",
+          "kind": "equals"
+        }
+      ]
     }
   ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/slack/posted/*",
+        "kind": "create",
+        "matching": {
+          "user": "U02CMORG8RK"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/slack/messages/*",
+        "kind": "create",
+        "matching": {
+          "user": "U02CMORG8RK"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/slack/channels/*",
+        "kind": "create",
+        "matching": {
+          "is_im": true,
+          "members": [
+            "U02CMORG8RK",
+            "U06AKIM3D2Q"
+          ],
+          "user": "U06AKIM3D2Q"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

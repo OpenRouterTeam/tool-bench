@@ -7,78 +7,92 @@ services = ["okta", "linear", "slack"]
 tags = ["write", "multi-service", "okta", "linear", "slack", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["cross_system_identity", "tool_ambiguity"]
+dependency_depth = 3
+rationale = "Okta has Lena Fischer (Product, 00u1lnfschr3Ab4Cd5x7) and Lena Fisher (Sales, 00u1lnfshr07Ef8Gh9x7); lifecycle calls on Fisher and user DELETE are forbidden; Fischer is matched to Linear by email."
+
 # Okta has Lena Fischer (Product, 00u1lnfschr3Ab4Cd5x7) and the look-alike Lena Fisher
-# (Sales, 00u1lnfshr07Ef8Gh9x7). Fischer is deactivated, not deleted. In Linear she is in
-# Payments (c60777c7…) and Web App (b66a35a6…); both memberships go. The notice lands in
-# #it-ops (C0ITOPS5LF2), not the archived #it-requests-archive.
-[[expect.state]]
-pointer = "/services/okta/users/00u1lnfschr3Ab4Cd5x7/status"
-equals = "DEPROVISIONED"
+# (Sales, 00u1lnfshr07Ef8Gh9x7). Fischer is deactivated, not deleted, and keeps her groups. In
+# Linear she is in Payments (c60777c7...) and Web App (b66a35a6...); every membership of hers goes
+# and nobody else's changes. The notice lands in #it-ops (C0ITOPS5LF2), not the archived
+# #it-requests-archive, and is causally after both outcomes it reports: the Okta deactivation and
+# the actual absence of every Linear membership of hers (a record-count prerequisite).
 
-[[expect.state]]
-pointer = "/services/okta/users/00u1lnfschr3Ab4Cd5x7/profile/login"
-equals = "lena.fischer@octo-corp.example"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/okta/users/00u1lnfshr07Ef8Gh9x7/status"
-equals = "ACTIVE"
+[[expect.records]]
+selector = { collection = "/services/okta/users", matching = { profile = { login = "lena.fischer@octo-corp.example", firstName = "Lena", lastName = "Fischer", department = "Product" } } }
+equals = 1
+fields = { "/id" = "00u1lnfschr3Ab4Cd5x7", "/status" = "DEPROVISIONED" }
 
-[[expect.state]]
-pointer = "/services/okta/group_members/00g2sales03Nv6Yw2x7~100u1lnfshr07Ef8Gh9x7"
-exists = true
+[[expect.records]]
+selector = { collection = "/services/okta/users", matching = { profile = { login = "lena.fisher@octo-corp.example" } } }
+equals = 1
+fields = { "/id" = "00u1lnfshr07Ef8Gh9x7", "/status" = "ACTIVE" }
 
-[[expect.state]]
-pointer = "/services/linear/team_memberships/c60777c7-e380-5228-a6ab-bbee164139de"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/linear/users", matching = { id = "3dbdd473-1a04-5dda-ad95-4c583313bccd", name = "Lena Fischer", email = "lena.fischer@octo-corp.example" } }
+equals = 1
+fields = { "/active" = true }
 
-[[expect.state]]
-pointer = "/services/linear/team_memberships/b66a35a6-c23a-5722-be9c-0ba91aba0db0"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/linear/team_memberships", matching = { userId = "3dbdd473-1a04-5dda-ad95-4c583313bccd" } }
+equals = 0
 
-# Everyone else keeps their Linear teams.
-[[expect.state]]
-pointer = "/services/linear/team_memberships/45ab43ee-0145-57b1-899c-c92a33fbbd69"
-exists = true
+[[expect.records]]
+selector = { collection = "/services/slack/posted", created = true }
+equals = 1
+fields = { "/user" = "U02CMORG8RK", "/channel" = "C0ITOPS5LF2" }
 
-[[expect.state]]
-pointer = "/services/linear/team_memberships/ab503205-147e-5067-acc0-d50feb05d2d5"
-exists = true
+[expect.records.reviewed_text."/text"]
+requirement = "Post a short notice that Lena Fischer has been offboarded: her Okta account was deactivated and she was removed from Linear. A notice about the look-alike Lena Fisher only, a deletion instead of a deactivation, or a missing Okta or Linear outcome is not acceptable. Linear team names are optional."
+mentions = ["Lena Fischer", "Okta", ["deactivated", "deactivation", "deactivate", "deprovisioned"], "Linear"]
+accepted = [
+  "Offboarding notice: Lena Fischer (Product) has been offboarded. Her Okta account is deactivated (not deleted) and she has been removed from the Payments and Web App teams in Linear.",
+  "Lena Fischer has been offboarded: Okta deactivated, removed from Linear.",
+  "Lena Fischer has been offboarded (Okta deactivated, removed from Linear).",
+  "Offboarding notice: Lena Fischer has been offboarded. Okta deactivated, removed from Linear.",
+  "Lena Fischer (Product) has been offboarded. Okta account deactivated (not deleted); removed from the Payments and Web App teams in Linear.",
+]
+rejected = [
+  "Lena Fisher has been offboarded. Her Okta account is deactivated and she has been removed from Linear.",
+  "Lena Fischer has been offboarded. Her Okta account was deleted and she has been removed from Linear.",
+]
 
-[[expect.state]]
-pointer = "/services/linear/team_memberships/1660643f-c512-5fa6-9b09-ce598291dada"
-exists = true
+[[expect.records]]
+selector = { collection = "/services/slack/messages", created = true }
+equals = 1
 
-[[expect.state]]
-pointer = "/services/linear/team_memberships/e90b6dce-e2ca-5017-b7a3-d85a526eb0cf"
-exists = true
+[[expect.relations]]
+source = { collection = "/services/slack/posted", created = true }
+source_field = "/channel"
+target = { collection = "/services/slack/channels", matching = { id = "C0ITOPS5LF2", name = "it-ops", is_archived = false } }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.state]]
-pointer = "/services/linear/team_memberships/d68a6792-48a4-5efa-8479-46a7d1da312c"
-exists = true
+[[expect.relations]]
+source = { collection = "/services/slack/posted", created = true }
+source_field = "/ts"
+target = { collection = "/services/slack/messages", created = true }
+target_field = "/ts"
+kind = "bijection"
+fields = [
+  { source_field = "/channel", target_field = "/channel", kind = "equals" },
+  { source_field = "/text", target_field = "/text", kind = "equals" },
+]
 
-[[expect.state]]
-pointer = "/services/slack/posted"
-key_prefix = "C0ITOPS5LF2#"
-any = { text = "Lena Fischer" }
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/okta/users", matching = { profile = { login = "lena.fischer@octo-corp.example" } } }, field = "/status", equals = "DEPROVISIONED" }
+action = { selector = { collection = "/services/slack/posted", created = true }, field = "/text", nonempty_text = true }
 
-[[expect.state]]
-pointer = "/services/slack/posted/C0ITREQ8ARC#1"
-exists = false
-
-[[expect.required_calls]]
-service = "okta"
-method = "POST"
-path = "/api/v1/users/00u1lnfschr3Ab4Cd5x7/lifecycle/deactivate"
-
-[[expect.required_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
-body = { name = "linear_removeUserFromTeam" }
-
-[[expect.required_calls]]
-service = "slack"
-path = "/_mcp/tools/call"
-body = { name = "slack_send_message" }
+[[expect.ordering]]
+prerequisite = { selector = { collection = "/services/linear/team_memberships", matching = { userId = "3dbdd473-1a04-5dda-ad95-4c583313bccd" } }, record_count = 0 }
+action = { selector = { collection = "/services/slack/posted", created = true }, field = "/text", nonempty_text = true }
 
 [[expect.forbidden_calls]]
 service = "okta"
@@ -87,12 +101,49 @@ path_regex = "^/api/v1/users/"
 
 [[expect.forbidden_calls]]
 service = "okta"
-path_regex = "^/api/v1/users/(00u1lnfshr07Ef8Gh9x7|lena\\.fisher@octo-corp\\.example)/lifecycle/"
+path_regex = "(?i)^/api/v1/users/(00u1lnfshr07Ef8Gh9x7|lena\\.fisher(@|%40)octo-corp\\.example)/lifecycle/"
 
-[[expect.forbidden_calls]]
-service = "okta"
-method = "DELETE"
-path_regex = "^/api/v1/groups/[^/]+/users/00u1lnfshr07Ef8Gh9x7$"
+[[expect.preservation.allow]]
+pointer = "/services/okta/users/00u1lnfschr3Ab4Cd5x7/status"
+matching = { status = "DEPROVISIONED" }
+cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1lnfschr3Ab4Cd5x7|lena\\.fischer(@|%40)octo-corp\\.example)/lifecycle/deactivate$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/okta/users/00u1lnfschr3Ab4Cd5x7/activated"
+matching = { status = "DEPROVISIONED" }
+cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1lnfschr3Ab4Cd5x7|lena\\.fischer(@|%40)octo-corp\\.example)/lifecycle/deactivate$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/okta/users/00u1lnfschr3Ab4Cd5x7/statusChanged"
+cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1lnfschr3Ab4Cd5x7|lena\\.fischer(@|%40)octo-corp\\.example)/lifecycle/deactivate$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/okta/users/00u1lnfschr3Ab4Cd5x7/lastUpdated"
+cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1lnfschr3Ab4Cd5x7|lena\\.fischer(@|%40)octo-corp\\.example)/lifecycle/deactivate$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/okta/logs/*"
+kind = "create"
+matching = { eventType = "user.lifecycle.deactivate", outcome = { result = "SUCCESS" }, actor = { id = "0oa8wq4n2Yc6Ds7Rt0x7" } }
+references = [{ source_field = "/target/0/id", target = { collection = "/services/okta/users", matching = { profile = { login = "lena.fischer@octo-corp.example" } } }, target_field = "/id" }]
+count_scope = "per_commit"
+cause = { service = "okta", methods = ["POST"], path_regex = "(?i)^/api/v1/users/(00u1lnfschr3Ab4Cd5x7|lena\\.fischer(@|%40)octo-corp\\.example)/lifecycle/deactivate$" }
+
+[[expect.preservation.allow]]
+pointer = "/services/linear/team_memberships/*"
+kind = "delete"
+matching = { userId = "3dbdd473-1a04-5dda-ad95-4c583313bccd" }
+max_count = "all_matching"
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/posted/*"
+kind = "create"
+matching = { user = "U02CMORG8RK", channel = "C0ITOPS5LF2" }
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/messages/*"
+kind = "create"
+matching = { user = "U02CMORG8RK", channel = "C0ITOPS5LF2" }
 
 [[solution.call]]
 endpoint = "okta"

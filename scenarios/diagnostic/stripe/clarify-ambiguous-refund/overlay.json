@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "task_id": "diagnostic/stripe/clarify-ambiguous-refund",
+  "base_id": "synth-ops",
+  "base_revision": 1,
+  "removes": {},
+  "inserts": {
+    "stripe": {
+      "customers": [
+        {
+          "id": "cus_S60SWccf6YSucm",
+          "object": "customer",
+          "address": null,
+          "balance": 0,
+          "created": 1756742400,
+          "currency": "usd",
+          "description": "Phoned support on 2026-03-06 about a double charge",
+          "email": "billing@river-electricals.example",
+          "invoice_prefix": "RVL9D03B",
+          "metadata": {},
+          "name": "River Electricals",
+          "next_invoice_sequence": 4,
+          "phone": null
+        }
+      ]
+    }
+  }
+}

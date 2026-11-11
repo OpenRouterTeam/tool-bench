@@ -656,6 +656,14 @@ impl<'d> Exec<'d> {
                 }
             }
             "customer" => self.by_gid(f, &args, "Customer")?,
+            "publications" => model::connection(
+                "Publication",
+                model::docs(store, "publications")
+                    .into_iter()
+                    .map(|publication| reference("Publication", id_of(publication)))
+                    .collect(),
+            ),
+            "publication" => self.by_gid(f, &args, "Publication")?,
             "collections" => {
                 let q = search::parse(query);
                 let items = model::docs(store, "collections")
@@ -742,6 +750,9 @@ fn cursor_id(cursor: &str) -> Option<u64> {
 }
 
 fn item_id(item: &Value) -> u64 {
+    if item["__typename"] == "ResourcePublication" {
+        return item["publication"]["__ref"][1].as_u64().unwrap_or(0);
+    }
     if let Some(r) = item.get("__ref") {
         return r[1].as_u64().unwrap_or(0);
     }

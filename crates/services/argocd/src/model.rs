@@ -23,7 +23,7 @@ use mock_core::{
 };
 use serde_json::{Map, Value, json};
 
-use crate::{NAME, error::ArgoError};
+use crate::{NAME, error::ArgoError, rendered, workload};
 
 pub const DEFAULT_APP_NAMESPACE: &str = "argocd";
 const DEFAULT_HISTORY_LIMIT: usize = 10;
@@ -280,6 +280,46 @@ pub fn validate_spec(
     app_ns: &str,
     spec: &Value,
 ) -> Result<(), ArgoError> {
+    if !spec.is_object() || !spec["source"].is_object() || !spec["destination"].is_object() {
+        return Err(ArgoError::invalid(
+            "Application spec, source, and destination must be objects.",
+        ));
+    }
+    if spec["destination"]
+        .as_object()
+        .expect("destination object")
+        .keys()
+        .any(|field| !matches!(field.as_str(), "server" | "name" | "namespace"))
+    {
+        return Err(ArgoError::invalid("Unknown Application destination field."));
+    }
+    if ["sources", "ignoreDifferences"]
+        .iter()
+        .any(|field| spec.get(*field).is_some())
+        || ["helm", "kustomize", "plugin", "directory", "chart", "ref"]
+            .iter()
+            .any(|field| spec["source"].get(*field).is_some())
+    {
+        return Err(ArgoError::unsupported(
+            "This Application source or comparison configuration is not implemented.",
+        ));
+    }
+    if let Some(policy) = spec
+        .pointer("/syncPolicy/automated")
+        .filter(|value| !value.is_null())
+        && (!policy.is_object()
+            || ["enabled", "prune", "selfHeal", "allowEmpty"]
+                .iter()
+                .any(|field| {
+                    policy
+                        .get(*field)
+                        .is_some_and(|value| !value.is_null() && !value.is_boolean())
+                }))
+    {
+        return Err(ArgoError::invalid(
+            "Automated sync policy fields must be boolean or null.",
+        ));
+    }
     let invalid = |msg: String| {
         ArgoError::invalid(format!(
             "application spec for {name} is invalid: InvalidSpecError: {msg}"
@@ -336,6 +376,13 @@ pub fn validate_spec(
     };
     let server = str_field(cluster, "/server");
     let cluster_name = str_field(cluster, "/name");
+    if let Some(existing) = get_app(store, &format!("{app_ns}/{name}"))
+        && rendered::cluster(store, existing).as_deref() != Some(server)
+    {
+        return Err(ArgoError::unsupported(
+            "Moving an existing Application between clusters is not implemented.",
+        ));
+    }
 
     let repo = str_field(spec, "/source/repoURL");
     let repo_ok = project
@@ -442,6 +489,28 @@ pub struct SyncRequest {
     pub automated: bool,
 }
 
+pub fn automation_enabled(app: &Value) -> bool {
+    app.pointer("/spec/syncPolicy/automated")
+        .is_some_and(|policy| {
+            policy.is_object() && policy.get("enabled") != Some(&Value::Bool(false))
+        })
+}
+
+pub fn checked<T>(world: &mut WorldState, result: Result<T, ArgoError>) -> Result<T, ArgoError> {
+    if let Err(error) = &result
+        && error.capability_gap.is_some()
+    {
+        let operation =
+            mock_core::events::current().expect("capability failures have operation context");
+        world.fail_operation(
+            &operation,
+            "unsupported_argocd_operation",
+            error.capability_gap.as_deref().expect("capability reason"),
+        );
+    }
+    result
+}
+
 fn kubectl_name(r: &Value) -> String {
     let kind = str_field(r, "/kind").to_ascii_lowercase();
     let group = str_field(r, "/group");
@@ -514,9 +583,7 @@ pub fn reconcile(svc: &mut ServiceState, now: &str, key: &str) -> Result<(), Arg
             &format!("Updated sync status: {before} -> {status}"),
         );
     }
-    let automated = app
-        .pointer("/spec/syncPolicy/automated")
-        .is_some_and(|a| a.is_object());
+    let automated = automation_enabled(&app);
     let prune = app
         .pointer("/spec/syncPolicy/automated/prune")
         .and_then(Value::as_bool)
@@ -524,7 +591,10 @@ pub fn reconcile(svc: &mut ServiceState, now: &str, key: &str) -> Result<(), Arg
     svc.store
         .collection_mut("applications")
         .insert(key.to_owned(), app);
-    if automated && status == "OutOfSync" {
+    if automated
+        && status == "OutOfSync"
+        && get_app(&svc.store, key).is_some_and(|app| !app["operation"].is_object())
+    {
         sync(
             svc,
             now,
@@ -547,16 +617,39 @@ pub fn sync(
     req: SyncRequest,
 ) -> Result<(), ArgoError> {
     let mut app = require_app(&svc.store, key)?.clone();
+    let options = req
+        .sync_options
+        .as_ref()
+        .or_else(|| app.pointer("/spec/syncPolicy/syncOptions"));
+    if options
+        .into_iter()
+        .flat_map(|options| options.as_array().into_iter().flatten())
+        .any(|option| {
+            !matches!(
+                option.as_str(),
+                Some(
+                    "CreateNamespace=true"
+                        | "CreateNamespace=false"
+                        | "ApplyOutOfSyncOnly=true"
+                        | "ApplyOutOfSyncOnly=false"
+                        | "Validate=true"
+                        | "Validate=false"
+                )
+            )
+        })
+    {
+        return Err(ArgoError::unsupported(
+            "This operation sync option is not implemented.",
+        ));
+    }
     let phase = str_field(&app, "/status/operationState/phase");
-    if phase == "Running" || phase == "Terminating" {
+    if app["operation"].is_object() || phase == "Running" || phase == "Terminating" {
         return Err(ArgoError::failed_precondition(
             "another operation is already in progress",
         ));
     }
     let target = str_field(&app, "/spec/source/targetRevision").to_owned();
-    let automated_policy = app
-        .pointer("/spec/syncPolicy/automated")
-        .is_some_and(|a| a.is_object());
+    let automated_policy = automation_enabled(&app);
     if let Some(rev) = req.revision.as_deref()
         && !req.automated
         && automated_policy
@@ -577,11 +670,106 @@ pub fn sync(
     };
     let sha = str_field(&commit, "/sha").to_owned();
     let source = app.pointer("/spec/source").cloned().unwrap_or(Value::Null);
+    let rendered = rendered::lookup(&svc.store, &source, &sha)?;
+    workload::validate(svc, key, &rendered.manifests)?;
+    if req.automated
+        && req.prune
+        && rendered.manifests.is_empty()
+        && app.pointer("/spec/syncPolicy/automated/allowEmpty") != Some(&Value::Bool(true))
+    {
+        return Ok(());
+    }
     let initiated_by = if req.automated {
         json!({ "automated": true })
     } else {
         json!({ "username": "admin" })
     };
+    let mut operation_sync = json!({
+        "revision":sha,"source":source,"prune":req.prune,"dryRun":req.dry_run
+    });
+    if let Some(options) = req.sync_options {
+        operation_sync["syncOptions"] = options;
+    }
+    app["operation"] = json!({"sync":operation_sync,"initiatedBy":initiated_by,"retry":{}});
+    app["status"]
+        .as_object_mut()
+        .expect("application status")
+        .shift_remove("operationState");
+    app["metadata"]["resourceVersion"] = json!(next_resource_version(svc));
+    app_event(
+        svc,
+        now,
+        &app,
+        "argocd-server",
+        "OperationStarted",
+        &format!("initiated sync to {sha}"),
+    );
+    svc.store.collection_mut("applications").insert(key, app);
+    Ok(())
+}
+
+pub fn observe(world: &mut WorldState, key: &str) -> Result<(), ArgoError> {
+    let now = world.clock.now_rfc3339();
+    let service = world.service_mut(NAME);
+    let app = require_app(&service.store, key)?.clone();
+    let rollout_pending = app_resources(&service.store, key).iter().any(|resource| {
+        resource["kind"] == "Deployment"
+            && resource["manifest"]["metadata"]["generation"].as_u64()
+                != resource["manifest"]["status"]["observedGeneration"].as_u64()
+    });
+    if !app["operation"].is_object() && !rollout_pending {
+        return Ok(());
+    }
+    let mut staged = service.clone();
+    let result = if app["operation"].is_object() {
+        if app["status"]["operationState"]["phase"] != "Running" {
+            let mut app = app.clone();
+            app["status"]["operationState"] = json!({
+                "operation":app["operation"],"phase":"Running","startedAt":now,
+                "syncResult":{"revision":app["operation"]["sync"]["revision"],"source":app["operation"]["sync"]["source"]}
+            });
+            app["metadata"]["resourceVersion"] = json!(next_resource_version(&mut staged));
+            staged.store.collection_mut("applications").insert(key, app);
+            Ok(())
+        } else {
+            finish_sync(&mut staged, &now, key)
+        }
+    } else {
+        workload::observe(&mut staged, &now, key).map(|()| {
+            let mut app = require_app(&staged.store, key)
+                .expect("observed app")
+                .clone();
+            app["status"]["health"] = workload::health(&staged.store, key);
+            app["metadata"]["resourceVersion"] = json!(next_resource_version(&mut staged));
+            staged.store.collection_mut("applications").insert(key, app);
+        })
+    };
+    if let Err(error) = result {
+        if let Some(reason) = &error.capability_gap {
+            let operation = mock_core::events::current()
+                .expect("controller observation has an operation context");
+            world.fail_operation(&operation, "unsupported_argocd_operation", reason);
+        }
+        return Err(error);
+    }
+    *world.service_mut(NAME) = staged;
+    Ok(())
+}
+
+fn finish_sync(svc: &mut ServiceState, now: &str, key: &str) -> Result<(), ArgoError> {
+    let mut app = require_app(&svc.store, key)?.clone();
+    let operation = app["operation"].clone();
+    let sha = str_field(&operation, "/sync/revision").to_owned();
+    let source = operation["sync"]["source"].clone();
+    let req = SyncRequest {
+        revision: Some(sha.clone()),
+        prune: operation["sync"]["prune"] == true,
+        dry_run: operation["sync"]["dryRun"] == true,
+        sync_options: operation["sync"].get("syncOptions").cloned(),
+        automated: operation["initiatedBy"]["automated"] == true,
+    };
+    let rendered = rendered::lookup(&svc.store, &source, &sha)?;
+    let initiated_by = operation["initiatedBy"].clone();
 
     let managed: Vec<Value> = app_resources(&svc.store, key)
         .into_iter()
@@ -590,11 +778,13 @@ pub fn sync(
         .collect();
     let dry = if req.dry_run { " (dry run)" } else { "" };
     let mut results = Vec::new();
-    let mut prune_uids = Vec::new();
     for r in &managed {
-        let (status, message) = if r["requiresPruning"] == true {
+        let requires_pruning = !rendered
+            .manifests
+            .iter()
+            .any(|target| rendered::identity(target) == rendered::identity(&r["manifest"]));
+        let (status, message) = if requires_pruning {
             if req.prune {
-                prune_uids.push(str_field(r, "/uid").to_owned());
                 ("Pruned", format!("pruned{dry}"))
             } else {
                 ("PruneSkipped", "ignored (requires pruning)".to_owned())
@@ -636,64 +826,16 @@ pub fn sync(
         operation["sync"]["prune"] = json!(req.prune);
     }
 
-    let display = if req.automated {
-        format!("initiated automated sync to '{sha}'")
-    } else {
-        format!("admin initiated sync to {wanted} ({sha})")
-    };
-    app_event(
-        svc,
-        now,
-        &app,
-        "argocd-server",
-        "OperationStarted",
-        &display,
-    );
-
     let before_sync = str_field(&app, "/status/sync/status").to_owned();
     let before_health = str_field(&app, "/status/health/status").to_owned();
+    let mut pending_delete = false;
     if !req.dry_run {
-        // Apply: prune, mark everything else synced, adopt the commit's health.
-        let mut removed = Vec::new();
-        for uid in &prune_uids {
-            removed.extend(descendants(&svc.store, uid));
-        }
-        let healthy = commit
-            .pointer("/health/status")
-            .is_some_and(|h| h == "Healthy");
-        let resources = svc.store.collection_mut("resources");
-        for uid in &removed {
-            resources.remove(uid);
-        }
-        let uids: Vec<String> = resources
-            .iter()
-            .filter(|(_, r)| r["app"] == key)
-            .map(|(k, _)| k.to_owned())
-            .collect();
-        for uid in uids {
-            if let Some(r) = resources.get_mut(&uid) {
-                if r["managed"] == true && r["requiresPruning"] != true {
-                    r["status"] = json!("Synced");
-                    if let Some(target) = r.get("targetManifest").cloned()
-                        && !target.is_null()
-                    {
-                        r["manifest"] = target;
-                        if let Some(obj) = r.as_object_mut() {
-                            obj.remove("targetManifest");
-                        }
-                    }
-                }
-                if healthy && r.get("health").is_some_and(|h| !h.is_null()) {
-                    r["health"] = json!({ "status": "Healthy" });
-                }
-            }
-        }
-        if let Some(health) = commit.get("health").filter(|h| !h.is_null()) {
-            app["status"]["health"] = health.clone();
-        } else if managed.is_empty() && str_field(&app, "/status/health/status") == "Missing" {
-            app["status"]["health"] = json!({ "status": "Healthy" });
-        }
-
+        pending_delete = workload::apply(svc, now, key, &rendered.manifests, req.prune)?;
+        app["status"]["health"] = workload::health(&svc.store, key);
+    }
+    let succeeded =
+        req.dry_run || !pending_delete && app["status"]["health"]["status"] == "Healthy";
+    if !req.dry_run && succeeded {
         let limit = app
             .pointer("/spec/revisionHistoryLimit")
             .and_then(Value::as_u64)
@@ -701,40 +843,71 @@ pub fn sync(
         if !app["status"]["history"].is_array() {
             app["status"]["history"] = json!([]);
         }
-        if let Some(history) = app["status"]["history"].as_array_mut() {
+        if let Some(history) = app["status"]["history"].as_array() {
             let id = history
                 .iter()
                 .filter_map(|h| h["id"].as_i64())
                 .max()
                 .unwrap_or(-1)
                 + 1;
-            history.push(json!({
+            let entry = json!({
                 "revision": sha,
                 "deployedAt": now,
                 "id": id,
                 "source": source,
                 "deployStartedAt": now,
                 "initiatedBy": initiated_by,
-            }));
-            if history.len() > limit {
-                let excess = history.len() - limit;
-                history.drain(..excess);
-            }
+            });
+            let mut all: Vec<Value> = svc
+                .store
+                .collection(rendered::HISTORY)
+                .into_iter()
+                .flat_map(|rows| rows.values())
+                .filter(|row| row["app"] == key)
+                .cloned()
+                .collect();
+            let sequence = all
+                .iter()
+                .filter_map(|row| row["sequence"].as_u64())
+                .max()
+                .map_or(0, |value| value + 1);
+            let uid = svc.ids.next_uuid("syncHistory").to_string();
+            let row = json!({"app":key,"sequence":sequence,"history":entry});
+            svc.store
+                .collection_mut(rendered::HISTORY)
+                .insert(format!("{key}/{uid}"), row.clone());
+            all.push(row);
+            all.sort_by_key(|row| row["sequence"].as_u64().expect("history sequence"));
+            app["status"]["history"] = Value::Array(
+                all.iter()
+                    .skip(all.len().saturating_sub(limit))
+                    .map(|row| row["history"].clone())
+                    .collect(),
+            );
         }
-        let (status, revision) = sync_status(&svc.store, key, &app, Some(&sha));
+    }
+    if !req.dry_run {
+        let deployed = if succeeded {
+            Some(sha.as_str())
+        } else {
+            deployed_revision(&app)
+        };
+        let (status, revision) = sync_status(&svc.store, key, &app, deployed);
         set_sync(&mut app, &status, revision);
     }
 
     app["status"]["operationState"] = json!({
         "operation": operation,
-        "phase": "Succeeded",
-        "message": "successfully synced (all tasks run)",
+        "phase": if pending_delete {"Running"} else if succeeded {"Succeeded"} else {"Failed"},
+        "message": if pending_delete {"Waiting for resource finalizers"} else if succeeded {"successfully synced (all tasks run)"} else {"Workloads did not reach readiness"},
         "syncResult": { "resources": results, "revision": sha, "source": source },
         "startedAt": now,
-        "finishedAt": now,
     });
+    if !pending_delete {
+        app["status"]["operationState"]["finishedAt"] = json!(now);
+    }
     app["status"]["reconciledAt"] = json!(now);
-    if let Some(obj) = app.as_object_mut() {
+    if !pending_delete && let Some(obj) = app.as_object_mut() {
         obj.remove("operation");
     }
 
@@ -743,8 +916,23 @@ pub fn sync(
         now,
         &app,
         "argocd-application-controller",
-        "OperationCompleted",
-        &format!("Sync operation to {sha} succeeded"),
+        if pending_delete {
+            "OperationProgressing"
+        } else if succeeded {
+            "OperationCompleted"
+        } else {
+            "OperationFailed"
+        },
+        &format!(
+            "Sync operation to {sha}: {}",
+            if pending_delete {
+                "waiting for deletion"
+            } else if succeeded {
+                "succeeded"
+            } else {
+                "workload readiness failed"
+            }
+        ),
     );
     let after_sync = str_field(&app, "/status/sync/status").to_owned();
     if after_sync != before_sync {
@@ -768,6 +956,7 @@ pub fn sync(
             &format!("Updated health status: {before_health} -> {after_health}"),
         );
     }
+    app["metadata"]["resourceVersion"] = json!(next_resource_version(svc));
     svc.store
         .collection_mut("applications")
         .insert(key.to_owned(), app);

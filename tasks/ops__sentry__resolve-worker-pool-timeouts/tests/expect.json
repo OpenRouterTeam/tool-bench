@@ -1,63 +1,280 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/sentry/issues/PAYMENTS-WORKER-1K/status",
-      "equals": "resolved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/issues/CHECKOUT-API-3F/status",
-      "equals": "unresolved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/sentry/issues/PAYMENTS-WORKER-1H/status",
-      "equals": "unresolved",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/sentry/issues",
+        "matching": {
+          "shortId": "PAYMENTS-WORKER-1K"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/status": "resolved"
+      },
+      "optional_fields": {},
+      "optional_choices": {
+        "/statusDetails/inNextRelease": [
+          false
+        ]
+      },
+      "null_fields": [
+        "/substatus"
+      ],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "required_calls": [
-    {
-      "service": "sentry",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "(?i)^/api/0/organizations/lumen-labs/issues/(PAYMENTS-WORKER-1K|6184417730)/$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "forbidden_calls": [
-    {
-      "service": "sentry",
-      "method": "PUT",
-      "path": null,
-      "path_regex": "(?i)/issues/(CHECKOUT-API-3F|6184420311|PAYMENTS-WORKER-1H|6184417704)/$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "sentry",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/sentry/issues/PAYMENTS-WORKER-1K/status",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/issues/PAYMENTS-WORKER-1K/substatus",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/issues/PAYMENTS-WORKER-1K/resolvedAt",
+        "kind": "update",
+        "matching": {
+          "status": "resolved"
+        },
+        "field_patterns": {
+          "/resolvedAt": "\\S"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/activities/*",
+        "kind": "create",
+        "matching": {
+          "type": "set_resolved"
+        },
+        "references": [
+          {
+            "source_field": "/issue",
+            "target": {
+              "collection": "/services/sentry/issues",
+              "matching": {
+                "shortId": "PAYMENTS-WORKER-1K"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/user",
+            "target": {
+              "collection": "/services/sentry/users",
+              "matching": {
+                "email": "priya@lumenlabs.dev"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/activities/*",
+        "kind": "create",
+        "matching": {
+          "type": "note"
+        },
+        "field_patterns": {
+          "/data/text": "\\S"
+        },
+        "references": [
+          {
+            "source_field": "/issue",
+            "target": {
+              "collection": "/services/sentry/issues",
+              "matching": {
+                "shortId": "PAYMENTS-WORKER-1K"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/user",
+            "target": {
+              "collection": "/services/sentry/users",
+              "matching": {
+                "email": "priya@lumenlabs.dev"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/notes/$"
+        }
+      },
+      {
+        "pointer": "/services/sentry/activities/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "assigneeType": "team"
+          },
+          "type": "assigned"
+        },
+        "references": [
+          {
+            "source_field": "/issue",
+            "target": {
+              "collection": "/services/sentry/issues",
+              "matching": {
+                "shortId": "PAYMENTS-WORKER-1K"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/data/assignee",
+            "target": {
+              "collection": "/services/sentry/issues",
+              "matching": {
+                "assignedTo": {
+                  "type": "team"
+                },
+                "shortId": "PAYMENTS-WORKER-1K"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/assignedTo/id"
+          },
+          {
+            "source_field": "/user",
+            "target": {
+              "collection": "/services/sentry/users",
+              "matching": {
+                "email": "priya@lumenlabs.dev"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "sentry",
+          "methods": [
+            "PUT"
+          ],
+          "path_regex": "^/api/0/organizations/(lumen-labs|1180274)/issues/[^/]+/$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

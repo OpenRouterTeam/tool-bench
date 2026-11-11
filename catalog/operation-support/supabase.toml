@@ -1,0 +1,49 @@
+# Reviewed operation support for `supabase`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "supabase"
+tool = "apply_migration"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Supabase cancellation, tracked RLS and lifecycle state"
+
+[[operation]]
+endpoint = "supabase"
+tool = "execute_sql"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Supabase cancellation, tracked RLS and lifecycle state"
+
+[[operation]]
+endpoint = "supabase"
+tool = "get_advisors"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Supabase cancellation, tracked RLS and lifecycle state"
+
+[[operation]]
+endpoint = "supabase"
+tool = "get_project"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Supabase cancellation, tracked RLS and lifecycle state"
+
+[[operation]]
+endpoint = "supabase"
+tool = "list_projects"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Supabase cancellation, tracked RLS and lifecycle state"
+
+[[operation]]
+endpoint = "supabase"
+tool = "pause_project"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Supabase cancellation, tracked RLS and lifecycle state"

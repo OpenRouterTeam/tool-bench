@@ -7,89 +7,86 @@ services = ["zendesk"]
 tags = ["write", "single-service", "zendesk", "disambiguation"]
 timeout_sec = 900
 
-# The open Northwind Health 502 ticket is 6230. Look-alikes: 6225 (same customer, same
-# symptom, solved two weeks ago), 6201 (Northwind Traders, 502s, solved), 6232 (Northwind
-# Health billing question), 6233 (another customer's API issue).
-# 6230 has two comments in the dataset, so the internal note is comments/6230/3.
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Open ticket 6230 (Dr. Osei, patient portal 502) vs her solved 6225 on the same issue, Northwind Traders solved 502 ticket 6201 and Cedar Pharmacy open 502 ticket 6233; only 6230 may change."
+
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/zendesk/tickets/6230/priority"
 equals = "urgent"
 
 [[expect.state]]
 pointer = "/services/zendesk/tickets/6230/tags"
-contains = "escalated"
+member_ascii_ci = "escalated"
 
-# Any comment on the ticket (its position depends on what else the agent posts).
-[[expect.state]]
-pointer = "/services/zendesk/comments"
-key_prefix = "6230/"
-any = { public = false, body = "INC-4471" }
+[[expect.records]]
+selector = { collection = "/services/zendesk/comments", created = true }
+equals = 1
+fields = { "/ticket_id" = 6230, "/public" = false }
 
-[[expect.state]]
-pointer = "/services/zendesk/tickets/6230/status"
-equals = "open"
+[expect.records.reviewed_text."/body"]
+requirement = "Say that the ticket has been escalated to on-call engineering under incident INC-4471. The ticket supplies the customer and the outage."
+mentions = ["INC-4471", ["escalated", "escalation", "escalating", "escalate"], ["on-call", "on call", "oncall"]]
+accepted = [
+  "Escalated to on-call engineering under incident INC-4471. The 502s are blocking patient check-ins at Northwind Health.",
+  "Escalated the Northwind Health patient portal outage to on-call engineering under incident INC-4471.",
+]
 
-[[expect.required_calls]]
-service = "zendesk"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "update_ticket", arguments = { ticket_id = 6230 } }
+[expect.records.reviewed_text."/html_body"]
+format = "zendesk_html"
+requirement = "The rendered internal note must say that the ticket has been escalated to on-call engineering under incident INC-4471, without hidden content."
+mentions = ["INC-4471", ["escalated", "escalation", "escalating", "escalate"], ["on-call", "on call", "oncall"]]
+accepted = [
+  "Escalated to on-call engineering under incident INC-4471. The 502s are blocking patient check-ins at Northwind Health.",
+  "Escalated the Northwind Health patient portal outage to on-call engineering under incident INC-4471.",
+]
 
-[[expect.required_calls]]
-service = "zendesk"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment", arguments = { ticket_id = 6230 } }
+[[expect.records]]
+selector = { collection = "/services/zendesk/audits", created = true }
+min_count = 1
+fields = { "/ticket_id" = 6230 }
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment", arguments = { ticket_id = 6230, public = true } }
+[[expect.relations]]
+source = { collection = "/services/zendesk/comments", created = true }
+source_field = "/audit_id"
+target = { collection = "/services/zendesk/audits", created = true }
+target_field = "/id"
+kind = "foreign_key"
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "update_ticket", arguments = { ticket_id = 6225 } }
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/6230/priority"
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment", arguments = { ticket_id = 6225 } }
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/6230/tags"
+add_set_values = ["escalated"]
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "update_ticket", arguments = { ticket_id = 6201 } }
+# No read tool shows a ticket's tags (get_ticket and get_tickets omit them) and
+# update_ticket replaces the whole list, so `tags = ["escalated"]` is what the request
+# asks for as far as an agent can see. Any other replacement still fails.
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/6230/tags"
+value_equals = ["escalated"]
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment", arguments = { ticket_id = 6201 } }
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/tickets/6230/updated_at"
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "update_ticket", arguments = { ticket_id = 6232 } }
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/comments/*"
+kind = "create"
+matching = { ticket_id = 6230, public = false }
 
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment", arguments = { ticket_id = 6232 } }
-
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "update_ticket", arguments = { ticket_id = 6233 } }
-
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket_comment", arguments = { ticket_id = 6233 } }
-
-[[expect.forbidden_calls]]
-service = "zendesk"
-path = "/_mcp/tools/call"
-body = { name = "create_ticket" }
+[[expect.preservation.allow]]
+pointer = "/services/zendesk/audits/*"
+kind = "create"
+matching = { ticket_id = 6230 }
+count_scope = "per_commit"
 
 [[solution.call]]
 endpoint = "zendesk"

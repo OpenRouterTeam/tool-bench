@@ -7,11 +7,57 @@ services = ["sentry"]
 tags = ["lookup", "single-service", "sentry"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "CHECKOUT-API-3F (1,842, unresolved) must be chosen over ignored CHECKOUT-API-2R (3,104), resolved CHECKOUT-API-31 (2,310) and same-title PAYMENTS-WORKER-1K (5,120) in another project."
+
 # CHECKOUT-API-3F (1,842 events) is the most frequent *unresolved* issue in checkout-api.
 # Distractors: CHECKOUT-API-2R (ignored, 3,104), CHECKOUT-API-31 (resolved, 2,310), and
 # PAYMENTS-WORKER-1K (same title, other project, 5,120).
-[expect.answer]
-regex = "(?i)\\bCHECKOUT-API-3F\\b"
+[expect]
+version = 2
+audit_history = true
+
+[expect.answer.record_facts]
+requirement = "Name the unresolved Sentry issue of the checkout-api project that has the most events, by its short ID, and state that issue's title."
+mode = "statements"
+selection = { largest = { field = "/count" } }
+# The task asks for the issue with the most events; these words say the opposite of it.
+contradictions = ["fewest", "least frequent", "least noisy", "quietest"]
+context = [
+  "not ${distractor_id}, which is ${distractor_status}",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/sentry/issues"
+matching = { status = "unresolved", project = "checkout-api" }
+
+[expect.answer.record_facts.facts.issue_id]
+field = "/shortId"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.title]
+field = "/title"
+kind = "text"
+
+[expect.answer.record_facts.related.distractor]
+collection = "/services/sentry/issues"
+filter = { matching = { "/status" = "ignored", "/project" = "checkout-api" } }
+
+[expect.answer.record_facts.facts.distractor_id]
+record = "distractor"
+field = "/shortId"
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.distractor_status]
+record = "distractor"
+field = "/status"
+kind = "text"
+optional = true
 
 [[expect.forbidden_calls]]
 service = "sentry"
@@ -27,4 +73,4 @@ tool = "search_issues"
 arguments = { organizationSlug = "lumen-labs", projectSlugOrId = "checkout-api", query = "is:unresolved", sort = "freq", period = "7d", limit = 5 }
 
 [solution]
-answer = "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s (1,842 events, 611 users)"
+answer = "CHECKOUT-API-3F: OperationalError: could not obtain connection from pool within 5.0s"

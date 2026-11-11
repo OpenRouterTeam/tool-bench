@@ -7,11 +7,21 @@ services = ["stripe"]
 tags = ["write", "single-service", "stripe"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "tool_ambiguity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Growth sub sub_eAeI must get cancel_at 1776018000 and stay active; the DeleteSubscriptions operation (immediate cancel) is a forbidden call; Lumen Labs Growth sub and the Data Export add-on must stay untouched."
+
 # Lumen Analytics: Growth monthly (sub_eAeI…, period 2026-03-12 -> 2026-04-12T18:20:00Z,
 # unix 1776018000) is to end with the period; the Data Export add-on (sub_5092…) stays.
 # Look-alikes: Lumen Labs' own Growth plan, and Lumen Analytics' old canceled Starter plan.
 # `cancel_at_period_end=true` and `cancel_at=<period end>` both schedule the same end; any
 # scheduled or immediate cancellation stamps `canceled_at`, which active subscriptions lack.
+[expect]
+version = 2
+audit_history = true
 
 [[expect.state]]
 pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/status"
@@ -27,7 +37,7 @@ exists = false
 
 [[expect.state]]
 pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/comment"
-contains = "via email"
+equals = "Customer requested cancellation via email"
 
 [[expect.state]]
 pointer = "/services/stripe/subscriptions/sub_50927iiN3XYUjf7BdJEsSV7n/status"
@@ -45,11 +55,38 @@ exists = false
 pointer = "/services/stripe/subscriptions/sub_Oz1daMzPMPupkoWAlwTJJ0UI/status"
 equals = "active"
 
-[[expect.required_calls]]
-service = "stripe"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostSubscriptionsSubscriptionExposedId" } }
+[[expect.records]]
+selector = { collection = "/services/stripe/subscriptions", matching = { id = "sub_eAeIb5HpilxLht73ad3sTPEH" } }
+equals = 1
+fields = { "/cancellation_details/comment" = "Customer requested cancellation via email", "/cancellation_details/reason" = "cancellation_requested" }
+
+[[expect.state]]
+pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/feedback"
+is_null = true
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancel_at_period_end"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancel_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/canceled_at"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/comment"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/reason"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/subscriptions/sub_eAeIb5HpilxLht73ad3sTPEH/cancellation_details/feedback"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "customer.subscription.updated", data = { object = { id = "sub_eAeIb5HpilxLht73ad3sTPEH" } } }
+count_scope = "per_commit"
 
 [[expect.forbidden_calls]]
 service = "stripe"

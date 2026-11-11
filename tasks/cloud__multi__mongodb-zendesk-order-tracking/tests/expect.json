@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -12,7 +17,9 @@
         "name": "create_ticket_comment"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "zendesk",
@@ -24,7 +31,9 @@
         "name": "update_ticket"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "mongodb",
@@ -36,7 +45,9 @@
         "name": "update-many"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "mongodb",
@@ -48,7 +59,9 @@
         "name": "delete-many"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "mongodb",
@@ -60,15 +73,86 @@
         "name": "insert-many"
       },
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "10601",
-      "UPS",
-      "1Z4X97W80391827364"
-    ],
-    "regex": "(?i)shipped"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the order number, current status, carrier and tracking number of the production shop.orders order that Zendesk requester Hana Sato placed on October 21, 2026.",
+      "selector": {
+        "collection": "/services/mongodb/db.shop.orders",
+        "matching": {},
+        "field_patterns": {
+          "/createdAt/$date": "^2026-10-21T"
+        },
+        "references": [
+          {
+            "source_field": "/customer/email",
+            "target": {
+              "collection": "/services/zendesk/users",
+              "matching": {
+                "name": "Hana Sato"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/email"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "carrier": {
+          "field": "/shipping/carrier",
+          "kind": "text"
+        },
+        "order": {
+          "field": "/orderNumber",
+          "kind": "identifier"
+        },
+        "status": {
+          "field": "/status",
+          "kind": "text"
+        },
+        "tracking": {
+          "field": "/shipping/trackingNumber",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "context": [
+        "but has not yet been delivered",
+        "but has not been delivered",
+        "hasn't yet been delivered",
+        "hasn't been delivered",
+        "not yet been delivered",
+        "not yet delivered",
+        "not delivered yet",
+        "on Oct 23",
+        "on 2026-10-23",
+        "ETA Oct 31",
+        "estimated delivery 2026-10-31",
+        "not yet been shipped",
+        "hasn't yet been shipped",
+        "not been shipped",
+        "hasn't been shipped",
+        "not yet shipped",
+        "hasn't yet shipped",
+        "hasn't shipped",
+        "isn't shipped",
+        "not shipped"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

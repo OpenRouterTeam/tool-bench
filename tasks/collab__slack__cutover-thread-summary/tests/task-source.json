@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/slack/cutover-thread-summary",
+  "scenario_sha256": "sha256:8593f20228cb529bb941bdfc44007e10c73e840de9ff95052f73a7d8f7a118b2",
+  "dataset_sha256": "sha256:1415010f505743174c7d326c86eafd92b1c54cedebba3f2128fb08c2816fb635",
+  "contract_sha256": "sha256:f56ff4667057651e513533d63e87647b128f7e636e42e5d919661226e6f07493"
+}

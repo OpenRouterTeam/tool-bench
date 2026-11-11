@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/gitlab/answer-changelog-review-thread",
+  "scenario_sha256": "sha256:ed5fc3b097340539812013929a194f9e114bbbbaea95d4317084d8410ce3680f",
+  "dataset_sha256": "sha256:4238b6d83e53b747e6e1ee0a257c600afda3aa9906113e095d78a1f13f4eae99",
+  "contract_sha256": "sha256:7440a0ca07dcaed412d908f5885e7516ccda095427873f9d2cd0da3894e6982a"
+}

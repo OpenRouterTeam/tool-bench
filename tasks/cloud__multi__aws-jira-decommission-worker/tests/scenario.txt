@@ -1,0 +1,1 @@
+cloud/multi/aws-jira-decommission-worker

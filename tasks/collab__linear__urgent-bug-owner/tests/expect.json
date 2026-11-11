@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -10,14 +15,129 @@
       "query_contains": null,
       "body": null,
       "body_contains": "\"name\":\"linear_update",
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "PAY-118",
-      "Priya"
-    ],
-    "regex": "(?i)in[ -]progress"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Give the identifier of the most urgent bug in the Payments v2 project that is still open, the person it is assigned to, and its workflow state.",
+      "selector": {
+        "collection": "/services/linear/issues",
+        "matching": {
+          "labelIds": [
+            "75dbca3d-6368-502e-8e56-0c82837ea691"
+          ]
+        },
+        "references": [
+          {
+            "source_field": "/projectId",
+            "target": {
+              "collection": "/services/linear/projects",
+              "matching": {
+                "name": "Payments v2"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          },
+          {
+            "source_field": "/stateId",
+            "target": {
+              "collection": "/services/linear/workflow_states",
+              "matching": {},
+              "field_patterns": {
+                "/type": "^(triage|backlog|unstarted|started)$"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/id"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "smallest": {
+          "field": "/priority"
+        }
+      },
+      "facts": {
+        "issue": {
+          "field": "/identifier",
+          "kind": "identifier"
+        },
+        "owner": {
+          "field": "/name",
+          "kind": "text",
+          "record": "owner",
+          "also": [
+            "/displayName"
+          ]
+        },
+        "state": {
+          "field": "/name",
+          "kind": "text",
+          "record": "state",
+          "wordings": {
+            "In Progress": [
+              "in-progress"
+            ]
+          }
+        }
+      },
+      "mode": "statements",
+      "rejected": [
+        "no longer ${state}",
+        "no longer assigned to ${owner}",
+        "no longer owned by ${owner}"
+      ],
+      "filter": {
+        "ranges": {
+          "/priority": {
+            "min": "1"
+          }
+        }
+      },
+      "related": {
+        "bug_label": {
+          "collection": "/services/linear/labels",
+          "filter": {
+            "matching": {
+              "/name": "Bug"
+            }
+          },
+          "on": {
+            "/id": "/labelIds"
+          }
+        },
+        "owner": {
+          "collection": "/services/linear/users",
+          "on": {
+            "/id": "/assigneeId"
+          }
+        },
+        "state": {
+          "collection": "/services/linear/workflow_states",
+          "on": {
+            "/id": "/stateId"
+          }
+        }
+      },
+      "context": [
+        "| Issue | Owner | State |"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -7,41 +7,38 @@ services = ["supabase"]
 tags = ["write", "single-service", "supabase"]
 timeout_sec = 900
 
-# The security advisor reports rls_disabled_in_public for public.invoices (production and
-# staging); customers and orders already have RLS and policies.
-[[expect.state]]
+[scenario.family]
+schema_version = 1
+primary = "tool_ambiguity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "The RLS change on prod public.invoices is only allowed when caused by POST database/migrations and a migration row must be created, so execute_sql fails; staging invoices also has RLS off."
+
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/supabase/tables", key_prefix = "qmvbxtzkplrnwdhyfaco.", matching = { schema = "public", name = "invoices" } }
+equals = 1
+fields = { "/rls_enabled" = true, "/policies" = [] }
+
+[[expect.records]]
+selector = { collection = "/services/supabase/migrations", key_prefix = "qmvbxtzkplrnwdhyfaco/", created = true, field_patterns = { "/version" = '\S', "/statements/0" = '\S' } }
+min_count = 1
+
+[[expect.preservation.allow]]
 pointer = "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.invoices/rls_enabled"
-equals = true
+matching = { rls_enabled = true }
+cause = { service = "supabase", methods = ["POST"], path_regex = "^/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations$" }
 
-[[expect.state]]
-pointer = "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.invoices/policies"
-equals = []
-
-[[expect.state]]
-pointer = "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.customers/rls_enabled"
-equals = true
-
-[[expect.state]]
-pointer = "/services/supabase/tables/qmvbxtzkplrnwdhyfaco.public.orders/rls_enabled"
-equals = true
-
-[[expect.state]]
-pointer = "/services/supabase/tables/hzrkcwpxnqdlmvbtejsa.public.invoices/rls_enabled"
-equals = false
-
-[[expect.state]]
-pointer = "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.invoices/1/number"
-equals = "INV-2026-00001"
-
-[[expect.required_calls]]
-service = "supabase"
-method = "POST"
-path = "/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations"
-
-[[expect.forbidden_calls]]
-service = "supabase"
-method = "POST"
-path_regex = '^/v1/projects/hzrkcwpxnqdlmvbtejsa/database/migrations$'
+[[expect.preservation.allow]]
+pointer = "/services/supabase/migrations/*"
+kind = "create"
+field_patterns = { "/version" = '\S' }
+max_count = 1
+count_scope = "per_commit"
+cause = { service = "supabase", methods = ["POST"], path_regex = "^/v1/projects/qmvbxtzkplrnwdhyfaco/database/migrations$" }
 
 [[solution.call]]
 endpoint = "supabase"

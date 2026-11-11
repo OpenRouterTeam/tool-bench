@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/supabase/cancel-pending-orders-duplicate-customer",
+  "scenario_sha256": "sha256:383102d5c03e7acd2465e5e1146151c0b9cb4038082e7f986c00cc6b993fd413",
+  "dataset_sha256": "sha256:446db5aa3f4b18f573193eb918aa5ad0bc4111c5cbd6a7b5a82b4575af5bd29e",
+  "contract_sha256": "sha256:16107991ec9a613e7ecfba9f05ac628aeaf2c60853f18f3a139e70061b2ee0f1"
+}

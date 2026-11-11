@@ -29,14 +29,84 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Rust
-        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy && rustup default "$RUST_TOOLCHAIN"
+        run: rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal --component clippy --component rustfmt && rustup default "$RUST_TOOLCHAIN"
+
+      - name: Formatting
+        run: cargo fmt --all -- --check
 
       - name: Test
         run: cargo test --workspace --locked
+
+      - name: Oracle binding adapter parity
+        run: deploy/test-oracle-bindings.sh
+
+      - name: Oracle JSON and event-stream error handling
+        run: |
+          deploy/test-oracle-response.sh
+          deploy/test-oracle-sse.sh
+          deploy/test-oracle-errors.sh
+          sh deploy/test-oracle-wrapped-results.sh
+          sh deploy/test-oracle-terraform-results.sh
+          sh deploy/test-oracle-grafana-results.sh
+          sh deploy/test-oracle-pagerduty-results.sh
+          sh deploy/test-oracle-google-results.sh
+          sh -n deploy/test-firecrawl-native-codec.sh
+          node --check deploy/fixtures/firecrawl-native-codec.mjs
+
+      - name: Host evidence, auditor and authoring tests
+        run: python3 -m unittest discover -s deploy/tests -p 'test_*.py'
+
+      - name: Grafana business-validation clock isolation
+        run: sh deploy/test-grafana-validation-clock.sh
+
+      - name: Independent Google direct source controls
+        run: sh deploy/test-google-business-audit.sh
+
+      - name: Independent Firecrawl source and declared-variant controls
+        run: sh deploy/test-firecrawl-business-audit.sh
+
+      - name: Google campaign program argument schemas
+        env:
+          WORLD_IMAGE: tool-bench-world:google-schema-control
+          TOOLS_IMAGE: tool-bench-tools:google-schema-control
+          GENERATE_ONLY: "1"
+        run: |
+          sh deploy/test-google-contracts.sh
+          sh deploy/test-google-tool-errors.sh
+
+      - name: Firecrawl native campaign program generation
+        env:
+          WORLD_IMAGE: tool-bench-world:firecrawl42-schema-control
+          TOOLS_IMAGE: tool-bench-tools:firecrawl42-schema-control
+          GENERATE_ONLY: "1"
+        run: |
+          sh deploy/test-firecrawl-contracts.sh
+          sh deploy/test-firecrawl-surfaces.sh
+          sh deploy/test-firecrawl-tool-errors.sh
+
+      - name: Host agent isolation guard
+        run: deploy/test-host-agent-guard.sh
+
+      - name: Oracle runner fault handling
+        run: deploy/test-oracle-runner.sh
+
+      # The strict controller's provider-proxy tests start the proxy with Bun.
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: "1.4.2"
+
+      - name: Runner admission and completion regressions
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python3 -m venv "$RUNNER_TEMP/tool-bench-runner"
+          "$RUNNER_TEMP/tool-bench-runner/bin/python" -m pip install -r deploy/runner/requirements.txt
+          "$RUNNER_TEMP/tool-bench-runner/bin/python" -m unittest discover -s deploy/runner -p 'test_*.py' -v
 
       - name: Clippy
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
       # Also fails when image sources changed without regenerating tasks/ (content-tagged images).
       - name: Tasks match scenarios and image sources
-        run: cargo run --locked -p scenario --bin taskgen -- --check
+        run: cargo run --locked -p scenario --bin taskgen -- --check --inventory docs/coverage/scenario-inventory.json

@@ -7,7 +7,20 @@ services = ["salesforce"]
 tags = ["write", "single-service", "salesforce", "disambiguation"]
 timeout_sec = 900
 
-# Target: "Kestrel Aerospace - Renewal FY27" on the Denver account.
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Opp 0065g000006FoSrAAK Kestrel Aerospace Renewal FY27 (Denver) vs Kestrel Aerospace UK Renewal FY27, closed Renewal FY26, Kestrel Analytics Renewal and Flight Ops Expansion; only the Denver FY27 opp may change."
+
+[expect]
+version = 2
+audit_history = true
+
+[expect.preservation]
+equivalent_numbers = ["/services/salesforce/Opportunity/0065g000006FoSrAAK/Amount"]
+
 [[expect.state]]
 pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/StageName"
 equals = "Closed Won"
@@ -20,34 +33,57 @@ equals = true
 pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/CloseDate"
 equals = "2026-05-12"
 
-# The UK subsidiary's renewal is still pending.
 [[expect.state]]
-pointer = "/services/salesforce/Opportunity/0065g00000zqiLyAAI/StageName"
-equals = "Negotiation/Review"
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/IsClosed"
+equals = true
 
-# Kestrel Analytics (a different company) renewal untouched.
-[[expect.state]]
-pointer = "/services/salesforce/Opportunity/0065g00000N039FAAR/StageName"
-equals = "Proposal/Price Quote"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/StageName"
 
-# Last year's renewal keeps its close date.
-[[expect.state]]
-pointer = "/services/salesforce/Opportunity/0065g00000jfTUgAAM/CloseDate"
-equals = "2025-06-27"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/CloseDate"
 
-# The Denver account's expansion deal stays open.
-[[expect.state]]
-pointer = "/services/salesforce/Opportunity/0065g0000024COoAAM/StageName"
-equals = "Proposal/Price Quote"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/IsWon"
 
-[[expect.required_calls]]
-service = "salesforce"
-method = "PATCH"
-path_regex = "^/services/data/v[0-9.]+/(composite/sobjects|sobjects/Opportunity/0065g000006FoSr(AAK)?)$"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/IsClosed"
 
-[[expect.forbidden_calls]]
-service = "salesforce"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/Probability"
+matching = { StageName = "Closed Won", Probability = 100.0 }
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/Probability"
+matching = { StageName = "Closed Won", Probability = 100 }
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/ExpectedRevenue"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/ForecastCategory"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/ForecastCategoryName"
+matching = { StageName = "Closed Won", ForecastCategoryName = "Closed" }
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/Fiscal"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/FiscalYear"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/FiscalQuarter"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/LastModifiedDate"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/LastModifiedById"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Opportunity/0065g000006FoSrAAK/SystemModstamp"
 
 [[solution.call]]
 endpoint = "salesforce"

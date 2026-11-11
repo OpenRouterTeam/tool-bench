@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/shopify/concierge-note",
+  "scenario_sha256": "sha256:065eb6c1af8cb2b1b0119b2f5c70f104641ea7f70ad3c55325aa9d0515fc3a8f",
+  "dataset_sha256": "sha256:9062531a5eae9b89c785987930c9ddc71cf15d2341e707bdfe71dd100161250f",
+  "contract_sha256": "sha256:35237b1f5af6da7ed444bacd44646dd8bce97b9dfcd765456c402e6695074ff5"
+}

@@ -50,7 +50,7 @@ impl MockService for Pagerduty {
     }
 
     fn hosts(&self) -> &'static [&'static str] {
-        &[]
+        &["api.pagerduty.com"]
     }
 
     fn router(&self) -> Router<SharedWorld> {

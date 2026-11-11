@@ -7,66 +7,116 @@ services = ["aws"]
 tags = ["write", "single-service", "aws"]
 timeout_sec = 900
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/Namespace"
-equals = "AWS/EC2"
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Two running instances are named orders-api: prod i-04c1a7e2b9d35f018 and staging i-09e5b3d1f7a2c6480; the metric_alarm contract requires the prod InstanceId dimension."
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/MetricName"
-equals = "CPUUtilization"
+[expect]
+version = 2
+audit_history = true
 
-# The prod instance, not the staging one with the same Name tag.
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/Dimensions"
-equals = [{ Name = "InstanceId", Value = "i-04c1a7e2b9d35f018" }]
+[[expect.records]]
+selector = { collection = "/services/aws/alarms", matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" } }
+equals = 1
+fields = { "/AlarmArn" = "arn:aws:cloudwatch:us-east-1:481562039417:alarm:orders-api-high-cpu", "/ActionsEnabled" = true, "/AlarmActions" = ["arn:aws:sns:us-east-1:481562039417:ops-pager"] }
+optional_fields = { "/OKActions" = [], "/InsufficientDataActions" = [] }
+metric_alarm = { account = "481562039417", namespace = "AWS/EC2", metric = "CPUUtilization", dimensions = { InstanceId = "i-04c1a7e2b9d35f018" }, statistic = "Average", period = 300, evaluation_periods = 3, threshold = 80, comparison = "GreaterThanThreshold", unit = "Percent" }
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/Statistic"
-equals = "Average"
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*"
+kind = "create"
+matching = { AlarmName = "orders-api-high-cpu", AlarmArn = "arn:aws:cloudwatch:us-east-1:481562039417:alarm:orders-api-high-cpu", _region = "us-east-1" }
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/Period"
-equals = 300
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/AlarmDescription"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/EvaluationPeriods"
-equals = 3
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/ActionsEnabled"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/Threshold"
-equals = 80.0
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/AlarmActions"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/ComparisonOperator"
-equals = "GreaterThanThreshold"
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/OKActions"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-high-cpu/AlarmActions"
-equals = ["arn:aws:sns:us-east-1:481562039417:ops-pager"]
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/InsufficientDataActions"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
 
-# Existing alarms are neither deleted nor reconfigured.
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-api-status-check/AlarmConfigurationUpdatedTimestamp"
-equals = "2026-01-19T08:00:00Z"
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/Namespace"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
 
-[[expect.state]]
-pointer = "/services/aws/alarms/orders-worker-high-cpu/AlarmConfigurationUpdatedTimestamp"
-equals = "2026-01-20T10:30:00Z"
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/MetricName"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
 
-[[expect.state]]
-pointer = "/services/aws/alarms/billing-estimated-charges/AlarmConfigurationUpdatedTimestamp"
-equals = "2025-06-01T00:00:00Z"
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/Dimensions"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
 
-[[expect.required_calls]]
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/Statistic"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/ExtendedStatistic"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/Period"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/Unit"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/Metrics"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/EvaluationPeriods"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/DatapointsToAlarm"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/Threshold"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/ComparisonOperator"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/TreatMissingData"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarms/*/AlarmConfigurationUpdatedTimestamp"
+matching = { AlarmName = "orders-api-high-cpu", _region = "us-east-1" }
+
+[[expect.preservation.allow]]
+pointer = "/services/aws/alarm_history/*"
+kind = "create"
+count_scope = "per_commit"
+matching = { AlarmName = "orders-api-high-cpu", AlarmType = "MetricAlarm", _region = "us-east-1", HistoryItemType = "ConfigurationUpdate" }
+
+[[expect.forbidden_calls]]
 service = "aws"
 method = "POST"
 path = "/"
-body = { AlarmName = "orders-api-high-cpu", MetricName = "CPUUtilization" }
-
-# Forcing alarm states (SetAlarmState) is never part of this task.
-[[expect.forbidden_calls]]
-service = "aws"
-body_contains = "\"StateReason\""
+headers = { x-amz-target = "GraniteServiceVersion20100801.SetAlarmState" }
 
 [[solution.call]]
 endpoint = "aws-api"

@@ -1,0 +1,1 @@
+[{"name":"contractor_rule","pointer":"/content/0/text","json_pointer":"","select":null,"constraint":{"required":["id","actions"],"type":"object"}}]

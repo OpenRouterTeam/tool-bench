@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/cloudflare/add-status-cname",
+  "scenario_sha256": "sha256:a46faed9354e3efe2293601b8dffb703028cde3afdbabcd7bc3be42de2448729",
+  "dataset_sha256": "sha256:90ccd484b1c25a42f6eb465bb44e884c6323cf34a9ef949fe090681df5127fc6",
+  "contract_sha256": "sha256:b45377758a32492cbf28d22b72f80c36ac280f5c860d1bbbf910174d93e9b5df"
+}

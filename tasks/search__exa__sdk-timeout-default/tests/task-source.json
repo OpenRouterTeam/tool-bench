@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/exa/sdk-timeout-default",
+  "scenario_sha256": "sha256:a29d0fb95ec640df5984f5a0738a19150ab70c20b5e1e3eaa7ee31dada205ca2",
+  "dataset_sha256": "sha256:1d1c15292e27c5cb577353e82fe59dd309afeb6e17acc19c41459e84c2ae9950",
+  "contract_sha256": "sha256:d34878f884874f838ecd1b96ef2d7c77919f99bf85a009cf7d59e07048b97945"
+}

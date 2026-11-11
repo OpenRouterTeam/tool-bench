@@ -1,7 +1,23 @@
 //! Scenario sources (`scenarios/<group>/<service|multi>/<slug>/`) and their conversion into
 //! Harbor task directories.
 
+pub mod authoring;
+pub mod awareness;
+pub mod captured;
+pub mod clarification;
+pub mod connections;
+pub mod coverage;
+pub mod exposure;
+pub mod family;
+pub mod framing;
 pub mod images;
+pub mod oracle_results;
+pub mod oracle_tools;
+pub mod profile;
+pub mod proxy_policy;
+pub mod release;
+pub mod release_manifest;
+pub mod solution;
 pub mod taskgen;
 
 use std::{
@@ -20,12 +36,17 @@ pub struct Meta {
     pub title: String,
     pub now: String,
     pub seed: String,
+    #[serde(default)]
+    pub clock_mode: mock_core::clock::ClockMode,
     /// Services whose datasets this scenario provides (all 32 endpoints are always exposed).
     pub services: Vec<String>,
     #[serde(default)]
     pub tags: Vec<String>,
     #[serde(default = "default_timeout")]
     pub timeout_sec: u32,
+    /// Reviewed difficulty family (`[scenario.family]`); required when scored.
+    #[serde(default)]
+    pub family: Option<family::ScenarioFamily>,
 }
 
 fn default_timeout() -> u32 {
@@ -34,20 +55,32 @@ fn default_timeout() -> u32 {
 
 /// One oracle tool call, replayed by `solution/solve.sh` through the real MCP endpoint.
 #[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SolutionCall {
     pub endpoint: String,
     pub tool: String,
     #[serde(default)]
     pub arguments: Value,
+    #[serde(default)]
+    pub template: bool,
+    #[serde(default)]
+    pub capture: Vec<solution::Capture>,
+    #[serde(default)]
+    pub replacements: Vec<solution::ArgumentReplacement>,
+    #[serde(default)]
+    pub allow_api_errors: Vec<oracle_results::AllowedApiError>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Solution {
     #[serde(default, rename = "call")]
     pub calls: Vec<SolutionCall>,
     /// Written to `/app/answer.md` by the oracle.
     #[serde(default)]
     pub answer: Option<String>,
+    #[serde(default)]
+    pub answer_template: bool,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -79,6 +112,7 @@ impl Scenario {
         .with_context(|| format!("parsing {}", path.display()))?;
         let instruction = fs::read_to_string(dir.join("instruction.md"))
             .with_context(|| format!("reading {}/instruction.md", dir.display()))?;
+        family::check(&file.scenario).with_context(|| format!("loading {}", path.display()))?;
         Ok(Self {
             dir: dir.to_owned(),
             meta: file.scenario,
@@ -88,13 +122,26 @@ impl Scenario {
         })
     }
 
+    /// Whether this scenario counts toward the scored denominator.
+    pub fn scored(&self) -> bool {
+        family::scored(&self.meta.id)
+    }
+
     /// Harbor task directory name: the id with `/` replaced by `__` (globbable by group/service).
     pub fn task_name(&self) -> String {
         self.meta.id.replace('/', "__")
     }
 
     /// Consistency checks against the directory layout, the dataset, and the catalog.
-    pub fn validate(&self, root: &Path, catalog: &catalog::Catalog) -> anyhow::Result<()> {
+    pub fn validate(
+        &self,
+        root: &Path,
+        catalog: &catalog::Catalog,
+        tools: &oracle_tools::OracleTools,
+    ) -> anyhow::Result<Vec<oracle_tools::CallValidation>> {
+        if let Err(error) = self.expect.validate() {
+            bail!("{}: invalid expectations: {error}", self.meta.id);
+        }
         let expected_dir = root.join(&self.meta.id);
         if fs::canonicalize(&expected_dir).ok() != fs::canonicalize(&self.dir).ok() {
             bail!(
@@ -108,7 +155,19 @@ impl Scenario {
                 self.meta.id
             );
         }
-        Dataset::load(&self.dir).with_context(|| format!("{}: dataset", self.meta.id))?;
+        let dataset =
+            Dataset::load(&self.dir).with_context(|| format!("{}: dataset", self.meta.id))?;
+        let conversational = self
+            .meta
+            .family
+            .as_ref()
+            .is_some_and(|family| family.primary == family::DifficultyFamily::Clarification);
+        if dataset.scripted_user.is_some() != conversational || conversational && self.scored() {
+            bail!(
+                "{}: a scripted user belongs to exactly the unscored clarification family",
+                self.meta.id
+            );
+        }
         for service in &self.meta.services {
             if !catalog.services.iter().any(|s| &s.name == service) {
                 bail!("{}: unknown service {service}", self.meta.id);
@@ -123,19 +182,53 @@ impl Scenario {
                 );
             }
         }
-        if self.expect.answer.is_some() && !self.instruction.contains(ANSWER_PATH) {
+        if let Err(error) = self.solution.validate_bindings() {
+            bail!("{}: invalid oracle bindings: {error}", self.meta.id);
+        }
+        if self.expect.answer.as_ref().is_some_and(|answer| {
+            answer.source == mock_core::grading::AnswerSource::LegacyAnswerFile
+        }) && !self.instruction.contains(ANSWER_PATH)
+        {
             bail!(
                 "{}: expects an answer, so the instruction must ask for {ANSWER_PATH}",
                 self.meta.id
             );
         }
+        if self
+            .expect
+            .answer
+            .as_ref()
+            .is_some_and(|answer| answer.source == mock_core::grading::AnswerSource::FinalResponse)
+            && self.instruction.contains(ANSWER_PATH)
+        {
+            bail!(
+                "{}: a natural final-response contract cannot replace a user-requested answer artifact",
+                self.meta.id
+            );
+        }
         if self.expect.state.is_empty()
+            && self.expect.records.is_empty()
+            && self.expect.relations.is_empty()
             && self.expect.required_calls.is_empty()
             && self.expect.answer.is_none()
         {
             bail!("{}: no expectations", self.meta.id);
         }
-        Ok(())
+        let mut validations = self
+            .solution
+            .calls
+            .iter()
+            .enumerate()
+            .map(|(index, call)| {
+                tools
+                    .validate(call)
+                    .with_context(|| format!("{}: solution.call[{index}]", self.meta.id))
+            })
+            .collect::<anyhow::Result<Vec<_>>>()?;
+        tools
+            .attach_captured(&self.solution, &mut validations)
+            .with_context(|| format!("{}: captured arguments", self.meta.id))?;
+        Ok(validations)
     }
 }
 

@@ -1,3 +1,1 @@
-- Deleted by: m.okafor (Mira Okafor), on 2026-10-29 at 16:42:57 UTC, from 10.8.4.77. (j.doe's delete attempt at 14:05 was denied.) She created ci-deploy-bot-v2 at 16:44.
-- GitHub username: mokafor
-- Pull request: octo-org/deploy-pipeline #58 "Switch CI deploys to the ci-deploy-bot-v2 key", still open (not merged yet), review requested from sam.
+m.okafor deleted the key at 16:42 UTC. On GitHub she is mokafor, and her PR #58 has not been merged yet.

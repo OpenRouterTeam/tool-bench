@@ -1,0 +1,85 @@
+{
+  "version": 2,
+  "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [
+    {
+      "service": "exa",
+      "method": "POST",
+      "path": null,
+      "path_regex": "^/(search|contents)$",
+      "query_contains": null,
+      "body": null,
+      "body_contains": null,
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
+    }
+  ],
+  "forbidden_calls": [],
+  "answer": {
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Give the LinkedIn profile URL of the Priya Raman who currently holds the VP of Engineering role at Tessellate Bio.",
+      "selector": {
+        "collection": "/services/exa/documents",
+        "matching": {
+          "author": "Priya Raman",
+          "category": "people"
+        },
+        "field_patterns": {
+          "/text": "Tessellate Bio, VP of Engineering \\(\\d{4}-present\\)",
+          "/title": "VP of Engineering - Tessellate Bio \\|"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "team_page_url": {
+          "field": "/url",
+          "kind": "identifier",
+          "optional": true,
+          "record": "team_page"
+        },
+        "url": {
+          "field": "/url",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "team_page": {
+          "collection": "/services/exa/documents",
+          "filter": {
+            "matching": {
+              "/category": "company"
+            },
+            "patterns": {
+              "/url": "tessellate\\.bio/team$"
+            }
+          }
+        }
+      },
+      "context": [
+        "(role confirmed on ${team_page_url})",
+        "not https://www.linkedin.com/in/priya-raman-4b21a9",
+        "team page: ${team_page_url}"
+      ],
+      "assertions": [
+        "${url}",
+        "Profile: ${url}",
+        "Profile: [Priya Raman](${url}/)",
+        "Profile: [Priya Raman](${url})"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
+}

@@ -7,6 +7,7 @@ use axum::{
 };
 use mock_core::{
     dataset::Dataset,
+    grading::{Expect, Grade, GradeInput, grade},
     serve::service_app,
     world::{SharedWorld, WorldState, shared},
 };
@@ -33,6 +34,49 @@ async fn call(app: &Router, name: &str, arguments: Value) -> Value {
     serde_json::from_slice(&to_bytes(resp.into_body(), usize::MAX).await.unwrap()).unwrap()
 }
 
+#[tokio::test]
+async fn fixed_time_cluster_progress_is_scoped_to_status_observation_not_other_traffic() {
+    let world = world("pause-idle-staging-cluster");
+    let initial_time = world.lock().unwrap().clock.now_unix();
+    let app = service_app(world.clone(), &Mongodb);
+    let project = "65c0ffee0000000000000002";
+    let key = format!("{project}/clock-probe");
+    let created = call(
+        &app,
+        "atlas-create-free-cluster",
+        json!({"projectId": project, "name": "clock-probe"}),
+    )
+    .await;
+    assert!(created.get("isError").is_none(), "{}", first_text(&created));
+    assert_eq!(state(&world)["clusters"][&key]["stateName"], "CREATING");
+    call(
+        &app,
+        "atlas-list-projects",
+        json!({"orgId": "65a1b2c3d4e5f60718293a4b"}),
+    )
+    .await;
+    call(
+        &app,
+        "atlas-list-clusters",
+        json!({"projectId": "65c0ffee0000000000000001"}),
+    )
+    .await;
+    assert_eq!(state(&world)["clusters"][&key]["stateName"], "CREATING");
+    let inspected = call(
+        &app,
+        "atlas-inspect-cluster",
+        json!({"projectId": project, "clusterName": "clock-probe"}),
+    )
+    .await;
+    assert_eq!(inspected["structuredContent"]["state"], "IDLE");
+    assert!(
+        state(&world)["clusters"][&key]
+            .get("_pendingStatus")
+            .is_none()
+    );
+    assert_eq!(world.lock().unwrap().clock.now_unix(), initial_time);
+}
+
 fn first_text(r: &Value) -> &str {
     r["content"][0]["text"].as_str().unwrap()
 }
@@ -52,6 +96,157 @@ fn state(w: &SharedWorld) -> Value {
 }
 
 const PRE: &str = "preconfigured";
+
+fn readonly_grade(world: &SharedWorld) -> Grade {
+    let contract: Expect = serde_json::from_value(json!({
+        "version": 2,
+        "audit_history": true,
+        "answer": {"contains": ["done"]}
+    }))
+    .unwrap();
+    let world = world.lock().unwrap();
+    let initial = world.initial_snapshot();
+    grade(&GradeInput {
+        expect: &contract,
+        state: world.snapshot(),
+        journal: world.journal.entries(),
+        answer: Some("done"),
+        tools_ips: vec!["unknown".into()],
+        context_overflow: false,
+        startup: &[],
+        initial_state: Some(&initial),
+        events: Some(world.events().entries()),
+    })
+}
+
+#[tokio::test]
+async fn initialized_queries_and_connection_setup_preserve_business_data() {
+    let world = world("top-category-revenue");
+    let app = service_app(world.clone(), &Mongodb);
+    let initial = world.lock().unwrap().initial_snapshot();
+    assert!(world.lock().unwrap().events().entries().is_empty());
+    assert!(
+        initial["services"]["mongodb"]["namespaces"]["shop.orders"]["indexes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|index| index["name"] == "_id_")
+    );
+    let uri = initial["sessions"]["mongodb"]["connections"][PRE]["connectionString"].clone();
+    assert!(uri.is_string());
+    let connected = call(&app, "connect", json!({"connectionString": uri})).await;
+    assert!(connected.get("isError").is_none(), "{connected}");
+    let result = call(
+        &app,
+        "find",
+        json!({"connectionId": PRE, "database": "shop", "collection": "orders", "limit": 1}),
+    )
+    .await;
+    assert!(result.get("isError").is_none(), "{result}");
+    let snapshot = world.lock().unwrap().snapshot();
+    assert_eq!(snapshot["services"], initial["services"]);
+    assert!(snapshot["services"]["mongodb"].get("connections").is_none());
+    assert_eq!(
+        snapshot["sessions"]["mongodb"]["connections"][PRE]["state"],
+        "connected"
+    );
+    let assessment = readonly_grade(&world);
+    assert_eq!(assessment.reward, 1.0, "{assessment:?}");
+    world.lock().unwrap().reset().unwrap();
+    assert_eq!(
+        world.lock().unwrap().snapshot()["services"],
+        initial["services"]
+    );
+    assert_eq!(
+        world.lock().unwrap().snapshot()["sessions"],
+        initial["sessions"]
+    );
+    let result = call(
+        &app,
+        "find",
+        json!({"connectionId": PRE, "database": "shop", "collection": "orders", "limit": 1}),
+    )
+    .await;
+    assert!(result.get("isError").is_none(), "{result}");
+    assert_eq!(readonly_grade(&world).reward, 1.0);
+}
+
+#[tokio::test]
+async fn indexes_and_database_collections_are_still_protected_from_read_only_queries() {
+    let world = world("top-category-revenue");
+    let app = service_app(world.clone(), &Mongodb);
+    let result = call(
+        &app,
+        "create-index",
+        json!({
+            "connectionId": PRE, "database": "shop", "collection": "orders",
+            "definition": [{"type": "classic", "keys": {"total": -1}}]
+        }),
+    )
+    .await;
+    assert!(result.get("isError").is_none(), "{result}");
+    let assessment = readonly_grade(&world);
+    assert!(assessment.environment_ok);
+    assert!(!assessment.preservation_ok);
+    assert_eq!(assessment.reward, 0.0);
+    assert!(assessment.failures.iter().any(|failure| {
+        failure
+            .location
+            .starts_with("/services/mongodb/namespaces/")
+    }));
+}
+
+#[tokio::test]
+async fn a_database_collection_named_connections_does_not_become_session_state() {
+    let directory = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../scenarios/cloud/mongodb/top-category-revenue");
+    let mut dataset = Dataset::load(&directory).unwrap();
+    dataset
+        .services
+        .get_mut("mongodb")
+        .unwrap()
+        .collection_mut("db.shop.connections")
+        .insert("one", json!({"_id": 1, "value": "business data"}));
+    let world = shared(WorldState::from_dataset(dataset).unwrap());
+    let app = service_app(world.clone(), &Mongodb);
+    assert!(
+        world.lock().unwrap().snapshot()["services"]["mongodb"]
+            .get("db.shop.connections")
+            .is_some()
+    );
+    let result = call(
+        &app,
+        "drop-collection",
+        json!({"connectionId": PRE, "database": "shop", "collection": "connections"}),
+    )
+    .await;
+    assert!(result.get("isError").is_none(), "{result}");
+    let assessment = readonly_grade(&world);
+    assert!(assessment.environment_ok);
+    assert!(!assessment.preservation_ok);
+    assert_eq!(assessment.reward, 0.0);
+}
+
+#[tokio::test]
+async fn find_projects_every_named_field_of_the_order_lines() {
+    let app = service_app(world("refund-order"), &Mongodb);
+    let r = call(
+        &app,
+        "find",
+        json!({"connectionId": PRE, "database": "shop", "collection": "orders",
+               "filter": {"orderNumber": 10482},
+               "projection": {"_id": 0, "items.category": 1, "items.price": 1, "items.qty": 1}}),
+    )
+    .await;
+    assert!(r.get("isError").is_none(), "{r}");
+    assert_eq!(
+        r["structuredContent"]["documents"],
+        json!([{"items": [
+            {"category": "outdoor", "price": 189, "qty": 1},
+            {"category": "outdoor", "price": 25.5, "qty": 1},
+        ]}])
+    );
+}
 
 #[tokio::test]
 async fn find_filters_sorts_projects_and_wraps_untrusted_data() {

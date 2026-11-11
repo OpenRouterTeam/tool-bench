@@ -1,0 +1,70 @@
+# Reviewed operation support for `jira`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "atlassian"
+tool = "confluence_get_page"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"
+
+[[operation]]
+endpoint = "atlassian"
+tool = "confluence_search"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"
+
+[[operation]]
+endpoint = "atlassian"
+tool = "jira_add_comment"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"
+
+[[operation]]
+endpoint = "atlassian"
+tool = "jira_assign_issue"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"
+
+[[operation]]
+endpoint = "atlassian"
+tool = "jira_create_issue"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"
+
+[[operation]]
+endpoint = "atlassian"
+tool = "jira_get_transitions"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"
+
+[[operation]]
+endpoint = "atlassian"
+tool = "jira_search"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"
+
+[[operation]]
+endpoint = "atlassian"
+tool = "jira_search_assignable_users"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"
+
+[[operation]]
+endpoint = "atlassian"
+tool = "jira_transition_issue"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Jira reviewed subset"

@@ -1,0 +1,1 @@
+{"properties":{"incident_id":{"title":"Incident Id","type":"string"},"note":{"title":"Note","type":"string"}},"required":["incident_id","note"],"title":"add_note_to_incidentArguments","type":"object"}

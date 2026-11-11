@@ -6,13 +6,47 @@ use axum::{
     http::{Method, StatusCode},
     response::Response,
 };
-use mock_core::http::json;
+use mock_core::{
+    http::json,
+    label_matchers::{RegexSupportError, compile_label_regex},
+};
 use regex::Regex;
 use serde_json::{Map, Value, json};
 
-use crate::{Ctx, Req, error, not_found, ok, parse_rfc3339, rfc3339};
+use crate::{Ctx, Req, error, not_found, ok, rfc3339};
 
 pub(crate) fn route(ctx: &mut Ctx, req: &Req, segs: &[&str]) -> Response {
+    if req.path.starts_with("/api/alertmanager/") {
+        for filter in req.qs("filter") {
+            let Some(matcher) = parse_filter(filter) else {
+                return error(StatusCode::BAD_REQUEST, "Invalid label filter");
+            };
+            if let Err(reason) = validate_matcher(&matcher) {
+                return matcher_failure(ctx, reason);
+            }
+        }
+        if req.path.contains("/alerts") {
+            for (_, silence) in ctx.coll("silences") {
+                for matcher in silence["matchers"].as_array().into_iter().flatten() {
+                    if let Err(reason) = validate_matcher(matcher) {
+                        return ctx.unavailable(format!(
+                            "a stored silence cannot be evaluated: {reason:?}"
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    if req.path.starts_with("/api/prometheus/") {
+        for matcher in req.qs("matcher") {
+            let Ok(matcher) = serde_json::from_str::<Value>(matcher) else {
+                return error(StatusCode::BAD_REQUEST, "Invalid label matcher");
+            };
+            if let Err(reason) = validate_matcher(&matcher) {
+                return matcher_failure(ctx, reason);
+            }
+        }
+    }
     let m = req.method.clone();
     match (m, segs) {
         (Method::GET, ["api", "prometheus", "grafana", "api", "v1", "rules"]) => {
@@ -288,11 +322,37 @@ fn label_match(m: &Value, labels: &Value) -> bool {
     let is_regex = m["isRegex"].as_bool().unwrap_or(false);
     let is_equal = m["isEqual"].as_bool().unwrap_or(true);
     let hit = if is_regex {
-        Regex::new(&format!("^(?:{value})$")).is_ok_and(|re| re.is_match(actual))
+        compile_label_regex(value).is_ok_and(|re| re.is_match(actual))
     } else {
         actual == value
     };
     hit == is_equal
+}
+
+fn validate_matcher(matcher: &Value) -> Result<(), RegexSupportError> {
+    if matcher["name"].as_str().is_none_or(str::is_empty)
+        || matcher["value"].as_str().is_none()
+        || ["isRegex", "isEqual"].iter().any(|field| {
+            matcher
+                .get(*field)
+                .is_some_and(|value| !value.is_null() && !value.is_boolean())
+        })
+    {
+        return Err(RegexSupportError::Invalid(
+            "invalid label matcher shape".into(),
+        ));
+    }
+    if matcher["isRegex"] == true {
+        compile_label_regex(matcher["value"].as_str().expect("validated string"))?;
+    }
+    Ok(())
+}
+
+fn matcher_failure(ctx: &mut Ctx, reason: RegexSupportError) -> Response {
+    match reason {
+        RegexSupportError::Invalid(_) => error(StatusCode::BAD_REQUEST, "Invalid label matcher"),
+        RegexSupportError::Unsupported(reason) => ctx.unavailable(reason),
+    }
 }
 
 fn prom_rules(ctx: &Ctx, req: &Req) -> Response {
@@ -596,12 +656,16 @@ fn am_config(ctx: &Ctx) -> Value {
 fn silence_state(ctx: &Ctx, s: &Value) -> &'static str {
     let start = s["startsAt"]
         .as_str()
-        .and_then(parse_rfc3339)
-        .unwrap_or(0.0);
-    let end = s["endsAt"].as_str().and_then(parse_rfc3339).unwrap_or(0.0);
-    if end <= ctx.now {
+        .and_then(mock_core::clock::parse_rfc3339_nanos)
+        .unwrap_or(0);
+    let end = s["endsAt"]
+        .as_str()
+        .and_then(mock_core::clock::parse_rfc3339_nanos)
+        .unwrap_or(0);
+    let now = ctx.now as i128 * 1_000_000_000;
+    if end <= now {
         "expired"
-    } else if start > ctx.now {
+    } else if start > now {
         "pending"
     } else {
         "active"
@@ -663,7 +727,11 @@ fn alertmanager(ctx: &mut Ctx, req: &Req, rest: &[&str]) -> Response {
                         s["matchers"].as_array().is_some_and(|ms| {
                             ms.iter().any(|m| {
                                 m["name"] == f["name"]
-                                    && (f["isRegex"] == true || m["value"] == f["value"])
+                                    && m["value"] == f["value"]
+                                    && m["isRegex"].as_bool().unwrap_or(false)
+                                        == f["isRegex"].as_bool().unwrap_or(false)
+                                    && m["isEqual"].as_bool().unwrap_or(true)
+                                        == f["isEqual"].as_bool().unwrap_or(true)
                             })
                         })
                     })
@@ -694,9 +762,40 @@ fn alertmanager(ctx: &mut Ctx, req: &Req, rest: &[&str]) -> Response {
                     json!({"message": "unable to save silence: invalid silence: at least one matcher required", "traceID": ""}),
                 );
             }
+            for matcher in &matchers {
+                if let Err(reason) = validate_matcher(matcher) {
+                    return matcher_failure(ctx, reason);
+                }
+            }
+            if matchers
+                .iter()
+                .all(|matcher| label_match(matcher, &json!({})))
+            {
+                return json(
+                    StatusCode::BAD_REQUEST,
+                    json!({
+                        "message":"unable to save silence: matchers must not all match the empty string","traceID":""
+                    }),
+                );
+            }
+            if ["comment", "createdBy"]
+                .iter()
+                .any(|field| body[*field].as_str().is_none_or(str::is_empty))
+            {
+                return json(
+                    StatusCode::BAD_REQUEST,
+                    json!({
+                        "message":"unable to save silence: comment and author are required","traceID":""
+                    }),
+                );
+            }
             let (Some(starts), Some(ends)) = (
-                body["startsAt"].as_str().and_then(parse_rfc3339),
-                body["endsAt"].as_str().and_then(parse_rfc3339),
+                body["startsAt"]
+                    .as_str()
+                    .and_then(mock_core::clock::parse_rfc3339_nanos),
+                body["endsAt"]
+                    .as_str()
+                    .and_then(mock_core::clock::parse_rfc3339_nanos),
             ) else {
                 return json(
                     StatusCode::BAD_REQUEST,
@@ -709,7 +808,8 @@ fn alertmanager(ctx: &mut Ctx, req: &Req, rest: &[&str]) -> Response {
                     json!({"message": "unable to save silence: invalid silence: end time must not be before start time", "traceID": ""}),
                 );
             }
-            if ends <= ctx.now {
+            let now = ctx.now as i128 * 1_000_000_000;
+            if ends <= now {
                 return json(
                     StatusCode::BAD_REQUEST,
                     json!({"message": "unable to save silence: invalid silence: end time can't be in the past", "traceID": ""}),
@@ -732,7 +832,9 @@ fn alertmanager(ctx: &mut Ctx, req: &Req, rest: &[&str]) -> Response {
                 .map(|m| json!({"name": m["name"], "value": m["value"], "isRegex": m["isRegex"].as_bool().unwrap_or(false), "isEqual": m["isEqual"].as_bool().unwrap_or(true)}))
                 .collect();
             let s = json!({
-                "id": id, "matchers": matchers, "startsAt": rfc3339(starts.max(ctx.now)), "endsAt": rfc3339(ends),
+                "id": id, "matchers": matchers,
+                "startsAt": mock_core::clock::format_rfc3339_nanos(starts.max(now)).expect("parsed timestamp"),
+                "endsAt": mock_core::clock::format_rfc3339_nanos(ends).expect("parsed timestamp"),
                 "createdBy": body["createdBy"].as_str().unwrap_or_default(), "comment": body["comment"].as_str().unwrap_or_default(), "updatedAt": ctx.now_str(),
             });
             ctx.put("silences", &id, s);

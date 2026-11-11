@@ -7,7 +7,17 @@ services = ["salesforce"]
 tags = ["write", "single-service", "salesforce", "disambiguation"]
 timeout_sec = 900
 
-# Target: case 00001041 "Label printer sync failing after warehouse upgrade" (Bluefin Logistics).
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 2
+rationale = "Case 00001041 (Bluefin Logistics, label printer sync after warehouse upgrade) vs 00001043 label printer sync at Bluefin Marine Supply and Bluefin Logistics cases 00001032 and 00001044; only 00001041 may change."
+
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/Status"
 equals = "Closed"
@@ -20,24 +30,26 @@ equals = "Performance"
 pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/IsClosed"
 equals = true
 
-# Look-alike at Bluefin Marine Supply stays open.
-[[expect.state]]
-pointer = "/services/salesforce/Case/5005g00000DXqN3AAL/Status"
-equals = "Working"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/Status"
 
-# Bluefin Logistics' other open case stays open.
-[[expect.state]]
-pointer = "/services/salesforce/Case/5005g000004FwGBAA0/Status"
-equals = "New"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/Reason"
 
-[[expect.required_calls]]
-service = "salesforce"
-method = "PATCH"
-path_regex = "^/services/data/v[0-9.]+/(composite/sobjects|sobjects/Case/5005g00000spz8M(AAQ)?)$"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/IsClosed"
 
-[[expect.forbidden_calls]]
-service = "salesforce"
-method = "DELETE"
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/ClosedDate"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/LastModifiedDate"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/LastModifiedById"
+
+[[expect.preservation.allow]]
+pointer = "/services/salesforce/Case/5005g00000spz8MAAQ/SystemModstamp"
 
 [[solution.call]]
 endpoint = "salesforce"

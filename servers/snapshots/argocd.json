@@ -2,7 +2,7 @@
   "name": "argocd",
   "server_info": {
     "name": "argocd-mcp",
-    "version": "0.0.0"
+    "version": "0.9.0-operations.2"
   },
   "protocol_version": "2025-06-18",
   "tools": [
@@ -950,12 +950,46 @@
       "execution": {
         "taskSupport": "forbidden"
       }
+    },
+    {
+      "name": "update_application_spec",
+      "description": "Replace an Argo CD Application's complete spec while preserving its metadata, including labels, annotations, and finalizers. Read the current Application first and change only the intended spec fields. Automated sync may deploy the change. The returned spec confirms acceptance, not completed rollout; inspect the Application and resources afterward. Specify applicationNamespace for a non-default Application namespace.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "applicationName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253
+          },
+          "applicationNamespace": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63
+          },
+          "spec": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "argocdBaseUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "applicationName",
+          "spec"
+        ],
+        "additionalProperties": false
+      },
+      "execution": {
+        "taskSupport": "forbidden"
+      }
     }
   ],
-  "sha256": "f6a7badce258dee75f42007f9f052eaeabc6f910035da0568027824470d357e3",
+  "sha256": "ab316bfa3ca314fbd7410e50673faf491a2824667b352387508eb1d836858599",
   "counts": {
-    "tools": 16,
-    "bytes": 22435,
-    "o200k": 4969
+    "tools": 17,
+    "bytes": 23284,
+    "o200k": 5134
   }
 }

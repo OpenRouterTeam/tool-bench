@@ -7,10 +7,45 @@ services = ["brave"]
 tags = ["lookup", "single-service", "brave", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Official video Zt4mQeL1x9c (47:12, PGConf Nordic channel) vs a 12:05 highlights re-cut, the 28:40 April 2025 meetup version by the same speaker and Tom Ekberg's 39:55 talk; answer must cite Zt4mQeL1x9c."
+
 # Right video: Zt4mQeL1x9c, 47:12, Marta Lindqvist. Distractors: a 12:05 highlights re-cut,
 # the 28:40 2025 meetup version, and a different speaker's similar talk (39:55).
-[expect.answer]
-contains = ["Lindqvist", "47:12", "Zt4mQeL1x9c"]
+[expect]
+version = 2
+audit_history = true
+
+# The video is the full recording of the named keynote published by the conference's own
+# channel; the speaker is read from the "<talk> - <speaker>" part of its title.
+[expect.answer.record_facts]
+requirement = "For the full recording of the keynote \"Scaling Postgres to 1M writes/s\" published by the PGConf Nordic channel, state the speaker, the video duration and the video URL."
+mode = "statements"
+context = [
+  "Full official recording (PGConf Nordic channel):",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/brave/videos"
+matching = { creator = "PGConf Nordic" }
+field_patterns = { "/title" = 'Scaling Postgres to 1M writes/s', "/description" = '(?i)full recording' }
+
+[expect.answer.record_facts.facts.speaker]
+field = "/title"
+capture = ' - ([A-Z][a-z]+ [A-Z][a-z]+)(?: \||$| \()'
+kind = "text"
+
+[expect.answer.record_facts.facts.duration]
+field = "/duration"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.url]
+field = "/url"
+kind = "identifier"
 
 [[expect.required_calls]]
 service = "brave"
@@ -18,7 +53,7 @@ method = "GET"
 path_regex = "^/res/v1/"
 
 [solution]
-answer = "Speaker: Marta Lindqvist. Duration: 47:12. Full official recording (PGConf Nordic channel): https://www.youtube.com/watch?v=Zt4mQeL1x9c\n"
+answer = "Speaker: Marta Lindqvist. Duration: 47:12. Recording: https://www.youtube.com/watch?v=Zt4mQeL1x9c"
 
 [[solution.call]]
 endpoint = "brave-search"

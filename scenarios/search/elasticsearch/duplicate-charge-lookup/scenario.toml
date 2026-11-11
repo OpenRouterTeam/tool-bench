@@ -7,11 +7,39 @@ services = ["elasticsearch"]
 tags = ["lookup", "single-service", "elasticsearch", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Jordan Lee's ORD-109002 and ORD-109003 (86.40, 28 s apart) vs Jordan Leigh's own 129.99 pair, j.lee@example.com's 86.40 order ORD-109010 and Jordan Lee's other orders; answer must list both IDs."
+
 # Duplicates: ORD-109002 and ORD-109003 (86.40 USD, 28 s apart). Distractors: Jordan Leigh's
 # own pair, j.lee@example.com's 86.40 order, and Jordan Lee's other orders.
-[expect.answer]
-contains = ["ORD-109002", "ORD-109003"]
-regex = '86[.,]4'
+[expect]
+version = 2
+audit_history = true
+
+[expect.answer.record_facts]
+requirement = "Among the orders of jordan.lee@example.com, state the order ID of every order that shares the one total charged more than once, and state that total in US dollars."
+mode = "statements"
+
+[expect.answer.record_facts.selector]
+collection = "/services/elasticsearch/docs"
+matching = { customer_email = "jordan.lee@example.com" }
+
+[expect.answer.record_facts.selection.group]
+by = "/total"
+measure = "count"
+pick = "largest"
+
+[expect.answer.record_facts.facts.orders]
+field = "/members/order_id"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.amount]
+field = "/key"
+kind = "money"
 
 [[expect.required_calls]]
 service = "elasticsearch"
@@ -19,7 +47,7 @@ method = "POST"
 path_regex = "(_search|_query)$"
 
 [solution]
-answer = "The double charge is ORD-109002 and ORD-109003 (both 86.40 USD, placed 2026-10-23 at 20:41:09 and 20:41:37 UTC, 3 items each, separate payment intents).\n"
+answer = "The double charge is ORD-109002 and ORD-109003, both $86.40."
 
 [[solution.call]]
 endpoint = "elasticsearch"

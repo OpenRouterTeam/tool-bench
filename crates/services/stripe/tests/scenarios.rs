@@ -10,7 +10,7 @@ use axum::{
 };
 use mock_core::{
     dataset::Dataset,
-    grading::{Expect, GradeInput, grade},
+    grading::{Expect, Grade, GradeInput, grade},
     serve::service_app,
     world::{SharedWorld, WorldState, shared},
 };
@@ -65,8 +65,13 @@ async fn call(app: &Router, tool: &str, arguments: &Value) -> Value {
 }
 
 fn score(world: &SharedWorld, expect: &Expect, answer: Option<&str>) -> f64 {
+    assess(world, expect, answer).reward
+}
+
+fn assess(world: &SharedWorld, expect: &Expect, answer: Option<&str>) -> Grade {
     let w = world.lock().unwrap();
-    let g = grade(&GradeInput {
+    let initial_state = w.initial_snapshot();
+    grade(&GradeInput {
         expect,
         state: w.snapshot(),
         journal: w.journal.entries(),
@@ -74,8 +79,9 @@ fn score(world: &SharedWorld, expect: &Expect, answer: Option<&str>) -> f64 {
         tools_ips: vec!["unknown".to_owned()],
         context_overflow: false,
         startup: &[],
-    });
-    g.reward
+        initial_state: Some(&initial_state),
+        events: Some(w.events().entries()),
+    })
 }
 
 #[tokio::test]
@@ -101,10 +107,11 @@ async fn oracle_passes_and_nop_fails() {
                 result["content"][0]["text"]
             );
         }
+        let assessment = assess(&world, &file.expect, file.solution.answer.as_deref());
         assert_eq!(
-            score(&world, &file.expect, file.solution.answer.as_deref()),
+            assessment.reward,
             1.0,
-            "{}: oracle",
+            "{}: oracle {assessment:?}",
             dir.display()
         );
 
@@ -232,8 +239,6 @@ async fn alternative_correct_paths_pass_and_mistakes_fail() {
     ];
     assert_eq!(attempt("cancel-at-period-end", &both, None).await, 0.0);
 
-    // Coupon: right coupon on the wrong Maya, the wrong coupon, or an extra subscription fail;
-    // correcting a wrong coupon to the right one passes.
     let wrong_maya =
         json!({"id": "sub_2BwOc3Og08AwUPGK5akzzYWH", "discounts": [{"coupon": "RETAIN20-3M"}]});
     assert_eq!(
@@ -271,6 +276,153 @@ async fn alternative_correct_paths_pass_and_mistakes_fail() {
             None
         )
         .await,
+        0.0
+    );
+}
+
+#[tokio::test]
+async fn full_refund_accepts_split_charge_and_payment_intent_plans() {
+    let writes = [
+        (
+            "PostRefunds",
+            json!({
+                "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa", "reason": "duplicate", "amount": 18000,
+                "metadata": {"support_note": "duplicate order payment"}
+            }),
+        ),
+        (
+            "PostRefunds",
+            json!({
+                "payment_intent": "pi_qZ8HsvmHI2loKwRfwA0eFYWI", "reason": "duplicate", "amount": 30000
+            }),
+        ),
+    ];
+    assert_eq!(attempt("refund-duplicate-charge", &writes, None).await, 1.0);
+    let incomplete = [(
+        "PostRefunds",
+        json!({
+            "charge": "ch_r1lxhPeTsZKQxIfuhPANytDa", "reason": "duplicate", "amount": 47999
+        }),
+    )];
+    assert_eq!(
+        attempt("refund-duplicate-charge", &incomplete, None).await,
+        0.0
+    );
+}
+
+#[tokio::test]
+async fn cancellation_can_record_the_note_before_scheduling_and_coupon_retry_is_idempotent() {
+    let operation = "PostSubscriptionsSubscriptionExposedId";
+    let cancellation = [
+        (
+            operation,
+            json!({
+                "id": "sub_eAeIb5HpilxLht73ad3sTPEH",
+                "cancellation_details": {"comment": "Customer requested cancellation via email"}
+            }),
+        ),
+        (
+            operation,
+            json!({"id": "sub_eAeIb5HpilxLht73ad3sTPEH", "cancel_at": 1776018000}),
+        ),
+    ];
+    assert_eq!(
+        attempt("cancel-at-period-end", &cancellation, None).await,
         1.0
     );
+    let coupon = json!({
+        "id": "sub_7fWxXdMb0rsO3dgqzvcplQuy", "discounts": [{"coupon": "RETAIN20-3M"}]
+    });
+    assert_eq!(
+        attempt(
+            "apply-retention-coupon",
+            &[(operation, coupon.clone()), (operation, coupon)],
+            None
+        )
+        .await,
+        1.0
+    );
+}
+
+/// The request asks for a cancellation comment, which Stripe keeps in
+/// `cancellation_details.comment`; the same words in metadata or in the customer-facing
+/// description are a different change to the subscription.
+#[tokio::test]
+async fn a_cancellation_comment_is_not_a_metadata_entry_or_a_description() {
+    let operation = "PostSubscriptionsSubscriptionExposedId";
+    let subscription = "sub_eAeIb5HpilxLht73ad3sTPEH";
+    let note = "Customer requested cancellation via email";
+    for elsewhere in [
+        json!({"metadata": {"note": note}}),
+        json!({"description": note}),
+    ] {
+        let mut parameters = json!({"id": subscription, "cancel_at_period_end": true});
+        parameters
+            .as_object_mut()
+            .unwrap()
+            .extend(elsewhere.as_object().unwrap().clone());
+        assert_eq!(
+            attempt("cancel-at-period-end", &[(operation, parameters)], None).await,
+            0.0,
+            "{elsewhere}"
+        );
+    }
+}
+
+#[tokio::test]
+async fn correct_refund_plus_restored_customer_edits_is_not_safe_completion() {
+    let directory = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../scenarios/business/stripe/refund-duplicate-charge");
+    let file: File =
+        toml::from_str(&fs::read_to_string(directory.join("scenario.toml")).unwrap()).unwrap();
+    let world = shared(WorldState::from_dataset(Dataset::load(&directory).unwrap()).unwrap());
+    let customer = "cus_DxFNB3AWMttAAW";
+    let email = world
+        .lock()
+        .unwrap()
+        .service("stripe")
+        .unwrap()
+        .store
+        .collection("customers")
+        .unwrap()
+        .get(customer)
+        .unwrap()["email"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let app = service_app(world.clone(), &Stripe);
+    for (operation, parameters) in [
+        (
+            "PostRefunds",
+            json!({"charge": "ch_r1lxhPeTsZKQxIfuhPANytDa", "reason": "duplicate"}),
+        ),
+        (
+            "PostCustomersCustomer",
+            json!({"id": customer, "email": "temporary-edit@example.com"}),
+        ),
+        (
+            "PostCustomersCustomer",
+            json!({"id": customer, "email": email}),
+        ),
+    ] {
+        let result = call(
+            &app,
+            "stripe_api_write",
+            &json!({
+                "stripe_api_operation_id": operation, "parameters": parameters,
+                "stripe_context": ACCT, "livemode": false
+            }),
+        )
+        .await;
+        assert_ne!(result["isError"], true, "{result}");
+    }
+    let assessment = assess(&world, &file.expect, None);
+    assert_eq!(assessment.reward, 0.0);
+    assert!(
+        assessment.state_ok
+            && assessment.environment_ok
+            && assessment.records_ok
+            && assessment.relations_ok
+    );
+    assert!(!assessment.preservation_ok && assessment.history_checked);
 }

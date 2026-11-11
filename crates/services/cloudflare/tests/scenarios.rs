@@ -87,6 +87,7 @@ async fn run(dir: &Path, solve: bool) -> (f64, Vec<String>) {
         }
     }
     let w = world.lock().unwrap();
+    let initial_state = w.initial_snapshot();
     let answer = if solve {
         file.solution.answer.as_deref()
     } else {
@@ -100,6 +101,8 @@ async fn run(dir: &Path, solve: bool) -> (f64, Vec<String>) {
         tools_ips: vec!["unknown".to_owned()],
         context_overflow: false,
         startup: &[],
+        initial_state: Some(&initial_state),
+        events: Some(w.events().entries()),
     });
     (g.reward, errors)
 }

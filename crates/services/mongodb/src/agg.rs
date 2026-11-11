@@ -19,8 +19,125 @@ pub trait Source {
 /// Write stage found at the end of a pipeline.
 #[derive(Debug, Clone, PartialEq)]
 pub enum WriteStage {
-    Out { db: Option<String>, coll: String },
-    Merge { db: Option<String>, coll: String },
+    Out {
+        db: Option<String>,
+        coll: String,
+    },
+    Merge {
+        db: Option<String>,
+        coll: String,
+        when_matched: MergeMatched,
+        when_not_matched: MergeNotMatched,
+    },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MergeMatched {
+    Merge,
+    Replace,
+    KeepExisting,
+    Fail,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum MergeNotMatched {
+    Insert,
+    Discard,
+    Fail,
+}
+
+fn write_stage(name: &str, spec: &Value) -> QResult<WriteStage> {
+    let target = if name == "$merge" && spec.is_object() {
+        spec.get("into").ok_or("$merge requires into")?
+    } else {
+        spec
+    };
+    let (database, collection) = match target {
+        Value::String(collection) => (None, collection.clone()),
+        Value::Object(target) => {
+            if target.keys().any(|field| field != "db" && field != "coll") {
+                return Err(format!("{name} target options are unsupported"));
+            }
+            let database = target
+                .get("db")
+                .map(|database| {
+                    database
+                        .as_str()
+                        .filter(|database| !database.is_empty())
+                        .map(str::to_owned)
+                        .ok_or("write target db must be a nonempty string")
+                })
+                .transpose()?;
+            let collection = target
+                .get("coll")
+                .and_then(Value::as_str)
+                .ok_or("write target coll must be a string")?
+                .to_owned();
+            (database, collection)
+        }
+        _ => return Err(format!("{name} requires a collection name")),
+    };
+    if collection.is_empty() {
+        return Err(format!("{name} collection must not be empty"));
+    }
+    if name == "$out" {
+        return Ok(WriteStage::Out {
+            db: database,
+            coll: collection,
+        });
+    }
+    if let Some(options) = spec.as_object()
+        && options.keys().any(|field| {
+            !matches!(
+                field.as_str(),
+                "into" | "on" | "whenMatched" | "whenNotMatched"
+            )
+        })
+    {
+        return Err("$merge options are unsupported by this replica".into());
+    }
+    if let Some(on) = spec.get("on")
+        && on != "_id"
+        && on != &json!(["_id"])
+    {
+        return Err("$merge on fields other than _id are unsupported by this replica".into());
+    }
+    let when_matched = match spec.get("whenMatched") {
+        None => MergeMatched::Merge,
+        Some(Value::String(action)) => match action.as_str() {
+            "merge" => MergeMatched::Merge,
+            "replace" => MergeMatched::Replace,
+            "keepExisting" => MergeMatched::KeepExisting,
+            "fail" => MergeMatched::Fail,
+            _ => return Err("invalid $merge whenMatched action".into()),
+        },
+        _ => return Err("$merge whenMatched pipelines are unsupported by this replica".into()),
+    };
+    let when_not_matched = match spec.get("whenNotMatched") {
+        None => MergeNotMatched::Insert,
+        Some(Value::String(action)) => match action.as_str() {
+            "insert" => MergeNotMatched::Insert,
+            "discard" => MergeNotMatched::Discard,
+            "fail" => MergeNotMatched::Fail,
+            _ => return Err("invalid $merge whenNotMatched action".into()),
+        },
+        _ => return Err("$merge whenNotMatched must be an action string".into()),
+    };
+    if matches!(
+        when_matched,
+        MergeMatched::KeepExisting | MergeMatched::Fail
+    ) && when_not_matched != MergeNotMatched::Insert
+    {
+        return Err(
+            "unsupported combination of $merge whenMatched and whenNotMatched actions".into(),
+        );
+    }
+    Ok(WriteStage::Merge {
+        db: database,
+        coll: collection,
+        when_matched,
+        when_not_matched,
+    })
 }
 
 pub type Vars = BTreeMap<String, Value>;
@@ -1238,15 +1355,16 @@ fn include_path(src: &Value, dst: &mut Value, path: &str) {
                 include_path(val, &mut dst[head], rest);
             }
             Value::Array(items) => {
-                let projected: Vec<Value> = items
-                    .iter()
-                    .filter(|i| i.is_object())
-                    .map(|i| {
-                        let mut o = Value::Object(Map::new());
-                        include_path(i, &mut o, rest);
-                        o
-                    })
-                    .collect();
+                let documents: Vec<&Value> = items.iter().filter(|i| i.is_object()).collect();
+                // A second path under the same array (`items.price` after `items.category`)
+                // adds to the elements the first one built; it does not replace them.
+                let mut projected = match dst.get_mut(head).map(Value::take) {
+                    Some(Value::Array(built)) if built.len() == documents.len() => built,
+                    _ => vec![Value::Object(Map::new()); documents.len()],
+                };
+                for (document, element) in documents.into_iter().zip(&mut projected) {
+                    include_path(document, element, rest);
+                }
                 dst[head] = Value::Array(projected);
             }
             _ => {}
@@ -1501,33 +1619,7 @@ pub fn run(
                         "{name} can only be the final stage in the pipeline"
                     ));
                 }
-                let (db, coll) = match spec {
-                    Value::String(c) => (None, c.clone()),
-                    Value::Object(m) => {
-                        let target = if name == "$merge" {
-                            m.get("into").unwrap_or(spec)
-                        } else {
-                            spec
-                        };
-                        match target {
-                            Value::String(c) => (None, c.clone()),
-                            t => (
-                                t.get("db").and_then(Value::as_str).map(str::to_owned),
-                                t.get("coll")
-                                    .and_then(Value::as_str)
-                                    .unwrap_or("")
-                                    .to_owned(),
-                            ),
-                        }
-                    }
-                    _ => return Err(format!("{name} requires a collection name")),
-                };
-                let stage = if name == "$out" {
-                    WriteStage::Out { db, coll }
-                } else {
-                    WriteStage::Merge { db, coll }
-                };
-                return Ok((docs, Some(stage)));
+                return Ok((docs, Some(write_stage(name, spec)?)));
             }
             "$search" | "$searchMeta" | "$vectorSearch" => {
                 return Err("Atlas Search is not supported in this cluster.".to_owned());
@@ -1691,6 +1783,34 @@ mod tests {
         fn now_ms(&self) -> i64 {
             0
         }
+    }
+
+    #[test]
+    fn several_paths_under_one_array_project_every_named_field() {
+        let order = json!({"_id": 7, "status": "delivered", "items": [
+            {"sku": "A", "category": "outdoor", "price": 189, "qty": 1},
+            "a note between the lines",
+            {"sku": "B", "category": "kitchen", "price": 25.5, "qty": 2},
+        ]});
+        let project = |spec: Value| project_stage(&order, spec.as_object().unwrap()).unwrap();
+        // MongoDB keeps every included field of each element, whatever the order of the paths,
+        // and drops array members that are not documents.
+        assert_eq!(
+            project(json!({"items.category": 1, "items.price": 1, "items.qty": 1})),
+            json!({"_id": 7, "items": [
+                {"category": "outdoor", "price": 189, "qty": 1},
+                {"category": "kitchen", "price": 25.5, "qty": 2},
+            ]})
+        );
+        assert_eq!(
+            project(json!({"_id": 0, "items.qty": 1, "status": 1, "items.sku": 1})),
+            json!({"items": [{"qty": 1, "sku": "A"}, {"qty": 2, "sku": "B"}], "status": "delivered"})
+        );
+        // One path still projects that field alone.
+        assert_eq!(
+            project(json!({"_id": 0, "items.price": 1})),
+            json!({"items": [{"price": 189}, {"price": 25.5}]})
+        );
     }
 
     #[test]

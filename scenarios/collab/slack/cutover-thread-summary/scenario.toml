@@ -7,28 +7,48 @@ services = ["slack"]
 tags = ["write", "single-service", "slack"]
 timeout_sec = 900
 
-# The first message the caller posts in #db-migration must be a reply in the cutover
-# proposal thread with the window that was finally agreed (not the original proposal).
-[[expect.state]]
-pointer = "/services/slack/posted/C05DBMIG2RT#1/thread_ts"
-equals = "1792600205.318801"
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = []
+dependency_depth = 2
+rationale = "The #db-migration thread opens with a proposal for Fri 2026-11-06 20:00-23:00 CT that is replaced by the agreed Sat 2026-11-07 22:00-01:00 CT led by Sam; the reply must not present the superseded proposal."
 
-[[expect.state]]
-pointer = "/services/slack/posted/C05DBMIG2RT#1/text"
-contains = "2026-11-07"
+[expect]
+version = 2
+audit_history = true
 
-[[expect.state]]
-pointer = "/services/slack/posted/C05DBMIG2RT#1/text"
-contains = "22:00"
+[[expect.records]]
+selector = { collection = "/services/slack/posted", created = true }
+equals = 1
+fields = { "/channel" = "C05DBMIG2RT", "/thread_ts" = "1792600205.318801", "/user" = "U02CMORG8RK" }
+reviewed_text = { "/text" = { requirement = "Summarize the agreed production cutover: start 2026-11-07 at 22:00 and end at 01:00 the following morning, Central time, led by Sam. The summary must carry the date as YYYY-MM-DD, both 24-hour times, the Central time zone and Sam as lead. The superseded proposal may be mentioned; rollback/verification details are not mandatory.", accepted = ["Summary: the production cutover window is Saturday 2026-11-07, 22:00-01:00 CT (moved off Nov 6 because of the payments change freeze). Sam leads the cutover, Priya handles payments verification, rollback deadline 00:30 CT.", "Agreed cutover: 2026-11-07 22:00 to 2026-11-08 01:00 Central time. Sam Ortiz leads.", "Summary: 2026-11-07, 22:00-01:00 CT; Sam is the cutover lead."], mentions = ["2026-11-07", "22:00", "01:00", ["CT", "Central", "CST", "CDT", "America/Chicago", "US/Central"], ["Sam", "U05SORTIZ6M"]] } }
 
-[[expect.state]]
-pointer = "/services/slack/posted/C01GENERAL0#1"
-exists = false
+[[expect.records]]
+selector = { collection = "/services/slack/messages", created = true }
+equals = 1
 
-[[expect.required_calls]]
-service = "slack"
-path = "/_mcp/tools/call"
-body = { name = "slack_send_message" }
+[[expect.relations]]
+source = { collection = "/services/slack/posted", created = true }
+source_field = "/ts"
+target = { collection = "/services/slack/messages", created = true }
+target_field = "/ts"
+kind = "bijection"
+fields = [
+  { source_field = "/channel", target_field = "/channel", kind = "equals" },
+  { source_field = "/thread_ts", target_field = "/thread_ts", kind = "equals" },
+  { source_field = "/text", target_field = "/text", kind = "equals" },
+]
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/posted/*"
+kind = "create"
+matching = { channel = "C05DBMIG2RT", thread_ts = "1792600205.318801", user = "U02CMORG8RK" }
+
+[[expect.preservation.allow]]
+pointer = "/services/slack/messages/*"
+kind = "create"
+matching = { channel = "C05DBMIG2RT", thread_ts = "1792600205.318801", user = "U02CMORG8RK" }
 
 [[solution.call]]
 endpoint = "slack"

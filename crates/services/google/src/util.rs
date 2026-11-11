@@ -223,47 +223,9 @@ pub fn weekday_name(days: i64) -> (&'static str, i64) {
 
 /// Parsed RFC 3339 or local time. Returns (unix seconds, had explicit offset).
 pub fn parse_datetime(text: &str, zone: Option<&str>) -> Option<(i64, bool)> {
-    let t = text.trim();
-    if t.len() < 10 {
-        return None;
-    }
-    let (y, m, d) = tz::parse_date(&t[..10])?;
-    let days = tz::days_from_civil(y, m, d);
-    if t.len() == 10 {
-        let local = days * 86_400;
-        let off = zone.map(|z| tz::offset_at(z, local).0).unwrap_or(0);
-        return Some((local - off, false));
-    }
-    let rest = t.get(11..)?;
-    let hms: Vec<&str> = rest.get(..8.min(rest.len()))?.split(':').collect();
-    let h: i64 = hms.first()?.parse().ok()?;
-    let mi: i64 = hms.get(1)?.parse().ok()?;
-    let sec: i64 = hms
-        .get(2)
-        .and_then(|x| x.get(..2))
-        .and_then(|x| x.parse().ok())
-        .unwrap_or(0);
-    let local = days * 86_400 + h * 3600 + mi * 60 + sec;
-    let tail = rest.get(5..).unwrap_or("");
-    let tail = tail.trim_start_matches(|c: char| c == ':' || c.is_ascii_digit() || c == '.');
-    if tail.eq_ignore_ascii_case("z") {
-        return Some((local, true));
-    }
-    if let Some(sign) = tail.chars().next().filter(|c| *c == '+' || *c == '-') {
-        let parts: Vec<i64> = tail[1..]
-            .split(':')
-            .filter_map(|x| x.parse().ok())
-            .collect();
-        let off =
-            parts.first().copied().unwrap_or(0) * 3600 + parts.get(1).copied().unwrap_or(0) * 60;
-        let off = if sign == '+' { off } else { -off };
-        return Some((local - off, true));
-    }
-    // Local wall-clock time.
-    let zone = zone?;
-    let guess = local - tz::offset_at(zone, local).0;
-    let off = tz::offset_at(zone, guess).0;
-    Some((local - off, false))
+    crate::event_time::observed_instant(text, zone)
+        .ok()
+        .map(|(instant, explicit)| (instant.timestamp(), explicit))
 }
 
 /// `2026-11-03T10:00:00-05:00` in `zone`.

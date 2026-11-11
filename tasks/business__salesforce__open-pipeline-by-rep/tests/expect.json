@@ -1,11 +1,66 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "Priya Raman"
-    ],
-    "regex": "252,?500"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the Salesforce user who owns the largest total Amount of open (not closed) opportunities with a close date in April-June 2026, and state that total in US dollars.",
+      "selector": {
+        "collection": "/services/salesforce/Opportunity",
+        "matching": {
+          "IsClosed": false
+        },
+        "field_patterns": {
+          "/CloseDate": "^2026-0[456]-"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "by": "/OwnerId",
+          "measure": {
+            "sum": "/Amount"
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "rep": {
+          "field": "/Name",
+          "kind": "text",
+          "record": "rep"
+        },
+        "total": {
+          "field": "/value",
+          "kind": "money"
+        }
+      },
+      "mode": "statements",
+      "filter": {
+        "present": [
+          "/Amount"
+        ]
+      },
+      "related": {
+        "rep": {
+          "collection": "/services/salesforce/User",
+          "on": {
+            "/Id": "/key"
+          }
+        }
+      }
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

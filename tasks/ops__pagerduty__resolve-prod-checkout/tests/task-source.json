@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/pagerduty/resolve-prod-checkout",
+  "scenario_sha256": "sha256:584549ace277169e731c3536c0bf17210f91443e6f7fba045fcac2aed591491d",
+  "dataset_sha256": "sha256:87a7c6c653c3524b618255ecac4f2e292b0c900a9fd4985ad8ed3d50abd62f19",
+  "contract_sha256": "sha256:0358f616a2daea8837839329f061f9e7e668c93585592a99ee4f7158f44b1ff3"
+}

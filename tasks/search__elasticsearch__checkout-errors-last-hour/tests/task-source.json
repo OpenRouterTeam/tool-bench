@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/elasticsearch/checkout-errors-last-hour",
+  "scenario_sha256": "sha256:79a46f6934d5dc9e1d31b16c8e58f612b08233f344f7d2ca3966ee69213578d0",
+  "dataset_sha256": "sha256:4ab9a3a18460d1d316b97e78f198a90f6329fa2923ed581014491615c2b1caee",
+  "contract_sha256": "sha256:f54180bbaf6fa0dd3d679aceac82ff625b1badaeadf17f0fc2aaa28066b3ebf4"
+}

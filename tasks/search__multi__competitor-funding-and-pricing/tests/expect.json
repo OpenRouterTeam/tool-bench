@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "brave",
@@ -9,16 +14,124 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "Halcyon",
-      "Series B",
-      "890"
-    ],
-    "regex": "(?i)\\$?\\s?45\\s?(m\\b|mn\\b|million)"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the amount (in millions of US dollars), the round and the lead investor of the funding round that Norvik Analytics announced in the news during the week of 2026-10-29, and the monthly price in US dollars of its Growth plan when billed annually according to the company's own current pricing page.",
+      "selector": {
+        "collection": "/services/brave/news",
+        "matching": {},
+        "field_patterns": {
+          "/page_age": "^2026-10-2[3-9]T",
+          "/title": "^Norvik Analytics (raises|closes|secures|announces) "
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "amount": {
+          "field": "/title",
+          "kind": "money",
+          "capture": "\\$(\\d+(?:\\.\\d+)?)M\\b",
+          "units": [
+            "million",
+            "m",
+            "mn"
+          ],
+          "require_unit": true
+        },
+        "lead": {
+          "field": "/description",
+          "kind": "text",
+          "capture": "led by ([A-Z][A-Za-z]+(?: [A-Z][A-Za-z]+)*)"
+        },
+        "monthly_price": {
+          "field": "/markdown",
+          "kind": "money",
+          "optional": true,
+          "record": "pricing",
+          "capture": "Growth[^#]*?\\$(\\d[\\d,]+) billed monthly"
+        },
+        "news_date": {
+          "field": "/page_age",
+          "kind": "date",
+          "optional": true
+        },
+        "news_source": {
+          "field": "/source",
+          "kind": "text",
+          "optional": true
+        },
+        "participating_investor": {
+          "field": "/description",
+          "kind": "text",
+          "optional": true,
+          "capture": "participation from (?:existing investor )?([A-Z][A-Za-z]+(?: [A-Z][A-Za-z]+)*)"
+        },
+        "price": {
+          "field": "/markdown",
+          "kind": "money",
+          "record": "pricing",
+          "capture": "Growth(?:\\n\\n|\\*\\* is| \\|) ?(?:\\*\\*)?\\$([\\d,]+)(?:/| per )month",
+          "units": [
+            "usd",
+            "dollars",
+            "$",
+            "/month",
+            "/mo",
+            "per month",
+            "a month",
+            "monthly"
+          ],
+          "require_unit": true
+        },
+        "price_update_date": {
+          "field": "/markdown",
+          "kind": "date",
+          "optional": true,
+          "record": "pricing",
+          "capture": "Prices? (?:last )?updated ([A-Z][a-z]+ \\d{1,2},? \\d{4})"
+        },
+        "round": {
+          "field": "/title",
+          "kind": "text",
+          "capture": "\\b(Series [A-Z])\\b"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "pricing": {
+          "collection": "/services/firecrawl/pages",
+          "filter": {
+            "patterns": {
+              "/title": "^Pricing \\| Norvik Analytics$"
+            }
+          }
+        }
+      },
+      "context": [
+        "or $${monthly_price} month to month",
+        "existing investor ${participating_investor} participated",
+        "reported by ${news_source} on ${news_date}",
+        "(prices updated ${price_update_date})",
+        "${participating_investor} participating",
+        "${participating_investor} participated",
+        "${participating_investor} also participated",
+        "participation from existing investor ${participating_investor}",
+        "participation from ${participating_investor}"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

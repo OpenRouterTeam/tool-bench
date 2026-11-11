@@ -1,0 +1,101 @@
+[scenario]
+id = "diagnostic/stripe/no-action-already-refunded"
+title = "Confirm a duplicate charge that was already refunded"
+now = "2026-03-18T15:00:00Z"
+seed = "diagnostic-stripe-no-action-already-refunded"
+services = ["stripe"]
+tags = ["diagnostic", "single-service", "stripe", "no-action"]
+timeout_sec = 900
+
+[scenario.family]
+schema_version = 1
+primary = "no_action"
+secondary = ["entity_ambiguity", "retry_idempotency"]
+dependency_depth = 2
+rationale = "Order #D-101's second $250 charge already carries a full duplicate refund from March 5; the only remaining unrefunded D-101 charge is the legitimate original."
+
+# Unscored diagnostic. Shared organization base `synth-ops` (Calder Ridge Supply) plus this
+# task's overlay, which marks the D-101 duplicate (ch_wkPm…, 10:04 UTC) as refunded by
+# re_6AYe… on 2026-03-05. The correct outcome is to change nothing and say it was already
+# refunded. Refunding the original (ch_Sd4z…, 10:02 UTC) or any other charge is an invalid action.
+[materialization]
+schema_version = 1
+base = "_organizations/synth-ops/base.json"
+overlay = "overlay.json"
+
+[expect]
+version = 2
+audit_history = true
+
+[expect.interaction]
+kind = "no_action"
+
+[[expect.state]]
+pointer = "/services/stripe/charges/ch_wkPmIRePDHbjF1ZhUb3Jf9T3/refunded"
+equals = true
+
+[expect.answer]
+source = "final_response"
+
+[expect.answer.record_facts]
+requirement = "Affirm that the duplicate charge was already refunded in full, and identify its actual existing refund."
+mode = "statements"
+selection = "only"
+
+[expect.answer.record_facts.selector]
+collection = "/services/stripe/charges"
+matching = { id = "ch_wkPmIRePDHbjF1ZhUb3Jf9T3" }
+
+[expect.answer.record_facts.related.refund]
+collection = "/services/stripe/refunds"
+on = { "/charge" = "/id", "/amount" = "/amount" }
+
+[expect.answer.record_facts.facts.refunded]
+field = "/refunded"
+kind = "text"
+wordings = { "true" = ["already refunded", "already been refunded", "already fully refunded", "already completely refunded", "was refunded", "has been refunded", "had been refunded"], "false" = ["not refunded", "not been refunded", "unrefunded"] }
+
+[expect.answer.record_facts.facts.refund]
+record = "refund"
+field = "/id"
+kind = "identifier"
+
+[expect.answer.record_facts.facts.order]
+field = "/metadata/order_id"
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.refund_date]
+record = "refund"
+field = "/created"
+kind = "utc_date"
+optional = true
+
+[[expect.forbidden_calls]]
+service = "stripe"
+method = "POST"
+path = "/_mcp/tools/call"
+body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostRefunds" } }
+
+[[expect.forbidden_calls]]
+service = "stripe"
+method = "POST"
+path = "/v1/refunds"
+
+[[solution.call]]
+endpoint = "stripe"
+tool = "stripe_api_read"
+arguments = { stripe_api_operation_id = "GetCustomersSearch", parameters = { query = "name:\"River Electronics\"" }, stripe_context = "acct_1Qs7CrLm4XnT82Vd", livemode = false }
+
+[[solution.call]]
+endpoint = "stripe"
+tool = "stripe_api_read"
+arguments = { stripe_api_operation_id = "GetCharges", parameters = { customer = "cus_dJZayTexJlACKB" }, stripe_context = "acct_1Qs7CrLm4XnT82Vd", livemode = false }
+
+[[solution.call]]
+endpoint = "stripe"
+tool = "stripe_api_read"
+arguments = { stripe_api_operation_id = "GetRefunds", parameters = { charge = "ch_wkPmIRePDHbjF1ZhUb3Jf9T3" }, stripe_context = "acct_1Qs7CrLm4XnT82Vd", livemode = false }
+
+[solution]
+answer = "The duplicate charge was already refunded in full as refund re_6AYez5LT1vd0g6zTWhpyAP2b."

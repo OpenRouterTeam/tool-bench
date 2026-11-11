@@ -16,7 +16,7 @@ use crate::{
     util::{b, s, slack_id},
 };
 
-pub const CALLER: &str = "U0TOOLBNCH1";
+pub const CALLER: &str = "U02CMORG8RK";
 
 pub struct Ctx<'a> {
     pub st: &'a mut ServiceState,
@@ -58,7 +58,7 @@ impl Ctx<'_> {
 
     pub fn team(&self) -> Value {
         self.get("team", "team").unwrap_or_else(
-            || json!({"id": "T0TOOLBNCH", "name": "Octo Corp", "domain": "octo-corp"}),
+            || json!({"id": "T0OCTOCORP", "name": "Octo Corp", "domain": "octo-corp"}),
         )
     }
 
@@ -207,8 +207,15 @@ impl Ctx<'_> {
         broadcast: bool,
         files: Vec<String>,
     ) -> Result<Value, &'static str> {
+        if text.trim().is_empty() && files.is_empty() {
+            return Err("no_text");
+        }
+        let thread_ts = thread_ts.filter(|thread| !thread.is_empty());
         let channel = match self.resolve_conversation(channel_id) {
             Err("channel_not_found") if channel_id.starts_with('U') => {
+                if thread_ts.is_some() {
+                    return Err("thread_not_found");
+                }
                 // Posting to a user ID opens the DM, as chat.postMessage does.
                 let user = self.user(channel_id).ok_or("user_not_found")?;
                 if b(&user, "is_bot") {
@@ -228,10 +235,6 @@ impl Ctx<'_> {
         if !self.is_member(&channel, CALLER) {
             return Err("not_in_channel");
         }
-        if text.trim().is_empty() && files.is_empty() {
-            return Err("no_text");
-        }
-        let thread_ts = thread_ts.filter(|t| !t.is_empty());
         if let Some(t) = thread_ts {
             let parent = self.message(&channel_id, t).ok_or("thread_not_found")?;
             // Replies to a reply attach to the thread parent, as in Slack.

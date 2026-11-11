@@ -7,12 +7,22 @@ services = ["stripe"]
 tags = ["write", "single-service", "stripe", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Two customers named Maya Chen each hold a Team plan (cus_pSUd Brightline Studio vs cus_SnEf Freelance); coupon RETAIN20-3M sits beside RETAIN20-12M and expired RETAIN25-3M; other subs must keep no discounts."
+
 # Two customers are named Maya Chen: cus_pSUd… (maya@brightline.studio, description
 # "Brightline Studio") and cus_SnEf… (gmail, freelance), and both have a Team plan.
 # Brightline Maya's Team plan is sub_7fWx…; her storage add-on is sub_rgXM….
 # Coupons: RETAIN20-3M is the one (20% off, repeating 3 months); look-alikes are
 # RETAIN20-12M (12 months), RETAIN25-3M (expired), SPRING20 (once) and ANNUAL50.
 # Discounts are stored under "<subscription>:<coupon>".
+[expect]
+version = 2
+audit_history = true
 
 [[expect.state]]
 pointer = "/services/stripe/discounts/sub_7fWxXdMb0rsO3dgqzvcplQuy:RETAIN20-3M/subscription"
@@ -42,11 +52,37 @@ equals = []
 pointer = "/services/stripe/subscriptions/sub_QVurYL97NwETo29YW2uWzNau/discounts"
 equals = []
 
-[[expect.required_calls]]
-service = "stripe"
-method = "POST"
-path = "/_mcp/tools/call"
-body = { name = "stripe_api_write", arguments = { stripe_api_operation_id = "PostSubscriptionsSubscriptionExposedId" } }
+[[expect.records]]
+selector = { collection = "/services/stripe/discounts", matching = { subscription = "sub_7fWxXdMb0rsO3dgqzvcplQuy" }, created = true }
+equals = 1
+fields = { "/customer" = "cus_pSUd3Vj4eF7gD2", "/source/coupon" = "RETAIN20-3M", "/source/type" = "coupon", "/start" = 1773846000, "/end" = 1781794800 }
+
+[[expect.state]]
+pointer = "/services/stripe/coupons/RETAIN20-3M/times_redeemed"
+equals = 5
+
+[[expect.relations]]
+source = { collection = "/services/stripe/discounts", matching = { subscription = "sub_7fWxXdMb0rsO3dgqzvcplQuy" }, created = true }
+source_field = "/id"
+target = { collection = "/services/stripe/subscriptions", matching = { id = "sub_7fWxXdMb0rsO3dgqzvcplQuy" } }
+target_field = "/discounts/0"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/subscriptions/sub_7fWxXdMb0rsO3dgqzvcplQuy/discounts"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/coupons/RETAIN20-3M/times_redeemed"
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/discounts/*"
+kind = "create"
+matching = { subscription = "sub_7fWxXdMb0rsO3dgqzvcplQuy", customer = "cus_pSUd3Vj4eF7gD2", source = { coupon = "RETAIN20-3M", type = "coupon" } }
+
+[[expect.preservation.allow]]
+pointer = "/services/stripe/events/*"
+kind = "create"
+matching = { type = "customer.subscription.updated", data = { object = { id = "sub_7fWxXdMb0rsO3dgqzvcplQuy" } } }
+count_scope = "per_commit"
 
 [[expect.forbidden_calls]]
 service = "stripe"

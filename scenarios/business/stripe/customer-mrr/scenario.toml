@@ -7,13 +7,54 @@ services = ["stripe"]
 tags = ["lookup", "single-service", "stripe", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "Harbor & Pine Coffee Co. (439.00 MRR) has look-alike Harbor & Pine Roasters (252.50) plus its own canceled Starter and trialing Extra location subs that must be excluded; answer regex requires 439."
+
 # Harbor & Pine Coffee Co. pays for two active subscriptions:
 #   Team monthly $249.00 x1 + Additional seats $15.00 x6   = $339.00 / month
 #   Analytics add-on $1,200.00 / year                      = $100.00 / month
 # MRR = $439.00. Excluded: a canceled Starter plan ($99), a trialing Extra location ($49),
 # and the look-alike customer Harbor & Pine Roasters ($252.50).
+[expect]
+version = 2
+audit_history = true
+
 [expect.answer]
-regex = '(^|[^0-9,])439(\.00)?([^0-9.]|\.([^0-9]|$)|$)'
+ [expect.answer.record_facts]
+ requirement = "State the monthly recurring revenue of Harbor & Pine Coffee Co., counting only active subscriptions and converting yearly billing to monthly."
+ mode = "statements"
+
+ [expect.answer.record_facts.selector]
+ collection = "/services/stripe/subscriptions"
+ matching = { customer = "cus_mxxxdqMeoA1GEc", status = "active" }
+
+ [expect.answer.record_facts.selection.group]
+ unnest = "/items/data"
+ measure = { sum_product_normalized = { fields = ["/item/quantity", "/row_related/price/unit_amount"], divisor = { field = "/row_related/price/recurring/interval", values = { "month" = "100", "year" = "1200" } } } }
+ pick = "only"
+
+ [expect.answer.record_facts.selection.group.row_related.price]
+ collection = "/services/stripe/prices"
+ on = { "/id" = "/item/price" }
+
+ [expect.answer.record_facts.related.cust]
+ collection = "/services/stripe/customers"
+ filter = { matching = { "/id" = "cus_mxxxdqMeoA1GEc" } }
+
+ [expect.answer.record_facts.facts.customer]
+ record = "cust"
+ field = "/name"
+ kind = "text"
+ optional = true
+
+ [expect.answer.record_facts.facts.mrr]
+ field = "/value"
+ kind = "money"
+ units = ["$", "usd"]
 
 [[expect.forbidden_calls]]
 service = "stripe"
@@ -32,4 +73,4 @@ tool = "stripe_api_read"
 arguments = { stripe_api_operation_id = "GetSubscriptions", parameters = { customer = "cus_mxxxdqMeoA1GEc", status = "active" }, stripe_context = "acct_1FwY8bQk2LmN4pRs", livemode = false }
 
 [solution]
-answer = "Harbor & Pine Coffee Co. (cus_mxxxdqMeoA1GEc) has an MRR of $439.00: Team monthly with 6 additional seats ($339.00/month) plus the Analytics add-on billed yearly ($1,200.00/year = $100.00/month). The canceled Starter plan and the Extra location trial are not counted.\n"
+answer = "The MRR is $439.00."

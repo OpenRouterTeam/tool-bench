@@ -7,8 +7,17 @@ services = ["linear"]
 tags = ["write", "single-service", "linear", "disambiguation"]
 timeout_sec = 900
 
-# WEB-51 is the open issue. PAY-97 has the same title but is a Duplicate; WEB-44
-# ("misaligned", Done) is a look-alike. Only WEB-51 changes, and gets a comment.
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "WEB-51 Checkout button unresponsive on Safari (Todo) shares its exact title with PAY-97 (state Duplicate) and resembles Done WEB-44; only WEB-51 may get Urgent, Alex Kim and the comment."
+
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/linear/issues/WEB-51/priority"
 equals = 1
@@ -17,35 +26,37 @@ equals = 1
 pointer = "/services/linear/issues/WEB-51/assigneeId"
 equals = "0bfae6ae-01d0-58d1-a611-7d1973102c45"
 
-[[expect.state]]
-pointer = "/services/linear/comments/WEB-51#2/body"
-contains = "Acme"
+[[expect.records]]
+selector = { collection = "/services/linear/comments", created = true }
+equals = 1
+reviewed_text = { "/body" = { requirement = "Say the escalation came from Acme Retail. The issue association supplies the Safari checkout context. The comment must name Acme Retail and the escalation; priority/assignment narration and one particular spelling are not mandatory.", accepted = ["Acme Retail escalated this Safari checkout issue.", "Escalated to Urgent: Acme Retail raised this through support, it is blocking their enterprise checkouts. Assigned to Alex Kim."], mentions = ["Acme Retail", ["escalated", "escalation", "escalate", "escalating", "escalates", "escalations"]] } }
 
-[[expect.state]]
-pointer = "/services/linear/issues/PAY-97/priority"
-equals = 2
+[[expect.relations]]
+source = { collection = "/services/linear/comments", created = true }
+source_field = "/issueId"
+target = { collection = "/services/linear/issues", matching = { identifier = "WEB-51" } }
+target_field = "/id"
 
-[[expect.state]]
-pointer = "/services/linear/issues/PAY-97/assigneeId"
-equals = "a4176131-9edb-57a6-9830-0638d2d2fa29"
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/WEB-51/priority"
 
-[[expect.state]]
-pointer = "/services/linear/issues/WEB-44/priority"
-equals = 3
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/WEB-51/assigneeId"
 
-[[expect.state]]
-pointer = "/services/linear/comments/PAY-97#1"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/linear/issues/WEB-51/updatedAt"
 
-[[expect.required_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
-body = { name = "linear_createComment" }
+[[expect.preservation.allow]]
+pointer = "/services/linear/comments/*"
+kind = "create"
+matching = { userId = "2dad689e-9ace-5467-9b02-0cc4e445cfa4" }
 
-[[expect.forbidden_calls]]
-service = "linear"
-path = "/_mcp/tools/call"
-body = { name = "linear_archiveIssue" }
+[[expect.preservation.allow]]
+pointer = "/services/linear/issue_history/*"
+kind = "create"
+matching = { issueId = "d27f2e8f-39a2-58fa-be0d-a2b0f760cbb2" }
+count_scope = "per_commit"
+max_count = 6
 
 [[solution.call]]
 endpoint = "linear"

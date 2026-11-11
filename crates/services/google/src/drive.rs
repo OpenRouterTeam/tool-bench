@@ -4,6 +4,8 @@
 //! starred, description, permissions, content}`. Google Docs keep their body text in
 //! `content`; Sheets keep `sheets: [{sheetId, title, rowCount, columnCount, values, tables}]`.
 
+use std::collections::BTreeSet;
+
 use serde_json::{Value, json};
 
 use crate::util::{
@@ -1144,11 +1146,25 @@ pub fn shareable_link(ctx: &mut Ctx, a: &Value) -> R {
 }
 
 fn new_perm(ctx: &mut Ctx, ty: &str, role: &str, who: Option<&str>) -> Value {
-    let n = ctx.st.ids.next_int("permission", 7_330_000_000_000_000_000);
     let id = if ty == "anyone" {
         "anyoneWithLink".to_owned()
     } else {
-        n.to_string()
+        let occupied: BTreeSet<String> = ctx
+            .all("drive_files")
+            .into_iter()
+            .flat_map(|file| file["permissions"].as_array().cloned().unwrap_or_default())
+            .filter_map(|permission| permission["id"].as_str().map(str::to_owned))
+            .collect();
+        loop {
+            let candidate = ctx
+                .st
+                .ids
+                .next_int("permission", 7_330_000_000_000_000_000)
+                .to_string();
+            if !occupied.contains(&candidate) {
+                break candidate;
+            }
+        }
     };
     let mut p = json!({"id": id, "type": ty, "role": role});
     match (ty, who) {
@@ -2194,13 +2210,15 @@ fn col_index(letters: &str) -> Option<usize> {
     if letters.is_empty() || !letters.chars().all(|c| c.is_ascii_alphabetic()) {
         return None;
     }
-    Some(
-        letters
-            .to_ascii_uppercase()
-            .bytes()
-            .fold(0usize, |acc, b| acc * 26 + (b - b'A' + 1) as usize)
-            - 1,
-    )
+    letters
+        .to_ascii_uppercase()
+        .bytes()
+        .try_fold(0usize, |column, letter| {
+            column
+                .checked_mul(26)?
+                .checked_add(usize::from(letter - b'A' + 1))
+        })?
+        .checked_sub(1)
 }
 
 #[cfg(test)]
@@ -2217,6 +2235,8 @@ fn col_letters(mut i: usize) -> String {
 }
 
 fn parse_cell(c: &str) -> (Option<usize>, Option<usize>) {
+    let absolute = c.replace('$', "");
+    let c = absolute.as_str();
     let letters: String = c.chars().take_while(|x| x.is_ascii_alphabetic()).collect();
     let digits: String = c.chars().skip(letters.len()).collect();
     (
@@ -2445,6 +2465,49 @@ pub fn modify_values(ctx: &mut Ctx, a: &Value) -> R {
     let r = parse_a1(&range);
     let si = sheet_index(&f, r.sheet.as_deref())
         .ok_or_else(|| range_err("modify_sheet_values", &id, &range))?;
+    let cells = range
+        .rsplit_once('!')
+        .map(|(_, cells)| cells)
+        .unwrap_or_else(|| {
+            if f["sheets"]
+                .as_array()
+                .is_some_and(|sheets| sheets.iter().any(|sheet| sheet["title"] == range))
+            {
+                ""
+            } else {
+                &range
+            }
+        });
+    let endpoints: Vec<_> = cells.split(':').collect();
+    if endpoints.len() > 2
+        || endpoints.iter().any(|endpoint| {
+            if endpoint.is_empty() {
+                return endpoints.len() == 1 && !cells.is_empty();
+            }
+            let endpoint = endpoint.strip_prefix('$').unwrap_or(endpoint);
+            let letters = endpoint
+                .chars()
+                .take_while(char::is_ascii_alphabetic)
+                .count();
+            let rest = endpoint.get(letters..).unwrap_or_default();
+            let digits = rest.strip_prefix('$').unwrap_or(rest);
+            (letters == 0 && digits.is_empty())
+                || letters > 3
+                || !digits.bytes().all(|digit| digit.is_ascii_digit())
+                || (!digits.is_empty() && digits.parse::<usize>().ok().is_none_or(|row| row == 0))
+        })
+    {
+        return Err(range_err("modify_sheet_values", &id, &range));
+    }
+    let row_limit = f["sheets"][si]["rowCount"].as_u64().unwrap_or(1000) as usize;
+    let column_limit = f["sheets"][si]["columnCount"].as_u64().unwrap_or(26) as usize;
+    if r.r0 >= row_limit
+        || r.c0 >= column_limit
+        || r.r1.is_some_and(|end| end < r.r0 || end >= row_limit)
+        || r.c1.is_some_and(|end| end < r.c0 || end >= column_limit)
+    {
+        return Err(range_err("modify_sheet_values", &id, &range));
+    }
     let clear = arg_bool(a, "clear_values").unwrap_or(false);
     let values: Option<Vec<Vec<Value>>> = match arg_json(a, "values") {
         Some(Value::Array(rows)) => {
@@ -2504,32 +2567,54 @@ pub fn modify_values(ctx: &mut Ctx, a: &Value) -> R {
         )
     } else {
         let vals = values.unwrap_or_default();
-        let raw = arg(a, "value_input_option") == Some("RAW");
+        let input_option = arg(a, "value_input_option").unwrap_or("USER_ENTERED");
+        if !matches!(input_option, "RAW" | "USER_ENTERED") {
+            return Err("Invalid value_input_option. Must be RAW or USER_ENTERED.".into());
+        }
+        let raw = input_option == "RAW";
+        let locale = f["locale"].as_str().unwrap_or("en_US");
         let mut cells = 0;
-        let mut cols = 0;
+        let mut columns = BTreeSet::new();
+        let mut changed_rows = BTreeSet::new();
         for (i, vr) in vals.iter().enumerate() {
-            let ri = r.r0 + i;
-            while rows.len() <= ri {
-                rows.push(Vec::new());
-            }
+            let ri =
+                r.r0.checked_add(i)
+                    .ok_or_else(|| range_err("modify_sheet_values", &id, &range))?;
             for (j, v) in vr.iter().enumerate() {
-                let ci = r.c0 + j;
+                let Some(value) = crate::sheet_values::normalize(v, raw, locale)? else {
+                    continue;
+                };
+                let ci =
+                    r.c0.checked_add(j)
+                        .ok_or_else(|| range_err("modify_sheet_values", &id, &range))?;
+                if ri >= row_limit
+                    || ci >= column_limit
+                    || range.contains(':')
+                        && (r.r1.is_some_and(|end| ri > end) || r.c1.is_some_and(|end| ci > end))
+                {
+                    return Err(range_err("modify_sheet_values", &id, &range));
+                }
+                while rows.len() <= ri {
+                    rows.push(Vec::new());
+                }
                 while rows[ri].len() <= ci {
                     rows[ri].push(json!(""));
                 }
-                let text = cell_str(v);
-                rows[ri][ci] = json!(if raw {
-                    text
-                } else {
-                    text.trim_start_matches('\'').to_owned()
-                });
+                rows[ri][ci] = value;
                 cells += 1;
+                columns.insert(ci);
+                changed_rows.insert(ri);
             }
-            cols = cols.max(vr.len());
+        }
+        if cells == 0 {
+            return Ok(format!(
+                "Successfully updated range '{range}' in spreadsheet {id} for {USER}. Updated: 0 cells, 0 rows, 0 columns."
+            ));
         }
         format!(
-            "Successfully updated range '{range}' in spreadsheet {id} for {USER}. Updated: {cells} cells, {} rows, {cols} columns.",
-            vals.len()
+            "Successfully updated range '{range}' in spreadsheet {id} for {USER}. Updated: {cells} cells, {} rows, {} columns.",
+            changed_rows.len(),
+            columns.len()
         )
     };
     f["sheets"][si]["values"] = json!(rows);

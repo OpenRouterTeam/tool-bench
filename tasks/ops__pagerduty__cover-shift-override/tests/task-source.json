@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/pagerduty/cover-shift-override",
+  "scenario_sha256": "sha256:a22487d9ba8110110e64734ec0b5ec4e3dc3c9c73a488e6056d8c3d75f27c82b",
+  "dataset_sha256": "sha256:ab1d2d7b5aca0a15c6289136644699087a52d2cb5d7ac97a7399267a41028e88",
+  "contract_sha256": "sha256:f29f5bc42e9c78982f7374a534b7c1d3dda660c3fb802df3c885656eb79fdebf"
+}

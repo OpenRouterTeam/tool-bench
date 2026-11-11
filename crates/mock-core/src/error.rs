@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("business clock: {message}")]
+    Clock { message: String },
     #[error("invalid RFC 3339 timestamp {value:?}: {source}")]
     Timestamp {
         value: String,

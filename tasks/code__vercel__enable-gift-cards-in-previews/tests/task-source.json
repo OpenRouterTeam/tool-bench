@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "code/vercel/enable-gift-cards-in-previews",
+  "scenario_sha256": "sha256:9979178885a534609a6621b117634f65d6bd70d1d48f44ff5c02c41a1ee7ef1c",
+  "dataset_sha256": "sha256:439caddd71f2943b2f57e69f097b3dae6fb7cfb5e23b8e4b9bdb7fa602c02ef9",
+  "contract_sha256": "sha256:7edd674bc708dff9d5fa02c98f25e0f59726e2426eba37ce32f642fe09822e67"
+}

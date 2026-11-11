@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "cloud/mongodb/refund-order",
+  "scenario_sha256": "sha256:2f25f747a76cfe893fae29844ab0ae16ed37dee9d2c7f7c1efa32e0359a68385",
+  "dataset_sha256": "sha256:17cc233ada17c9dca2e7f1557a0edd8ea0bd7de391d6311901f659b83bc617c3",
+  "contract_sha256": "sha256:f868c51d9108aa45f3fd31a708c80be040eae091f02e09bb782eb93c4599a11e"
+}

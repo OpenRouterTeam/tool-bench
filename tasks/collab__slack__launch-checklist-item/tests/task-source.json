@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/slack/launch-checklist-item",
+  "scenario_sha256": "sha256:f9da5ae019cf74adf6cc2f774f896c17c67e1d3569b530a29baf79237f5b6fa8",
+  "dataset_sha256": "sha256:0faeacc0fc2547b2b37c2eb5e329a541d1e4068783c4bddce462752a282975ab",
+  "contract_sha256": "sha256:7db5361465eb9b0bf93c8ce327a9a0db451903fbba3b4ce6ca31e6ac40365bc8"
+}

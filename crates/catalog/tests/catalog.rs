@@ -28,6 +28,14 @@ fn validates_cleanly() {
 }
 
 #[test]
+fn github_result_profile_pins_json_and_disables_insider_expansion() {
+    let github = real().launch("github").unwrap();
+    assert_eq!(github.args, ["stdio", "--toolsets", "all"]);
+    assert_eq!(github.env["GITHUB_FEATURES"], "");
+    assert_eq!(github.env["GITHUB_INSIDERS"], "false");
+}
+
+#[test]
 fn replica_and_real_endpoints_are_well_formed() {
     let c = real();
     for s in &c.services {
@@ -56,10 +64,31 @@ fn replica_and_real_endpoints_are_well_formed() {
 #[test]
 fn launch_specs_substitute_world_placeholders() {
     let c = real();
+    let firecrawl = c.launch("firecrawl").unwrap();
+    assert_eq!(
+        firecrawl.env["FIRECRAWL_API_URL"],
+        "https://api.firecrawl.dev"
+    );
+    assert!(!firecrawl.env["FIRECRAWL_API_KEY"].contains("toolbench"));
     let gitlab = c.launch("gitlab").unwrap();
-    assert_eq!(gitlab.env["GITLAB_API_URL"], "http://world:8107/api/v4");
+    assert_eq!(
+        gitlab.env["GITLAB_API_URL"],
+        "https://gitlab.northwind.internal/api/v4"
+    );
+    assert_eq!(
+        gitlab.env["GITLAB_GRAPHQL_URL"],
+        "https://gitlab.northwind.internal/api/graphql"
+    );
     let sentry = c.launch("sentry").unwrap();
-    assert!(sentry.args.contains(&"--host=world:8113".to_owned()));
+    let terraform = c.launch("terraform").unwrap();
+    assert_eq!(terraform.env["TFE_ADDRESS"], "https://app.terraform.io/");
+    assert!(!terraform.env["TFE_TOKEN"].contains("toolbench"));
+    assert_eq!(sentry.args, ["--all-skills"]);
+    assert_eq!(sentry.env["SENTRY_URL"], "https://sentry.lumenlabs.dev/");
+    assert_eq!(sentry.env["SENTRY_ACCESS_TOKEN"], "sntrys_toolbench");
+    let grafana = c.launch("grafana").unwrap();
+    assert_eq!(grafana.env["GRAFANA_URL"], "https://grafana.octo-corp.com");
+    assert!(!grafana.env["GRAFANA_SERVICE_ACCOUNT_TOKEN"].contains("toolbench"));
     let k8s = c.launch("kubernetes").unwrap();
     assert_eq!(
         k8s.env["KUBECONFIG"],
@@ -76,8 +105,12 @@ fn launch_specs_substitute_world_placeholders() {
 fn world_aliases_cover_every_tls_host() {
     let c = real();
     let aliases = c.world_aliases();
+    assert!(aliases.contains(&"api.firecrawl.dev".to_owned()));
     assert!(aliases.contains(&"api.search.brave.com".to_owned()));
     assert!(aliases.contains(&"github.octo-corp.com".to_owned()));
+    assert!(aliases.contains(&"gitlab.northwind.internal".to_owned()));
+    assert!(aliases.contains(&"gitlab.lumen.internal".to_owned()));
+    assert!(aliases.contains(&"app.terraform.io".to_owned()));
     let unique: BTreeSet<_> = aliases.iter().collect();
     assert_eq!(unique.len(), aliases.len());
 }

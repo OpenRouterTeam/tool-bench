@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "bundle_id": "held-out-synthetic-fixture",
+  "synthetic_fixture": true,
+  "notice": "Synthetic control for the sealed-bundle admission path. It contains no tasks, was approved by nobody, and is not a held-out task set. No held-out result may cite it.",
+  "tasks": []
+}

@@ -7,58 +7,58 @@ services = ["hubspot"]
 tags = ["single-service", "write", "hubspot", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = []
+dependency_depth = 1
+rationale = "Contacts 512001 (Hooli) and 512002 (Vandelay) are both Dana Whitfield, plus Dana Whitman 512003; companies 18234004 Pied Piper and 18234005 Pied Piper Pizza; contract pins 512001 and 18234004."
+
 # Two contacts are named Dana Whitfield (512001 at Hooli, 512002 at Vandelay) and a Dana
 # Whitman (512003) already works at Pied Piper. Two companies match "Pied Piper": the
 # startup 18234004 (piedpiper.com) and Pied Piper Pizza 18234005.
+[expect]
+version = 2
+audit_history = true
+
 [[expect.state]]
 pointer = "/services/hubspot/contacts/512001/properties/email"
 equals = "dana.whitfield@piedpiper.com"
 
-[[expect.state]]
+[[expect.records]]
+selector = { collection = "/services/hubspot/associations", matching = { fromObjectType = "companies", fromObjectId = "18234004", toObjectType = "contacts", toObjectId = "512001", types = [{ associationCategory = "HUBSPOT_DEFINED", associationTypeId = 280 }] } }
+equals = 1
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/contacts/512001/properties/email"
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/contacts/512001/properties/company"
+matching = { properties = { company = "Pied Piper" } }
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/contacts/512001/properties/lastmodifieddate"
+
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/contacts/512001/updatedAt"
+
+[[expect.preservation.allow]]
 pointer = "/services/hubspot/associations/companies~118234004~1contacts~1512001"
-exists = true
+kind = "create"
+matching = { fromObjectType = "companies", fromObjectId = "18234004", toObjectType = "contacts", toObjectId = "512001", types = [{ associationCategory = "HUBSPOT_DEFINED", associationTypeId = 280 }] }
 
-[[expect.state]]
-pointer = "/services/hubspot/associations/companies~118234005~1contacts~1512001"
-exists = false
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/associations/companies~118234004~1contacts~1512001/types"
+matching = { types = [{ associationCategory = "HUBSPOT_DEFINED", associationTypeId = 280 }] }
 
-[[expect.state]]
-pointer = "/services/hubspot/contacts/512002/properties/email"
-equals = "dana.whitfield@vandelay.com"
-
-[[expect.state]]
-pointer = "/services/hubspot/associations/companies~118234004~1contacts~1512002"
-exists = false
-
-[[expect.state]]
-pointer = "/services/hubspot/contacts/512003/properties/email"
-equals = "dana.whitman@piedpiper.com"
-
-[[expect.required_calls]]
-service = "hubspot"
-method = "POST"
-path_regex = "^/crm/v3/objects/(contacts|contact|0-1)/batch/update$"
-
-[[expect.required_calls]]
-service = "hubspot"
-method = "POST"
-path_regex = "^/crm/v4/associations/[^/]+/[^/]+/batch/create$"
-
-[[expect.forbidden_calls]]
-service = "hubspot"
-method = "POST"
-path_regex = "^/crm/v3/objects/(contacts|contact|0-1)/batch/create$"
-
-[[expect.forbidden_calls]]
-service = "hubspot"
-method = "POST"
-path_regex = "/batch/update$"
-body = { inputs = [{ id = "512002" }] }
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/associations/companies~118234003~1contacts~1512001/types"
+matching = { types = [{ associationCategory = "HUBSPOT_DEFINED", associationTypeId = 280 }] }
 
 [[solution.call]]
 endpoint = "hubspot"
 tool = "hubspot-batch-update-objects"
-arguments = { objectType = "contacts", inputs = [{ id = "512001", properties = { email = "dana.whitfield@piedpiper.com", company = "Pied Piper", jobtitle = "Director of Data Platform" } }] }
+arguments = { objectType = "contacts", inputs = [{ id = "512001", properties = { email = "dana.whitfield@piedpiper.com" } }] }
 
 [[solution.call]]
 endpoint = "hubspot"

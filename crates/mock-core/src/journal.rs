@@ -1,10 +1,19 @@
 use serde::Serialize;
 use serde_json::Value;
 
+pub struct ResponseRecord {
+    pub status: u16,
+    pub response_body: Value,
+}
+
 /// One request/response pair as seen by the world.
 #[derive(Debug, Clone, PartialEq, Serialize, serde::Deserialize)]
 pub struct JournalEntry {
     pub seq: u64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub operation_id: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replay: Option<crate::request::ReplayContext>,
     /// Logical time after any tick caused by this request.
     pub time: String,
     pub service: String,
@@ -95,6 +104,8 @@ mod tests {
     fn entry(seq: u64) -> JournalEntry {
         JournalEntry {
             seq,
+            operation_id: None,
+            replay: None,
             time: "2026-03-14T09:00:00Z".into(),
             service: "github".into(),
             source: "127.0.0.1".into(),

@@ -1,56 +1,314 @@
 {
+  "version": 2,
   "state": [
-    {
-      "pointer": "/services/argocd/resources/d39d8921-d825-549b-a290-0dcda1cafa6c/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt",
-      "equals": null,
-      "exists": true,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/argocd/resources/f00419cc-5e98-59e0-8f9c-27d6e2749852/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/argocd/resources/44569b22-4bc0-5922-8e97-19c76bbefa4b/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/argocd/resources/d39d8921-d825-549b-a290-0dcda1cafa6c/manifest/spec/paused",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
     {
       "pointer": "/services/argocd/applications/argocd~1search-indexer/status/sync/status",
       "equals": "OutOfSync",
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     }
   ],
+  "records": [
+    {
+      "selector": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "cluster": "https://prod-use1.k8s.lumen.internal",
+          "group": "apps",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "field_patterns": {
+          "/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]+)?Z$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/health/status": "Healthy"
+      },
+      "optional_fields": {},
+      "optional_choices": {
+        "/manifest/spec/paused": [
+          false
+        ]
+      },
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
+    }
+  ],
+  "relations": [
+    {
+      "source": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/manifest/metadata/generation",
+      "target": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/manifest/status/observedGeneration",
+      "kind": "numeric_equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "deleting": false,
+          "kind": "Pod",
+          "manifest": {
+            "status": {
+              "conditions": [
+                {
+                  "status": "True",
+                  "type": "Ready"
+                }
+              ],
+              "phase": "Running"
+            }
+          },
+          "namespace": "search"
+        },
+        "references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "ReplicaSet",
+                "namespace": "search"
+              },
+              "references": [
+                {
+                  "source_field": "/controller_uid",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/search-indexer",
+                      "kind": "Deployment",
+                      "name": "search-indexer-worker",
+                      "namespace": "search"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/uid"
+                },
+                {
+                  "source_field": "/template_digest",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/search-indexer",
+                      "kind": "Deployment",
+                      "name": "search-indexer-worker",
+                      "namespace": "search"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/template_digest"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/uid",
+      "target": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/manifest/spec/replicas",
+      "kind": "count_equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "deleting": false,
+          "kind": "Pod",
+          "manifest": {
+            "status": {
+              "conditions": [
+                {
+                  "status": "True",
+                  "type": "Ready"
+                }
+              ],
+              "phase": "Running"
+            }
+          },
+          "namespace": "search"
+        },
+        "references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "ReplicaSet",
+                "namespace": "search"
+              },
+              "references": [
+                {
+                  "source_field": "/controller_uid",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/search-indexer",
+                      "kind": "Deployment",
+                      "name": "search-indexer-worker",
+                      "namespace": "search"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/uid"
+                },
+                {
+                  "source_field": "/template_digest",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/search-indexer",
+                      "kind": "Deployment",
+                      "name": "search-indexer-worker",
+                      "namespace": "search"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/template_digest"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "source_field": "/controller_uid",
+      "target": {
+        "collection": "/services/argocd/resources",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet",
+          "namespace": "search"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/uid",
+      "kind": "foreign_key",
+      "fields": [
+        {
+          "source_field": "/manifest/spec/containers",
+          "target_field": "/manifest/spec/template/spec/containers",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/manifest/spec/serviceAccountName",
+          "target_field": "/manifest/spec/template/spec/serviceAccountName",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/manifest/metadata/namespace",
+          "target_field": "/manifest/metadata/namespace",
+          "kind": "equals"
+        },
+        {
+          "source_field": "/cluster",
+          "target_field": "/cluster",
+          "kind": "equals"
+        }
+      ]
+    }
+  ],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "argocd",
       "method": "POST",
       "path": "/api/v1/applications/search-indexer/resource/actions",
       "path_regex": null,
-      "query_contains": "resourceName=search-indexer-worker",
-      "body": null,
-      "body_contains": "restart",
-      "min_count": 1
+      "query_contains": null,
+      "query_fields": {
+        "group": "apps",
+        "kind": "Deployment",
+        "namespace": "search",
+        "resourceName": "search-indexer-worker"
+      },
+      "body": "restart",
+      "body_contains": null,
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [
@@ -62,7 +320,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "argocd",
@@ -72,7 +332,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "argocd",
@@ -82,18 +344,683 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "argocd",
-      "method": "POST",
-      "path": "/api/v1/applications/search-indexer/resource/actions",
-      "path_regex": null,
-      "query_contains": "resourceName=search-indexer-api",
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
-  "answer": null
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/argocd/resources/*/manifest/spec/template/metadata/annotations/kubectl.kubernetes.io~1restartedAt",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "argocd",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/api/v1/applications/search-indexer/resource/actions$"
+        }
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/generation",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/status",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/health",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/template_digest",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/content_digest",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/status",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "argocd",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/api/v1/applications/search-indexer(/resource-tree|/managed-resources|/resource)?$"
+        }
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/annotations/deployment.kubernetes.io~1revision",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Deployment",
+          "name": "search-indexer-worker",
+          "namespace": "search"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "argocd",
+          "methods": [
+            "GET"
+          ],
+          "path_regex": "^/api/v1/applications/search-indexer(/resource-tree|/managed-resources|/resource)?$"
+        }
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/spec/replicas",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/status",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/manifest/metadata/generation",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/health",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/active",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*/content_digest",
+        "kind": "update",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "ReplicaSet"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*",
+        "kind": "delete",
+        "matching": null,
+        "initial_matching": {
+          "app": "argocd/search-indexer",
+          "kind": "Pod"
+        },
+        "initial_references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "ReplicaSet"
+              },
+              "references": [
+                {
+                  "source_field": "/controller_uid",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/search-indexer",
+                      "kind": "Deployment",
+                      "name": "search-indexer-worker",
+                      "namespace": "search"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/uid"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": "all_matching",
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*",
+        "kind": "create",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "cluster": "https://prod-use1.k8s.lumen.internal",
+          "kind": "ReplicaSet",
+          "namespace": "search"
+        },
+        "references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          },
+          {
+            "source_field": "/template_digest",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "Deployment",
+                "name": "search-indexer-worker",
+                "namespace": "search"
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/template_digest"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/resources/*",
+        "kind": "create",
+        "matching": {
+          "app": "argocd/search-indexer",
+          "cluster": "https://prod-use1.k8s.lumen.internal",
+          "kind": "Pod",
+          "namespace": "search"
+        },
+        "references": [
+          {
+            "source_field": "/controller_uid",
+            "target": {
+              "collection": "/services/argocd/resources",
+              "matching": {
+                "app": "argocd/search-indexer",
+                "kind": "ReplicaSet"
+              },
+              "references": [
+                {
+                  "source_field": "/controller_uid",
+                  "target": {
+                    "collection": "/services/argocd/resources",
+                    "matching": {
+                      "app": "argocd/search-indexer",
+                      "kind": "Deployment",
+                      "name": "search-indexer-worker",
+                      "namespace": "search"
+                    },
+                    "key_prefix": null,
+                    "created": false,
+                    "identity_field": null
+                  },
+                  "target_field": "/uid"
+                }
+              ],
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/uid"
+          }
+        ],
+        "max_count": 100,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1search-indexer/metadata/resourceVersion",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/applications/argocd~1search-indexer/status/health",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/argocd/events/*",
+        "kind": "create",
+        "matching": {
+          "involvedObject": {
+            "kind": "Application",
+            "name": "search-indexer",
+            "namespace": "argocd"
+          },
+          "reason": "ResourceActionRan",
+          "source": {
+            "component": "argocd-server"
+          },
+          "type": "Normal"
+        },
+        "references": [
+          {
+            "source_field": "/involvedObject/uid",
+            "target": {
+              "collection": "/services/argocd/applications",
+              "matching": {
+                "metadata": {
+                  "name": "search-indexer",
+                  "namespace": "argocd"
+                }
+              },
+              "key_prefix": null,
+              "created": false,
+              "identity_field": null
+            },
+            "target_field": "/metadata/uid"
+          }
+        ],
+        "max_count": 1,
+        "count_scope": "per_commit",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -1,79 +1,156 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions",
-      "equals": null,
-      "exists": null,
-      "contains": {
-        "emailAddress": "dana.whitfield@contoso.example",
-        "role": "reader",
-        "type": "user"
-      },
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions/2",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/google/drive_files/12klLxpfyaiox7A1n8sigN7b3qTt3DYXh/permissions/1",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/google/drive_files/1HqJ_ArU5VCMWHwGz4FSEQR-Ykydr82k5/permissions/1",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/google/drive_files/1mLKl11xTzeA9uvedTdrOCPmtCHy8DAH-/permissions/1",
-      "equals": null,
-      "exists": false,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    }
-  ],
-  "required_calls": [],
-  "forbidden_calls": [
-    {
-      "service": "google",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "name": "set_drive_file_permissions"
-      },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "google",
-      "method": null,
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "share_type": "anyone"
+      "selector": {
+        "collection": "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions",
+        "matching": {},
+        "field_patterns": {
+          "/emailAddress": "(?i-u)^dana[.]whitfield@contoso[.]example$"
         },
-        "name": "manage_drive_access"
+        "key_prefix": null,
+        "created": false,
+        "identity_field": "/id"
       },
-      "body_contains": null,
-      "min_count": 1
+      "equals": null,
+      "min_count": 1,
+      "max_count": null,
+      "fields": {
+        "/role": "reader",
+        "/type": "user"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     }
   ],
-  "answer": null
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions",
+        "kind": "append",
+        "matching": {
+          "role": "reader",
+          "type": "user"
+        },
+        "field_patterns": {
+          "/emailAddress": "(?i-u)^dana[.]whitfield@contoso[.]example$"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": "/id",
+        "cause": {
+          "service": "google",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/_mcp/tools/call$"
+        }
+      },
+      {
+        "pointer": "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/permissions/*/role",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": {
+          "type": "user"
+        },
+        "element_field_patterns": {
+          "/emailAddress": "(?i-u)^dana[.]whitfield@contoso[.]example$"
+        },
+        "value_equals": "reader",
+        "identity_field": null,
+        "cause": {
+          "service": "google",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/_mcp/tools/call$"
+        }
+      },
+      {
+        "pointer": "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/shared",
+        "kind": "update",
+        "matching": {
+          "shared": true
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "google",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/_mcp/tools/call$"
+        }
+      },
+      {
+        "pointer": "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/modifiedTime",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "google",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/_mcp/tools/call$"
+        }
+      },
+      {
+        "pointer": "/services/google/drive_files/150dluRbaiTmEP9Spu-wAk0p_lQupubYY/lastModifyingUser",
+        "kind": "update",
+        "matching": {
+          "lastModifyingUser": {
+            "displayName": "Ops Team",
+            "emailAddress": "ops@octo-corp.example"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null,
+        "cause": {
+          "service": "google",
+          "methods": [
+            "POST"
+          ],
+          "path_regex": "^/_mcp/tools/call$"
+        }
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -10,7 +15,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "okta",
@@ -20,7 +27,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "okta",
@@ -30,14 +39,70 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "jordyn.patel@octo-corp.example",
-      "203.0.113.77"
-    ],
-    "regex": "(?i)\\b(6|six)\\b"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "State the login of the Okta account with the most failed sign-in events (user.session.start with outcome FAILURE) published on 2026-03-13 UTC, the number of those failed attempts, and the client IP address they all came from.",
+      "selector": {
+        "collection": "/services/okta/logs",
+        "matching": {
+          "eventType": "user.session.start",
+          "outcome": {
+            "result": "FAILURE"
+          }
+        },
+        "field_patterns": {
+          "/published": "^2026-03-13T"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "by": "/actor/alternateId",
+          "measure": "count",
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "attempts": {
+          "field": "/value",
+          "kind": "number",
+          "units": [
+            "attempts",
+            "attempt",
+            "failed",
+            "failures",
+            "failure",
+            "fails",
+            "unsuccessful",
+            "times",
+            "sign-ins",
+            "sign-in",
+            "logins",
+            "login"
+          ]
+        },
+        "ip": {
+          "field": "/member/client/ipAddress",
+          "kind": "identifier"
+        },
+        "login": {
+          "field": "/key",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements"
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

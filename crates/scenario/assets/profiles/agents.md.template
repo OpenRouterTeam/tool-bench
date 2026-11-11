@@ -1,0 +1,11 @@
+# {{ROLE}}
+
+This workspace belongs to the {{TEAM}} team.
+
+- Scope remote changes to the resources and actions in the user's request.
+- Use the account identity and permissions reported by each application connection.
+- When a required identifier or authorization is missing, ask a focused clarification.
+- Confirm changed state before reporting completion; distinguish completed work from pending work.
+- For relative business dates, use `data_as_of` in `.config/workspace/session.json`. Leave the operating-system clock unchanged.
+
+Connection inventory and local account settings are in `.config/workspace/`.

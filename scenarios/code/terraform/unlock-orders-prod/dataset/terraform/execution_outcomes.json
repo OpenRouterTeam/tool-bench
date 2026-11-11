@@ -1,0 +1,56 @@
+[
+  {
+    "_key": "plan-vOqCAeqHb08EsDyk",
+    "plan": "plan-vOqCAeqHb08EsDyk",
+    "resources": {
+      "aws_eip.nat_b": {
+        "provider": "registry.terraform.io/hashicorp/aws",
+        "attributes": {
+          "id": "eipalloc-0a91bc32de45f6078",
+          "domain": "vpc",
+          "public_ip": "198.51.100.74",
+          "tags": { "Name": "core-prod-nat-b" }
+        }
+      },
+      "aws_nat_gateway.b": {
+        "provider": "registry.terraform.io/hashicorp/aws",
+        "attributes": {
+          "id": "nat-0a91bc32de45f6078",
+          "connectivity_type": "public",
+          "allocation_id": "eipalloc-0a91bc32de45f6078",
+          "subnet_id": "subnet-0e1f2a3b4c5d6e7f8"
+        }
+      },
+      "aws_route_table.private[1]": {
+        "attributes": { "nat_gateway_id": "nat-0a91bc32de45f6078" }
+      }
+    }
+  },
+  {
+    "_key": "plan-5xrXsm0hQGFbznCf",
+    "plan": "plan-5xrXsm0hQGFbznCf",
+    "resources": {
+      "aws_eip.nat_b": {
+        "provider": "registry.terraform.io/hashicorp/aws",
+        "attributes": {
+          "id": "eipalloc-0b82cd43ef56a7089",
+          "domain": "vpc",
+          "public_ip": "198.51.100.75",
+          "tags": { "Name": "core-staging-nat-b" }
+        }
+      },
+      "aws_nat_gateway.b": {
+        "provider": "registry.terraform.io/hashicorp/aws",
+        "attributes": {
+          "id": "nat-0b82cd43ef56a7089",
+          "connectivity_type": "public",
+          "allocation_id": "eipalloc-0b82cd43ef56a7089",
+          "subnet_id": "subnet-0d4c3b2a1f0e9d8c7"
+        }
+      },
+      "aws_route_table.private[1]": {
+        "attributes": { "nat_gateway_id": "nat-0b82cd43ef56a7089" }
+      }
+    }
+  }
+]

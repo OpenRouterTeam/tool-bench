@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [
     {
       "service": "elasticsearch",
@@ -9,14 +14,75 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "eu-west-1"
-    ],
-    "regex": "412[.,]5"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the region with the largest average duration_ms over /checkout/submit requests on 2026-10-30 UTC whose status code is not an error (200-399), and state that average in milliseconds.",
+      "selector": {
+        "collection": "/services/elasticsearch/docs",
+        "matching": {
+          "endpoint": "/checkout/submit"
+        },
+        "field_patterns": {
+          "/@timestamp": "^2026-10-30T"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "by": "/region",
+          "measure": {
+            "average": "/duration_ms"
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "average": {
+          "field": "/value",
+          "kind": "number",
+          "units": [
+            "ms",
+            "milliseconds",
+            "millisecond",
+            "msec"
+          ],
+          "require_unit": true
+        },
+        "region": {
+          "field": "/key",
+          "kind": "identifier"
+        }
+      },
+      "mode": "statements",
+      "filter": {
+        "ranges": {
+          "/status_code": {
+            "min": "200",
+            "max": "399"
+          }
+        }
+      },
+      "context": [
+        "(ap-southeast-2: 305 ms, us-east-1: 210 ms)"
+      ],
+      "contradictions": [
+        "fastest",
+        "quickest",
+        "lowest"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

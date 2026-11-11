@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "ops/kubernetes/crashloop-root-cause",
+  "scenario_sha256": "sha256:b109e0d78ba88b0911ac9b36c6551ab001a95a878aa75744120031f826c3a721",
+  "dataset_sha256": "sha256:9300d2c236220fae23e56a9b7b6559d16ba5bcc2c50f9a78db4a3385f09b4689",
+  "contract_sha256": "sha256:5db92c09192279f54a7fa5b65b0f1c9bddce1e3d49a69c28db17adf9f5f5a74c"
+}

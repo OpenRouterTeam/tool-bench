@@ -21,9 +21,10 @@ pub async fn tree(
     Path(name): Path<String>,
     params: Params,
 ) -> ApiResult {
-    let world = world.lock().expect("world lock");
-    let store = model::store(&world);
     let key = app_key(params.get("appNamespace"), &name);
+    let mut world = world.lock().expect("world lock");
+    model::observe(&mut world, &key)?;
+    let store = model::store(&world);
     require_app(store, &key)?;
     let nodes: Vec<Value> = app_resources(store, &key)
         .into_iter()
@@ -44,15 +45,19 @@ pub async fn managed(
     Path(name): Path<String>,
     params: Params,
 ) -> ApiResult {
-    let world = world.lock().expect("world lock");
-    let store = model::store(&world);
     let key = app_key(params.get("appNamespace"), &name);
+    let mut world = world.lock().expect("world lock");
+    model::observe(&mut world, &key)?;
+    let store = model::store(&world);
     let app = require_app(store, &key)?;
     if let Some(project) = params.non_empty("project")
         && str_field(app, "/spec/project") != project
     {
         return Err(ArgoError::app_not_found(&name));
     }
+    let desired = crate::rendered::current(store, app);
+    let desired = model::checked(&mut world, desired)?;
+    let store = model::store(&world);
     let filter = |field: &str, r: &Value| {
         params
             .non_empty(field)
@@ -74,13 +79,9 @@ pub async fn managed(
             } else {
                 None
             };
-            let target = if r["requiresPruning"] == true {
-                None
-            } else {
-                r.get("targetManifest")
-                    .filter(|t| !t.is_null())
-                    .or(r.get("manifest"))
-            };
+            let target = desired.manifests.iter().find(|manifest| {
+                crate::rendered::identity(manifest) == crate::rendered::identity(&r["manifest"])
+            });
             let mut item = json!({
                 "kind": str_field(r, "/kind"),
                 "namespace": str_field(r, "/namespace"),
@@ -127,9 +128,10 @@ pub async fn get_resource(
     Path(name): Path<String>,
     params: Params,
 ) -> ApiResult {
-    let world = world.lock().expect("world lock");
-    let store = model::store(&world);
     let key = app_key(params.get("appNamespace"), &name);
+    let mut world = world.lock().expect("world lock");
+    model::observe(&mut world, &key)?;
+    let store = model::store(&world);
     require_app(store, &key)?;
     let resource = query_resource(store, &key, &name, &params)?;
     Ok(json(
@@ -322,10 +324,24 @@ pub async fn run_action(
     let uid = str_field(&resource, "/uid").to_owned();
     let rv = model::next_resource_version(svc);
     let kind = str_field(&resource, "/kind").to_owned();
+    let mut changed = resource.clone();
+    apply_action(&mut changed["manifest"], &kind, &action, &now);
+    if changed["manifest"] == resource["manifest"] {
+        return Ok(json(StatusCode::OK, json!({})));
+    }
+    if kind == "Deployment" {
+        let generation = resource["manifest"]["metadata"]["generation"]
+            .as_u64()
+            .unwrap_or(1);
+        changed["manifest"]["metadata"]["generation"] = json!(generation + 1);
+        changed["status"] = json!("OutOfSync");
+        changed["health"] = json!({"status":"Progressing"});
+    }
     if let Some(r) = svc.store.collection_mut("resources").get_mut(&uid) {
-        apply_action(&mut r["manifest"], &kind, &action, &now);
+        *r = changed;
         r["resourceVersion"] = json!(rv);
         r["manifest"]["metadata"]["resourceVersion"] = json!(rv);
+        crate::rendered::refresh_resource(r);
     }
     let message = format!(
         "admin ran action {action} on resource {}/{}/{}",

@@ -7,10 +7,41 @@ services = ["exa"]
 tags = ["write", "single-service", "exa"]
 timeout_sec = 900
 
-# The first research task created in this world gets this ID (deterministic per seed).
-[[expect.state]]
-pointer = "/services/exa/research/r_01k4fOjR4gU5lXF1HsNUQMnA/model"
-equals = "exa-research-pro"
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 2
+rationale = "The request states the pro research model (not fast or standard) and asks for one depot V2G report; the forbidden fast and standard calls only check that stated constraint."
+
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/exa/research", created = true }
+equals = 1
+fields = { "/model" = "exa-research-pro", "/status" = "completed" }
+
+[[expect.relations]]
+source = { collection = "/services/exa/research", created = true }
+source_field = "/output/content"
+target = { collection = "/services/exa/research_reports", matching = { id = "report-bidirectional-depot-chargers-de" } }
+target_field = "/content"
+kind = "equals"
+
+[[expect.relations]]
+source = { collection = "/services/exa/research", created = true }
+source_field = "/citations"
+target = { collection = "/services/exa/research_reports", matching = { id = "report-bidirectional-depot-chargers-de" } }
+target_field = "/citations"
+kind = "equals"
+
+[[expect.preservation.allow]]
+pointer = "/services/exa/research/*"
+kind = "create"
+matching = { model = "exa-research-pro" }
+max_count = 1
 
 [[expect.required_calls]]
 service = "exa"
@@ -18,13 +49,11 @@ method = "POST"
 path = "/research/v1"
 body = { model = "exa-research-pro" }
 
-# The report has to be fetched to answer.
 [[expect.required_calls]]
 service = "exa"
 method = "GET"
-path_regex = "^/research/v1/r_"
+path_regex = "^/research/v1/r_[0-9A-Za-z]+$"
 
-# The user ruled out the cheaper models.
 [[expect.forbidden_calls]]
 service = "exa"
 method = "POST"
@@ -37,9 +66,29 @@ method = "POST"
 path = "/research/v1"
 body = { model = "exa-research" }
 
-[expect.answer]
-contains = ["VoltHaven"]
-regex = '6[,.]?900'
+[expect.answer.source_facts]
+requirement = "Name the vendor with the largest installed share in the authored depot report and attribute that same vendor's typical 22 kW bidirectional unit price to it, without negation or misattribution."
+source = { selector = { collection = "/services/exa/research_reports", matching = { id = "report-bidirectional-depot-chargers-de" } }, field = "/content" }
+key = "vendor"
+rows = { largest = "share" }
+
+[expect.answer.source_facts.columns.vendor]
+header = "Vendor"
+kind = "name"
+
+[expect.answer.source_facts.columns.hq]
+header = "HQ"
+kind = "place"
+required = false
+
+[expect.answer.source_facts.columns.share]
+header = "Share of installed depot V2G units (DE)"
+kind = "percent"
+required = false
+
+[expect.answer.source_facts.columns.price]
+header = "Typical price, 22 kW AC bidirectional unit"
+kind = "money"
 
 [solution]
 answer = "Market leader: VoltHaven (Hamburg), about 31% of installed depot V2G units in Germany. Typical price of its 22 kW AC bidirectional unit: EUR 6,900.\n"

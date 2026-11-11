@@ -240,6 +240,8 @@ pub const DEFAULT_ACCOUNT_ID: &str = "acct_1TbNch4mK9xQ2wLp";
 pub struct Ctx<'a> {
     pub world: &'a mut WorldState,
     pub request_id: Option<String>,
+    pub idempotency_key: Option<String>,
+    pub response_lost: bool,
 }
 
 impl<'a> Ctx<'a> {
@@ -247,6 +249,8 @@ impl<'a> Ctx<'a> {
         Self {
             world,
             request_id: None,
+            idempotency_key: None,
+            response_lost: false,
         }
     }
 

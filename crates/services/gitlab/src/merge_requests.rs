@@ -1156,6 +1156,14 @@ fn merge(w: &mut WorldState, r: &Req) -> Response {
             );
         }
     }
+    let source = str_of(&m, "source_branch").to_owned();
+    let src_project = source_project(st, &key, &m);
+    if crate::repository::branch_head(st, &src_project, &source).is_none() {
+        return error(
+            StatusCode::METHOD_NOT_ALLOWED,
+            "Source branch does not exist",
+        );
+    }
     let auto = r.bool("merge_when_pipeline_succeeds").unwrap_or(false)
         || r.bool("auto_merge").unwrap_or(false);
     let pipeline = crate::ci::latest_mr_pipeline(st, &key);
@@ -1206,9 +1214,12 @@ fn merge(w: &mut WorldState, r: &Req) -> Response {
     let now = now(w);
     let st = svc_mut(w);
     let current = current_username(st);
-    let source = str_of(&m, "source_branch").to_owned();
     let target = str_of(&m, "target_branch").to_owned();
     let squash = r.bool("squash").or(m["squash"].as_bool()).unwrap_or(false);
+    let squash_message = squash.then(|| {
+        r.s("squash_commit_message")
+            .unwrap_or_else(|| str_of(&m, "title").to_owned())
+    });
     let message = r.s("merge_commit_message").unwrap_or_else(|| {
         format!(
             "Merge branch '{source}' into '{target}'\n\n{}\n\nSee merge request {project}!{}",
@@ -1216,8 +1227,7 @@ fn merge(w: &mut WorldState, r: &Req) -> Response {
             iid_of(&key)
         )
     });
-    let src_project = source_project(st, &key, &m);
-    let merge_sha = crate::repository::merge_branches(
+    let merge = crate::repository::merge_branches(
         st,
         &project,
         &src_project,
@@ -1226,6 +1236,7 @@ fn merge(w: &mut WorldState, r: &Req) -> Response {
         &message,
         &current,
         &now,
+        squash_message.as_deref(),
     );
     let remove = r
         .bool("should_remove_source_branch")
@@ -1238,13 +1249,11 @@ fn merge(w: &mut WorldState, r: &Req) -> Response {
     doc["state"] = json!("merged");
     doc["merged_at"] = json!(now);
     doc["merged_by"] = json!(current);
-    doc["merge_commit_sha"] = json!(merge_sha);
+    doc["merge_commit_sha"] = json!(merge.sha);
     doc["updated_at"] = json!(now);
     doc["merge_when_pipeline_succeeds"] = json!(false);
-    if squash {
-        doc["squash"] = json!(true);
-        doc["squash_commit_sha"] = json!(fake_sha(&format!("{key}:squash")));
-    }
+    doc["squash"] = json!(squash);
+    doc["squash_commit_sha"] = merge.squash_sha.map(Value::String).unwrap_or(Value::Null);
     if remove {
         doc["should_remove_source_branch"] = json!(true);
     }

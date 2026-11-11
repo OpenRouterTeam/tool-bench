@@ -7,14 +7,112 @@ services = ["zendesk", "shopify"]
 tags = ["lookup", "multi-service", "zendesk", "shopify", "disambiguation"]
 timeout_sec = 1200
 
+[scenario.family]
+schema_version = 1
+primary = "cross_system_identity"
+secondary = ["entity_ambiguity"]
+dependency_depth = 3
+rationale = "Ticket 6621 requester sam.ortiz@fastmail.com maps to Shopify customer 7301 and unfulfilled #1063; the other Sam Ortiz sortiz@gmail.com (7302) has unfulfilled #1060 and Samantha Ortiz-Reyes has #1064."
+
 # Zendesk ticket 6621 is from Sam Ortiz <sam.ortiz@fastmail.com>, asking about the sweater +
 # tote ordered on May 10. In Shopify that customer is 7301, whose order #1063 (5563, $176.00,
 # paid) is still UNFULFILLED. Look-alikes: the same customer's March order #1051 (a sweater,
 # fulfilled), the other Sam Ortiz <sortiz@gmail.com> (7302, ticket 6610) whose #1060 is also
 # unfulfilled, and Samantha Ortiz-Reyes' #1064.
-[expect.answer]
-contains = ["#1063", "176"]
-regex = '(?i)(unfulfilled|not (yet )?(been )?(shipped|fulfilled)|has(n.t| not) (yet )?(shipped|been shipped|been fulfilled))'
+[expect]
+version = 2
+audit_history = true
+
+# The order is the one placed on May 10, 2026 (the order date the ticket body gives) by the
+# Shopify customer whose email is that of the Sam Ortiz who requested the ticket created on
+# 2026-05-17 ("yesterday"). Its number, fulfillment status and total are read from the order.
+[expect.answer.record_facts]
+requirement = "State the number of the Shopify order placed on May 10, 2026 by the customer who requested the Zendesk ticket Sam Ortiz opened on 2026-05-17, say that it has not shipped (fulfillment status UNFULFILLED), and state its total in US dollars."
+mode = "statements"
+context = [
+  "(Sam's other order, #1051 from March, was fulfilled; #1060 belongs to a different Sam Ortiz.)",
+  "payment PAID",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/shopify/orders"
+field_patterns = { "/createdAt" = "^2026-05-10T" }
+
+[[expect.answer.record_facts.selector.references]]
+source_field = "/email"
+target_field = "/email"
+
+[expect.answer.record_facts.selector.references.target]
+collection = "/services/zendesk/users"
+matching = { name = "Sam Ortiz" }
+
+[[expect.answer.record_facts.selector.references.target.references]]
+source_field = "/id"
+target_field = "/requester_id"
+
+[expect.answer.record_facts.selector.references.target.references.target]
+collection = "/services/zendesk/tickets"
+field_patterns = { "/created_at" = "^2026-05-17T" }
+
+[expect.answer.record_facts.facts.order]
+field = "/name"
+kind = "identifier"
+capture = '^#(\d+)$'
+
+[expect.answer.record_facts.facts.status]
+field = "/fulfillmentStatus"
+kind = "text"
+
+# Ways of saying an order has not shipped. The request asks "has it shipped yet", so a
+# labelled "Shipped: No" is an answer too; "Shipped : No" is how a table cell reads.
+[expect.answer.record_facts.facts.status.wordings]
+UNFULFILLED = [
+  "not shipped",
+  "not shipped yet",
+  "has not shipped yet",
+  "not yet shipped",
+  "not been shipped",
+  "not yet been shipped",
+  "hasn't shipped",
+  "hasn't yet shipped",
+  "hasn't been shipped",
+  "hasn't yet been shipped",
+  "isn't shipped",
+  "yet to ship",
+  "yet to be shipped",
+  "nothing has shipped",
+  "nothing has been shipped",
+  "not fulfilled",
+  "not yet fulfilled",
+  "not been fulfilled",
+  "not yet been fulfilled",
+  "hasn't been fulfilled",
+  "hasn't yet been fulfilled",
+  "isn't fulfilled",
+  "yet to be fulfilled",
+  "awaiting fulfillment",
+  "awaiting fulfilment",
+  "awaiting shipment",
+  "awaiting dispatch",
+  "pending fulfillment",
+  "pending shipment",
+  "not dispatched",
+  "not yet dispatched",
+  "not been dispatched",
+  "not yet been dispatched",
+  "hasn't been dispatched",
+  "unshipped",
+  "Shipped: No",
+  "Shipped : No",
+  "Shipped yet: No",
+  "Shipped: Not yet",
+  "Shipped : Not yet",
+  "Shipped yet: Not yet",
+]
+
+[expect.answer.record_facts.facts.total]
+field = "/totalPrice"
+kind = "money"
 
 [[expect.forbidden_calls]]
 service = "shopify"
@@ -51,10 +149,4 @@ tool = "get-customer-orders"
 arguments = { customerId = "7301" }
 
 [solution]
-answer = """
-Ticket 6621 (Sam Ortiz, sam.ortiz@fastmail.com) is about Shopify order #1063, placed May 10, 2026:
-Merino Crew Sweater (M) + Harbor Canvas Tote (Sand), total $176.00, payment PAID.
-
-It has not shipped yet: the fulfillment status is UNFULFILLED, so there is no shipment or tracking number.
-(Sam's other order, #1051 from March, was fulfilled; #1060 belongs to a different Sam Ortiz.)
-"""
+answer = "Order #1063, not yet shipped, total $176.00."

@@ -7,29 +7,30 @@ services = ["slack"]
 tags = ["write", "single-service", "slack"]
 timeout_sec = 900
 
-# A new record in the v2 list with every field set; the archived v1 list (which already has
-# a similar-looking item) is untouched, and no columns are changed.
-[[expect.state]]
+[scenario.family]
+schema_version = 1
+primary = "baseline"
+secondary = []
+dependency_depth = 1
+rationale = "F0PAYV2LST1 is the only list named Payments v2 launch checklist (the other is the v1 2025 checklist) and Priya Natarajan is a unique user; all four column values are given; one appended record is checked."
+
+[expect]
+version = 2
+audit_history = true
+
+[[expect.records]]
+selector = { collection = "/services/slack/lists/F0PAYV2LST1/records", identity_field = "/id", created = true }
+equals = 1
+fields = { "/fields/Col0TASK0001" = "Rotate webhook signing secrets", "/fields/Col0OWNR0002" = ["U03PRIYAN4T"], "/fields/Col0STAT0003" = ["in_progress"], "/fields/Col0DUED0004" = "2026-11-05" }
+
+[[expect.preservation.allow]]
 pointer = "/services/slack/lists/F0PAYV2LST1/records"
-contains = { fields = { Col0TASK0001 = "Rotate webhook signing secrets", Col0OWNR0002 = ["U03PRIYAN4T"], Col0STAT0003 = ["in_progress"], Col0DUED0004 = "2026-11-05" } }
+kind = "append"
+identity_field = "/id"
+matching = { created_by = "U02CMORG8RK" }
 
-[[expect.state]]
-pointer = "/services/slack/lists/F0PAYV1LST9/records/2"
-exists = false
-
-[[expect.state]]
-pointer = "/services/slack/lists/F0PAYV2LST1/columns/4"
-exists = false
-
-[[expect.required_calls]]
-service = "slack"
-path = "/_mcp/tools/call"
-body = { name = "slack_add_list_record" }
-
-[[expect.forbidden_calls]]
-service = "slack"
-path = "/_mcp/tools/call"
-body = { name = "slack_update_list" }
+[[expect.preservation.allow]]
+pointer = "/services/slack/lists/F0PAYV2LST1/next_rec"
 
 [[solution.call]]
 endpoint = "slack"

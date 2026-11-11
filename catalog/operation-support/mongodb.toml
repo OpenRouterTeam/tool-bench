@@ -1,0 +1,56 @@
+# Reviewed operation support for `mongodb`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "mongodb"
+tool = "atlas-list-clusters"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "MongoDB pause, exact-domain cleanup and order refunds"
+
+[[operation]]
+endpoint = "mongodb"
+tool = "atlas-list-projects"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "MongoDB pause, exact-domain cleanup and order refunds"
+
+[[operation]]
+endpoint = "mongodb"
+tool = "atlas-pause-resume-cluster"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "MongoDB pause, exact-domain cleanup and order refunds"
+
+[[operation]]
+endpoint = "mongodb"
+tool = "count"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "MongoDB pause, exact-domain cleanup and order refunds"
+
+[[operation]]
+endpoint = "mongodb"
+tool = "delete-many"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "MongoDB pause, exact-domain cleanup and order refunds"
+
+[[operation]]
+endpoint = "mongodb"
+tool = "find"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "MongoDB pause, exact-domain cleanup and order refunds"
+
+[[operation]]
+endpoint = "mongodb"
+tool = "update-many"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "MongoDB pause, exact-domain cleanup and order refunds"

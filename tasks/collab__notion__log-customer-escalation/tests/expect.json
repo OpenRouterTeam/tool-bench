@@ -1,85 +1,166 @@
 {
-  "state": [
+  "version": 2,
+  "state": [],
+  "records": [
     {
-      "pointer": "/services/notion/pages/2a312ccd-ad51-42dd-8f17-7f194d6b5db7/parent/data_source_id",
-      "equals": "f937b556-2452-4808-a340-f4c80ce63d68",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/notion/pages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {},
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {}
     },
     {
-      "pointer": "/services/notion/pages/2a312ccd-ad51-42dd-8f17-7f194d6b5db7/properties/Summary/title/0/plain_text",
-      "equals": "Checkout button unresponsive on Safari",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/pages/2a312ccd-ad51-42dd-8f17-7f194d6b5db7/properties/Customer/rich_text/0/plain_text",
-      "equals": null,
-      "exists": null,
-      "contains": "Acme Retail",
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/pages/2a312ccd-ad51-42dd-8f17-7f194d6b5db7/properties/Severity/select/name",
-      "equals": "Sev 2",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/pages/2a312ccd-ad51-42dd-8f17-7f194d6b5db7/properties/State/status/name",
-      "equals": "Open",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/pages/2a312ccd-ad51-42dd-8f17-7f194d6b5db7/properties/Owner/people/0/id",
-      "equals": "6a5aa3fe-744c-41b8-ab6d-2e0cc2ef706a",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/notion/pages/2a312ccd-ad51-42dd-8f17-7f194d6b5db7/properties/Reported/date/start",
-      "equals": "2026-10-29",
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/notion/pages",
+        "matching": {
+          "parent": {
+            "data_source_id": "f937b556-2452-4808-a340-f4c80ce63d68"
+          }
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": 1,
+      "min_count": null,
+      "max_count": null,
+      "fields": {
+        "/archived": false,
+        "/in_trash": false,
+        "/parent/database_id": "31142074-4482-4c70-9ca0-406aa0edd7ec",
+        "/parent/type": "data_source_id",
+        "/properties/Owner/people/0/id": "6a5aa3fe-744c-41b8-ab6d-2e0cc2ef706a",
+        "/properties/Reported/date/start": "2026-10-29",
+        "/properties/Severity/select/name": "Sev 2",
+        "/properties/State/status/name": "Open"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [
+        "/properties/Reported/date/end",
+        "/properties/Reported/date/time_zone"
+      ],
+      "html_text": {},
+      "reviewed_text": {
+        "/properties/Customer/rich_text": {
+          "requirement": "The Customer is the reporting customer's name, Acme Retail, and nothing else. Segment boundaries, passive formatting and letter case do not change the name.",
+          "accepted": [
+            "Acme Retail"
+          ],
+          "mentions": [
+            "^Acme Retail$"
+          ],
+          "format": "notion_rich_text",
+          "bound": null
+        },
+        "/properties/Summary/title": {
+          "requirement": "The Summary is the reported issue as dictated: Checkout button unresponsive on Safari. Segment boundaries, passive formatting and letter case do not change the title; no other text may be added.",
+          "accepted": [
+            "Checkout button unresponsive on Safari"
+          ],
+          "mentions": [
+            "^Checkout button unresponsive on Safari$"
+          ],
+          "format": "notion_rich_text",
+          "bound": null
+        }
+      },
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {},
+      "array_lengths": {
+        "/properties/Owner/people": 1
+      }
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "notion",
-      "method": "POST",
-      "path": "/v1/pages",
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/notion/pages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/parent/data_source_id",
+      "target": {
+        "collection": "/services/notion/data_sources",
+        "matching": {
+          "id": "f937b556-2452-4808-a340-f4c80ce63d68"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/notion/pages",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/properties/Owner/people/0/id",
+      "target": {
+        "collection": "/services/notion/users",
+        "matching": {
+          "id": "6a5aa3fe-744c-41b8-ab6d-2e0cc2ef706a",
+          "name": "Alex Kim"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "equals",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "notion",
-      "method": "DELETE",
-      "path": null,
-      "path_regex": null,
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/notion/pages/*",
+        "kind": "create",
+        "matching": {
+          "parent": {
+            "data_source_id": "f937b556-2452-4808-a340-f4c80ce63d68"
+          }
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

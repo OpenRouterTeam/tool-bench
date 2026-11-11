@@ -1,12 +1,175 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [],
   "answer": {
-    "contains": [
-      "TestRetryBackoffCapsAtMaxDelay",
-      "32s"
-    ],
-    "regex": null
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the job that failed in the latest CI run of pull request #42's branch, the test that failed in that job, and the exact assertion message its log prints for that test.",
+      "selector": {
+        "collection": "/services/github/pulls",
+        "matching": {
+          "number": 42
+        },
+        "key_prefix": "octo-org/payments-api#",
+        "created": false,
+        "identity_field": null
+      },
+      "selection": "only",
+      "facts": {
+        "assertion": {
+          "field": "/log",
+          "kind": "text",
+          "record": "job",
+          "capture": "_test\\.go:\\d+: (.+)"
+        },
+        "job": {
+          "field": "/name",
+          "kind": "text",
+          "record": "job"
+        },
+        "run_id": {
+          "field": "/id",
+          "kind": "identifier",
+          "optional": true,
+          "record": "run"
+        },
+        "test": {
+          "field": "/log",
+          "kind": "identifier",
+          "record": "job",
+          "capture": "--- FAIL: (\\S+)"
+        },
+        "test_file": {
+          "field": "/log",
+          "kind": "identifier",
+          "optional": true,
+          "record": "job",
+          "capture": "(\\S+_test\\.go):\\d+:"
+        },
+        "test_location": {
+          "field": "/log",
+          "kind": "identifier",
+          "optional": true,
+          "record": "job",
+          "capture": "(\\S+_test\\.go:\\d+):"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "job": {
+          "from": "run",
+          "collection": "/services/github/workflow_jobs",
+          "filter": {
+            "matching": {
+              "/conclusion": "failure"
+            }
+          },
+          "on": {
+            "/run_id": "/id"
+          }
+        },
+        "run": {
+          "collection": "/services/github/workflow_runs",
+          "filter": {
+            "matching": {
+              "/repo": "octo-org/payments-api"
+            }
+          },
+          "on": {
+            "/head_branch": "/head"
+          },
+          "pick": {
+            "largest": "/run_number"
+          }
+        }
+      },
+      "context": [
+        "Lint and integration tests passed",
+        "lint and integration-tests passed",
+        "lint and integration-tests jobs passed",
+        "lint and integration-tests both passed",
+        "lint and integration-tests succeeded",
+        "The lint and integration-tests jobs succeeded",
+        "lint and integration-tests jobs succeeded",
+        "lint and integration-tests both succeeded",
+        "lint and integration-tests were green",
+        "lint and integration-tests are green",
+        "lint and integration-tests were both green",
+        "lint and integration-tests are both green",
+        "lint (success)",
+        "integration-tests (success)",
+        "lint (passed)",
+        "integration-tests (passed)",
+        "lint ✅",
+        "integration-tests ✅",
+        "at ${test_location}",
+        "in ${test_file}",
+        "run ${run_id}",
+        "Assertion"
+      ],
+      "predicates": [
+        "passed except",
+        "passes except",
+        "pass except",
+        "passing except",
+        "succeeded except",
+        "successful except",
+        "green except",
+        "other two jobs passed",
+        "other two checks passed",
+        "other two passed",
+        "other jobs passed",
+        "other checks passed",
+        "others passed",
+        "everything else passed",
+        "rest passed",
+        "other two jobs succeeded",
+        "other two succeeded",
+        "other jobs succeeded",
+        "others succeeded",
+        "everything else succeeded",
+        "other two jobs are green",
+        "other two checks are green",
+        "other two are green",
+        "other jobs are green",
+        "other checks are green",
+        "others are green",
+        "everything else is green",
+        "rest are green",
+        "rest is green",
+        "passed on the previous",
+        "passed on the earlier",
+        "passed on the first",
+        "passed on jane's previous",
+        "passed on her previous",
+        "passed in the previous",
+        "passed in the earlier",
+        "passed before",
+        "previously passed",
+        "green on the previous",
+        "green on the earlier",
+        "green on the first",
+        "green in the previous",
+        "green before",
+        "previously green",
+        "from green to red"
+      ],
+      "contradictions": [
+        "passed",
+        "succeeded",
+        "green",
+        "success"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

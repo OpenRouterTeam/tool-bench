@@ -5,7 +5,7 @@
 //! collection they are created on first access.
 
 use axum::http::{Method, StatusCode};
-use mock_core::world::WorldState;
+use mock_core::world::{ServiceState, WorldState};
 use serde_json::{Map, Value, json};
 
 use crate::util::{
@@ -13,8 +13,8 @@ use crate::util::{
     not_found, page, put, remove, svc, ts, validation,
 };
 
-const DEFAULT_BRAND: &str = "bnd1toolbench0000001";
-const DEFAULT_THEME: &str = "thd1toolbench0000001";
+const DEFAULT_BRAND: &str = "bnd8ub4n2Yc6Ds7Rt0x7";
+const DEFAULT_THEME: &str = "thd8ut4n2Yc6Ds7Rt0x7";
 
 pub const EMAIL_TEMPLATES: [&str; 24] = [
     "ADForgotPassword",
@@ -45,8 +45,8 @@ pub const EMAIL_TEMPLATES: [&str; 24] = [
 
 const WIDGET_VERSIONS: [&str; 6] = ["7.21", "7.22", "7.23", "7.24", "7.25", "7.26"];
 
-fn ensure_defaults(w: &mut WorldState) {
-    if svc(w).store.collection("brands").is_some() {
+pub fn initialize(service: &mut ServiceState) {
+    if service.store.collection("brands").is_some() {
         return;
     }
     let brand = json!({
@@ -60,15 +60,20 @@ fn ensure_defaults(w: &mut WorldState) {
         "emailDomainId": null,
         "defaultApp": { "appInstanceId": null, "appLinkName": null, "classicApplicationUri": null }
     });
-    put(w, "brands", DEFAULT_BRAND, brand);
-    if svc(w).store.collection("themes").is_none() {
-        put(
-            w,
-            "themes",
-            &format!("{DEFAULT_BRAND}/{DEFAULT_THEME}"),
+    service
+        .store
+        .collection_mut("brands")
+        .insert(DEFAULT_BRAND, brand);
+    if service.store.collection("themes").is_none() {
+        service.store.collection_mut("themes").insert(
+            format!("{DEFAULT_BRAND}/{DEFAULT_THEME}"),
             default_theme(DEFAULT_THEME),
         );
     }
+}
+
+fn ensure_defaults(world: &mut WorldState) {
+    initialize(svc(world));
 }
 
 fn default_theme(id: &str) -> Value {
@@ -997,10 +1002,10 @@ fn device_assurances(w: &mut WorldState, req: &Req, s: &[&str]) -> Res {
             let now = ts(w);
             let id = new_id(w, "device_assurance", "dae");
             body["id"] = json!(id);
-            body["createdBy"] = json!("00utoolbench0000000");
+            body["createdBy"] = json!(crate::account::PRINCIPAL_ID);
             body["createdDate"] = json!(now);
             body["lastUpdate"] = json!(now);
-            body["lastUpdatedBy"] = json!("00utoolbench0000000");
+            body["lastUpdatedBy"] = json!(crate::account::PRINCIPAL_ID);
             put(w, "device_assurances", &id, body.clone());
             Ok(Reply::ok(render_da(&body)))
         }

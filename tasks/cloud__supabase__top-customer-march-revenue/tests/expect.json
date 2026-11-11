@@ -1,5 +1,10 @@
 {
+  "version": 2,
   "state": [],
+  "records": [],
+  "relations": [],
+  "audit_history": true,
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [
     {
@@ -10,7 +15,9 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     },
     {
       "service": "supabase",
@@ -20,14 +27,78 @@
       "query_contains": null,
       "body": null,
       "body_contains": null,
-      "min_count": 1
+      "min_count": 1,
+      "response_status": [],
+      "allow_tool_error": false
     }
   ],
   "answer": {
-    "contains": [
-      "Grace Kim",
-      "grace.kim@example.kr"
-    ],
-    "regex": "1,?234\\.50?"
-  }
+    "contains": [],
+    "regex": null,
+    "record_facts": {
+      "requirement": "Name the customer of the production storefront project whose paid or shipped orders created in March 2026 UTC sum to the largest total, with that customer's email address and that total in US dollars.",
+      "selector": {
+        "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.orders",
+        "matching": {},
+        "field_patterns": {
+          "/created_at": "^2026-03-",
+          "/status": "^(paid|shipped)$"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "selection": {
+        "group": {
+          "by": "/customer_id",
+          "measure": {
+            "sum": "/total"
+          },
+          "pick": "largest"
+        }
+      },
+      "facts": {
+        "email": {
+          "field": "/email",
+          "kind": "identifier",
+          "record": "customer"
+        },
+        "name": {
+          "field": "/full_name",
+          "kind": "text",
+          "record": "customer"
+        },
+        "total": {
+          "field": "/value",
+          "kind": "money"
+        }
+      },
+      "mode": "statements",
+      "related": {
+        "customer": {
+          "collection": "/services/supabase/db.qmvbxtzkplrnwdhyfaco.public.customers",
+          "on": {
+            "/id": "/key"
+          }
+        }
+      },
+      "context": [
+        "runner-up Felix Wagner",
+        "second-place Felix Wagner",
+        "Felix Wagner in second place",
+        "Felix Wagner in second"
+      ],
+      "contradictions": [
+        "second",
+        "second-highest",
+        "second-largest",
+        "runner-up",
+        "the least",
+        "the lowest"
+      ]
+    }
+  },
+  "preservation": null,
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

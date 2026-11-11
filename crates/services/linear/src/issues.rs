@@ -549,11 +549,21 @@ pub fn create_issue_inner(ctx: &mut Ctx, args: &Value) -> Result<Value, String> 
         .unwrap_or(0)
         + 1;
     let identifier = format!("{key}-{number}");
-    let id = ctx.uuid("issue");
     let state = arg(args, "stateId")
         .map(str::to_owned)
         .or_else(|| tdata["stateId"].as_str().map(str::to_owned))
         .unwrap_or_else(|| default_state(ctx, &team));
+    let workflow = ctx.need("workflow_states", &state, "WorkflowState")?;
+    if s(&workflow, "teamId") != s(&team, "id") {
+        return Err("Invalid input - The workflow state must belong to the issue's team.".into());
+    }
+    if let Some(cycle_id) = arg(args, "cycleId") {
+        let cycle = ctx.need("cycles", cycle_id, "Cycle")?;
+        if s(&cycle, "teamId") != s(&team, "id") {
+            return Err("Invalid input - The cycle must belong to the issue's team.".into());
+        }
+    }
+    let id = ctx.uuid("issue");
     let min_sort = ctx
         .all("issues")
         .iter()
@@ -613,6 +623,19 @@ pub fn create_issue(ctx: &mut Ctx, args: &Value) -> R {
 }
 
 pub fn update_issue(ctx: &mut Ctx, args: &Value) -> R {
+    let mut staged = ctx.st.clone();
+    let result = update_issue_inner(
+        &mut Ctx {
+            st: &mut staged,
+            now: ctx.now,
+        },
+        args,
+    )?;
+    *ctx.st = staged;
+    Ok(result)
+}
+
+fn update_issue_inner(ctx: &mut Ctx, args: &Value) -> R {
     let id = arg(args, "id").unwrap_or("");
     let (key, mut issue) = ctx.need_issue(id)?;
     check_priority(args)?;

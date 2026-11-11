@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "business/multi/zendesk-refund-via-stripe",
+  "scenario_sha256": "sha256:484f19afe41f690e19db27e99bfcd5cc9a7dd09f22f21c1e4baccad1c493755f",
+  "dataset_sha256": "sha256:5c90a8f3d151ff71df60df6c29b575f38545481c4e624432339c9aee7b5597ed",
+  "contract_sha256": "sha256:04231e354a2e6f470a4ee4486b516d3cd031da6d9578f9dc420060b27be7dc23"
+}

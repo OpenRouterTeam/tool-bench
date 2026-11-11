@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "runner_protocol": "tool-bench-runner-v3",
+  "verification_protocol": "offline-world-evidence-v5",
+  "harbor_version": "0.23.0",
+  "adapter_sha256": "424aa73ed349fed0bcf3ff972ca2e6d648a7b709fb4e882fe131b7595ebe0908",
+  "inference_adapter": {
+    "name": "harbor-native-computer1-v1",
+    "code_sha256": "sha256:9272f79afcc0e703fa3661aaa87adeab7a2ba30257b514d973a2d30a3bb3b3d9"
+  },
+  "proxy_inference_adapter": {
+    "name": "host-proxy-native-anthropic-messages-v1",
+    "code_sha256": "sha256:0467bcbe368adb088f2e099862d3e4b9ba720092fdb6bced55c333509dd1d7e5"
+  }
+}

@@ -7,13 +7,104 @@ services = ["brave", "firecrawl"]
 tags = ["lookup", "multi-service", "brave", "firecrawl", "disambiguation"]
 timeout_sec = 900
 
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Current facts are the 2026-10-27 $45M Series B and live Growth $890; stale ones are the 2025 $12M Series A, DealBase, the 2025 blog and Capterra at $690; Norvik Labs ($30M) is a look-alike."
+
 # Funding (news): $45M Series B led by Halcyon Ventures on 2026-10-27. Distractors: the 2025
 # Series A ($12M, Fjord Capital), a stale funding database, look-alike Norvik Labs ($30M).
 # Pricing (live page): Growth $890/month billed annually ($1,090 monthly). The 2025 blog post
 # and Capterra say $690; Norvik Labs sells robot fleets.
-[expect.answer]
-contains = ["Halcyon", "Series B", "890"]
-regex = '(?i)\$?\s?45\s?(m\b|mn\b|million)'
+[expect]
+version = 2
+audit_history = true
+
+# Funding: the news headline about Norvik Analytics raising money, published in the week of
+# the scenario clock (2026-10-29). Pricing: an independent second source, Norvik Analytics'
+# own pricing page; the pattern reads the Growth entry and also the Growth entry of the 2025
+# blog post and of the third-party listing, whose price therefore counts as another record's.
+[expect.answer.record_facts]
+requirement = "State the amount (in millions of US dollars), the round and the lead investor of the funding round that Norvik Analytics announced in the news during the week of 2026-10-29, and the monthly price in US dollars of its Growth plan when billed annually according to the company's own current pricing page."
+mode = "statements"
+context = [
+  "or $${monthly_price} month to month",
+  "existing investor ${participating_investor} participated",
+  "reported by ${news_source} on ${news_date}",
+  "(prices updated ${price_update_date})",
+  "${participating_investor} participating",
+  "${participating_investor} participated",
+  "${participating_investor} also participated",
+  "participation from existing investor ${participating_investor}",
+  "participation from ${participating_investor}",
+]
+# The same article names an existing investor that took part without leading.
+
+
+[expect.answer.record_facts.selector]
+collection = "/services/brave/news"
+field_patterns = { "/title" = '^Norvik Analytics (raises|closes|secures|announces) ', "/page_age" = '^2026-10-2[3-9]T' }
+
+[expect.answer.record_facts.related.pricing]
+collection = "/services/firecrawl/pages"
+filter = { patterns = { "/title" = '^Pricing \| Norvik Analytics$' } }
+
+[expect.answer.record_facts.facts.amount]
+field = "/title"
+capture = '\$(\d+(?:\.\d+)?)M\b'
+kind = "money"
+units = ["million", "m", "mn"]
+require_unit = true
+
+[expect.answer.record_facts.facts.round]
+field = "/title"
+capture = '\b(Series [A-Z])\b'
+kind = "text"
+
+[expect.answer.record_facts.facts.lead]
+field = "/description"
+capture = 'led by ([A-Z][A-Za-z]+(?: [A-Z][A-Za-z]+)*)'
+kind = "text"
+
+[expect.answer.record_facts.facts.price]
+record = "pricing"
+field = "/markdown"
+capture = 'Growth(?:\n\n|\*\* is| \|) ?(?:\*\*)?\$([\d,]+)(?:/| per )month'
+kind = "money"
+units = ["usd", "dollars", "$", "/month", "/mo", "per month", "a month", "monthly"]
+require_unit = true
+
+[expect.answer.record_facts.facts.participating_investor]
+field = "/description"
+capture = 'participation from (?:existing investor )?([A-Z][A-Za-z]+(?: [A-Z][A-Za-z]+)*)'
+kind = "text"
+optional = true
+
+[expect.answer.record_facts.facts.news_source]
+field = "/source"
+kind = "text"
+optional = true
+
+[expect.answer.record_facts.facts.news_date]
+field = "/page_age"
+kind = "date"
+optional = true
+
+[expect.answer.record_facts.facts.monthly_price]
+record = "pricing"
+field = "/markdown"
+capture = 'Growth[^#]*?\$(\d[\d,]+) billed monthly'
+kind = "money"
+optional = true
+
+[expect.answer.record_facts.facts.price_update_date]
+record = "pricing"
+field = "/markdown"
+capture = 'Prices? (?:last )?updated ([A-Z][a-z]+ \d{1,2},? \d{4})'
+kind = "date"
+optional = true
 
 [[expect.required_calls]]
 service = "brave"
@@ -21,7 +112,7 @@ method = "GET"
 path_regex = "^/res/v1/"
 
 [solution]
-answer = "1. Funding: Norvik Analytics raised a $45 million Series B led by Halcyon Ventures (existing investor Fjord Capital participated), reported by TechBeat on 2026-10-27.\n2. Pricing: the Growth plan is $890/month billed annually ($1,090 billed monthly), per https://www.norvikanalytics.com/pricing (prices updated October 1, 2026).\n"
+answer = "Funding: $45M Series B led by Halcyon Ventures. Pricing: Growth is $890 per month, billed annually."
 
 [[solution.call]]
 endpoint = "brave-search"

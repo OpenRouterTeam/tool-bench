@@ -1,4 +1,5 @@
 {
+  "version": 2,
   "state": [
     {
       "pointer": "/services/stripe/charges/ch_3Qb2MjLee109003aQs9uD/refunded",
@@ -6,7 +7,10 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
     },
     {
       "pointer": "/services/stripe/charges/ch_3Qb2MjLee109003aQs9uD/amount_refunded",
@@ -14,134 +18,418 @@
       "exists": null,
       "contains": null,
       "any": null,
-      "key_prefix": null
-    },
+      "key_prefix": null,
+      "is_null": null,
+      "text_equals": null,
+      "member_ascii_ci": null
+    }
+  ],
+  "records": [
     {
-      "pointer": "/services/stripe/refunds",
+      "selector": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_3Qb2MjLee109003aQs9uD"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
       "equals": null,
-      "exists": null,
-      "contains": null,
-      "any": {
-        "charge": "ch_3Qb2MjLee109003aQs9uD",
-        "reason": "duplicate"
+      "min_count": 1,
+      "max_count": 8640,
+      "fields": {
+        "/currency": "usd",
+        "/payment_intent": "pi_3Qb2MjLee109003bXz4aE",
+        "/reason": "duplicate",
+        "/status": "succeeded"
       },
-      "key_prefix": null
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/amount": 8640
+      },
+      "integer_bounds": {
+        "/amount": {
+          "min": 1,
+          "max": 8640
+        }
+      }
     },
     {
-      "pointer": "/services/stripe/charges/ch_3Qb2KjLee109002aPo7tB/amount_refunded",
-      "equals": 0,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 8640,
+      "fields": {
+        "/currency": "usd",
+        "/fee": 0,
+        "/fee_details": [],
+        "/status": "available"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/amount": -8640,
+        "/net": -8640
+      },
+      "integer_bounds": {
+        "/amount": {
+          "min": -8640,
+          "max": -1
+        },
+        "/net": {
+          "min": -8640,
+          "max": -1
+        }
+      }
     },
     {
-      "pointer": "/services/stripe/charges/ch_3Qb3AjLe2109010aRu1vF/amount_refunded",
-      "equals": 0,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 8640,
+      "fields": {
+        "/data/object/charge": "ch_3Qb2MjLee109003aQs9uD",
+        "/data/object/currency": "usd",
+        "/data/object/reason": "duplicate"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {
+        "/data/object/amount": 8640
+      },
+      "integer_bounds": {
+        "/data/object/amount": {
+          "min": 1,
+          "max": 8640
+        }
+      }
     },
     {
-      "pointer": "/services/stripe/charges/ch_3Qa7CgLgh108815aMw3pX/amount_refunded",
-      "equals": 0,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
-    },
-    {
-      "pointer": "/services/stripe/charges/ch_3Qa7DgLgh108816aNe8rS/amount_refunded",
-      "equals": 0,
-      "exists": null,
-      "contains": null,
-      "any": null,
-      "key_prefix": null
+      "selector": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "charge.refunded"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "equals": null,
+      "min_count": 1,
+      "max_count": 8640,
+      "fields": {
+        "/data/object/currency": "usd",
+        "/data/object/id": "ch_3Qb2MjLee109003aQs9uD"
+      },
+      "optional_fields": {},
+      "optional_choices": {},
+      "null_fields": [],
+      "html_text": {},
+      "reviewed_text": {},
+      "reviewed_fields": null,
+      "any_fields": [],
+      "totals": {},
+      "integer_bounds": {
+        "/data/object/amount_refunded": {
+          "min": 1,
+          "max": 8640
+        }
+      }
     }
   ],
-  "required_calls": [
+  "relations": [
     {
-      "service": "elasticsearch",
-      "method": "POST",
-      "path": null,
-      "path_regex": "(_search|_query)$",
-      "query_contains": null,
-      "body": null,
-      "body_contains": null,
-      "min_count": 1
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_3Qb2MjLee109003aQs9uD"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/balance_transaction",
+      "target": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": [
+        {
+          "source_field": "/amount",
+          "target_field": "/amount",
+          "kind": "negated_integer"
+        },
+        {
+          "source_field": "/amount",
+          "target_field": "/net",
+          "kind": "negated_integer"
+        },
+        {
+          "source_field": "/currency",
+          "target_field": "/currency",
+          "kind": "equals"
+        }
+      ]
     },
     {
-      "service": "stripe",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "stripe_api_operation_id": "PostRefunds"
+      "source": {
+        "collection": "/services/stripe/balance_transactions",
+        "matching": {
+          "type": "refund"
         },
-        "name": "stripe_api_write"
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
+      "source_field": "/source",
+      "target": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_3Qb2MjLee109003aQs9uD"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {
+          "charge": "ch_3Qb2MjLee109003aQs9uD"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/id",
+      "target": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/data/object/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "refund.created"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/request/id",
+      "target": {
+        "collection": "/services/stripe/events",
+        "matching": {
+          "type": "charge.refunded"
+        },
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "target_field": "/request/id",
+      "kind": "bijection",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/charge",
+      "target": {
+        "collection": "/services/elasticsearch/docs",
+        "matching": {
+          "customer_email": "jordan.lee@example.com",
+          "order_id": "ORD-109003"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/stripe_charge_id",
+      "kind": "foreign_key",
+      "fields": []
+    },
+    {
+      "source": {
+        "collection": "/services/stripe/refunds",
+        "matching": {},
+        "key_prefix": null,
+        "created": true,
+        "identity_field": null
+      },
+      "source_field": "/payment_intent",
+      "target": {
+        "collection": "/services/elasticsearch/docs",
+        "matching": {
+          "customer_email": "jordan.lee@example.com",
+          "order_id": "ORD-109003"
+        },
+        "key_prefix": null,
+        "created": false,
+        "identity_field": null
+      },
+      "target_field": "/payment_intent",
+      "kind": "foreign_key",
+      "fields": []
     }
   ],
-  "forbidden_calls": [
-    {
-      "service": "stripe",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "parameters": {
-            "charge": "ch_3Qb2KjLee109002aPo7tB"
-          },
-          "stripe_api_operation_id": "PostRefunds"
-        },
-        "name": "stripe_api_write"
+  "audit_history": true,
+  "ordering": [],
+  "required_calls": [],
+  "forbidden_calls": [],
+  "answer": null,
+  "preservation": {
+    "allow": [
+      {
+        "pointer": "/services/stripe/charges/ch_3Qb2MjLee109003aQs9uD/amount_refunded",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "stripe",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "parameters": {
-            "payment_intent": "pi_3Qb2KjLee109002bWx2yC"
-          },
-          "stripe_api_operation_id": "PostRefunds"
-        },
-        "name": "stripe_api_write"
+      {
+        "pointer": "/services/stripe/charges/ch_3Qb2MjLee109003aQs9uD/refunded",
+        "kind": "update",
+        "matching": null,
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    },
-    {
-      "service": "stripe",
-      "method": "POST",
-      "path": "/_mcp/tools/call",
-      "path_regex": null,
-      "query_contains": null,
-      "body": {
-        "arguments": {
-          "parameters": {
-            "charge": "ch_3Qb3AjLe2109010aRu1vF"
-          },
-          "stripe_api_operation_id": "PostRefunds"
+      {
+        "pointer": "/services/stripe/refunds/*",
+        "kind": "create",
+        "matching": {
+          "charge": "ch_3Qb2MjLee109003aQs9uD",
+          "currency": "usd",
+          "reason": "duplicate",
+          "status": "succeeded"
         },
-        "name": "stripe_api_write"
+        "max_count": 8640,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       },
-      "body_contains": null,
-      "min_count": 1
-    }
-  ],
-  "answer": null
+      {
+        "pointer": "/services/stripe/balance_transactions/*",
+        "kind": "create",
+        "matching": {
+          "currency": "usd",
+          "type": "refund"
+        },
+        "max_count": 8640,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/events/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "object": {
+              "charge": "ch_3Qb2MjLee109003aQs9uD",
+              "currency": "usd",
+              "reason": "duplicate"
+            }
+          },
+          "type": "refund.created"
+        },
+        "max_count": 8640,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/stripe/events/*",
+        "kind": "create",
+        "matching": {
+          "data": {
+            "object": {
+              "id": "ch_3Qb2MjLee109003aQs9uD"
+            }
+          },
+          "type": "charge.refunded"
+        },
+        "max_count": 8640,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      }
+    ],
+    "equivalent_numbers": []
+  },
+  "interfaces": "mcp_only",
+  "environment_faults": []
 }

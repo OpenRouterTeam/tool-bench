@@ -1,0 +1,1 @@
+River Electronics emailed again about being charged twice for order #D-101 on March 3. Please make sure the duplicate charge (the second one that went through) has been refunded in full, and let me know where it stands.

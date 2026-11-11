@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "collab/multi/slack-pagerduty-dbre-oncall",
+  "scenario_sha256": "sha256:6292199c0e70daa4f633807ef97d15d3eaaeb3bf3fdde09737390895bbbd97eb",
+  "dataset_sha256": "sha256:66a0bdc15356c209fa8d86e46f75f740be88df00977c60393b78ed720d44cf44",
+  "contract_sha256": "sha256:0210ac0c6477423fcebc1484b98703442a2865c5132f87434d20aaae0e8774c9"
+}

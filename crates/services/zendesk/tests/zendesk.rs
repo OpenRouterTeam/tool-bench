@@ -297,8 +297,8 @@ async fn create_ticket_stores_a_full_ticket_and_first_comment() {
     assert_eq!(v["ticket"]["organization_id"], 3600301);
     assert_eq!(v["ticket"]["tags"], json!(["scanners", "sync"]));
     assert_eq!(
-        v["ticket"]["created_at"], "2026-10-30T10:15:07Z",
-        "one clock tick"
+        v["ticket"]["created_at"], "2026-10-30T10:15:00Z",
+        "fixed business reference time"
     );
 
     let s = state(&w);
@@ -344,7 +344,7 @@ async fn create_ticket_comment_renders_markdown_and_respects_public() {
     );
     assert_eq!(c["body"], "Escalated: INC-4471\nPaging on-call.");
     assert_eq!(c["author_id"], 9010001);
-    assert_eq!(s["tickets"]["6230"]["updated_at"], "2026-10-30T13:20:07Z");
+    assert_eq!(s["tickets"]["6230"]["updated_at"], "2026-10-30T13:20:00Z");
 
     tool(
         &app,
@@ -681,6 +681,7 @@ async fn scenario_oracles_pass_and_nop_fails() {
 
         let nop = world(slug);
         let snapshot = nop.lock().unwrap().snapshot();
+        let initial_state = snapshot.clone();
         let g = grade(&GradeInput {
             expect: &scenario.expect,
             state: snapshot,
@@ -689,6 +690,8 @@ async fn scenario_oracles_pass_and_nop_fails() {
             tools_ips: vec!["unknown".to_owned()],
             context_overflow: false,
             startup: &[],
+            initial_state: Some(&initial_state),
+            events: Some(&[]),
         });
         assert_eq!(g.reward, 0.0, "{slug}: nop must fail");
 
@@ -703,9 +706,14 @@ async fn scenario_oracles_pass_and_nop_fails() {
                 call.tool
             );
         }
-        let (snapshot, journal) = {
+        let (snapshot, journal, initial_state, events) = {
             let world = w.lock().unwrap();
-            (world.snapshot(), world.journal.entries().to_vec())
+            (
+                world.snapshot(),
+                world.journal.entries().to_vec(),
+                world.initial_snapshot(),
+                world.events().entries().to_vec(),
+            )
         };
         let g = grade(&GradeInput {
             expect: &scenario.expect,
@@ -715,6 +723,8 @@ async fn scenario_oracles_pass_and_nop_fails() {
             tools_ips: vec!["unknown".to_owned()],
             context_overflow: false,
             startup: &[],
+            initial_state: Some(&initial_state),
+            events: Some(&events),
         });
         assert_eq!(g.reward, 1.0, "{slug}: oracle must pass: {g:?}");
     }
@@ -743,7 +753,7 @@ async fn identical_requests_give_identical_responses() {
     }
     assert_eq!(outputs[0], outputs[1]);
     assert!(
-        outputs[0].contains("\"updated_at\": \"2026-10-29T16:30:14Z\""),
+        outputs[0].contains("\"updated_at\": \"2026-10-29T16:30:00Z\""),
         "{}",
         outputs[0]
     );

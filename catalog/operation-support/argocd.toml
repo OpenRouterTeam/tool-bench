@@ -1,0 +1,56 @@
+# Reviewed operation support for `argocd`.
+#
+# Machine-readable index of docs/operation-support.md. `partial` means the operation was
+# reviewed for the workflows recorded in the named section, with the stated limitations;
+# it is not vendor conformance. An operation exercised by a scored reference solution but
+# absent from these files surfaces as the `unreviewed_reference_operation` inventory gap.
+schema_version = 1
+
+[[operation]]
+endpoint = "argocd"
+tool = "get_application"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Argo CD source, controller and connector checkpoint"
+
+[[operation]]
+endpoint = "argocd"
+tool = "get_application_resource_tree"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Argo CD source, controller and connector checkpoint"
+
+[[operation]]
+endpoint = "argocd"
+tool = "get_resource_actions"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Argo CD source, controller and connector checkpoint"
+
+[[operation]]
+endpoint = "argocd"
+tool = "list_applications"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Argo CD source, controller and connector checkpoint"
+
+[[operation]]
+endpoint = "argocd"
+tool = "run_resource_action"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Argo CD source, controller and connector checkpoint"
+
+[[operation]]
+endpoint = "argocd"
+tool = "sync_application"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Argo CD source, controller and connector checkpoint"
+
+[[operation]]
+endpoint = "argocd"
+tool = "update_application_spec"
+status = "partial"
+limitations = "Reviewed only as exercised by this service's documented write workflows; other arguments, fields, pagination and error behavior of this tool are not certified."
+section = "Argo CD source, controller and connector checkpoint"

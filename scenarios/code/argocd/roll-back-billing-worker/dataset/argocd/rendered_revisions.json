@@ -1,0 +1,163 @@
+[
+  {
+    "_key": "billing-worker-production-v1.42.0",
+    "repoURL": "https://github.com/lumen-retail/billing-worker-deploy.git",
+    "path": "overlays/production",
+    "revision": "b0826e986c9c73e0088c6ecb2a14458d247d2205",
+    "manifests": [
+      {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": {
+          "name": "billing-worker",
+          "namespace": "billing",
+          "labels": {
+            "app.kubernetes.io/name": "billing-worker",
+            "app.kubernetes.io/instance": "billing-worker",
+            "app.kubernetes.io/version": "1.42.0",
+            "app.kubernetes.io/part-of": "billing"
+          }
+        },
+        "spec": {
+          "replicas": 2,
+          "revisionHistoryLimit": 5,
+          "selector": {
+            "matchLabels": {
+              "app.kubernetes.io/name": "billing-worker",
+              "app.kubernetes.io/instance": "billing-worker"
+            }
+          },
+          "strategy": {
+            "type": "RollingUpdate",
+            "rollingUpdate": {
+              "maxSurge": "25%",
+              "maxUnavailable": "25%"
+            }
+          },
+          "template": {
+            "metadata": {
+              "labels": {
+                "app.kubernetes.io/name": "billing-worker",
+                "app.kubernetes.io/instance": "billing-worker",
+                "app.kubernetes.io/version": "1.42.0"
+              }
+            },
+            "spec": {
+              "serviceAccountName": "billing-worker",
+              "containers": [
+                {
+                  "name": "billing-worker",
+                  "image": "ghcr.io/lumen-retail/billing-worker:1.42.0",
+                  "ports": [
+                    {
+                      "name": "http",
+                      "containerPort": 8080,
+                      "protocol": "TCP"
+                    }
+                  ],
+                  "resources": {
+                    "requests": { "cpu": "250m", "memory": "512Mi" },
+                    "limits": { "memory": "512Mi" }
+                  },
+                  "readinessProbe": {
+                    "httpGet": { "path": "/healthz", "port": "http" },
+                    "periodSeconds": 10
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "metadata": {
+          "name": "billing-worker-config",
+          "namespace": "billing",
+          "labels": { "app.kubernetes.io/instance": "billing-worker" }
+        },
+        "data": {
+          "QUEUE_URL": "https://sqs.us-east-1.amazonaws.com/381492004121/invoice-jobs",
+          "BATCH_SIZE": "50"
+        }
+      }
+    ]
+  },
+  {
+    "_key": "billing-worker-production-v1.41.0",
+    "repoURL": "https://github.com/lumen-retail/billing-worker-deploy.git",
+    "path": "overlays/production",
+    "revision": "0f79cae54d68dcd626d5d7d4306d904d33ee1de2",
+    "manifests": [
+      {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": {
+          "name": "billing-worker",
+          "namespace": "billing",
+          "labels": {
+            "app.kubernetes.io/name": "billing-worker",
+            "app.kubernetes.io/instance": "billing-worker",
+            "app.kubernetes.io/version": "1.41.0",
+            "app.kubernetes.io/part-of": "billing"
+          }
+        },
+        "spec": {
+          "replicas": 2,
+          "revisionHistoryLimit": 5,
+          "selector": {
+            "matchLabels": {
+              "app.kubernetes.io/name": "billing-worker",
+              "app.kubernetes.io/instance": "billing-worker"
+            }
+          },
+          "strategy": {
+            "type": "RollingUpdate",
+            "rollingUpdate": { "maxSurge": "25%", "maxUnavailable": "25%" }
+          },
+          "template": {
+            "metadata": {
+              "labels": {
+                "app.kubernetes.io/name": "billing-worker",
+                "app.kubernetes.io/instance": "billing-worker",
+                "app.kubernetes.io/version": "1.41.0"
+              }
+            },
+            "spec": {
+              "serviceAccountName": "billing-worker",
+              "containers": [
+                {
+                  "name": "billing-worker",
+                  "image": "ghcr.io/lumen-retail/billing-worker:1.41.0",
+                  "ports": [ { "name": "http", "containerPort": 8080, "protocol": "TCP" } ],
+                  "resources": {
+                    "requests": { "cpu": "250m", "memory": "512Mi" },
+                    "limits": { "memory": "512Mi" }
+                  },
+                  "readinessProbe": {
+                    "httpGet": { "path": "/healthz", "port": "http" },
+                    "periodSeconds": 10
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "apiVersion": "v1",
+        "kind": "ConfigMap",
+        "metadata": {
+          "name": "billing-worker-config",
+          "namespace": "billing",
+          "labels": { "app.kubernetes.io/instance": "billing-worker" }
+        },
+        "data": {
+          "QUEUE_URL": "https://sqs.us-east-1.amazonaws.com/381492004121/invoice-jobs",
+          "BATCH_SIZE": "50"
+        }
+      }
+    ]
+  }
+]

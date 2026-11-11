@@ -605,7 +605,8 @@ pub fn cast(v: &Value, format: &str) -> Result<Value, SqlError> {
             })?,
             other => other.clone(),
         },
-        "text" | "varchar" | "bpchar" | "citext" | "uuid" | "name" | "regclass" | "inet" => {
+        "regclass" => return Err(SqlError::unsupported()),
+        "text" | "varchar" | "bpchar" | "citext" | "uuid" | "name" | "inet" => {
             Value::String(to_text(v).unwrap_or_default())
         }
         "interval" => Value::String(format_interval(parse_interval(
