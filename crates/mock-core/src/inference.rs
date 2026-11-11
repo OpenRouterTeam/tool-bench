@@ -452,6 +452,7 @@ impl InferenceEvidence {
                 format!("host inference ended as {:?}", self.classification),
             );
         } else if self.classification.is_context_rejection() || self.final_text().is_none() {
+            assessment.reinstate_refusals();
             assessment.reward = 0.0;
             assessment.answer_ok = false;
             if assessment.contract_ok && assessment.environment_ok && assessment.integrity_ok {
@@ -913,5 +914,80 @@ mod tests {
         evidence.scripted = false;
         evidence.adapter.name = "harbor-native-v1".into();
         assert!(!evidence.admits_native());
+    }
+
+    #[test]
+    fn a_missing_final_response_makes_refused_operations_count_again() {
+        use crate::{
+            events::{EventKind, OperationContext, OperationEvent, OperationKind},
+            grading::{Expect, GradeInput, Outcome, grade},
+        };
+        let refusal = OperationEvent {
+            seq: 4,
+            time: "2026-11-03T15:00:00Z".into(),
+            operation: Some(OperationContext {
+                id: 1,
+                generation: 0,
+                parent_id: None,
+                scenario: "example".into(),
+                service: "google".into(),
+                source: "192.0.2.10".into(),
+                method: "POST".into(),
+                path: "/_mcp/tools/call".into(),
+                kind: OperationKind::Http,
+            }),
+            event: EventKind::EnvironmentFailed {
+                code: "google_drive_access_option_unsupported".into(),
+                reason: "a custom notification message is not modeled".into(),
+            },
+        };
+        let expect: Expect = serde_json::from_value(serde_json::json!({
+            "state": [{"pointer": "/services/drive/files/report/shared", "equals": true}]
+        }))
+        .unwrap();
+        let graded = || {
+            grade(&GradeInput {
+                expect: &expect,
+                state: serde_json::json!({
+                    "services": {"drive": {"files": {"report": {"shared": true}}}}
+                }),
+                journal: &[],
+                answer: None,
+                tools_ips: vec!["192.0.2.10".into()],
+                context_overflow: false,
+                startup: &[],
+                initial_state: None,
+                events: Some(std::slice::from_ref(&refusal)),
+            })
+        };
+        let mut evidence = valid_evidence();
+        evidence.scripted = false;
+
+        // A completed run leaves the refusal set aside.
+        let mut completed = graded();
+        evidence.apply_to_grade(&mut completed);
+        assert_eq!(completed.outcome, Outcome::Pass);
+        assert_eq!(completed.refused_operations.len(), 1);
+
+        // Without a final response the trial no longer passes, so it is void again.
+        evidence.final_response = None;
+        let mut silent = graded();
+        evidence.apply_to_grade(&mut silent);
+        assert_eq!(silent.outcome, Outcome::EnvironmentError);
+        assert_eq!(silent.reward, 0.0);
+        assert!(!silent.environment_ok && !silent.answer_ok);
+        assert!(silent.refused_operations.is_empty());
+        let locations: Vec<_> = silent
+            .failures
+            .iter()
+            .map(|failure| failure.location.as_str())
+            .collect();
+        assert_eq!(
+            locations,
+            [
+                "environment/google_drive_access_option_unsupported",
+                "inference/completion",
+            ]
+        );
     }
 }

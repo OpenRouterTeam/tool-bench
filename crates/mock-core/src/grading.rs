@@ -284,6 +284,29 @@ pub enum CheckKind {
     Interaction,
 }
 
+/// A call the mock refused because it does not model the requested operation
+/// ([`events::is_unsupported_refusal`]).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RefusedOperation {
+    /// The environment-failure code the service recorded.
+    pub code: String,
+    pub reason: String,
+    /// Sequence number of the `environment_failed` operation event.
+    pub event: u64,
+}
+
+/// The failure an `environment_failed` operation event is when it counts against the trial.
+fn environment_failure(code: &str, reason: &str, event: u64) -> CheckFailure {
+    CheckFailure {
+        check: CheckKind::Environment,
+        disposition: CheckDisposition::Failed,
+        location: format!("environment/{code}"),
+        reason: reason.to_owned(),
+        evidence: Vec::new(),
+        event_evidence: vec![event],
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Grade {
     pub evaluator_version: u32,
@@ -308,6 +331,11 @@ pub struct Grade {
     pub runner_admission_ok: bool,
     pub adjudication_needed: bool,
     pub failures: Vec<CheckFailure>,
+    /// Unsupported operations the mock refused in a trial where nothing else failed.
+    /// They are recorded here, not in `failures`, and do not count against the trial.
+    /// Empty whenever anything else failed: the refusals are then in `failures`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub refused_operations: Vec<RefusedOperation>,
     /// World requests made through MCP servers, excluding their startup requests.
     pub api_calls: usize,
     /// World requests that did not come from the tools container.
@@ -323,7 +351,31 @@ impl Grade {
         }
     }
 
+    /// A failure found after grading ends the allowance for refused operations: they
+    /// count again, as they would have if `grade` had seen that failure. Call this
+    /// before recording any failure on an assessment that `grade` returned.
+    pub fn reinstate_refusals(&mut self) {
+        if self.refused_operations.is_empty() {
+            return;
+        }
+        let mut failures: Vec<_> = self
+            .refused_operations
+            .drain(..)
+            .map(|refusal| environment_failure(&refusal.code, &refusal.reason, refusal.event))
+            .collect();
+        failures.append(&mut self.failures);
+        self.failures = failures;
+        self.environment_ok = false;
+        self.reward = 0.0;
+        self.outcome = if self.contract_ok {
+            Outcome::EnvironmentError
+        } else {
+            Outcome::InvalidContract
+        };
+    }
+
     pub fn invalidate_contract(&mut self, location: impl Into<String>, reason: impl Into<String>) {
+        self.reinstate_refusals();
         self.contract_ok = false;
         self.outcome = Outcome::InvalidContract;
         self.reward = 0.0;
@@ -342,6 +394,7 @@ impl Grade {
         location: impl Into<String>,
         reason: impl Into<String>,
     ) {
+        self.reinstate_refusals();
         self.environment_ok = false;
         self.outcome = if self.contract_ok {
             Outcome::EnvironmentError
@@ -450,16 +503,19 @@ pub fn grade(input: &GradeInput) -> Grade {
             });
         }
     }
+    // Every environment failure is a failure here. The refusals among them are also kept
+    // aside, so they can be set apart at the end if nothing else failed.
+    let mut refused_operations = Vec::new();
     for event in input.events.into_iter().flatten() {
         if let events::EventKind::EnvironmentFailed { code, reason } = &event.event {
-            failures.push(CheckFailure {
-                check: CheckKind::Environment,
-                disposition: CheckDisposition::Failed,
-                location: format!("environment/{code}"),
-                reason: reason.clone(),
-                evidence: Vec::new(),
-                event_evidence: vec![event.seq],
-            });
+            failures.push(environment_failure(code, reason, event.seq));
+            if events::is_unsupported_refusal(code) {
+                refused_operations.push(RefusedOperation {
+                    code: code.clone(),
+                    reason: reason.clone(),
+                    event: event.seq,
+                });
+            }
         }
     }
     let contract_ok = match input.expect.validate() {
@@ -866,6 +922,16 @@ pub fn grade(input: &GradeInput) -> Grade {
     if let Err(error) = answer_result {
         failures.push(record_failure(error, CheckKind::Answer, "answer".into()));
     }
+    // A refusal stops the agent from one route, not necessarily from the task. When the
+    // refusals are the only failures, every check passed on what the agent did with the
+    // operations the mock does model, so the trial is graded without them and they are
+    // reported on their own. One failure of any other kind, proven or unresolved, and
+    // they stay failures: the refusal may be why the trial fell short.
+    if !refused_operations.is_empty() && failures.len() == refused_operations.len() {
+        failures.clear();
+    } else {
+        refused_operations.clear();
+    }
     let failed = |check: CheckKind| failures.iter().any(|failure| failure.check == check);
     let state_ok = !failed(CheckKind::State);
     let records_ok = !failed(CheckKind::Records);
@@ -890,9 +956,10 @@ pub fn grade(input: &GradeInput) -> Grade {
         .iter()
         .any(|failure| failure.disposition == CheckDisposition::Failed);
     // An environment fault means the mock world could not serve the trial faithfully
-    // (a declared unsupported setup, an operation it does not model, evidence it could
-    // not produce). Such a trial is void whatever else happened in it: scoring only the
-    // failures among them would count the mock's limits against the agent.
+    // (a declared unsupported setup, an internal error, evidence it could not produce, a
+    // refused operation in a trial that then fell short). Such a trial is void whatever
+    // else happened in it: scoring only the failures among them would count the mock's
+    // limits against the agent.
     let outcome = if !contract_ok {
         Outcome::InvalidContract
     } else if !environment_ok {
@@ -931,6 +998,7 @@ pub fn grade(input: &GradeInput) -> Grade {
         runner_admission_ok: true,
         adjudication_needed,
         failures,
+        refused_operations,
         api_calls: agent_calls.len(),
         mcp_bypass,
     }

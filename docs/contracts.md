@@ -1059,6 +1059,25 @@ keeps `contract_ok` true but makes `environment_ok` false and the overall result
 cannot become reward 1 or an ordinary model-failure label. This is a setup
 diagnostic, not a completed task or permission to drop difficult tasks.
 
+### Refused operations
+
+A mock that is asked for an operation it does not model refuses the call with an
+error and records an environment failure whose code contains `unsupported`
+(`google_drive_access_option_unsupported`, `unsupported_grafana_matcher`). The
+refusal comes before anything is written.
+
+- If every other check passes, the agent finished the task another way. The
+  trial is graded without the refusals: outcome `pass`, reward 1. They are
+  listed in the assessment's `refused_operations`, not in `failures`.
+- If any other check fails or is unresolved, the refusals stay failures and the
+  outcome is `environment_error`: the refusal may be why the trial fell short,
+  so it is neither a pass nor a model failure.
+
+Four codes are excepted because one of their call sites can refuse after part of
+the request was written (`events::is_unsupported_refusal` lists them with the
+reason). They, internal errors (a code without `unsupported`) and declared
+`environment_faults` always give `environment_error`.
+
 Revision 13 used this for the unvalidated Shopify publication workflow. Revision
 14 implements a composed publication-capable client and real publication state;
 the gate is retired only for that validated configured condition. The stock

@@ -159,6 +159,8 @@ impl SharedWorld {
         world.clock.transport_step(mode)
     }
 
+    /// Locks the world and records an environment failure; see
+    /// [`WorldState::fail_operation`] for what the code must say.
     pub fn fail_operation(&self, operation: &OperationContext, code: &str, reason: &str) {
         let mut world = self.0.state.lock().expect("world lock");
         world.fail_operation(operation, code, reason);
@@ -316,6 +318,23 @@ impl WorldState {
         &self.source
     }
 
+    /// Records that the mock could not serve `operation` faithfully. The event is
+    /// evidence for grading; the caller still answers the request with an error.
+    ///
+    /// `code` says which of two things happened:
+    ///
+    /// - A refusal: the agent asked for an operation the mock does not model. The code
+    ///   contains `unsupported` (`google_drive_access_option_unsupported`,
+    ///   `unsupported_grafana_matcher`), and the call must be refused before it writes
+    ///   anything. Grading voids the trial only if it does not otherwise pass, which is
+    ///   sound only when the refused call left every record as it was.
+    /// - An internal error (`business_clock_invalid`, `caller_resolution_failed`). The
+    ///   code must not contain `unsupported`. It always voids the trial.
+    ///
+    /// [`events::is_unsupported_refusal`] reads the code this way. A refusal that cannot
+    /// come before its first write is listed there as an exception. Every code used in
+    /// the workspace is listed in `tests/environment_failure_codes.rs`, which fails when
+    /// a new one appears.
     pub fn fail_operation(&mut self, operation: &OperationContext, code: &str, reason: &str) {
         self.events.fail(
             operation.clone(),

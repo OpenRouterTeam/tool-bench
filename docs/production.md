@@ -47,12 +47,16 @@ passed.
 Two cases are deliberately **not** scored:
 
 - **The trial could not be assessed** (outcome 4 or 5: an invalid contract, missing or
-  mismatched evidence, or an operation the agent asked for that the mock does not
-  model). The verifier writes `reward.invalid.json` instead of `reward.json` and exits
-  with status 3. Harbor records `RewardFileNotFoundError`, and the production pipeline
-  counts the trial as skipped, not as incorrect. Such a trial is void whether or not
-  the agent would have passed, so watch the skipped count per arm: an arm with many
-  more skips than another is not being compared on the same tasks.
+  mismatched evidence, or an operation the mock does not model that the agent asked for
+  and did not work around). The verifier writes `reward.invalid.json` instead of
+  `reward.json` and exits with status 3. Harbor records `RewardFileNotFoundError`, and
+  the production pipeline counts the trial as skipped, not as incorrect. Watch the
+  skipped count per arm: an arm with many more skips than another is not being compared
+  on the same tasks.
+
+  A refused call does not void a trial that passes anyway. If the agent retried
+  without the unsupported option and every check passed, the trial scores 1 and
+  `assessment.json` lists the refusal under `refused_operations`.
 - **The harness or environment failed before grading.** Harbor records the exception and
   there is no reward.
 

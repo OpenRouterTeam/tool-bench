@@ -81,6 +81,37 @@ pub enum EventKind {
     },
 }
 
+/// Refusal codes with a call site that can refuse after part of the request was already
+/// written. A trial that recovers from one of these cannot be told from a trial the
+/// refusal left half-changed, so they void the trial like any other environment failure.
+/// Remove a code from this list only once every one of its call sites refuses before its
+/// first write.
+const REFUSALS_AFTER_A_WRITE: &[&str] = &[
+    // Argo CD: create and update store the Application and its event, then reconcile. An
+    // automated sync the mock cannot run is refused with those writes already made.
+    "unsupported_argocd_operation",
+    // Supabase: a branch merge or push replays the missing migrations one statement at a
+    // time, and each is committed before the next is tried.
+    "unsupported_sql_statement",
+    // Terraform: a run created with auto-apply is written, then removed again when its
+    // apply is refused. Nothing remains, but the refusal does not come before the write.
+    "unsupported_terraform_execution",
+    // Vercel: environment variables sent as a batch are written one at a time, so an
+    // unsupported upsert late in the batch is refused after the earlier ones were stored.
+    "unsupported_vercel_operation",
+];
+
+/// Whether an environment-failure code records a refusal: the agent asked for an
+/// operation the mock does not model, and the call was refused before it changed
+/// anything. Such codes contain `unsupported`. Every other code is an internal error
+/// (the clock, caller resolution, a panic, missing request evidence).
+///
+/// Grading voids a trial for an internal error whatever else happened, and for a refusal
+/// only when the trial does not otherwise pass.
+pub fn is_unsupported_refusal(code: &str) -> bool {
+    code.contains("unsupported") && !REFUSALS_AFTER_A_WRITE.contains(&code)
+}
+
 #[derive(Debug, Clone, Default)]
 pub struct EventLog {
     entries: Vec<OperationEvent>,

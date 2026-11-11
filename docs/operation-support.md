@@ -178,7 +178,10 @@ Transient writer/public access, collateral resources and restored changes fail.
 
 Expiration, custom notification delivery and repeated-principal grants are
 explicit pre-mutation capability limitations, not silently ignored successful
-operations. Inherited/effective access, hosted authorization, notification and
+operations. The call is refused and nothing changes. A trial that then completes
+the request without the refused option passes, with the refusal listed in the
+assessment; a trial that does not is an environment error
+([contracts.md](contracts.md#refused-operations)). Inherited/effective access, hosted authorization, notification and
 duplicate-create behavior remain unqualified. This is the Rust MCP replica,
 not execution of the published upstream Python server or Google SDK.
 The separate Python checker passes 50 unit tests, and all seventeen real

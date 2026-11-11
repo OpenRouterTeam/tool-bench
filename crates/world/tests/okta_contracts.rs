@@ -517,6 +517,9 @@ async fn ordinary_extra_brand_and_theme_reads_do_not_create_post_baseline_busine
     assert_outcome(&trial, Outcome::Pass);
 }
 
+/// A read the mock does not implement is refused and recorded. Alone it voids the trial:
+/// the agent may have needed it, so this is no model failure. A trial that completes the
+/// request anyway passes, with the refusal reported beside the grade.
 #[tokio::test]
 async fn unimplemented_operations_are_environment_faults_instead_of_model_failures() {
     let trial = prepared(TRANSFER, |_| {});
@@ -528,13 +531,22 @@ async fn unimplemented_operations_are_environment_faults_instead_of_model_failur
         response["message"],
         "This operation is unavailable for this Okta connection."
     );
-    transfer(&trial).await;
     assert_outcome(&trial, Outcome::EnvironmentError);
     let assessment = trial.assess();
     assert!(assessment.contract_ok && assessment.integrity_ok);
     assert!(assessment.failures.iter().any(|failure| failure.check
         == mock_core::grading::CheckKind::Environment
         && !failure.event_evidence.is_empty()));
+
+    transfer(&trial).await;
+    assert_outcome(&trial, Outcome::Pass);
+    let assessment = trial.assess();
+    assert!(assessment.failures.is_empty(), "{assessment:?}");
+    assert_eq!(assessment.refused_operations.len(), 1, "{assessment:?}");
+    assert_eq!(
+        assessment.refused_operations[0].code,
+        "unsupported_okta_operation"
+    );
 }
 
 #[tokio::test]

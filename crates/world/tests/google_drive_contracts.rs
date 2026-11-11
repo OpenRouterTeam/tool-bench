@@ -368,7 +368,10 @@ async fn correcting_a_direct_existing_grantee_role_preserves_its_identity() {
     assessment(&trial, Outcome::Pass);
 }
 
-async fn unqualified_for(trial: &ContractTrial, arguments: Value) {
+const UNSUPPORTED_OPTION: &str = "google_drive_access_option_unsupported";
+
+/// The call is refused as an unsupported sharing option and changes nothing.
+async fn refused(trial: &ContractTrial, arguments: Value) {
     let before = trial.state();
     let (_, response) = trial
         .request(
@@ -379,12 +382,76 @@ async fn unqualified_for(trial: &ContractTrial, arguments: Value) {
         .await;
     assert_eq!(response["isError"], true, "{response}");
     assert_eq!(trial.state(), before);
-    assessment(trial, Outcome::EnvironmentError);
+}
+
+/// A refused call in a trial that does not otherwise pass: the trial is void.
+async fn unqualified_for(trial: &ContractTrial, arguments: Value) {
+    refused(trial, arguments).await;
+    let actual = trial.assess();
+    assert_eq!(actual.outcome, Outcome::EnvironmentError, "{actual:?}");
+    assert!(actual.refused_operations.is_empty(), "{actual:?}");
+    assert!(
+        actual
+            .failures
+            .iter()
+            .any(|failure| failure.location == format!("environment/{UNSUPPORTED_OPTION}")),
+        "{actual:?}"
+    );
 }
 
 async fn unqualified(arguments: Value) {
     let trial = prepared(|_| {});
     unqualified_for(&trial, arguments).await;
+}
+
+/// The trial passes and reports `count` refused calls instead of failing on them.
+fn passes_despite_refusals(trial: &ContractTrial, count: usize) {
+    let actual = trial.assess();
+    assert_eq!(actual.outcome, Outcome::Pass, "{actual:?}");
+    assert_eq!(actual.reward, 1.0);
+    assert!(actual.environment_ok && actual.failures.is_empty());
+    assert_eq!(actual.refused_operations.len(), count, "{actual:?}");
+    assert!(
+        actual
+            .refused_operations
+            .iter()
+            .all(|refusal| refusal.code == UNSUPPORTED_OPTION)
+    );
+}
+
+/// The pilot case: the agent passed the optional `email_message`, which the tool schema
+/// advertises and this mock does not model, then repeated the grant without it.
+#[tokio::test]
+async fn a_refused_custom_message_does_not_void_the_grant_that_follows_it() {
+    let trial = prepared(|_| {});
+    // Refused and nothing else done: the trial is void, not a model failure.
+    unqualified_for(
+        &trial,
+        json!({
+            "file_id":REPORT,"action":"grant","share_type":"user","share_with":DANA,
+            "role":"reader","email_message":"Here is the SOC 2 report you asked for."
+        }),
+    )
+    .await;
+    share(&trial).await;
+    passes_despite_refusals(&trial, 1);
+}
+
+#[tokio::test]
+async fn a_refused_custom_message_does_not_excuse_a_wrong_grant() {
+    let trial = prepared(|_| {});
+    refused(
+        &trial,
+        json!({
+            "file_id":REPORT,"action":"grant","share_type":"user","share_with":DANA,
+            "role":"reader","email_message":"Here is the SOC 2 report you asked for."
+        }),
+    )
+    .await;
+    grant(&trial, REPORT, DANA, "writer").await;
+    let actual = trial.assess();
+    assert_eq!(actual.outcome, Outcome::EnvironmentError, "{actual:?}");
+    assert!(actual.refused_operations.is_empty(), "{actual:?}");
 }
 
 #[tokio::test]
@@ -434,11 +501,13 @@ async fn disabled_notifications_do_not_send_the_supplied_unused_message() {
 async fn repeated_grants_are_unqualified_not_guessed_duplicate_creation_semantics() {
     let trial = prepared(|_| {});
     share(&trial).await;
-    unqualified_for(
+    refused(
         &trial,
         json!({"file_id":REPORT,"action":"grant","share_with":DANA}),
     )
     .await;
+    // The first grant already satisfied the request; the refused repeat changed nothing.
+    passes_despite_refusals(&trial, 1);
 }
 
 #[tokio::test]
@@ -454,7 +523,7 @@ async fn repeated_principals_inside_a_batch_are_refused_before_the_first_grant()
 async fn a_batch_cannot_partially_mutate_before_an_unqualified_existing_principal() {
     let trial = prepared(|_| {});
     share(&trial).await;
-    unqualified_for(
+    refused(
         &trial,
         json!({
             "file_id":REPORT,"action":"grant_batch",
@@ -462,6 +531,10 @@ async fn a_batch_cannot_partially_mutate_before_an_unqualified_existing_principa
         }),
     )
     .await;
+    // Nothing of the refused batch was applied, so the report is still shared with Dana
+    // alone and the trial passes. Real Drive would have added the unrequested recipient:
+    // the refusal is why this trial is not a failure.
+    passes_despite_refusals(&trial, 1);
 }
 
 #[tokio::test]
@@ -476,7 +549,7 @@ async fn expiration_updates_are_not_silently_ignored_on_an_existing_permission()
         .find(|permission| permission["emailAddress"] == DANA)
         .unwrap()["id"]
         .clone();
-    unqualified_for(
+    refused(
         &trial,
         json!({
             "file_id":REPORT,"action":"update","permission_id":identity,"role":"reader",
@@ -484,6 +557,8 @@ async fn expiration_updates_are_not_silently_ignored_on_an_existing_permission()
         }),
     )
     .await;
+    // The permission is still the permanent reader grant the request asked for.
+    passes_despite_refusals(&trial, 1);
 }
 
 #[tokio::test]
