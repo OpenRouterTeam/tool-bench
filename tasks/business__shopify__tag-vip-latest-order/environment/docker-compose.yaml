@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:eb4c7e5797d4b3a7
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:c9cf6feb07cccfba
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "business/shopify/tag-vip-latest-order"

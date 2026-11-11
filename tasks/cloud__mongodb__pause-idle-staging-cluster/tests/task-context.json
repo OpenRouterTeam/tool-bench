@@ -6,9 +6,9 @@
   "framing_sha256": "sha256:74b4ba6cae4f3b071ba5e4459c94be3e510433e9de87bd0f53c6164f5c211fca",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:a7feb1bb9dc626b26a5716614247311fea5773d53fd1f3862858c18a1a2b1b30"
+    "docker-compose.yaml": "sha256:d61b87b62f801a99e3b89c1a3958c77d1bc8228ed8fa504ecb39f78d180075f5"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:eb4c7e5797d4b3a7",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:c9cf6feb07cccfba",
   "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:440832e3d8bac995",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
