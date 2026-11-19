@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:8923603603d9159d
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:baa30060a75e77c5
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "ops/multi/crashloop-oncall-lookup"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:e7cf421247029335
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:cf9a49fa51dbc382
     stop_signal: SIGKILL
     networks:
       default: {}
