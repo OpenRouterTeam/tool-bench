@@ -1,0 +1,37 @@
+[
+  {
+    "_key": "https://2026.pgconfnordic.org/schedule/keynote",
+    "title": "Opening keynote: Scaling Postgres to 1M writes/s | PGConf Nordic 2026",
+    "description": "Opening keynote, October 8, 2026, Copenhagen. Recordings will be published on the PGConf Nordic YouTube channel.",
+    "language": "en",
+    "markdown": "Opening keynote, October 8, 2026, Copenhagen. Recordings will be published on the PGConf Nordic YouTube channel."
+  },
+  {
+    "_key": "https://www.youtube.com/watch?v=r8Kq2PgN7aE",
+    "title": "Highlights: PGConf Nordic 2026 keynote - Scaling Postgres to 1M writes/s",
+    "description": "Best moments from the PGConf Nordic 2026 opening keynote, re-cut by DB Clips. Full talk on the official PGConf Nordic channel. Channel: DB Clips on YouTube. Duration: 12:05. 18,342 views.",
+    "language": "en",
+    "markdown": "# Highlights: PGConf Nordic 2026 keynote - Scaling Postgres to 1M writes/s\n\nBest moments from the PGConf Nordic 2026 opening keynote, re-cut by DB Clips. Full talk on the official PGConf Nordic channel.\n\nChannel: DB Clips on YouTube. Duration: 12:05. 18,342 views."
+  },
+  {
+    "_key": "https://www.youtube.com/watch?v=Zt4mQeL1x9c",
+    "title": "Keynote: Scaling Postgres to 1M writes/s - Marta Lindqvist | PGConf Nordic 2026",
+    "description": "Opening keynote of PGConf Nordic 2026 (Copenhagen) by Marta Lindqvist: partitioning, logical replication and write batching at a million writes per second. Full recording. Channel: PGConf Nordic on YouTube. Duration: 47:12. 9,120 views.",
+    "language": "en",
+    "markdown": "# Keynote: Scaling Postgres to 1M writes/s - Marta Lindqvist | PGConf Nordic 2026\n\nOpening keynote of PGConf Nordic 2026 (Copenhagen) by Marta Lindqvist: partitioning, logical replication and write batching at a million writes per second. Full recording.\n\nChannel: PGConf Nordic on YouTube. Duration: 47:12. 9,120 views."
+  },
+  {
+    "_key": "https://www.youtube.com/watch?v=Hq7wB3nVt2s",
+    "title": "Scaling Postgres to 1M writes/s (meetup version) - Marta Lindqvist",
+    "description": "An early version of the talk given at the Oslo PostgreSQL Meetup in April 2025, recorded by Oslo PostgreSQL Meetup. Channel: Oslo PostgreSQL Meetup on YouTube. Duration: 28:40. 2,311 views.",
+    "language": "en",
+    "markdown": "# Scaling Postgres to 1M writes/s (meetup version) - Marta Lindqvist\n\nAn early version of the talk given at the Oslo PostgreSQL Meetup in April 2025, recorded by Oslo PostgreSQL Meetup.\n\nChannel: Oslo PostgreSQL Meetup on YouTube. Duration: 28:40. 2,311 views."
+  },
+  {
+    "_key": "https://vimeo.com/987654321",
+    "title": "Scaling Postgres writes beyond a single primary - Tom Ekberg (PGDay Paris 2026)",
+    "description": "Tom Ekberg's PGDay Paris 2026 talk on scaling Postgres writes with sharding. Channel: PGDay Paris on Vimeo. Duration: 39:55. 4,410 views.",
+    "language": "en",
+    "markdown": "# Scaling Postgres writes beyond a single primary - Tom Ekberg (PGDay Paris 2026)\n\nTom Ekberg's PGDay Paris 2026 talk on scaling Postgres writes with sharding.\n\nChannel: PGDay Paris on Vimeo. Duration: 39:55. 4,410 views."
+  }
+]

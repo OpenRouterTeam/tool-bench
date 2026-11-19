@@ -1,0 +1,46 @@
+[
+  {
+    "_key": "web:norvik-pricing",
+    "url": "https://www.norvikanalytics.com/pricing",
+    "title": "Pricing | Norvik Analytics",
+    "description": "Demand forecasting plans for retailers: Starter, Growth and Enterprise. Save with annual billing.",
+    "keywords": ["plans", "cost", "price", "growth plan", "annual", "monthly"]
+  },
+  {
+    "_key": "web:norvik-blog-2025",
+    "url": "https://www.norvikanalytics.com/blog/new-plans-2025",
+    "title": "Introducing our new plans | Norvik Analytics Blog",
+    "description": "From today, Norvik Analytics comes in Starter and Growth plans. Growth is $690/month billed annually.",
+    "keywords": ["pricing", "plans", "growth plan", "price"]
+  },
+  {
+    "_key": "web:capterra-norvik",
+    "url": "https://www.capterra.com/p/248811/norvik-analytics/pricing",
+    "title": "Norvik Analytics Pricing 2026 | Capterra",
+    "description": "Norvik Analytics pricing: Starter $240 per month, Growth $690 per month. Free trial available.",
+    "keywords": ["plans", "cost", "growth", "pricing"]
+  },
+  {
+    "_key": "web:norvik-home",
+    "url": "https://www.norvikanalytics.com",
+    "title": "Norvik Analytics | Demand forecasting for retailers",
+    "description": "Forecast demand per store and SKU, and cut stock-outs and overstock."
+  },
+  {
+    "_key": "web:norvik-labs-pricing",
+    "url": "https://www.norviklabs.se/pricing",
+    "title": "Robot fleet pricing | Norvik Labs",
+    "description": "Warehouse robot leasing from $1,900 per robot per month. Growth fleet packages available.",
+    "keywords": ["norvik", "pricing", "growth", "plans"]
+  },
+  {"_key": "web:5", "url": "https://www.techbeat.io/2026/10/27/norvik-analytics-series-b", "title": "Norvik Analytics raises $45M Series B led by Halcyon Ventures", "description": "Oslo-based Norvik Analytics, which sells demand forecasting software to retailers, has raised a $45 million Series B led by Halcyon Ventures, with participation from existing investor Fjord Capital. The round brings Norvik Analytics' total funding to $61 million. CEO Ingrid Solberg said the money will fund expansion into Germany and the UK."},
+  {"_key": "news:5", "kind": "news", "url": "https://www.techbeat.io/2026/10/27/norvik-analytics-series-b", "title": "Norvik Analytics raises $45M Series B led by Halcyon Ventures", "snippet": "Oslo-based Norvik Analytics, which sells demand forecasting software to retailers, has raised a $45 million Series B led by Halcyon Ventures, with participation from existing investor Fjord Capital. The round brings Norvik Analytics' total funding to $61 million. CEO Ingrid Solberg said the money will fund expansion into Germany and the UK.", "date": "2026-10-27"},
+  {"_key": "web:6", "url": "https://www.nordicstartupwire.com/norvik-analytics-cfo", "title": "Norvik Analytics names former Klarna executive as CFO", "description": "Norvik Analytics has hired a new chief financial officer as it prepares for international expansion."},
+  {"_key": "news:6", "kind": "news", "url": "https://www.nordicstartupwire.com/norvik-analytics-cfo", "title": "Norvik Analytics names former Klarna executive as CFO", "snippet": "Norvik Analytics has hired a new chief financial officer as it prepares for international expansion.", "date": "2026-10-20"},
+  {"_key": "web:7", "url": "https://www.techbeat.io/2026/10/28/norvik-labs-funding", "title": "Robotics startup Norvik Labs raises $30M from Brightline Partners", "description": "Norvik Labs, a Gothenburg warehouse robotics company unrelated to Norvik Analytics, raised $30 million led by Brightline Partners."},
+  {"_key": "news:7", "kind": "news", "url": "https://www.techbeat.io/2026/10/28/norvik-labs-funding", "title": "Robotics startup Norvik Labs raises $30M from Brightline Partners", "snippet": "Norvik Labs, a Gothenburg warehouse robotics company unrelated to Norvik Analytics, raised $30 million led by Brightline Partners.", "date": "2026-10-28"},
+  {"_key": "web:8", "url": "https://www.nordicstartupwire.com/norvik-analytics-series-a", "title": "Norvik Analytics closes $12M Series A led by Fjord Capital", "description": "Retail forecasting startup Norvik Analytics raised a $12 million Series A led by Fjord Capital."},
+  {"_key": "news:8", "kind": "news", "url": "https://www.nordicstartupwire.com/norvik-analytics-series-a", "title": "Norvik Analytics closes $12M Series A led by Fjord Capital", "snippet": "Retail forecasting startup Norvik Analytics raised a $12 million Series A led by Fjord Capital.", "date": "2025-06-03"},
+  {"_key": "web:9", "url": "https://www.norvikanalytics.com/about", "title": "About us | Norvik Analytics", "description": "Norvik Analytics builds demand forecasting software for retailers. Backed by Fjord Capital."},
+  {"_key": "web:10", "url": "https://www.dealbase.io/organization/norvik-analytics", "title": "Norvik Analytics - Funding, Financials, Investors | DealBase", "description": "Norvik Analytics has raised a total of $16M over 2 rounds. Latest round: Series A ($12M), June 2025, led by Fjord Capital."}
+]
