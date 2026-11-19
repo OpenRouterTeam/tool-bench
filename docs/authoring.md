@@ -104,6 +104,11 @@ key_prefix = "4217/"
 any = { public = true, body = "RF-88213" }   # strings match by substring
 ```
 
+Every scored contract sets `audit_history = true`, and a change that was later undone
+fails the trial. Where a corrected detour harms nothing, declare `history = "report"`:
+the final state then decides and the detour is listed
+([contracts.md](contracts.md#history-strictness)).
+
 Expectations must be **precise**: a correct agent can't fail them, and an incorrect one can't
 pass them. Check final state over individual calls wherever possible, since agents may reach
 the same result in different ways. Use `required_calls` only for what must happen, such as the

@@ -279,6 +279,11 @@ impl Report {
             }),
             row(
                 arms,
+                "Trials where a second client reached the tool servers",
+                |arm| cause(arm.tool_server_side_channel_trials),
+            ),
+            row(
+                arms,
                 "Failed trials with no call to the task's own services",
                 |arm| cause(arm.failure_causes.without_task_service_calls),
             ),

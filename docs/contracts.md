@@ -1148,6 +1148,37 @@ object subset with additional fields. Both remain identity/field scoped and
 participate in committed-history auditing. These permissions let an author admit
 a documented ancillary reset without granting arbitrary metadata changes.
 
+## History strictness
+
+`audit_history = true` replays every commit of the trial, so a change the contract does
+not allow is found even when a later call undid it. What such a finding does is the
+task's to declare:
+
+```toml
+[expect]
+version = 2
+audit_history = true
+history = "report"   # default: "fail"
+```
+
+- `history = "fail"` (the default, and what every scored task has today): the history is
+  the point. A wrong value that was corrected, or a record that was created and deleted,
+  fails the trial like one that stayed. Use it where the intermediate state does harm:
+  production scaled to the wrong count, the wrong incident resolved and reopened.
+- `history = "report"`: the final state decides. The replay's findings on state, records
+  and preservation are listed in the assessment's `history_findings` and counted in the
+  `history_findings` metric; they do not fail the trial. Use it where a corrected detour
+  harms nothing. It needs `audit_history = true`, and an undeclared contract serializes
+  as before, so its recorded hash does not move.
+
+Declared `ordering` and `information` rules are about history by construction and fail
+under either setting.
+
+Whatever the setting, the result says when history was the only thing wrong:
+`final_state_ok` is 1 when no check of the final state failed, and
+`history_only_failure` is 1 when the trial failed and every failure came from the
+replay. That is a detail of a fail, never a different reward.
+
 ## Causal preconditions
 
 Ordering checks require a data precondition to hold when an observed action commits:
@@ -1322,6 +1353,43 @@ That policy permits direct API evidence; the `mcp_bypass` metric still records r
 outside the tools host, but is not an integrity violation in that declared track.
 Do not enable this merely to make an MCP-only run pass.
 
+### Requests that reach a tool server
+
+The rule above covers requests that reach the *world*. It cannot see who asked a tool
+server: the agent's container is on the same network as the tools container, so its
+shell can speak MCP to `http://tools:<port>/mcp` directly, around the harness and around
+whatever serves the tools to the model, and the API request that follows arrives from
+the tools container like any other.
+
+Each endpoint's front therefore reports every MCP request it receives to the world
+(`POST /_bench/tool-access` on the bootstrap listener, which only the tools container
+can reach): the client's address, its `User-Agent`, its session, the name it gave at
+`initialize`, the method and the tool. The world seals the reports in
+`evidence.tool_access`, and the assessment's `tool_servers` sums them:
+
+| Metric | Meaning |
+|---|---|
+| `tool_server_observed` | 1 when a tool server registered or a request was reported |
+| `tool_server_requests`, `tool_calls`, `tool_call_errors` | MCP requests, `tools/call` requests, and those answered with an error |
+| `tool_server_clients` | Distinct clients, by address, `User-Agent` and `initialize` name |
+| `tool_server_outside_requests` | Requests by every client but the first to open a session |
+| `tool_server_side_channel` | 1 when that count is above zero |
+
+The harness connects before the model can act, so the first client is the serving
+path. The flag is a finding about the trial and never fails it: a client is identified
+by what it says of itself, which a shell command can copy, and a harness that probes
+its servers with a second client would raise it on every trial. Read the clients in
+`assessment.json` before drawing a conclusion.
+
+Blocking the path is not done here. The harness and the shell share one container and
+one network namespace, so no Docker network can admit one and refuse the other. It
+would take the harness running the model's shell commands apart from itself: under
+another user with a firewall rule on that user, or in a sandbox without network access
+(Codex's default; a setting in Claude Code). Two things use the path today and would
+need another: the reference solution of every task (`solution/solve.sh` calls the tool
+servers with `curl` as `tool-bench-oracle`), and the health check of the tools
+container, which is local to it.
+
 ## Required versus forbidden requests
 
 Required operations must be agent operations rather than captured connector startup
@@ -1429,6 +1497,24 @@ rendered arguments against that schema before sending the call. See
 [captured-argument constraints](authoring-admission.md#captured-argument-constraints).
 
 ## Result artifacts
+
+### Where a failure came from
+
+`outcome_code` 1 covers a wrong outcome, an unexpected change, a missing call and a
+wrong reply alike. Beside the per-check flags, `reward.json` carries what tells an
+agent's failure from the environment's and from the serving method's:
+
+| Metric | Meaning |
+|---|---|
+| `task_service_calls` | Agent requests to the services the task's scenario lists. Zero on a failed trial: the agent never reached the systems the task is about |
+| `refused_calls` | Agent requests a service refused: a 4xx other than 408 and 429, or an error inside a 2xx reply. The request was wrong for the service |
+| `service_error_calls` | Agent requests a service failed: 5xx, 408 or 429 |
+| `tool_calls`, `tool_call_errors` | Tool calls the tool servers received and those they answered with an error, including a call a server rejected before asking the service |
+| `final_state_ok`, `history_only_failure`, `history_findings` | See [History strictness](#history-strictness) |
+| `tool_server_*` | See [Requests that reach a tool server](#requests-that-reach-a-tool-server) |
+
+`api_calls` and the two error counts are world requests; one tool call can make several.
+None of these changes the reward.
 
 ### Business-time policy
 

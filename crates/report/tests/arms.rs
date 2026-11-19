@@ -943,7 +943,10 @@ fn failed_trials_are_counted_by_what_the_evidence_says_went_wrong() {
     // trial whose service failed one call and refused others.
     for trial in &mut loaded.trials {
         let metrics: &[(&str, f64)] = match trial.trial.as_str() {
-            "none__1" => &[("task_service_calls", 0.0)],
+            "none__1" => &[
+                ("task_service_calls", 0.0),
+                ("tool_server_side_channel", 1.0),
+            ],
             "detour__1" => &[("task_service_calls", 4.0), ("history_only_failure", 1.0)],
             "flaky__1" => &[
                 ("task_service_calls", 2.0),
@@ -953,6 +956,8 @@ fn failed_trials_are_counted_by_what_the_evidence_says_went_wrong() {
             _ => &[("task_service_calls", 5.0)],
         };
         for (name, value) in [
+            ("tool_server_observed", 1.0),
+            ("tool_server_side_channel", 0.0),
             ("history_only_failure", 0.0),
             ("service_error_calls", 0.0),
             ("refused_calls", 0.0),
@@ -963,13 +968,16 @@ fn failed_trials_are_counted_by_what_the_evidence_says_went_wrong() {
             trial.metrics.insert((*name).to_owned(), *value);
         }
     }
-    let causes = arms::summarize(&loaded).failure_causes;
+    let summary = arms::summarize(&loaded);
+    assert_eq!(summary.tool_server_side_channel_trials, Some(1));
+    let causes = summary.failure_causes;
     assert_eq!(causes.without_task_service_calls, Some(1));
     assert_eq!(causes.history_only, Some(1));
     assert_eq!(causes.with_service_errors, Some(1));
     assert_eq!(causes.with_refused_calls, Some(1));
     let markdown = arms::report(&[loaded]).markdown();
     for line in [
+        "| Trials where a second client reached the tool servers | 1 |",
         "| Failed trials with no call to the task's own services | 1 |",
         "| Failed trials whose final state was right (history only) | 1 |",
         "| Failed trials where a service failed a call / refused a call | 1 / 1 |",
@@ -981,6 +989,8 @@ fn failed_trials_are_counted_by_what_the_evidence_says_went_wrong() {
     let mut older = arm("A", root);
     for trial in &mut older.trials {
         for name in [
+            "tool_server_observed",
+            "tool_server_side_channel",
             "task_service_calls",
             "history_only_failure",
             "service_error_calls",
@@ -989,7 +999,9 @@ fn failed_trials_are_counted_by_what_the_evidence_says_went_wrong() {
             trial.metrics.remove(name);
         }
     }
-    assert_eq!(arms::summarize(&older).failure_causes.history_only, None);
+    let summary = arms::summarize(&older);
+    assert_eq!(summary.tool_server_side_channel_trials, None);
+    assert_eq!(summary.failure_causes.history_only, None);
     assert!(
         arms::report(&[older]).markdown().contains(
             "| Failed trials whose final state was right (history only) | not recorded |"

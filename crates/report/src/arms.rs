@@ -288,6 +288,10 @@ pub struct ArmSummary {
     /// Failed trials whose agent made no world request at all.
     pub failed_without_api_calls: usize,
     pub mcp_bypass_trials: usize,
+    /// Trials in which a client other than the first one made a request to a tool
+    /// server: something reached the tools around the harness, such as the agent's own
+    /// shell. Absent when no trial's evidence carries the tools container's reports.
+    pub tool_server_side_channel_trials: Option<usize>,
     /// Host exceptions on trials that were still assessed (an agent timeout is graded).
     pub exceptions_on_assessed_trials: Vec<Count>,
     /// Trials the agent did not finish in its time limit, by how they were graded.
@@ -520,6 +524,15 @@ pub fn summarize(arm: &Arm) -> ArmSummary {
             .iter()
             .filter(|trial| trial.metric("mcp_bypass").is_some_and(|value| value > 0.0))
             .count(),
+        tool_server_side_channel_trials: trials
+            .iter()
+            .any(|trial| trial.metric("tool_server_observed") == Some(1.0))
+            .then(|| {
+                trials
+                    .iter()
+                    .filter(|trial| trial.metric("tool_server_side_channel") == Some(1.0))
+                    .count()
+            }),
         exceptions_on_assessed_trials: counts(
             assessed
                 .iter()

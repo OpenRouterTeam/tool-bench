@@ -61,6 +61,12 @@ Two cases are deliberately **not** scored:
   there is no reward.
 
 `verifier/assessment.json` lists each failed check with its location and reason.
+`reward.json` also says where a failure came from: `task_service_calls` (zero when the
+agent never reached the task's own services), `refused_calls` and `service_error_calls`,
+`tool_calls` and `tool_call_errors`, `history_only_failure` (the final state was right)
+and `tool_server_side_channel` (a second client reached the tool servers). The rules are
+in [contracts.md](contracts.md#where-a-failure-came-from). `bench-report` has a row for
+each, and one for agent timeouts by how they were graded.
 `runner_admission_checked` is 0 for every production trial; see
 [Assurance](#assurance).
 
