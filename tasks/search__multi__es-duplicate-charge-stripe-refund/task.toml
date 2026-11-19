@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__multi__es-duplicate-charge-stripe-refund"
 description = "Find a customer's double charge in the orders index and refund the duplicate in Stripe"
-keywords = ["write","multi-service","elasticsearch","stripe","disambiguation"]
+keywords = ["write","multi-service","elasticsearch","stripe","disambiguation","route:named"]
 
 [metadata]
 scenario = "search/multi/es-duplicate-charge-stripe-refund"

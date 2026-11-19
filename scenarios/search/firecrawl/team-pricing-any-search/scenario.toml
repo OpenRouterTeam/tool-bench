@@ -1,0 +1,80 @@
+# Replaces `search/firecrawl/northwind-team-pricing`, which is archived under
+# `releases/archive/tool-bench-public-dev-1/`. Release `tool-bench-public-dev-2`.
+#
+# What changed: the same pages are served by all four connected web-search services
+# (Brave, Exa, Firecrawl, Tavily), and a read through any of them is accepted. The
+# instruction is the original, word for word.
+#
+# Why: the instruction asks for a kind of lookup and names no vendor, while the original
+# kept each page on one vendor (Firecrawl), so no other could answer. This task scores
+# what the instruction asks. The pages exist on no public site, so an answer from outside
+# the tool servers still fails, and `mcp_only` still rejects a request that reaches the
+# world around them.
+[scenario]
+id = "search/firecrawl/team-pricing-any-search"
+title = "Look up a competitor's current Team plan price and seat count (any connected search vendor)"
+now = "2026-10-28T15:00:00Z"
+seed = "search-firecrawl-team-pricing-any-search"
+services = ["brave", "exa", "firecrawl", "tavily"]
+tags = ["lookup", "single-service", "any-search-vendor", "disambiguation", "route:unnamed"]
+timeout_sec = 900
+
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 2
+rationale = "Live pricing page (updated 2026-09-01) says Team $79 annual with 12 seats; the Feb 2025 blog post and G2 listing (updated March 2025) say $69 and 10 seats; Northwind Traders is a look-alike."
+
+# $79/month billed annually with 12 seats is only on the live pricing page; the 2025 blog
+# post and the G2 listing say $69 and 10 seats, and monthly billing is $99.
+[expect]
+version = 2
+audit_history = true
+
+# The page is Northwind Analytics' own pricing page. Both facts are read from the Team
+# entry of its text; the patterns also read the Team entry of the 2025 blog post and of the
+# third-party listing, whose values therefore count as another record's.
+[expect.answer.record_facts]
+requirement = "State the monthly price in US dollars of Northwind Analytics' Team plan when billed annually, and the number of seats that plan includes, according to the company's own current pricing page."
+mode = "statements"
+context = [
+  "(Source: ${source_url})",
+  "Northwind Analytics",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/firecrawl/pages"
+field_patterns = { "/title" = '^Pricing \| Northwind Analytics$' }
+
+[expect.answer.record_facts.facts.price]
+field = "/markdown"
+capture = 'Team(?:\n\n|\*\* plan is| \|) ?(?:\*\*)?\$(\d+)(?:/| per )month'
+kind = "money"
+units = ["usd", "dollars"]
+require_unit = true
+
+[expect.answer.record_facts.facts.seats]
+field = "/markdown"
+capture = 'Team[^#]*?(\d+) (?:seats|users)'
+kind = "number"
+units = ["seats", "seat", "users", "user"]
+require_unit = true
+
+[expect.answer.record_facts.facts.source_url]
+field = "/_key"
+kind = "identifier"
+optional = true
+
+[[solution.call]]
+endpoint = "firecrawl"
+tool = "firecrawl_search"
+arguments = { query = "Northwind Analytics pricing Team plan", limit = 5 }
+
+[[solution.call]]
+endpoint = "firecrawl"
+tool = "firecrawl_scrape"
+arguments = { url = "https://www.northwind-analytics.com/pricing", formats = ["markdown"] }
+
+[solution]
+answer = "Team plan: $79/month billed annually, 12 seats included."

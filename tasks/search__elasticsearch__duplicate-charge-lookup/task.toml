@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__elasticsearch__duplicate-charge-lookup"
 description = "Find a customer's duplicate charge in the orders index"
-keywords = ["lookup","single-service","elasticsearch","disambiguation"]
+keywords = ["lookup","single-service","elasticsearch","disambiguation","route:named"]
 
 [metadata]
 scenario = "search/elasticsearch/duplicate-charge-lookup"

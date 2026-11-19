@@ -33,6 +33,12 @@ that ask for a written reply.
 | `ops` | Datadog, Grafana, Kubernetes, PagerDuty, Sentry | 26 |
 | `search` | Brave Search, Elasticsearch, Exa, Firecrawl, Tavily | 25 |
 
+In the `search` group, eleven tasks ask for a web lookup without naming a search
+vendor. Any of the four web-search services can answer them; such a task's directory
+names the service its reference solution uses. Every search task carries a `route:*`
+tag saying whether its instruction names the vendor (`route:named`), a kind of data
+one service offers (`route:kind`) or neither (`route:unnamed`).
+
 Examples: file an issue, scale a deployment, refund an order in Stripe and tell the
 customer in Zendesk. Instructions read as a user would ask and name no tools. Each task
 has a scripted reference solution that must score 1, and doing nothing must score 0.

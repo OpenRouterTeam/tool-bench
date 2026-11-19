@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/tavily/vendor-rate-limit-any-search",
+  "scenario_sha256": "sha256:af8989ea0adf5afb7a3f98dad1ab95081fbcf13ffd28ddca8b543b1f2fd66f38",
+  "dataset_sha256": "sha256:a2abccd4e2a3056b6ce2c6d1f4e58c644998c5ce9605ade326749e75ff14ed9f",
+  "contract_sha256": "sha256:f5b1164410e351399e3606298ba723016251856d233f8749b7493a614d02f783"
+}

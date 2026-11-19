@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/brave/keynote-any-search",
+  "scenario_sha256": "sha256:d25851749b51e05c54a53b9872df037e5c17ac3fb2c221670b93e5f9eb9d461b",
+  "dataset_sha256": "sha256:411e0020ef0c022f88269858e9100c97b7804d51df4bf997b1f69a9984d933e8",
+  "contract_sha256": "sha256:4c943ef2350bc8136ea312aa3f6aecb7cfb4b0d1e7bc64079b7e308c7ae697f0"
+}

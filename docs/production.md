@@ -160,7 +160,7 @@ servers or the catalog needs regenerated tasks and new images.
 1. Regenerate and commit:
    ```bash
    cargo run --locked -p scenario --bin taskgen -- --inventory docs/coverage/scenario-inventory.json
-   cargo run --locked -p scenario --bin release-manifest -- --manifest releases/tool-bench-public-dev-1.json --freeze
+   cargo run --locked -p scenario --bin release-manifest -- --manifest releases/tool-bench-public-dev-2.json --freeze
    ```
 2. Check locally:
    ```bash

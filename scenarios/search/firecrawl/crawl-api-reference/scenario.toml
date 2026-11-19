@@ -4,7 +4,7 @@ title = "Crawl only the API reference section of a partner's docs"
 now = "2026-10-29T10:00:00Z"
 seed = "search-firecrawl-crawl-api-reference"
 services = ["firecrawl"]
-tags = ["write", "single-service", "firecrawl"]
+tags = ["write", "single-service", "firecrawl", "route:named"]
 timeout_sec = 900
 
 [scenario.family]

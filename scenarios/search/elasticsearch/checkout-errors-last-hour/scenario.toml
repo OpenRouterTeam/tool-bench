@@ -4,7 +4,7 @@ title = "Find the service with the most production 5xx errors in the last hour"
 now = "2026-10-30T14:00:00Z"
 seed = "search-elasticsearch-checkout-errors-last-hour"
 services = ["elasticsearch"]
-tags = ["lookup", "single-service", "elasticsearch", "disambiguation"]
+tags = ["lookup", "single-service", "elasticsearch", "disambiguation", "route:named"]
 timeout_sec = 900
 
 [scenario.family]
