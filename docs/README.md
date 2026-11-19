@@ -30,6 +30,7 @@ Start with [production.md](production.md). The project overview is in
 - [`../deploy/production/README.md`](../deploy/production/README.md): run the production worker's own code against generated tasks; [findings](../deploy/production/FINDINGS.md) from the last rehearsal.
 - [authoring.md](authoring.md): writing a service mock and its scenarios.
 - [authoring-admission.md](authoring-admission.md): what `taskgen` validates, and the generated inventory (`coverage/scenario-inventory.json`).
+- [fairness.md](fairness.md): the rules a scored task must meet, the check behind each, and the route labels (`coverage/route-labels.json`, `coverage/fairness-admission.json`).
 - [organization-materialization.md](organization-materialization.md): a shared organization dataset with per-task overlays.
 - [semantic-fault-schedules.md](semantic-fault-schedules.md): declared transient errors and lost responses.
 - [families-clarification-release.md](families-clarification-release.md): difficulty families, the scripted-user diagnostics and the frozen release manifest.

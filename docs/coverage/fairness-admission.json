@@ -1,0 +1,3566 @@
+{
+  "schema_version": 1,
+  "scope": "Fairness admission: the route each instruction gives to each service it needs, and the scored tasks an agent could as reasonably start on another connected service.",
+  "limits": [
+    "Product names and kind words are matched as whole words of the instruction; a hint in other words is not seen.",
+    "The classes are a reviewed judgment (catalog/equivalence.toml); a class that is missing hides the fault this check exists to catch.",
+    "accepted means the scenario serves records on every member and no contract entry takes one member alone. That each member returns the same facts, that the reference reply then passes and that doing nothing fails is run by crates/world/tests/fairness_routes.rs.",
+    "A flagged task listed under known is frozen in a release and is reported, not refused; any other flagged scored task fails taskgen."
+  ],
+  "known_release": "tool-bench-public-dev-2",
+  "summary": {
+    "scored_tasks": 150,
+    "scored_routes": {
+      "route:kind": 11,
+      "route:named": 120,
+      "route:unnamed": 19
+    },
+    "scored_flagged": 9,
+    "scored_flagged_by_class": {
+      "crm": 2,
+      "orders": 1,
+      "support_tickets": 7
+    },
+    "scored_accepting_a_class": 10,
+    "unscored_tasks": 4,
+    "unscored_flagged": 2
+  },
+  "flagged": [
+    "business/hubspot/largest-open-deal",
+    "business/hubspot/log-call-note-initech",
+    "business/multi/zendesk-order-status-shopify",
+    "business/multi/zendesk-refund-via-stripe",
+    "business/zendesk/create-ticket-for-caller",
+    "business/zendesk/escalate-outage-ticket",
+    "business/zendesk/find-invoice-attachment",
+    "business/zendesk/reply-refund-and-solve",
+    "search/multi/zendesk-reply-any-search"
+  ],
+  "tasks": [
+    {
+      "id": "business/hubspot/advance-globex-expansion",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "hubspot",
+          "route": "route:named",
+          "words": [
+            "HubSpot"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/hubspot/dana-joins-pied-piper",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "hubspot",
+          "route": "route:named",
+          "words": [
+            "HubSpot"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/hubspot/largest-open-deal",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "hubspot",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "crm",
+              "kind_words": [
+                "crm",
+                "pipeline"
+              ],
+              "members": [
+                "hubspot",
+                "salesforce"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on salesforce"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/hubspot/log-call-note-initech",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "hubspot",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "crm",
+              "kind_words": [
+                "crm"
+              ],
+              "members": [
+                "hubspot",
+                "salesforce"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on salesforce",
+                "a state, record or relation check reads hubspot's records, so the same change on another member fails"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/multi/hubspot-largest-deal-salesforce-owner",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "hubspot",
+          "route": "route:named",
+          "words": [
+            "HubSpot"
+          ]
+        },
+        {
+          "service": "salesforce",
+          "route": "route:named",
+          "words": [
+            "Salesforce"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/multi/hubspot-won-to-salesforce-opportunity",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "hubspot",
+          "route": "route:named",
+          "words": [
+            "HubSpot"
+          ]
+        },
+        {
+          "service": "salesforce",
+          "route": "route:named",
+          "words": [
+            "Salesforce"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/multi/shopify-vip-stripe-coupon",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "shopify",
+          "route": "route:named",
+          "words": [
+            "Shopify"
+          ]
+        },
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/multi/zendesk-order-status-shopify",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "zendesk",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "support_tickets",
+              "kind_words": [
+                "support ticket"
+              ],
+              "members": [
+                "zendesk",
+                "hubspot",
+                "salesforce",
+                "jira"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on hubspot, salesforce, jira"
+              ]
+            }
+          ]
+        },
+        {
+          "service": "shopify",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "orders",
+              "kind_words": [
+                "the store",
+                "order"
+              ],
+              "members": [
+                "shopify",
+                "mongodb",
+                "supabase"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on mongodb, supabase"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/multi/zendesk-refund-via-stripe",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "zendesk",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "support_tickets",
+              "kind_words": [
+                "support ticket"
+              ],
+              "members": [
+                "zendesk",
+                "hubspot",
+                "salesforce",
+                "jira"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on hubspot, salesforce, jira",
+                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
+              ]
+            }
+          ]
+        },
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/salesforce/close-resolved-case",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "salesforce",
+          "route": "route:named",
+          "words": [
+            "Salesforce"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/salesforce/close-won-kestrel-renewal",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "salesforce",
+          "route": "route:named",
+          "words": [
+            "Salesforce"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/salesforce/log-call-on-contact",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "salesforce",
+          "route": "route:named",
+          "words": [
+            "Salesforce"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/salesforce/open-pipeline-by-rep",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "salesforce",
+          "route": "route:named",
+          "words": [
+            "Salesforce"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/shopify/concierge-note",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "shopify",
+          "route": "route:named",
+          "words": [
+            "Shopify"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/shopify/relaunch-tote",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "shopify",
+          "route": "route:named",
+          "words": [
+            "Shopify"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/shopify/tag-vip-latest-order",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "shopify",
+          "route": "route:named",
+          "words": [
+            "Shopify"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/shopify/top-spender",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "shopify",
+          "route": "route:named",
+          "words": [
+            "Shopify"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/stripe/apply-retention-coupon",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/stripe/cancel-at-period-end",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/stripe/customer-mrr",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/stripe/refund-duplicate-charge",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/zendesk/create-ticket-for-caller",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "zendesk",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "support_tickets",
+              "kind_words": [
+                "support ticket",
+                "support line"
+              ],
+              "members": [
+                "zendesk",
+                "hubspot",
+                "salesforce",
+                "jira"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on hubspot, salesforce, jira",
+                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/zendesk/escalate-outage-ticket",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "zendesk",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "support_tickets",
+              "kind_words": [
+                "support ticket"
+              ],
+              "members": [
+                "zendesk",
+                "hubspot",
+                "salesforce",
+                "jira"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on hubspot, salesforce, jira",
+                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/zendesk/find-invoice-attachment",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "zendesk",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "support_tickets",
+              "kind_words": [
+                "support ticket",
+                "helpdesk"
+              ],
+              "members": [
+                "zendesk",
+                "hubspot",
+                "salesforce",
+                "jira"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on hubspot, salesforce, jira"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "business/zendesk/reply-refund-and-solve",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "zendesk",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "support_tickets",
+              "kind_words": [
+                "support ticket"
+              ],
+              "members": [
+                "zendesk",
+                "hubspot",
+                "salesforce",
+                "jira"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on hubspot, salesforce, jira",
+                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/aws/find-unencrypted-bucket",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "aws",
+          "route": "route:named",
+          "words": [
+            "AWS",
+            "S3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/aws/grant-auditor-access",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "aws",
+          "route": "route:named",
+          "words": [
+            "AWS",
+            "IAM"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/aws/orders-api-cpu-alarm",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "aws",
+          "route": "route:named",
+          "words": [
+            "AWS",
+            "EC2",
+            "CloudWatch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/aws/stop-legacy-reporting-worker",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "aws",
+          "route": "route:named",
+          "words": [
+            "EC2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/cloudflare/add-status-cname",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "cloudflare",
+          "route": "route:named",
+          "words": [
+            "Cloudflare"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/cloudflare/enable-checkout-flag",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "cloudflare",
+          "route": "route:named",
+          "words": [
+            "Cloudflare"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/cloudflare/find-stale-origin",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "cloudflare",
+          "route": "route:named",
+          "words": [
+            "Cloudflare"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/cloudflare/route-orders-api-v2",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "cloudflare",
+          "route": "route:named",
+          "words": [
+            "Cloudflare"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/mongodb/pause-idle-staging-cluster",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "mongodb",
+          "route": "route:named",
+          "words": [
+            "MongoDB",
+            "Atlas"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/mongodb/purge-qa-accounts",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "mongodb",
+          "route": "route:named",
+          "words": [
+            "MongoDB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/mongodb/refund-order",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "mongodb",
+          "route": "route:named",
+          "words": [
+            "MongoDB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/mongodb/top-category-revenue",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "mongodb",
+          "route": "route:named",
+          "words": [
+            "MongoDB"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/multi/aws-jira-decommission-worker",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "aws",
+          "route": "route:named",
+          "words": [
+            "AWS"
+          ]
+        },
+        {
+          "service": "jira",
+          "route": "route:named",
+          "words": [
+            "Jira"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/multi/aws-replica-lag-pagerduty-notion",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "aws",
+          "route": "route:named",
+          "words": [
+            "CloudWatch"
+          ]
+        },
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        },
+        {
+          "service": "notion",
+          "route": "route:named",
+          "words": [
+            "Notion"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/multi/mongodb-zendesk-order-tracking",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "mongodb",
+          "route": "route:named",
+          "words": [
+            "MongoDB"
+          ]
+        },
+        {
+          "service": "zendesk",
+          "route": "route:named",
+          "words": [
+            "Zendesk"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/multi/okta-offboard-linear-slack",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "okta",
+          "route": "route:named",
+          "words": [
+            "Okta"
+          ]
+        },
+        {
+          "service": "linear",
+          "route": "route:named",
+          "words": [
+            "Linear"
+          ]
+        },
+        {
+          "service": "slack",
+          "route": "route:named",
+          "words": [
+            "Slack"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/multi/supabase-slack-referral-signups",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "supabase",
+          "route": "route:named",
+          "words": [
+            "Supabase"
+          ]
+        },
+        {
+          "service": "slack",
+          "route": "route:named",
+          "words": [
+            "Slack"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/okta/contractor-self-service-reset",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "okta",
+          "route": "route:named",
+          "words": [
+            "Okta"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/okta/failed-signins-report",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "okta",
+          "route": "route:named",
+          "words": [
+            "Okta"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/okta/offboard-contractor",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "okta",
+          "route": "route:named",
+          "words": [
+            "Okta"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/okta/transfer-to-platform-team",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "okta",
+          "route": "route:named",
+          "words": [
+            "Okta"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/supabase/cancel-pending-orders-duplicate-customer",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "supabase",
+          "route": "route:named",
+          "words": [
+            "Supabase"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/supabase/enable-rls-flagged-table",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "supabase",
+          "route": "route:named",
+          "words": [
+            "Supabase"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/supabase/pause-legacy-marketing-project",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "supabase",
+          "route": "route:named",
+          "words": [
+            "Supabase"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cloud/supabase/top-customer-march-revenue",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "supabase",
+          "route": "route:named",
+          "words": [
+            "Supabase"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/argocd/find-degraded-app",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "argocd",
+          "route": "route:named",
+          "words": [
+            "Argo CD",
+            "Argo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/argocd/restart-indexer-worker",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "argocd",
+          "route": "route:named",
+          "words": [
+            "Argo CD",
+            "Argo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/argocd/roll-back-billing-worker",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "argocd",
+          "route": "route:named",
+          "words": [
+            "Argo CD",
+            "Argo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/argocd/sync-prod-payments-api",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "argocd",
+          "route": "route:named",
+          "words": [
+            "Argo CD",
+            "Argo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/github/approve-merge-dependency-bump",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/github/ci-failure-root-cause",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/github/file-login-bug",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/github/triage-duplicate-charge",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/gitlab/answer-changelog-review-thread",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "gitlab",
+          "route": "route:named",
+          "words": [
+            "GitLab"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/gitlab/approve-and-merge-hotfix",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "gitlab",
+          "route": "route:named",
+          "words": [
+            "GitLab"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/gitlab/diagnose-failed-pipeline",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "gitlab",
+          "route": "route:named",
+          "words": [
+            "GitLab"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/gitlab/file-circuit-breaker-issue",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "gitlab",
+          "route": "route:named",
+          "words": [
+            "GitLab"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/multi/argocd-degraded-gitlab-commit",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "argocd",
+          "route": "route:named",
+          "words": [
+            "Argo CD",
+            "Argo"
+          ]
+        },
+        {
+          "service": "gitlab",
+          "route": "route:named",
+          "words": [
+            "GitLab"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/multi/sentry-spike-vercel-rollback",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        },
+        {
+          "service": "vercel",
+          "route": "route:named",
+          "words": [
+            "Vercel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/multi/terraform-failure-grafana-annotate",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "terraform",
+          "route": "route:named",
+          "words": [
+            "Terraform",
+            "HCP Terraform"
+          ]
+        },
+        {
+          "service": "grafana",
+          "route": "route:named",
+          "words": [
+            "Grafana"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/multi/vercel-deploy-github-pr-lookup",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "vercel",
+          "route": "route:named",
+          "words": [
+            "Vercel"
+          ]
+        },
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/terraform/approve-nat-gateway-change",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "terraform",
+          "route": "route:named",
+          "words": [
+            "Terraform",
+            "HCP Terraform"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/terraform/payments-db-upgrade-failure",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "terraform",
+          "route": "route:named",
+          "words": [
+            "Terraform",
+            "HCP Terraform"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/terraform/scale-checkout-staging",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "terraform",
+          "route": "route:named",
+          "words": [
+            "Terraform",
+            "HCP Terraform"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/terraform/unlock-orders-prod",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "terraform",
+          "route": "route:named",
+          "words": [
+            "Terraform",
+            "HCP Terraform"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/vercel/enable-gift-cards-in-previews",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "vercel",
+          "route": "route:named",
+          "words": [
+            "Vercel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/vercel/rollback-storefront-production",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "vercel",
+          "route": "route:named",
+          "words": [
+            "Vercel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/vercel/rotate-checkout-stripe-key",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "vercel",
+          "route": "route:named",
+          "words": [
+            "Vercel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "code/vercel/storefront-production-status",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "vercel",
+          "route": "route:named",
+          "words": [
+            "Vercel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/google/mark-northwind-renewed",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "google",
+          "route": "route:named",
+          "words": [
+            "Google",
+            "Google Sheets"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/google/northwind-invoice-lookup",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "google",
+          "route": "route:kind",
+          "words": [
+            "emailed"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/google/schedule-q1-planning",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "google",
+          "route": "route:kind",
+          "words": [
+            "emailed",
+            "calendar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/google/share-soc2-with-contoso",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "google",
+          "route": "route:named",
+          "words": [
+            "Google",
+            "Google Drive"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/jira/assign-go-no-go-review",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "jira",
+          "route": "route:named",
+          "words": [
+            "Jira",
+            "Confluence"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/jira/blocked-sprint-item",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "jira",
+          "route": "route:named",
+          "words": [
+            "Jira"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/jira/file-apple-pay-bug",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "jira",
+          "route": "route:named",
+          "words": [
+            "Jira"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/jira/ship-refund-retries",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "jira",
+          "route": "route:named",
+          "words": [
+            "Jira"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/linear/escalate-right-safari-issue",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "linear",
+          "route": "route:named",
+          "words": [
+            "Linear"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/linear/file-safari-crash-bug",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "linear",
+          "route": "route:named",
+          "words": [
+            "Linear"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/linear/pull-issue-into-cycle",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "linear",
+          "route": "route:named",
+          "words": [
+            "Linear"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/linear/urgent-bug-owner",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "linear",
+          "route": "route:named",
+          "words": [
+            "Linear"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/multi/google-refund-damaged-order",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "google",
+          "route": "route:kind",
+          "words": [
+            "email",
+            "emailed",
+            "inbox"
+          ]
+        },
+        {
+          "service": "supabase",
+          "route": "route:named",
+          "words": [
+            "Supabase"
+          ]
+        },
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/multi/jira-sentry-crash-impact",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "jira",
+          "route": "route:named",
+          "words": [
+            "Jira"
+          ]
+        },
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/multi/linear-cloudflare-api-origin-cutover",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "linear",
+          "route": "route:named",
+          "words": [
+            "Linear"
+          ]
+        },
+        {
+          "service": "cloudflare",
+          "route": "route:named",
+          "words": [
+            "Cloudflare"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/multi/slack-google-cutover-calendar",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "slack",
+          "route": "route:named",
+          "words": [
+            "Slack"
+          ]
+        },
+        {
+          "service": "google",
+          "route": "route:named",
+          "words": [
+            "Google",
+            "Google Calendar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/multi/slack-pagerduty-dbre-oncall",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "slack",
+          "route": "route:named",
+          "words": [
+            "Slack"
+          ]
+        },
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/notion/delay-web-launch",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "notion",
+          "route": "route:named",
+          "words": [
+            "Notion"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/notion/launch-date-owner",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "notion",
+          "route": "route:named",
+          "words": [
+            "Notion"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/notion/log-customer-escalation",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "notion",
+          "route": "route:named",
+          "words": [
+            "Notion"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/notion/update-current-runbook",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "notion",
+          "route": "route:named",
+          "words": [
+            "Notion"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/slack/cutover-thread-summary",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "slack",
+          "route": "route:kind",
+          "words": [
+            "channel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/slack/launch-checklist-item",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "slack",
+          "route": "route:named",
+          "words": [
+            "Slack"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/slack/observability-decision",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "slack",
+          "route": "route:named",
+          "words": [
+            "Slack"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "collab/slack/release-date-dm-designer",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "slack",
+          "route": "route:named",
+          "words": [
+            "Slack"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "diagnostic/stripe/clarify-ambiguous-refund",
+      "scored": false,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "diagnostic/stripe/no-action-already-refunded",
+      "scored": false,
+      "route": "route:unnamed",
+      "flagged": true,
+      "services": [
+        {
+          "service": "stripe",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "payments",
+              "kind_words": [
+                "charge"
+              ],
+              "members": [
+                "stripe",
+                "shopify"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on stripe, shopify",
+                "a state, record or relation check reads stripe's records, so the same change on another member fails"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "example/aws/missing-bucket-policy",
+      "scored": false,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "aws",
+          "route": "route:named",
+          "words": [
+            "AWS"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "example/github/basic",
+      "scored": false,
+      "route": "route:unnamed",
+      "flagged": true,
+      "services": [
+        {
+          "service": "github",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "issue_trackers",
+              "members": [
+                "jira",
+                "linear",
+                "github",
+                "gitlab"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on jira, linear, gitlab",
+                "required_calls[0] takes github alone"
+              ]
+            },
+            {
+              "class": "code_hosts",
+              "members": [
+                "github",
+                "gitlab"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on gitlab",
+                "required_calls[0] takes github alone"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/datadog/cancel-called-off-maintenance",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "datadog",
+          "route": "route:named",
+          "words": [
+            "Datadog"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/datadog/checkout-p95-peak",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "datadog",
+          "route": "route:named",
+          "words": [
+            "Datadog"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/datadog/mute-host-from-error-logs",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "datadog",
+          "route": "route:named",
+          "words": [
+            "Datadog"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/datadog/schedule-replica-downtime",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "datadog",
+          "route": "route:named",
+          "words": [
+            "Datadog"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/grafana/ack-checkout-page-oncall",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "grafana",
+          "route": "route:named",
+          "words": [
+            "Grafana"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/grafana/annotate-checkout-deploy",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "grafana",
+          "route": "route:named",
+          "words": [
+            "Grafana"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/grafana/silence-replica-maintenance",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "grafana",
+          "route": "route:named",
+          "words": [
+            "Grafana"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/grafana/top-5xx-checkout-pod",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "grafana",
+          "route": "route:named",
+          "words": [
+            "Grafana"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/kubernetes/crashloop-root-cause",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "kubernetes",
+          "route": "route:kind",
+          "words": [
+            "namespace",
+            "pod"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/kubernetes/oomkilled-memory-limit",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "kubernetes",
+          "route": "route:kind",
+          "words": [
+            "namespace"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/kubernetes/scale-checkout-for-sale",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "kubernetes",
+          "route": "route:kind",
+          "words": [
+            "namespace"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/kubernetes/uninstall-finished-loadtest",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "kubernetes",
+          "route": "route:kind",
+          "words": [
+            "namespace",
+            "Helm release"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/multi/checkout-saturation-scale-and-resolve",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        },
+        {
+          "service": "kubernetes",
+          "route": "route:named",
+          "words": [
+            "Kubernetes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/multi/crashloop-oncall-lookup",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "kubernetes",
+          "route": "route:kind",
+          "words": [
+            "namespace",
+            "pod"
+          ]
+        },
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/multi/datadog-latency-argocd-rollback",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "datadog",
+          "route": "route:named",
+          "words": [
+            "Datadog"
+          ]
+        },
+        {
+          "service": "argocd",
+          "route": "route:named",
+          "words": [
+            "Argo CD",
+            "Argo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/multi/oom-limit-and-sentry-resolve",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "kubernetes",
+          "route": "route:kind",
+          "words": [
+            "namespace"
+          ]
+        },
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/multi/pagerduty-sentry-github-issue",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        },
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        },
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/multi/sentry-release-commit-lookup",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        },
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/pagerduty/cover-shift-override",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/pagerduty/payments-oncall-now",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/pagerduty/reassign-replication-lag",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/pagerduty/resolve-prod-checkout",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "pagerduty",
+          "route": "route:named",
+          "words": [
+            "PagerDuty"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/sentry/create-notification-project",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/sentry/resolve-worker-pool-timeouts",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/sentry/top-unresolved-checkout",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ops/sentry/triage-storefront-map-error",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "sentry",
+          "route": "route:named",
+          "words": [
+            "Sentry"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/brave/caterer-saturday-hours",
+      "scored": true,
+      "route": "route:kind",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:kind",
+          "words": [
+            "local business listing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/brave/funding-news-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "the news"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "the news"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "the news"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "the news"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/brave/hosting-sla-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web",
+                "look it up"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web",
+                "look it up"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web",
+                "look it up"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web",
+                "look it up"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/brave/keynote-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/elasticsearch/checkout-errors-last-hour",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "elasticsearch",
+          "route": "route:named",
+          "words": [
+            "Elasticsearch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/elasticsearch/deleted-api-key-audit",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "elasticsearch",
+          "route": "route:named",
+          "words": [
+            "Elasticsearch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/elasticsearch/duplicate-charge-lookup",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "elasticsearch",
+          "route": "route:named",
+          "words": [
+            "Elasticsearch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/elasticsearch/latency-by-region",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "elasticsearch",
+          "route": "route:named",
+          "words": [
+            "Elasticsearch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/exa/enrich-lead-list",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "exa",
+          "route": "route:named",
+          "words": [
+            "Exa"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/exa/fleet-charger-research",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "exa",
+          "route": "route:named",
+          "words": [
+            "Exa"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/exa/sdk-timeout-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online",
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online",
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online",
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online",
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/exa/vp-profile-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/firecrawl/crawl-api-reference",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "firecrawl",
+          "route": "route:named",
+          "words": [
+            "Firecrawl"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/firecrawl/monitor-competitor-pricing",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "firecrawl",
+          "route": "route:named",
+          "words": [
+            "Firecrawl"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/firecrawl/pause-broken-pricing-monitor",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "firecrawl",
+          "route": "route:named",
+          "words": [
+            "Firecrawl"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/firecrawl/team-pricing-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/multi/api-key-deletion-audit-github",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "elasticsearch",
+          "route": "route:named",
+          "words": [
+            "Elasticsearch"
+          ]
+        },
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/multi/es-duplicate-charge-stripe-refund",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "elasticsearch",
+          "route": "route:named",
+          "words": [
+            "Elasticsearch"
+          ]
+        },
+        {
+          "service": "stripe",
+          "route": "route:named",
+          "words": [
+            "Stripe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/multi/funding-and-pricing-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/multi/github-issue-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/multi/zendesk-reply-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": true,
+      "known": true,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "zendesk",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "support_tickets",
+              "kind_words": [
+                "support ticket"
+              ],
+              "members": [
+                "zendesk",
+                "hubspot",
+                "salesforce",
+                "jira"
+              ],
+              "accepted": false,
+              "gaps": [
+                "the scenario serves no records on hubspot, salesforce, jira",
+                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/tavily/cold-chain-market-research",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "tavily",
+          "route": "route:named",
+          "words": [
+            "Tavily"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/tavily/competitor-pricing-research",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "tavily",
+          "route": "route:named",
+          "words": [
+            "Tavily"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/tavily/vendor-rate-limit-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/tavily/webhook-sunset-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "docs"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "docs"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "docs"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "docs"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

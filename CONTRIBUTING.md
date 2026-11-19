@@ -21,7 +21,11 @@ deploy/runner -p 'test_*.py'`) additionally need the pinned Harbor environment i
 provider proxy; CI runs those separately.
 
 - Commit generated `tasks/` and `docs/coverage/scenario-inventory.json` with the
-  source change. Never edit generated tasks by hand.
+  source change. Never edit generated tasks by hand. The same command writes
+  `docs/coverage/fairness-admission.json` and `docs/coverage/route-labels.json`.
+- Name the product in an instruction, or serve the records on every connected
+  service that fits its wording: `taskgen` refuses a scored task that does neither
+  ([docs/fairness.md](docs/fairness.md)).
 - Regenerate after the last source edit and check from a clean checkout of the
   submitted commit. Image tags include file bytes and executable modes; an
   uncommitted image input cannot be assumed present in CI.
