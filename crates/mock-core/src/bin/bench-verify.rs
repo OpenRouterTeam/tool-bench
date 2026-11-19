@@ -17,8 +17,8 @@ use sha2::{Digest, Sha256};
 
 const USAGE: &str = "usage: bench-verify --scenario ID --contract FILE --evidence FILE --output DIR [--answer FILE] [--inference-evidence FILE] [--task-source FILE --task-context FILE --realized-manifest FILE] [--runner-policy FILE --runner-admission FILE] [--allow-unattested-runner] [--withhold-invalid-reward] [--context-overflow]";
 
-/// Exit status when the trial could not be assessed (invalid contract or environment
-/// error) and `--withhold-invalid-reward` kept `reward.json` from being written.
+/// Exit status when the trial has no score (invalid contract, environment error or an
+/// unresolved reply) and `--withhold-invalid-reward` kept `reward.json` from being written.
 const UNASSESSED_EXIT: i32 = 3;
 
 struct Options {
@@ -37,8 +37,9 @@ struct Options {
     /// Grade from sealed world evidence when the runner published no receipt. A receipt
     /// that is present is still verified in full.
     allow_unattested_runner: bool,
-    /// Write `reward.invalid.json` instead of `reward.json` for an unassessable trial, so
-    /// a Harbor consumer records an infrastructure error rather than a model failure.
+    /// Write `reward.invalid.json` instead of `reward.json` for a trial without a score:
+    /// one that could not be assessed, or one whose reply could not be decided. A Harbor
+    /// consumer then records a missing reward rather than a model failure.
     withhold_invalid_reward: bool,
 }
 
@@ -548,10 +549,7 @@ fn verify(options: Options) -> Result<bool, Box<dyn Error>> {
         }
     }
     write_json(&options.output.join("assessment.json"), &assessment)?;
-    let assessable = !matches!(
-        assessment.outcome,
-        Outcome::InvalidContract | Outcome::EnvironmentError
-    );
+    let assessable = assessment.scored();
     let reward = if assessable || !options.withhold_invalid_reward {
         "reward.json"
     } else {
@@ -574,7 +572,7 @@ fn main() {
         Ok(true) => {}
         Ok(false) => {
             eprintln!(
-                "bench-verify: the trial could not be assessed; see assessment.json and reward.invalid.json"
+                "bench-verify: the trial has no score (it could not be assessed, or its reply could not be decided); see assessment.json and reward.invalid.json"
             );
             std::process::exit(UNASSESSED_EXIT);
         }

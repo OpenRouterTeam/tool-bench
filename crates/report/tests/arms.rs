@@ -59,7 +59,7 @@ fn unattest(root: &Path, trial: &str, context_overflow: bool) {
         "name": "claude-code", "version": "2.1.235",
         "model_info": {"name": "claude-sonnet-5", "provider": "anthropic"}
     });
-    if assessment.contract_ok && assessment.environment_ok {
+    if assessment.scored() {
         write(&verifier.join("reward.json"), &json!(assessment.metrics()));
         result["verifier_result"] = json!({"rewards": assessment.metrics()});
     } else {

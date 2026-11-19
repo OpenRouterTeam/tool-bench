@@ -1020,7 +1020,9 @@ An undecidable check has `disposition = "unresolved"` in `failures` and sets
 `adjudication_needed = true`. Proven violations have `disposition = "failed"`.
 Both prevent reward 1. An assessment containing only undecidable checks has
 `outcome = "unresolved"` and code 6; its compatibility reward of zero is
-**provisional, not a final model-failure judgment**. Independent proven failures
+**provisional, not a final model-failure judgment**. `Grade::scored` is false for it,
+and `bench-verify --withhold-invalid-reward` publishes no `reward.json` for it, so a
+consumer that reads only the reward cannot count it as a failure. Independent proven failures
 retain their appropriate failure/integrity/environment/contract outcome even when
 another check remains unresolved.
 

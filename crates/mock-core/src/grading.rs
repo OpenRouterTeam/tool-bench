@@ -389,6 +389,16 @@ pub struct Grade {
 }
 
 impl Grade {
+    /// Whether the trial has a score. A trial the verifier could not assess (invalid
+    /// contract, environment error) has none, and neither has one whose reply it could
+    /// not decide: an unresolved reply is not a measured failure of the model.
+    pub fn scored(&self) -> bool {
+        !matches!(
+            self.outcome,
+            Outcome::InvalidContract | Outcome::EnvironmentError | Outcome::Unresolved
+        )
+    }
+
     pub fn admit_runner(&mut self, admission: Result<(), String>) {
         self.runner_admission_checked = true;
         if let Err(reason) = admission {
