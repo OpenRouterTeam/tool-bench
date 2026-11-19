@@ -4,7 +4,7 @@ title = "Run a mini research task on Nordic cold-chain sensor vendors"
 now = "2026-10-27T10:00:00Z"
 seed = "search-tavily-cold-chain-market-research"
 services = ["tavily"]
-tags = ["write", "single-service", "tavily"]
+tags = ["write", "single-service", "tavily", "route:named"]
 timeout_sec = 900
 
 [scenario.family]

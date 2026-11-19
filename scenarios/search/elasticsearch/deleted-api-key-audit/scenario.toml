@@ -4,7 +4,7 @@ title = "Find who deleted an API key in the audit logs"
 now = "2026-10-30T09:30:00Z"
 seed = "search-elasticsearch-deleted-api-key-audit"
 services = ["elasticsearch"]
-tags = ["lookup", "single-service", "elasticsearch", "disambiguation"]
+tags = ["lookup", "single-service", "elasticsearch", "disambiguation", "route:named"]
 timeout_sec = 900
 
 [scenario.family]
