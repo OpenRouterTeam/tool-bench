@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__multi__api-key-deletion-audit-github"
 description = "Trace a deleted API key from the audit logs to the GitHub PR that rotates it"
-keywords = ["lookup","multi-service","elasticsearch","github","disambiguation"]
+keywords = ["lookup","multi-service","elasticsearch","github","disambiguation","route:named"]
 
 [metadata]
 scenario = "search/multi/api-key-deletion-audit-github"

@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__firecrawl__monitor-competitor-pricing"
 description = "Create a daily monitor on a competitor's pricing page"
-keywords = ["write","single-service","firecrawl"]
+keywords = ["write","single-service","firecrawl","route:named"]
 
 [metadata]
 scenario = "search/firecrawl/monitor-competitor-pricing"
