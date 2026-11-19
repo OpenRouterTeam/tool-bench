@@ -306,18 +306,72 @@ async fn a_refund_set_as_one_subdocument_is_the_same_record() {
     )
     .await;
     pass(&trial.assess());
-    // The existing refunded order records a reason and an amount only: a third field is
-    // not part of the request.
-    let extra = self::trial(REFUND);
-    update(
-        &extra,
-        "shop",
-        "orders",
-        json!({"orderNumber":10482}),
+}
+
+/// The order stamps each status it has reached (`shippedAt`, `deliveredAt`), so a refund date
+/// on the scenario's day is an optional addition, beside the reason and the amount or at the
+/// top level, as an extended-JSON date or an ISO 8601 string.
+#[tokio::test]
+async fn a_refund_date_on_the_scenario_day_is_an_optional_stamp_like_the_orders_own() {
+    for change in [
         json!({"$set":{"status":"refunded","refund":{"amount":214.5,"reason":"damaged in transit","refundedAt":{"$date":"2026-03-14T09:00:00.000Z"}}}}),
-    )
-    .await;
-    fail(&extra.assess());
+        json!({"$set":{"status":"refunded","refund.reason":"damaged in transit","refund.amount":214.5,
+            "refundedAt":{"$date":"2026-03-14T09:00:00.000Z"}}}),
+        json!({"$set":{"status":"refunded","refund.reason":"damaged in transit","refund.amount":214.5},
+            "$currentDate":{"refundedAt":true}}),
+        json!({"$set":{"status":"refunded","refund.reason":"damaged in transit","refund.amount":214.5},
+            "$currentDate":{"refund.refundedAt":true}}),
+        json!({"$set":{"status":"refunded","refund.reason":"damaged in transit","refund.amount":214.5,
+            "refund.refundedAt":"2026-03-14"}}),
+        json!({"$set":{"status":"refunded","refund.reason":"damaged in transit","refund.amount":214.5,
+            "refundedAt":"2026-03-14T09:00:00Z"}}),
+    ] {
+        let trial = trial(REFUND);
+        update(
+            &trial,
+            "shop",
+            "orders",
+            json!({"orderNumber":10482}),
+            change.clone(),
+        )
+        .await;
+        let assessment = trial.assess();
+        assert_eq!(assessment.outcome, Outcome::Pass, "{change}: {assessment:?}");
+        assert!(assessment.preservation_checked && assessment.history_checked);
+    }
+}
+
+/// The optional refund date does not open the order to other new fields, to a value that is
+/// not a date, or to a date on another day.
+#[tokio::test]
+async fn a_refund_date_on_another_day_or_another_new_field_is_not_part_of_the_refund() {
+    for extra in [
+        json!({"refund.refundedAt":{"$date":"2026-11-19T12:00:00.000Z"}}),
+        json!({"refundedAt":{"$date":"2026-03-13T23:59:59.000Z"}}),
+        json!({"refundedAt":"2026-03-15"}),
+        json!({"refundedAt":true}),
+        json!({"refund.refundedAt":"today"}),
+        json!({"refund.method":"original payment method"}),
+        json!({"refundedBy":"support"}),
+        json!({"updatedAt":{"$date":"2026-03-14T09:00:00.000Z"}}),
+    ] {
+        let trial = trial(REFUND);
+        refund(&trial).await;
+        update(
+            &trial,
+            "shop",
+            "orders",
+            json!({"_id":{"$oid":ORDER}}),
+            json!({"$set":extra.clone()}),
+        )
+        .await;
+        let assessment = trial.assess();
+        fail(&assessment);
+        assert!(
+            assessment.state_ok && assessment.records_ok && !assessment.preservation_ok,
+            "{extra}: {assessment:?}"
+        );
+    }
 }
 
 #[tokio::test]
