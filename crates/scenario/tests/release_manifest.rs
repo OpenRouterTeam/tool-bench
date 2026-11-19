@@ -147,7 +147,11 @@ fn the_earlier_release_is_kept_and_every_difference_from_it_is_named() {
     assert_eq!(earlier.release_id, "tool-bench-public-dev-1");
     assert_eq!(current.release_id, "tool-bench-public-dev-2");
     assert_eq!(earlier.comparison, current.comparison);
-    assert_eq!(earlier.evaluator_version, current.evaluator_version);
+    // Release 2 also grades with a later evaluator, so no result pools across the two.
+    assert_eq!(
+        (earlier.evaluator_version, current.evaluator_version),
+        (46, 47)
+    );
     let by_id = |release: &Release| -> BTreeMap<String, release::ReleaseTask> {
         release
             .tasks

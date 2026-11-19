@@ -142,6 +142,12 @@ each server no longer passes that capability on.
 
 ## What can still be compared across the two releases
 
+Release 1 is graded by evaluator 46 and release 2 by evaluator 47, and results are not
+pooled across evaluator versions (`docs/production.md`). Evaluator 47 changes no reward
+under an existing contract except one: a reply the grader cannot decide is no longer
+published as a zero. So a comparison across the releases reads tasks side by side and
+does not pool them.
+
 - A task both releases score that is not listed above has the same instruction,
   dataset and contract in both: 89 tasks, two of which are the Okta tasks above. The
   search tasks kept in release 2 gained a `route:*` tag, which moves their

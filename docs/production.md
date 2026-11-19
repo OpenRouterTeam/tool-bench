@@ -218,11 +218,12 @@ for one, and each can be repeated from this repository:
 | AI agents attempting tasks through the MCP servers without seeing the contracts (`deploy/pilot/`) | 412 attempts in five waves. The fourth covered all 150 tasks: 147 passed, two correct replies were left unscored and one completed trial was voided. The fifth repeated the 55 lookup tasks: 53 passed. Every cause has since been fixed |
 | Reply corpora (`crates/mock-core/tests/fixtures/`) | 499 of 500 correct replies pass and 300 of 300 wrong replies are rejected |
 
-These results are for release `tool-bench-public-dev-1`. Release 2 replaces eleven
-search tasks and changes the dataset of one
-([the archive note](../releases/archive/tool-bench-public-dev-1/README.md)). Those twelve
-pass their contract tests; they have not been through the stock campaign or the agent
-attempts.
+These results are for release `tool-bench-public-dev-1` and evaluator 46. Release 2
+replaces eleven search tasks, changes 50 more in place and grades with evaluator 47
+([the archive note](../releases/archive/tool-bench-public-dev-1/README.md)). The new and
+changed tasks pass their contract tests. They have not been through the stock campaign
+or the agent attempts, and the tool servers' request reports that evaluator 47 seals in
+the evidence have not yet run in a container.
 
 What the agent attempts found, and what to expect from a model run:
 

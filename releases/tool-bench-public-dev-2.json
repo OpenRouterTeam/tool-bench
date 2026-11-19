@@ -2,7 +2,7 @@
   "schema_version": 2,
   "release_id": "tool-bench-public-dev-2",
   "frozen_at": "2026-11-19T00:00:00Z",
-  "evaluator_version": 46,
+  "evaluator_version": 47,
   "family_schema_version": 1,
   "comparison": {
     "schema_version": 2,
