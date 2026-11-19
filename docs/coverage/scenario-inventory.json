@@ -377,11 +377,11 @@
       "source": {
         "schema_version": 1,
         "scenario": "business/hubspot/dana-joins-pied-piper",
-        "scenario_sha256": "sha256:023db06102900a5c5be601be868021ceb265e773150abfe5776bd4ddaeffaf63",
+        "scenario_sha256": "sha256:50033d2551cdda4824a30a40279365203e5aa6315bfd7d4af961e79d5ba5d381",
         "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
-        "contract_sha256": "sha256:68200f67bde4e35be9be1c4215c223a697ba9735964dae3a71be7b143c9d330a"
+        "contract_sha256": "sha256:e7893336431457d112410bcc867948c512f785bc5af99b2413f2519931b73c5f"
       },
-      "instruction_sha256": "sha256:416aba92d158509a914e0e5ac142020c43a7815d10191834ebcaaffd9729c160",
+      "instruction_sha256": "sha256:c875701aa2499782e2d1fcd6be7e30ae162ccfbb145b9d5beea9cdbfcda11fbf",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -431,7 +431,7 @@
       },
       "effect_permissions": {
         "create": 1,
-        "update": 6
+        "update": 7
       },
       "answer_check": "none",
       "reference_answer_template": false,
@@ -485,7 +485,7 @@
         "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
         "contract_sha256": "sha256:a85f1d08d0d5e46bc62b0130a74a95d5b443b6aa7741d7f863cbf10b8856524e"
       },
-      "instruction_sha256": "sha256:5a3d2bb8dd7d37a40a90e4ba05c247542307aba5161c01aa0d41b199dcc0bd0f",
+      "instruction_sha256": "sha256:4ff9037403ece87b004e7035816161b0fc93d626fe85aedfb23d49154198346b",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -588,7 +588,7 @@
         "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
         "contract_sha256": "sha256:b91843e5f3181238fbdaf3e396b449d8c8dab8f364472619a1be25f304cd9e82"
       },
-      "instruction_sha256": "sha256:e2604c692c2021fecb21aac54d7551fbec74860667e692980a475bef7019c9a3",
+      "instruction_sha256": "sha256:16ee99cdc7a84f029735bbd195e88207a0ccb6ccf501a37bd472dff6046cfa15",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -1101,7 +1101,7 @@
         "dataset_sha256": "sha256:089a3a26bbf5c15596577e3f54e358daaf83a2b806a731ca9346640f526090cd",
         "contract_sha256": "sha256:4db18c641f6badd2c037ef88850e4b1803470c55c6158ddb691a62757810f86b"
       },
-      "instruction_sha256": "sha256:b4994199293de5de6841b2633e2004188d416a4fd3bc483d2f13a34e8b9b210d",
+      "instruction_sha256": "sha256:528cc5ea3c9a4af75a4a100afff536bc5b99d61f1206d35a673c5e237a4ebcb0",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -1228,7 +1228,7 @@
         "dataset_sha256": "sha256:5c90a8f3d151ff71df60df6c29b575f38545481c4e624432339c9aee7b5597ed",
         "contract_sha256": "sha256:04231e354a2e6f470a4ee4486b516d3cd031da6d9578f9dc420060b27be7dc23"
       },
-      "instruction_sha256": "sha256:d98cc32da06f07038f18149c270d1196a304ef0fdbb3d5e63a7767ad16add3d1",
+      "instruction_sha256": "sha256:752bdd32fc2715e2e514eebc42726219b1597ca1e03acc5247cc0795a7b08a21",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -1935,7 +1935,7 @@
         "dataset_sha256": "sha256:95a91247bd2590113dd4cf8e19a7031e71ee1ac700a320aa924cb5efe9c5a943",
         "contract_sha256": "sha256:0f21db1c67e8357de1186d072ff085329d6a770372c6583c9a25804fe399ee19"
       },
-      "instruction_sha256": "sha256:cbb2e026675623822d16cb6bb43f9625b03acb204d8cbfaf862d39a930f6b7df",
+      "instruction_sha256": "sha256:d06800fb4211e04bd8a76b5eb3ac4f7f2e9f1361c12798bd5077beee249b9c0b",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -2834,7 +2834,7 @@
         "dataset_sha256": "sha256:884c4112ecc3cab364c337efb267809eaf1db25eb13fd5ec9012ec2f28172ae4",
         "contract_sha256": "sha256:1c8fec97665ca578ce43f5e5ac0ca3f6b5b1f46e5237143d73258acb075ef506"
       },
-      "instruction_sha256": "sha256:361a417b16863f8d4db42569148ec11830eb557e8d9121d1b0b95c611848efb7",
+      "instruction_sha256": "sha256:aa23b110049b7a5f82b58ebf91d5e24d4b71339f64a42d16cd087038544a7c30",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -2936,7 +2936,7 @@
         "dataset_sha256": "sha256:1695835d9b0bb588e8adb18c91d7bf09476a1ef1029f8cf7e9b72afb634506e0",
         "contract_sha256": "sha256:292c10b2414133fec68c332243143be4389565355f84696d6abe9a91387049af"
       },
-      "instruction_sha256": "sha256:e2bc73e7029b923736c682df8041999b79b71abddbfe0b35b895268beb6b53f1",
+      "instruction_sha256": "sha256:7f3a67a1ecfd6aea914598f8114dcf5d5cf826749265a0ad2d48e8a28a9f03e3",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -3063,7 +3063,7 @@
         "dataset_sha256": "sha256:9b175f65fc78cd4f84bff0455fb891f1aeab6bcaa553a8fd7072db01f493033b",
         "contract_sha256": "sha256:439d1cb01eceef4925d6136a25c14ea6aa89b7a8ce4c2ef80346cfff1beddac2"
       },
-      "instruction_sha256": "sha256:7e2c92619561302b6a5f71ccd617544f9e5258be417089472470e7c375eb793e",
+      "instruction_sha256": "sha256:40dc891aa44de4c9bf98b3f60442ee5a7bbf535d4557a77aea667edb1a9939f6",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -3164,7 +3164,7 @@
         "dataset_sha256": "sha256:6c7e63fbdbbcc3fecd9a7e63c02c765b74ef1bd9ab65ba7eccffc612ebe878e4",
         "contract_sha256": "sha256:c0c24023e4ba51243f6962755e9530c3579df471aab819a605aea556056d0a36"
       },
-      "instruction_sha256": "sha256:9b0c75d45b43c8323c6d3e9e7bd0b24b449b254bc200081536989360942c0c4a",
+      "instruction_sha256": "sha256:42074b4aaeeb5541b37c61ae616e8a865e5e7ad6aa95061813ce70d3bf1dc19c",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -4374,9 +4374,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "cloud/mongodb/refund-order",
-        "scenario_sha256": "sha256:2f25f747a76cfe893fae29844ab0ae16ed37dee9d2c7f7c1efa32e0359a68385",
+        "scenario_sha256": "sha256:c0c66a379ceb5abaa7ec4b81988d4258e33da9d342d752d483ce083764d737fe",
         "dataset_sha256": "sha256:17cc233ada17c9dca2e7f1557a0edd8ea0bd7de391d6311901f659b83bc617c3",
-        "contract_sha256": "sha256:f868c51d9108aa45f3fd31a708c80be040eae091f02e09bb782eb93c4599a11e"
+        "contract_sha256": "sha256:62617b76abe3b908768079f927d3124b16fae6daf48574de0f2051ef308917c2"
       },
       "instruction_sha256": "sha256:8342b0c1edf76f57707189d7b48372b584013aa128c09f132c2b678fa9a79ae9",
       "scored": true,
@@ -4426,7 +4426,7 @@
         "source_bound_answers": 0
       },
       "effect_permissions": {
-        "update": 3
+        "update": 7
       },
       "answer_check": "none",
       "reference_answer_template": false,

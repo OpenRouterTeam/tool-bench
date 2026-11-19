@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "business/zendesk/reply-refund-and-solve",
-  "instruction_sha256": "sha256:9b0c75d45b43c8323c6d3e9e7bd0b24b449b254bc200081536989360942c0c4a",
+  "instruction_sha256": "sha256:42074b4aaeeb5541b37c61ae616e8a865e5e7ad6aa95061813ce70d3bf1dc19c",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:850868d24dd6b9acd4436aa0899c532ee6aa905b735d243c568ec20b4fdc3154",
+  "framing_sha256": "sha256:913a0378847d95bac14b5fee07a2509991c5f4e547406975e9631430c5d6356a",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:d782771e37b22b9e4150601bba9ba15af0fde38d8c8d17f6191595e59f6f835c"
+    "docker-compose.yaml": "sha256:145578430d07cd7088b379b3494f70ee9d9aa8426391e8db0fd9390721f1bd38"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:71b8430844f46d1f",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:65e67149813b683a",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:ef57a87206d1904c",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:93dab02abe0fe777",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",
