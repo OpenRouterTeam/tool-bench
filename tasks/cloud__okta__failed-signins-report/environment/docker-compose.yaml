@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:3365097eef4ba4a0
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:30babf2a7224292d
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "cloud/okta/failed-signins-report"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:3b1f6a331ba1e451
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:0312b1ea92f12693
     stop_signal: SIGKILL
     networks:
       default: {}

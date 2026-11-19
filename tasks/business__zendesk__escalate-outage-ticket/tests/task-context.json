@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "business/zendesk/escalate-outage-ticket",
-  "instruction_sha256": "sha256:e2bc73e7029b923736c682df8041999b79b71abddbfe0b35b895268beb6b53f1",
+  "instruction_sha256": "sha256:7f3a67a1ecfd6aea914598f8114dcf5d5cf826749265a0ad2d48e8a28a9f03e3",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:77d1d83e0717a540d0b4d1a37cc633e6a36f82a87b0c830c196143ea852315d6",
+  "framing_sha256": "sha256:1375621b441ba35a94bd3818adf4eaac03cc50bfb182f4a8dd19e4fe52d9cca8",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:04c35bd6ff70618d02568e83d397ca2f6eb9260be38a16583f12651a5724791e"
+    "docker-compose.yaml": "sha256:ee36b72aa272c7871dd042d9f963436365352e2b55d9da58c1a96dec7210913b"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:3365097eef4ba4a0",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:3b1f6a331ba1e451",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:30babf2a7224292d",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:0312b1ea92f12693",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

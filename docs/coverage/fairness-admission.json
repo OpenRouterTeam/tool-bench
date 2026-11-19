@@ -12,30 +12,16 @@
     "scored_tasks": 150,
     "scored_routes": {
       "route:kind": 11,
-      "route:named": 120,
-      "route:unnamed": 19
+      "route:named": 128,
+      "route:unnamed": 11
     },
-    "scored_flagged": 9,
-    "scored_flagged_by_class": {
-      "crm": 2,
-      "orders": 1,
-      "support_tickets": 7
-    },
-    "scored_accepting_a_class": 10,
+    "scored_flagged": 0,
+    "scored_flagged_by_class": {},
+    "scored_accepting_a_class": 11,
     "unscored_tasks": 4,
     "unscored_flagged": 2
   },
-  "flagged": [
-    "business/hubspot/largest-open-deal",
-    "business/hubspot/log-call-note-initech",
-    "business/multi/zendesk-order-status-shopify",
-    "business/multi/zendesk-refund-via-stripe",
-    "business/zendesk/create-ticket-for-caller",
-    "business/zendesk/escalate-outage-ticket",
-    "business/zendesk/find-invoice-attachment",
-    "business/zendesk/reply-refund-and-solve",
-    "search/multi/zendesk-reply-any-search"
-  ],
+  "flagged": [],
   "tasks": [
     {
       "id": "business/hubspot/advance-globex-expansion",
@@ -70,29 +56,14 @@
     {
       "id": "business/hubspot/largest-open-deal",
       "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "route": "route:named",
+      "flagged": false,
       "services": [
         {
           "service": "hubspot",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "crm",
-              "kind_words": [
-                "crm",
-                "pipeline"
-              ],
-              "members": [
-                "hubspot",
-                "salesforce"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on salesforce"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "HubSpot"
           ]
         }
       ]
@@ -100,29 +71,14 @@
     {
       "id": "business/hubspot/log-call-note-initech",
       "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "route": "route:named",
+      "flagged": false,
       "services": [
         {
           "service": "hubspot",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "crm",
-              "kind_words": [
-                "crm"
-              ],
-              "members": [
-                "hubspot",
-                "salesforce"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on salesforce",
-                "a state, record or relation check reads hubspot's records, so the same change on another member fails"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "HubSpot"
           ]
         }
       ]
@@ -196,52 +152,21 @@
     {
       "id": "business/multi/zendesk-order-status-shopify",
       "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "route": "route:named",
+      "flagged": false,
       "services": [
         {
           "service": "zendesk",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "support_tickets",
-              "kind_words": [
-                "support ticket"
-              ],
-              "members": [
-                "zendesk",
-                "hubspot",
-                "salesforce",
-                "jira"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on hubspot, salesforce, jira"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "Zendesk"
           ]
         },
         {
           "service": "shopify",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "orders",
-              "kind_words": [
-                "the store",
-                "order"
-              ],
-              "members": [
-                "shopify",
-                "mongodb",
-                "supabase"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on mongodb, supabase"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "Shopify"
           ]
         }
       ]
@@ -249,31 +174,14 @@
     {
       "id": "business/multi/zendesk-refund-via-stripe",
       "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "route": "route:named",
+      "flagged": false,
       "services": [
         {
           "service": "zendesk",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "support_tickets",
-              "kind_words": [
-                "support ticket"
-              ],
-              "members": [
-                "zendesk",
-                "hubspot",
-                "salesforce",
-                "jira"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on hubspot, salesforce, jira",
-                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "Zendesk"
           ]
         },
         {
@@ -468,32 +376,14 @@
     {
       "id": "business/zendesk/create-ticket-for-caller",
       "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "route": "route:named",
+      "flagged": false,
       "services": [
         {
           "service": "zendesk",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "support_tickets",
-              "kind_words": [
-                "support ticket",
-                "support line"
-              ],
-              "members": [
-                "zendesk",
-                "hubspot",
-                "salesforce",
-                "jira"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on hubspot, salesforce, jira",
-                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "Zendesk"
           ]
         }
       ]
@@ -501,31 +391,14 @@
     {
       "id": "business/zendesk/escalate-outage-ticket",
       "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "route": "route:named",
+      "flagged": false,
       "services": [
         {
           "service": "zendesk",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "support_tickets",
-              "kind_words": [
-                "support ticket"
-              ],
-              "members": [
-                "zendesk",
-                "hubspot",
-                "salesforce",
-                "jira"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on hubspot, salesforce, jira",
-                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "Zendesk"
           ]
         }
       ]
@@ -533,31 +406,14 @@
     {
       "id": "business/zendesk/find-invoice-attachment",
       "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "route": "route:named",
+      "flagged": false,
       "services": [
         {
           "service": "zendesk",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "support_tickets",
-              "kind_words": [
-                "support ticket",
-                "helpdesk"
-              ],
-              "members": [
-                "zendesk",
-                "hubspot",
-                "salesforce",
-                "jira"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on hubspot, salesforce, jira"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "Zendesk"
           ]
         }
       ]
@@ -565,31 +421,14 @@
     {
       "id": "business/zendesk/reply-refund-and-solve",
       "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "route": "route:named",
+      "flagged": false,
       "services": [
         {
           "service": "zendesk",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "support_tickets",
-              "kind_words": [
-                "support ticket"
-              ],
-              "members": [
-                "zendesk",
-                "hubspot",
-                "salesforce",
-                "jira"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on hubspot, salesforce, jira",
-                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "Zendesk"
           ]
         }
       ]
@@ -3260,8 +3099,7 @@
       "id": "search/multi/zendesk-reply-any-search",
       "scored": true,
       "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "flagged": false,
       "services": [
         {
           "service": "brave",
@@ -3341,25 +3179,9 @@
         },
         {
           "service": "zendesk",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "support_tickets",
-              "kind_words": [
-                "support ticket"
-              ],
-              "members": [
-                "zendesk",
-                "hubspot",
-                "salesforce",
-                "jira"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on hubspot, salesforce, jira",
-                "a state, record or relation check reads zendesk's records, so the same change on another member fails"
-              ]
-            }
+          "route": "route:named",
+          "words": [
+            "Zendesk"
           ]
         }
       ]
