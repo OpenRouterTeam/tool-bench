@@ -74,10 +74,12 @@ path_regex = "^/(incidents|schedules|v3|services|teams|users|webhook_subscriptio
 [[expect.forbidden_calls]]
 service = "pagerduty"
 method = "PUT"
+path_regex = '^/(incidents|schedules|v3|services|teams|users|escalation_policies|event_orchestrations|incident_workflows|status_pages|webhook_subscriptions|alert_grouping_settings)(/|$)'
 
 [[expect.forbidden_calls]]
 service = "pagerduty"
 method = "DELETE"
+path_regex = '^/(incidents|schedules|v3|services|teams|users|escalation_policies|event_orchestrations|incident_workflows|status_pages|webhook_subscriptions|alert_grouping_settings)(/|$)'
 
 [[solution.call]]
 endpoint = "pagerduty"

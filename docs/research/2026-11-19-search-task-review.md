@@ -38,7 +38,11 @@ Eleven tasks are replaced; the mapping is in
 `releases/archive/tool-bench-public-dev-1/README.md`, with the originals' sources. In
 each replacement:
 
-- the instruction is the original, word for word;
+- the instruction is the original, word for word, except that
+  `search/multi/zendesk-reply-any-search` says "an open Zendesk ticket" where the
+  original said "an open support ticket": four connected services can hold a support
+  ticket, the ticket half accepts Zendesk only, and the fairness admission check
+  refuses a scored task that leaves such a service unnamed;
 - the original vendor's dataset is kept as it was, so the answer contract reads the same
   records with the same patterns;
 - the same pages, look-alikes and superseded pages included, are written in the dataset
@@ -72,6 +76,46 @@ servers, because the facts exist nowhere else.
   not as a pass or a fail (`a_search_without_a_web_result_list_before_the_write_is_not_assessed`).
   Tavily and Exa responses always carry the list, so release 1 had no such case.
 
+## One task changed in place: the Firecrawl crawl
+
+`search/firecrawl/crawl-api-reference` asks for a Firecrawl crawl of
+`https://docs.lumenpay.dev` that collects only the pages under `/api/`. In the round it
+failed in all seven cells with the whole tool list sent, and passed 6 of 27 scored
+trials of the arms that hide the tool servers behind a search tool. Six of the seven
+whole-list failures were on records, history and preservation together; the other was
+on records alone.
+
+What the sources showed, by running each natural set of crawl arguments against the
+in-process world:
+
+- The fixture had no sitemap and no page at `/api/`. The site root with an `/api/`
+  filter collects nothing, because the mock, like the vendor, tests the start URL
+  against `includePaths`. The section path collects nothing either, because it is not a
+  page. Those are the two crawls the request describes.
+- One seed passed: `/api/overview`, the only page that links to the other four, with
+  `crawlEntireDomain` set. The request names no such page. The tool schema describes
+  none of the crawl arguments, and that one's name says the opposite of "only the API
+  section".
+- The contract allows three crawls that collected nothing. It does not allow a second
+  crawl that collected a page, and no tool removes a crawl. The step between an empty
+  crawl and the right one, the `/api/overview` seed without `crawlEntireDomain`,
+  collects one page. The right crawl after it fails on records, history and
+  preservation: the signature of six of the seven failures.
+
+The fix is in the dataset: the docs site publishes a sitemap
+(`dataset/firecrawl/sitemap.json`), as a documentation site does, and the mock already
+reads one. The site root with an `/api/` filter, the site root with the rest excluded,
+and the section path now collect the five pages. The instruction, the contract and the
+mock are unchanged.
+
+What still fails: a crawl with no filter, one that keeps the home page, one whose page
+limit truncates the section, a seed on one page without sibling traversal, a seed on
+the marketing site, and a second crawl that collected any page.
+
+One strictness is kept and is a judgment: a crawl that collected a page is final,
+because the agent has no tool to remove it, so one wrongly scoped attempt fails the
+trial even when the next crawl is right.
+
 ## Route label
 
 Every search task carries one tag, by what its instruction says about the route:
@@ -99,5 +143,9 @@ from the rest. The tag appears in each task's `task.toml` keywords.
   against the replacements.
 - `catalog/validation-evidence/search.toml` declares a valid alternative and a near
   miss for each of the eleven.
+- `crates/world/tests/firecrawl_contracts.rs` holds the crawl task: the crawls the
+  request describes pass, part of the section fails, and a whole-domain crawl from an
+  API page fails. `deploy/test-firecrawl-business-audit.sh`, an independent reading of
+  the same fixtures, agrees on all 18.
 - `taskgen` validates the scenarios and their reference calls against the locked tool
   snapshots, and `release-manifest --check` passes for release 2.

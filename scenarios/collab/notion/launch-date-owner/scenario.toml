@@ -53,10 +53,12 @@ kind = "text"
 [[expect.forbidden_calls]]
 service = "notion"
 method = "PATCH"
+path_regex = '^/v1/'
 
 [[expect.forbidden_calls]]
 service = "notion"
 method = "DELETE"
+path_regex = '^/v1/'
 
 [[solution.call]]
 endpoint = "notion"

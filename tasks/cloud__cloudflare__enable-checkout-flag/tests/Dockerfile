@@ -1,4 +1,4 @@
-FROM us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cac94f9898b072d0
+FROM us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:30babf2a7224292d
 HEALTHCHECK NONE
 ENTRYPOINT []
 STOPSIGNAL SIGKILL

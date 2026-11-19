@@ -46,6 +46,7 @@ body = { monitor_id = 7301 }
 [[expect.forbidden_calls]]
 service = "datadog"
 method = "DELETE"
+path_regex = '^/api/v[12]/'
 
 [[expect.forbidden_calls]]
 service = "datadog"

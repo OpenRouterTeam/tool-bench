@@ -113,22 +113,27 @@ service = "github"
 [[expect.forbidden_calls]]
 service = "sentry"
 method = "PUT"
+path_regex = '^/api/0/'
 
 [[expect.forbidden_calls]]
 service = "sentry"
 method = "DELETE"
+path_regex = '^/api/0/'
 
 [[expect.forbidden_calls]]
 service = "github"
 method = "POST"
+path_regex = '^/api/v3/'
 
 [[expect.forbidden_calls]]
 service = "github"
 method = "PATCH"
+path_regex = '^/api/v3/'
 
 [[expect.forbidden_calls]]
 service = "github"
 method = "PUT"
+path_regex = '^/api/v3/'
 
 [[solution.call]]
 endpoint = "sentry"

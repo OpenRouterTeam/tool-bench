@@ -29,7 +29,7 @@
         "collection": "/services/github/issues",
         "matching": {},
         "field_patterns": {
-          "/title": "^CHECKOUT-API-3F: \\S"
+          "/title": "^CHECKOUT-API-3F([^[:alnum:]]|$)"
         },
         "key_prefix": "lumen-labs/checkout#",
         "created": true,
@@ -406,7 +406,7 @@
           "user": "hana"
         },
         "field_patterns": {
-          "/title": "^CHECKOUT-API-3F: \\S"
+          "/title": "^CHECKOUT-API-3F([^[:alnum:]]|$)"
         },
         "max_count": 1,
         "count_scope": "trial",

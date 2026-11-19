@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/multi/api-key-deletion-audit-github",
-  "scenario_sha256": "sha256:acc1821d9b3066519e76934e83a5d231887d54db7dfa437f512056f35d1da878",
+  "scenario_sha256": "sha256:0203d02ae9d4b1e1df2c8cec0fd382d2fda635ca261acb00ce44e639263fb646",
   "dataset_sha256": "sha256:81ba09c6b875951f9af9ee377b5f1cdcbdcf0e1797a7093f544ee1a3d77ef36d",
-  "contract_sha256": "sha256:19829ec0dfca321f124c1f9c8a5b72245e3a7edbf0f8a2493efb580a6722b149"
+  "contract_sha256": "sha256:29581f222cd83666705a9eaa629965cf78458e2146f59f736b9af74954b1b466"
 }

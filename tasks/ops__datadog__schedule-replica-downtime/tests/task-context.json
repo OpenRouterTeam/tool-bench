@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "ops/datadog/schedule-replica-downtime",
-  "instruction_sha256": "sha256:ac5d853c49f2a45be4f90c8db8e6af547b01ace6feeda3bc3d32e76fe25b696c",
+  "instruction_sha256": "sha256:88b6d33e29e564af63212b9af38272f64b7403ea967691fb51f85d7054302471",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:1e40cb45badc9e127ecc2886c22e8b9091b828165b4f3e29d2dc39d400d29b3b",
+  "framing_sha256": "sha256:b45cd53ec1aef87c7305ac3d547c911f47e3d816d758aa50f7b82904098d5192",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:beafd4cf559ea8f6a1505eb95917420d9fd3a6c0bed2594c6b012eeb12c4262e"
+    "docker-compose.yaml": "sha256:852dff86dc402fa1bc104e519c51789e83f8981a9d625a266327f8c3105c7c1f"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cac94f9898b072d0",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:9c36dbb7a4c5776d",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:30babf2a7224292d",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:0312b1ea92f12693",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

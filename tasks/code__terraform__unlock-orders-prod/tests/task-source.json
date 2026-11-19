@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/terraform/unlock-orders-prod",
-  "scenario_sha256": "sha256:d32354192273e6e755d420241142c5975b0549a07a7b2fc28903bd89cc315827",
+  "scenario_sha256": "sha256:d6f8d130693b9d20e074b4f69dbc4c21868214831d6d3f4231ba96fee0201c14",
   "dataset_sha256": "sha256:bcfd6a353b7e5d509ad0308a2220e906007a61b2b4df043f99b6d99602e3e57c",
-  "contract_sha256": "sha256:7c89002517cd8203356ce657e3802789f1b83f3fae0712d514f94395bf6c509a"
+  "contract_sha256": "sha256:798faa77efd3e614fe595352ce5928cf2b795a6dc0e293b0655ae063b0d30b93"
 }

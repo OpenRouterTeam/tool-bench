@@ -556,3 +556,69 @@ async fn the_reporter_sends_registration_requests_and_failed_tool_calls() {
     ));
     assert!(!tool_call_failed("not json"));
 }
+
+/// What the server saw as the client's capabilities, read through the bridge.
+async fn capabilities_seen_by_the_server(client_capabilities: Value) -> Value {
+    let addr = start_bridge(&[]).await;
+    let url = format!("http://{addr}/mcp");
+    let http = reqwest::Client::builder().no_proxy().build().unwrap();
+    let init = json!({"jsonrpc": "2.0", "id": 1, "method": "initialize",
+        "params": {"protocolVersion": "2025-06-18", "capabilities": client_capabilities, "clientInfo": {"name": "t", "version": "0"}}});
+    let resp = http.post(&url).json(&init).send().await.unwrap();
+    let sid = resp.headers()["mcp-session-id"]
+        .to_str()
+        .unwrap()
+        .to_owned();
+    let call = json!({"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "client_capabilities", "arguments": {}}});
+    let body = http
+        .post(&url)
+        .header("mcp-session-id", &sid)
+        .header("accept", "application/json, text/event-stream")
+        .json(&call)
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    let data = body
+        .lines()
+        .filter_map(|line| line.strip_prefix("data:"))
+        .next_back()
+        .unwrap()
+        .trim_start();
+    let response: Value = serde_json::from_str(data).unwrap();
+    serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap()
+}
+
+/// A trial has nobody to answer a confirmation prompt, so a server is never told the client
+/// can show one. The client's other capabilities reach the server unchanged.
+#[tokio::test]
+async fn bridge_hides_the_elicitation_capability_from_the_server() {
+    let seen = capabilities_seen_by_the_server(
+        json!({"elicitation": {}, "roots": {"listChanged": true}, "sampling": {}}),
+    )
+    .await;
+    assert_eq!(
+        seen,
+        json!({"roots": {"listChanged": true}, "sampling": {}})
+    );
+
+    let unchanged = capabilities_seen_by_the_server(json!({"roots": {}})).await;
+    assert_eq!(unchanged, json!({"roots": {}}));
+}
+
+#[test]
+fn hide_elicitation_leaves_other_requests_and_malformed_capabilities_alone() {
+    use mcp_tools::bridge::hide_elicitation;
+    let mut call = json!({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+        "params": {"name": "echo", "arguments": {"elicitation": true}}});
+    let before = call.clone();
+    hide_elicitation(&mut call);
+    assert_eq!(call, before);
+
+    let mut odd = json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"capabilities": "none"}});
+    let before = odd.clone();
+    hide_elicitation(&mut odd);
+    assert_eq!(odd, before);
+}

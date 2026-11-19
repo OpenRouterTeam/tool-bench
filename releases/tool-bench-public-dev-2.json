@@ -50,18 +50,18 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:67bacbcff39eb5998e12694e957cefc9fa73ffa38c67055d56e86dc9fe45fafb",
-      "scenario_sha256": "sha256:023db06102900a5c5be601be868021ceb265e773150abfe5776bd4ddaeffaf63",
+      "scenario_sha256": "sha256:50033d2551cdda4824a30a40279365203e5aa6315bfd7d4af961e79d5ba5d381",
       "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
-      "contract_sha256": "sha256:68200f67bde4e35be9be1c4215c223a697ba9735964dae3a71be7b143c9d330a"
+      "contract_sha256": "sha256:e7893336431457d112410bcc867948c512f785bc5af99b2413f2519931b73c5f"
     },
     {
       "task_id": "business/hubspot/largest-open-deal",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:9adc9d3fad731f21d4a60e1c1a321f51587be094d19fd06aa9efe43875ad381b",
-      "scenario_sha256": "sha256:313c1c71c06f6a3bc76b70c0c90465d20373ae9fbd625fe8518aecf6de65d31a",
+      "scenario_sha256": "sha256:cde79e81fcb5a1a4282b36556e422fcb2c0ce8cd0000906b342207b520d2ad27",
       "dataset_sha256": "sha256:4511807dd9cabd00de07afef04323a38f4d500db6ed4b18be6a8815a7eedeb43",
-      "contract_sha256": "sha256:a85f1d08d0d5e46bc62b0130a74a95d5b443b6aa7741d7f863cbf10b8856524e"
+      "contract_sha256": "sha256:9c3c10249f48e0ce3a657d4aca5055184274414dd4f3f9d4fd9d2a038b100019"
     },
     {
       "task_id": "business/hubspot/log-call-note-initech",
@@ -77,9 +77,9 @@
       "split": "public_development",
       "family": "cross_system_identity",
       "family_sha256": "sha256:064c2d0ca427236cee729aaac9167c39fbf8eb4ad4d304987a7be1daf13a89fb",
-      "scenario_sha256": "sha256:7b96a9331e0fbd1297ea85864525bd799241cf5b876384a06e6e76e939424fdf",
+      "scenario_sha256": "sha256:104a02556a3fe9be0bdc9f844eefcafe89c1fc2d1ae88df3f140dc86d0fe1265",
       "dataset_sha256": "sha256:6214e3dd7a601d0ff38d36b3a148e5d42c9bcfb8700980d27975813a06d9741b",
-      "contract_sha256": "sha256:76ddf9535f8dd09228864d14c0962da0b5f3ecee1018815340cab746e5a5e43a"
+      "contract_sha256": "sha256:c79f623d797d7ffcccb034758af5d3804dbcc8787beebe981ab19dd60064c147"
     },
     {
       "task_id": "business/multi/hubspot-won-to-salesforce-opportunity",
@@ -266,9 +266,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:247176c572dbdfb56f2afe5bf54531b5e5e6d04b3ec4098cf2ee622598079f99",
-      "scenario_sha256": "sha256:ed90776ab86d44acdf7997197f0da36db3fcfa9e3760bd22d6f18d18deecc8b4",
+      "scenario_sha256": "sha256:f61b0c80d2b2487ad852b0fbdf0c40ea9012a452663db3c8444aa5b6c9dbbe02",
       "dataset_sha256": "sha256:193ea0840d1c00bd95061275182e62d943d925651637adfe3fc1a119cda5bfb2",
-      "contract_sha256": "sha256:ca776641cc2f3ef00f79e5ed94c8b7800b9f8c7d7985375a508595a7cf594d8c"
+      "contract_sha256": "sha256:0d4c9b7ce6f88aca3b7b399c13fada8ba98038c3352d316e1977d18aa20543ab"
     },
     {
       "task_id": "cloud/aws/grant-auditor-access",
@@ -356,9 +356,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:3765e7e8e859764c3a68c2572846c4ed74a50ade6efa53236b3c32a8c463c3ac",
-      "scenario_sha256": "sha256:2f25f747a76cfe893fae29844ab0ae16ed37dee9d2c7f7c1efa32e0359a68385",
+      "scenario_sha256": "sha256:c0c66a379ceb5abaa7ec4b81988d4258e33da9d342d752d483ce083764d737fe",
       "dataset_sha256": "sha256:17cc233ada17c9dca2e7f1557a0edd8ea0bd7de391d6311901f659b83bc617c3",
-      "contract_sha256": "sha256:f868c51d9108aa45f3fd31a708c80be040eae091f02e09bb782eb93c4599a11e"
+      "contract_sha256": "sha256:62617b76abe3b908768079f927d3124b16fae6daf48574de0f2051ef308917c2"
     },
     {
       "task_id": "cloud/mongodb/top-category-revenue",
@@ -374,18 +374,18 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:7055ddeaf0f681ff4a2b54c4deb7942d86918575abbcb47ae417d1a4afd7a853",
-      "scenario_sha256": "sha256:ac1bb26f0e887ffbc02346c8d8395618dd1d981c14a4b6e543a8355b2355c1d4",
+      "scenario_sha256": "sha256:85557ac5fbfa7ddb2a5122aff4963521189a1aca992367cc72fd529f2323c2a6",
       "dataset_sha256": "sha256:f2167c81ccc642f2de1ef61cb1329c481c97d69c27411f8b87b5032fbc5a86a3",
-      "contract_sha256": "sha256:6e67d36cfd107663b91b05a502313fa598cc3674ec308123dda8265ab7aae0a6"
+      "contract_sha256": "sha256:7de5ab6f70e93646da97bc2ccd7dd3288a6522eb8286eb0000299b5ffa3da8c9"
     },
     {
       "task_id": "cloud/multi/aws-replica-lag-pagerduty-notion",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:1b3b44e55e7d836b85d9a9242ee0626679876b1b153dd14e32e7c58c9d1d0d41",
-      "scenario_sha256": "sha256:3aa39feccadd2018613a8b24d5330c397ee60b1d3c8a684989a459659aa835ed",
+      "scenario_sha256": "sha256:724a4d140c9ad0441aa371cdfab92771ee914cc981dcc5c503beaf47168f8bf4",
       "dataset_sha256": "sha256:0220f1f87c70f4ceb38a01c37cfc618b4f64ee79d45bc9f7603cadf96776256b",
-      "contract_sha256": "sha256:bfef83cb43b5787db81b193c8f359a40712aae2a0904a0acea5d916707d5c787"
+      "contract_sha256": "sha256:13729d53e01b74e15e430cd124f901cfa9e5e1a1a6a0cfa1d646ab8cd73a1da1"
     },
     {
       "task_id": "cloud/multi/mongodb-zendesk-order-tracking",
@@ -428,9 +428,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:f0956bc6b204bf3dfe7cbaa5503e970f690b144a7d06c35f32850cad8a02fb85",
-      "scenario_sha256": "sha256:27093e912fed1e9f3b0526666ee64ee417c52028a398f5f7836ca0bb9c91f7d9",
+      "scenario_sha256": "sha256:2ea96673be054f6ac519e757d1b583463d9806f15c854115dddcf25645642066",
       "dataset_sha256": "sha256:5f3d061a48ae4145d26b66ad7443181540da228b6f992d1ea3e21db6a0ec5dd8",
-      "contract_sha256": "sha256:3ae8b30e9739bc514329d8950f5086fcea264e4a8c6af957470618ab952a754c"
+      "contract_sha256": "sha256:3520717f1e6a95ae3e1b03d23eccdd7761e3c3b99dacef136e82939791330f19"
     },
     {
       "task_id": "cloud/okta/offboard-contractor",
@@ -482,45 +482,45 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:9171ac4dd6f6ececd6a31f58107ba488d9ac8053fb3b8fa532082037777d6fb6",
-      "scenario_sha256": "sha256:c458997900bd47096928e555615b1f526b33823f3de3262adf35e6140c9b4a3c",
+      "scenario_sha256": "sha256:26eca202b9800cb2e9d1a9189cf97e07d397985ec798b27532221dc5a590c1a9",
       "dataset_sha256": "sha256:446db5aa3f4b18f573193eb918aa5ad0bc4111c5cbd6a7b5a82b4575af5bd29e",
-      "contract_sha256": "sha256:4de1cad4193b6371566c860eea62ce6d337c475b1af48bdbf634f73ff3c42c7c"
+      "contract_sha256": "sha256:d59a4f49892f6636980adfb8f5809a43fa36194fb4b2c3ba6ac827f334eede0a"
     },
     {
       "task_id": "code/argocd/find-degraded-app",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:2329e52cb8ac416f173353e958da699de25a5973b097cb3e320fae829f67e2cf",
-      "scenario_sha256": "sha256:ce85a74cf46a365fdb7484aa949a5b8a9120b62252cad83ff674d47790b9ba78",
+      "scenario_sha256": "sha256:be772a25544f79203bf9afc96fcf2af7abab932c47238d64b80a65e433cdc23c",
       "dataset_sha256": "sha256:7744a3b62facfb55b901c5059c1a7ef07279e5e58a02f7968f2a7b65d4bdd046",
-      "contract_sha256": "sha256:d6dbef527f694ac8a0b75d20c8757f28e6172718fd14f54a864dad8227cc38b0"
+      "contract_sha256": "sha256:a815915af23067ab24ced0657979c25924e13203d7a642277b05894b936530fe"
     },
     {
       "task_id": "code/argocd/restart-indexer-worker",
       "split": "public_development",
       "family": "tool_ambiguity",
       "family_sha256": "sha256:9229fd9e494b4d052933cde1d1bee35ac4f0e60ed47e4200b65b21c8d532b2c8",
-      "scenario_sha256": "sha256:53b8b975818a8dfe480a6c4d7970c66f0e608b4f6e9e294fcdce4375d9a20d8c",
+      "scenario_sha256": "sha256:37b5df8967f8a31eab3bc904c6d5f669cf3ce725adca528f83007ae3b0aaa84e",
       "dataset_sha256": "sha256:bba20372a18de28627c03c1435fac2321c66eaa746f34fd2a108261284d2949b",
-      "contract_sha256": "sha256:efcedb595c3606a42e0abf4e65b6e8ba627dc691d8f53c8bbc382cad763f6225"
+      "contract_sha256": "sha256:c01e6325d010784d3ab1506a1f1039ebdea44e8ec4f409dbbff99000779f3cbd"
     },
     {
       "task_id": "code/argocd/roll-back-billing-worker",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:1a93ce794ce781eb3a10799d29e19baec595e0f95b20c110b0a6e569582db2ff",
-      "scenario_sha256": "sha256:b0f5484c1dc59ffc88e29720edf6487686cd6f50b87b44c1d10ff97d99d781ac",
+      "scenario_sha256": "sha256:c7b68ad734ad7c353816f327a2a834675cf4805cdd48aa352f18fdf76cf78764",
       "dataset_sha256": "sha256:abe64f655499cd5dfe462504f5b074edcc7975b94f1b75b91f35de21222d5c06",
-      "contract_sha256": "sha256:8acad1fee6491d2d46fb5e8703434c4e5917bb6580c33c76af81fa77ca0a3e84"
+      "contract_sha256": "sha256:5a0f8612c3b6426eb7a7ad64b2d8ccbd5d6ab9b0563dd8ba5eb51b911b6d1922"
     },
     {
       "task_id": "code/argocd/sync-prod-payments-api",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:40647a42ebfc15e7eb8003ab59c8fa5fa7f87fad4fca0576c72d14349f4cc030",
-      "scenario_sha256": "sha256:893b7cfa46a3fd70b811638428cdc1172ac92c0817e6ad15b4f50619f83cb704",
+      "scenario_sha256": "sha256:bad4f40a12caf38388fd9ce21603d1ba66c5f3e484f5515b4fa042eb94e10d39",
       "dataset_sha256": "sha256:4d34dda48d3ad4dfd9dd30d4082748f507f09799d621541a6d5c4e7083c48945",
-      "contract_sha256": "sha256:6483ae441ad811874e335e61cb8e7fbd291f466cc9bbe18b724974a8808db19d"
+      "contract_sha256": "sha256:94490e920ba145c10864d2586ae3a892334bdaa86352e935681cfab16932ab5a"
     },
     {
       "task_id": "code/github/approve-merge-dependency-bump",
@@ -581,9 +581,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:a7281a46fbb7bb705f589bdaf55e87d516c0f06eb6ef81cbbe52a0946680c7c2",
-      "scenario_sha256": "sha256:4032c12a5e6f5e58ad25f677ab8a83a6130166fa572ea9c06e24551f3781c00c",
+      "scenario_sha256": "sha256:e6873c69460cf6774a6a11f2f36343c87750056444c29dfe84d02fcd4140b9f4",
       "dataset_sha256": "sha256:0709a7f1eca6279eb727bca96ec3be418abb1a4f7b4b6ac8967287d42b1ffe69",
-      "contract_sha256": "sha256:f24f67da42af7d97085b3f5a5f804df93d588ea254809a3be417d5f1bc3b7020"
+      "contract_sha256": "sha256:9520cf7f113ed7d8f60f5a421dbdf568ba964332fb2e474b465afbb4b2f57f17"
     },
     {
       "task_id": "code/gitlab/file-circuit-breaker-issue",
@@ -599,18 +599,18 @@
       "split": "public_development",
       "family": "cross_system_identity",
       "family_sha256": "sha256:2f053a782f685315cb370e4337a4189c8489eb43d4b994be9abe8e3430338025",
-      "scenario_sha256": "sha256:cbf1dc663e04b34002a1acc91868ac117731f3a987993d788f344a97e580352d",
+      "scenario_sha256": "sha256:e31ded6abb4424625db9306153e42e4177a16b0bfff60ef9b31caaf1baa1e5b3",
       "dataset_sha256": "sha256:71955cb890c5150afa9dcad3a1d5b8a942a66a48fc2144258494e8dde9a47927",
-      "contract_sha256": "sha256:e0434a2ba5e6cff2a023e91d1f1dc26e6dea48d510e99bbb655cc297128f593b"
+      "contract_sha256": "sha256:60918be23530c1d8503bd47419c70ce23c74ef3016051f80209bce504f3f118b"
     },
     {
       "task_id": "code/multi/sentry-spike-vercel-rollback",
       "split": "public_development",
       "family": "cross_system_identity",
       "family_sha256": "sha256:e1bfd254544ada7ffaa970b96e9671d4b9e9d3bfbbf000e0120c75889625e17f",
-      "scenario_sha256": "sha256:13b79ffa019a483e0d2d5fc7266f5e67f562902a4fb47d92fadfcdc1facef847",
+      "scenario_sha256": "sha256:97cfcd05852d105837c7a61672bdd0af83c087d8834b2417aaebdaaa2e75edb8",
       "dataset_sha256": "sha256:5541f3992cc5290740fbcd2c6c3c39f4c62667ba90e708bc31dc6126f47edc21",
-      "contract_sha256": "sha256:9fa4fe30f5cdf5197d9a57c2973257731c19ae3252378ced294511b9fc0ba4fc"
+      "contract_sha256": "sha256:c2826140134e60aa36ea0e239779050511dc86d69338535464ad9a6dc037c410"
     },
     {
       "task_id": "code/multi/terraform-failure-grafana-annotate",
@@ -626,9 +626,9 @@
       "split": "public_development",
       "family": "cross_system_identity",
       "family_sha256": "sha256:baed6f062381fcae2063604b6e15e0a7c076796a381f32233653758a5ebe42a9",
-      "scenario_sha256": "sha256:4bbc4024275b798899693dc09d415d99b70f3348636f2133aa0c6b24de3b50a8",
+      "scenario_sha256": "sha256:a957122ee9931570b91bcd3386b666570d7388a26b3f5ae142c57b0cb3a79da2",
       "dataset_sha256": "sha256:e7cb77d21b00bbf602258149b39e4becdc3aae2b5187a5ef8e479106e63bdd98",
-      "contract_sha256": "sha256:6516170eec4550706324d5c005b99d244cd4d702ded817c85e4c5ee738ea3f6b"
+      "contract_sha256": "sha256:49cc9103d457e3314dee5e1c9002050c898cdbdb6d43981d79d39840e1c03f1e"
     },
     {
       "task_id": "code/terraform/approve-nat-gateway-change",
@@ -644,9 +644,9 @@
       "split": "public_development",
       "family": "stale_state",
       "family_sha256": "sha256:f9cb873fb64e672ec8a6996fc4f66b1409775260e1c14e5b4c8d9ff8fe754b4a",
-      "scenario_sha256": "sha256:e6b3645c4f1bd910048465be8ddef6c19a776f2de6f2e2f0ba6e915f1e89c1a0",
+      "scenario_sha256": "sha256:d9f10e43d561114960e1f6e4dec4b64c6b506cd5a14f0c7ec4f021e06929c9ad",
       "dataset_sha256": "sha256:76871493642ffc8744ee72d9741a6936b2927a176a60e7d0d514ca8f4bb9dd87",
-      "contract_sha256": "sha256:3aa6d638eb112b93e431a9ad776cf103c80f26242b7f2049c8dc778fa409b6a8"
+      "contract_sha256": "sha256:8347d16a4624ed2a913f092ad5a8e3c76d29f245dad96e72957ea7948679b244"
     },
     {
       "task_id": "code/terraform/scale-checkout-staging",
@@ -662,9 +662,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:31a8893834ed0711ecaaf335f798151ccaf58e002c2ba52af21bb411c74bea1f",
-      "scenario_sha256": "sha256:d32354192273e6e755d420241142c5975b0549a07a7b2fc28903bd89cc315827",
+      "scenario_sha256": "sha256:d6f8d130693b9d20e074b4f69dbc4c21868214831d6d3f4231ba96fee0201c14",
       "dataset_sha256": "sha256:bcfd6a353b7e5d509ad0308a2220e906007a61b2b4df043f99b6d99602e3e57c",
-      "contract_sha256": "sha256:7c89002517cd8203356ce657e3802789f1b83f3fae0712d514f94395bf6c509a"
+      "contract_sha256": "sha256:798faa77efd3e614fe595352ce5928cf2b795a6dc0e293b0655ae063b0d30b93"
     },
     {
       "task_id": "code/vercel/enable-gift-cards-in-previews",
@@ -752,9 +752,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:4779706301ba29d8afea63ac42524eee5671b718148e720431d02c9ca0b3f724",
-      "scenario_sha256": "sha256:9838b85e7068ce58ba0b5889505b86fb5848aa8acf7eaf8037251254d58a5409",
+      "scenario_sha256": "sha256:3bb31bc71b6adf88ce02a23c99e58cdfee64b71f881c2bfa5936d34f5ac1c73a",
       "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
-      "contract_sha256": "sha256:07cd688b72b7030577f547308acb07605c31bac55543a58ce6cb2d423afc0797"
+      "contract_sha256": "sha256:0c69b5d2805d8e3c7f0e07d24c98044f05e85a7ba6bec645419d1f9b42e6ec1b"
     },
     {
       "task_id": "collab/jira/file-apple-pay-bug",
@@ -824,9 +824,9 @@
       "split": "public_development",
       "family": "cross_system_identity",
       "family_sha256": "sha256:308258be9e582b3520de0e78b8798406e308e6d27f41b30793666d70cce5211f",
-      "scenario_sha256": "sha256:fa10a970e71cf6cd0fddce4d7a6dbb9c6ee9b91ddba3106504d2e3d6622537fd",
+      "scenario_sha256": "sha256:7628d4b774fc7186649aec99379d0a5f1c99c0d0f43f7042bcc0a814c6e80988",
       "dataset_sha256": "sha256:9a0465141d9ec276cd745291bc55e7cfd6b43d63ab18bc0151a6a34ad6f63351",
-      "contract_sha256": "sha256:eb56cefbbeb3c69caa1668bf0e1287196b551dfceedb80e8d88e967c947fecdf"
+      "contract_sha256": "sha256:8283d328adc3874387ebe78629aef996b2104c971b36965d1a4deac7b8025de0"
     },
     {
       "task_id": "collab/multi/linear-cloudflare-api-origin-cutover",
@@ -851,9 +851,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:993b833e6c06dd792756b297095a6c454df6796cc890bdf567f4cb5636460dd2",
-      "scenario_sha256": "sha256:6292199c0e70daa4f633807ef97d15d3eaaeb3bf3fdde09737390895bbbd97eb",
+      "scenario_sha256": "sha256:4506297783bd7caab5a36a4f0276ae60b8313f2728d752e5b74f1f130ebe2d03",
       "dataset_sha256": "sha256:66a0bdc15356c209fa8d86e46f75f740be88df00977c60393b78ed720d44cf44",
-      "contract_sha256": "sha256:0210ac0c6477423fcebc1484b98703442a2865c5132f87434d20aaae0e8774c9"
+      "contract_sha256": "sha256:3807039271e087c8bcd791ddd9a2354ebb6b5b36ef9042d6d366b654a4aa5e31"
     },
     {
       "task_id": "collab/notion/delay-web-launch",
@@ -869,9 +869,9 @@
       "split": "public_development",
       "family": "stale_state",
       "family_sha256": "sha256:96300a4e028d0fb2f98c14a8b4599c2936db47b9919cc80768aa3ae5fb21cb87",
-      "scenario_sha256": "sha256:4a38b7ad351d0db6932027a90d7ff9f10e3eb45d7105c7cfaa91e6e402459c99",
+      "scenario_sha256": "sha256:e2f887275fd791705cf6ec7c315ffd338294bf4b923a01de6325bcac948a8924",
       "dataset_sha256": "sha256:edca9d9a3d80603c664278eaaf9e10b471e79c69f30e7e731125a55aab70c131",
-      "contract_sha256": "sha256:b2f0d3d8c4b72e0dccc330114ef02f33043dcd41d9c4e159fd7cbf31d2783e3d"
+      "contract_sha256": "sha256:68ff4acb20146fd203c492637cf7573726aa06b96b2e88ba5fd3061b9ae5638a"
     },
     {
       "task_id": "collab/notion/log-customer-escalation",
@@ -959,9 +959,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:4f870bed89bbf632aadd3b01abbe3d0fc0a19a78b530f668c8928d020f0b7eb4",
-      "scenario_sha256": "sha256:8c9536392f1171771b717ef9543015ca7a37f283f7613f236104da0b287bc07b",
+      "scenario_sha256": "sha256:12098d8a5a9e8e4d9c8c74e08eed7d3d7bf1f1087a58e805df2c9148ee9452ae",
       "dataset_sha256": "sha256:227b432d61306e8737d693110828f0497ca284927dc82dd1f9253478aa5c5f24",
-      "contract_sha256": "sha256:3584a0eceb9d83ff39ae9d24c1d7c6f1b58c2c4a2c7a53dc79c4723ac0330cda"
+      "contract_sha256": "sha256:1cc166c422f28272c8f903719187563ae72656348534f74ee1f903617cb4c2c0"
     },
     {
       "task_id": "ops/grafana/ack-checkout-page-oncall",
@@ -977,36 +977,36 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:d9f48e6ea6c0a4a98e46ce2234781ca45ce0a46dd811d67ddeaa1b46c12036dc",
-      "scenario_sha256": "sha256:74e524061cb4d4c3d6ed4b4b72f7cfcf82a93e18c3b61b8ce40a375effa56883",
+      "scenario_sha256": "sha256:f8dcfbb28d656e7986521ce8ac14b07287d92a5e5f7e90af5503b2dc0dd39dad",
       "dataset_sha256": "sha256:f24f8ebc2d3e3fe806b84c36f84467438a6702642b8f52c64715a45d372d0eba",
-      "contract_sha256": "sha256:9b1e266f34c13ec8a37a2ed04980010796d78ef5c0f996f9d42161a020a9d905"
+      "contract_sha256": "sha256:c48e5b845cf356b8b9f0f20d313369d4f72c1af42790120c11916e0e1f375852"
     },
     {
       "task_id": "ops/grafana/silence-replica-maintenance",
       "split": "public_development",
       "family": "baseline",
       "family_sha256": "sha256:cd81caf941557a4ae709295516d9357740b748d649f42fa178ea7cb2cbbed45e",
-      "scenario_sha256": "sha256:2368115d96d9d901285a32a967e342e8b06fb53e4a343ab37639173f96b3c776",
+      "scenario_sha256": "sha256:3bb1ae136889bb83292b30b011db61f1fa59d644f20c322566a11085745acac5",
       "dataset_sha256": "sha256:691ad92570f95bd07250cc56996b624f24704f67f9be2a8bf5f245847c97bcf2",
-      "contract_sha256": "sha256:46758b760b917234d0f64a362533b074b5843fc1f0dae0375a61c7b7ab3a9616"
+      "contract_sha256": "sha256:75ae13cb569804e06190780769b1838786435b566920d44905d4901e769dbaa4"
     },
     {
       "task_id": "ops/grafana/top-5xx-checkout-pod",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:5d4513a87b36c63b9d8690a51bedbb882f8bca358bc7e5fc7a23d35e611db16a",
-      "scenario_sha256": "sha256:b106f566dc232bfcb812b2dbb9025e5841e93bb58f484a740b8ce8af8b5f41fa",
+      "scenario_sha256": "sha256:06bb9477c2e45eb26c6db2c86ea2217f9c81a02d2ed1073f12ecaa1e7f87ac65",
       "dataset_sha256": "sha256:a03b1eb14fbf3895864d1445d04b64c188efab0bdcdb31377eb687eb592991d6",
-      "contract_sha256": "sha256:6b712eae22eb179dd855aac9a1ad9eb1dbc80de7b7a45eecf869953d38ed584e"
+      "contract_sha256": "sha256:f3dd5393f129a710267be0dc300477f9ce4e0426404827b6e586f17cae1e0140"
     },
     {
       "task_id": "ops/kubernetes/crashloop-root-cause",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:f2303d0f009363c691d89d0c0e8a2b246ad05145674f7eb1cb6cf45f7d980f30",
-      "scenario_sha256": "sha256:b109e0d78ba88b0911ac9b36c6551ab001a95a878aa75744120031f826c3a721",
+      "scenario_sha256": "sha256:34e6094486a93c6ead9bfe56000a059e4c9eee69c5bf3ce7553dc016cab240ca",
       "dataset_sha256": "sha256:9300d2c236220fae23e56a9b7b6559d16ba5bcc2c50f9a78db4a3385f09b4689",
-      "contract_sha256": "sha256:5db92c09192279f54a7fa5b65b0f1c9bddce1e3d49a69c28db17adf9f5f5a74c"
+      "contract_sha256": "sha256:a36b42b9faac730641a29d5c75b80614e7ff12567ce26d77bdd7a8c3cca68832"
     },
     {
       "task_id": "ops/kubernetes/oomkilled-memory-limit",
@@ -1049,18 +1049,18 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:bae1086cbe01b648a030aa1e65c9bedce85644f0ccd79526a3cd2771265eccc2",
-      "scenario_sha256": "sha256:0b0f34f159dd6a30eb60e4db5e0357a2288ed56cce2f5aa0b5e224a620ddc8ad",
+      "scenario_sha256": "sha256:43335137524aab99a816d881f7785a87ed443f2d5dc1dda3f7e842fee2a45588",
       "dataset_sha256": "sha256:99c6e2f947302251fc641f5ad963080f60a5ce375e34c60b7758810af8d44cd7",
-      "contract_sha256": "sha256:ea15c49ffa5dbcdcdea2ac798baa320c6f1ff5d9dbe1d4de3f8ead1f608f161e"
+      "contract_sha256": "sha256:186e9d0e2e9e4539ff4e312b328a96d9c5a66dc8aab6457194d7831800c039f0"
     },
     {
       "task_id": "ops/multi/datadog-latency-argocd-rollback",
       "split": "public_development",
       "family": "dependency_depth",
       "family_sha256": "sha256:8aa785bc29c46ef58340a5e18223a3ec10a739ea626a69abe9d3bc0a300eca2f",
-      "scenario_sha256": "sha256:1c2b2285fa504ac28eb85f1e8e99024d6161c2bc8014644a4d67c6b5f1cfb356",
+      "scenario_sha256": "sha256:252d65bd062070df92cdea91ebfe7af7525cc49d8eb2abb8a3c163a4a7cf2bf1",
       "dataset_sha256": "sha256:c7a2bc700d99472e3e855155d02046f043cdcaf2353534930e81124fbb57489d",
-      "contract_sha256": "sha256:61bc85c11abc3ef839d763f5fa11098705348ba6920ec9d9a815fe5a63d5427a"
+      "contract_sha256": "sha256:d62462d51dcec487bebb480197b9dd4ebf5629f2bc01dff634c650cb6f7e5c2a"
     },
     {
       "task_id": "ops/multi/oom-limit-and-sentry-resolve",
@@ -1076,18 +1076,18 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:b013e2f53bc2c89da051bd14086c8566e78503168cb8d7d987b88b3806bbc796",
-      "scenario_sha256": "sha256:b002207d2ebd5446e98015f49ee5f031576f9887b4ccd27cf9fce14e11198a4f",
+      "scenario_sha256": "sha256:5d9a7766b4d4d0cb526e1bf4affc3c934145f6f94c3f442704506372c55d9bae",
       "dataset_sha256": "sha256:dd229caa02e52945cd3e4277aaf98cf43b487c1ba687b8572491e08b353c46b3",
-      "contract_sha256": "sha256:379d277764f5f205f646226c67b15b65169ec25369c8ecc1d0253b985eaf4b01"
+      "contract_sha256": "sha256:0476f51a7a5241a86f477813a7e6a3dd9a0d58bf34d4077eedeb133e1fcf5a4f"
     },
     {
       "task_id": "ops/multi/sentry-release-commit-lookup",
       "split": "public_development",
       "family": "dependency_depth",
       "family_sha256": "sha256:65f39bf76d4a86a4267178c5d31f79a1a986bb29416a29edc65b8930cb7079a3",
-      "scenario_sha256": "sha256:9d0418e0b00ddf53af57e7fddd4e5fe10ed1fcf7e8e7a24227f81eab0e5f886f",
+      "scenario_sha256": "sha256:eff718f25160527d005a701bbc5e44ff912d24a65bd497bfe4ce3fa667393c13",
       "dataset_sha256": "sha256:54faa4b3f91003c8c8dc81e6d61a964e0881ea58085609fce04a626216188b87",
-      "contract_sha256": "sha256:a9ed37f57897c6aebfc8b2b8301cec142df9def29ae96365ec12d52cad90b9e1"
+      "contract_sha256": "sha256:39509eda1bab402be62cc5a646351e5e1ee58bca07b1830f02ce56d71467aa4f"
     },
     {
       "task_id": "ops/pagerduty/cover-shift-override",
@@ -1103,9 +1103,9 @@
       "split": "public_development",
       "family": "stale_state",
       "family_sha256": "sha256:cdda219645d31c58012e1b6dc31951c12f98b6d184daaae93fcc723fd2e3eeac",
-      "scenario_sha256": "sha256:bed38e1934b737e9f53f143a5d3e0b6bf3bf1db113e7328149398dace106a7e3",
+      "scenario_sha256": "sha256:a1dd1fc2d7cb5a955ac8392f483dc2e08b6beee7a4ae6090e817d723865cea32",
       "dataset_sha256": "sha256:ab1d2d7b5aca0a15c6289136644699087a52d2cb5d7ac97a7399267a41028e88",
-      "contract_sha256": "sha256:841d348bda6ef4e286af8b47e0d1cf1294d295c48276964bb6a1a620a727679f"
+      "contract_sha256": "sha256:2dc8bea24130327a39dd9ab174f598c5ab6aa16c24c2c08e82462cca557f085a"
     },
     {
       "task_id": "ops/pagerduty/reassign-replication-lag",
@@ -1148,9 +1148,9 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:2cc5e23ea414612b9c81438170f0535d7b41daaf2b7be5f4fb6e2d38ec4279ee",
-      "scenario_sha256": "sha256:28ef8c7720f7b1d7b65743695316a78df6b2ed47bdb6e5f34fbb3c6af7c6ad2e",
+      "scenario_sha256": "sha256:be16582fd244ecde9b20ea57d0c669657b98d687a40d5bf9fbbc6f2e7fa03dc0",
       "dataset_sha256": "sha256:fb655904d355ace51cf9f2a51bad287ba36f791caaa781507c023ad419ad4b61",
-      "contract_sha256": "sha256:d999b9e06e2ff112ab83158e8b746e92ba9175cd27216b499235eedad3a68048"
+      "contract_sha256": "sha256:b80718662aaaeb7739e5c98ae7ccc187a590c933329608cd709f8f149b140c46"
     },
     {
       "task_id": "ops/sentry/triage-storefront-map-error",
@@ -1238,9 +1238,9 @@
       "split": "public_development",
       "family": "tool_ambiguity",
       "family_sha256": "sha256:790f8ab2ac3b304b316ec8f93fe646c634b4668f17712508f25fc637d433220d",
-      "scenario_sha256": "sha256:9c4f3aeb62b62055d7e0ea0f75dfd8cc748e934d4597e4caa346c0f6ce3017ad",
+      "scenario_sha256": "sha256:306460a9e9bc2b2f664c176385df265b2945fe8d096ee9a483ffe64b24573ac1",
       "dataset_sha256": "sha256:581b7f1b8fd2d7bae595fdbb6f704539f1722bb765ed78e08832fbfe8b20535c",
-      "contract_sha256": "sha256:90dd4444a20c7c21f16c369ddd5121b625971ffbd7d4df5ef523d735b09839e7"
+      "contract_sha256": "sha256:02da18f76daaf1ae22535ec6060e2b149c884b24aba7a75effffc0f090f4836d"
     },
     {
       "task_id": "search/exa/fleet-charger-research",
@@ -1274,8 +1274,8 @@
       "split": "public_development",
       "family": "baseline",
       "family_sha256": "sha256:9c56bfc268712caeb4f7c3129a16315ff6906d0950235f801abedcc1ebb4be0e",
-      "scenario_sha256": "sha256:9745533e4ef69e4614a5718193ebbb93d8c73a6b6873f55430413642f0eae06f",
-      "dataset_sha256": "sha256:111c613fda92b40b2e0fbe4161ab530954bfaed1f9b75ac04553e76f55dd9c4a",
+      "scenario_sha256": "sha256:e4fb569e19fb6b92ed2beff877a52e2160f43562af71788ae0fda29800cd64e3",
+      "dataset_sha256": "sha256:e9abcbc8228d7a8bf16febed3bb448a74edf8df8fa1296b28fb1570792e2857d",
       "contract_sha256": "sha256:f33cd60f312c3acb31911b930f8cecc497aeee9ff13cb7884b37416761e88c0d"
     },
     {
@@ -1310,9 +1310,9 @@
       "split": "public_development",
       "family": "cross_system_identity",
       "family_sha256": "sha256:603ca61b1ed6a46f6a6937bb605771f97c5a1d0f438fd6f0ec205d2273789ca7",
-      "scenario_sha256": "sha256:acc1821d9b3066519e76934e83a5d231887d54db7dfa437f512056f35d1da878",
+      "scenario_sha256": "sha256:0203d02ae9d4b1e1df2c8cec0fd382d2fda635ca261acb00ce44e639263fb646",
       "dataset_sha256": "sha256:81ba09c6b875951f9af9ee377b5f1cdcbdcf0e1797a7093f544ee1a3d77ef36d",
-      "contract_sha256": "sha256:19829ec0dfca321f124c1f9c8a5b72245e3a7edbf0f8a2493efb580a6722b149"
+      "contract_sha256": "sha256:29581f222cd83666705a9eaa629965cf78458e2146f59f736b9af74954b1b466"
     },
     {
       "task_id": "search/multi/es-duplicate-charge-stripe-refund",
@@ -1346,7 +1346,7 @@
       "split": "public_development",
       "family": "stale_state",
       "family_sha256": "sha256:e38c4224eebff323b06307bb7e33e81f527b7ac4734e7c49e7fa4b2d89027806",
-      "scenario_sha256": "sha256:507b92dc099545496d2710248900fb364b69f75df9d300192da016ca063a299b",
+      "scenario_sha256": "sha256:4a76ad65fa2e3af50395513eed42d409c4f228964fbc28978b3f152814261bd1",
       "dataset_sha256": "sha256:382666b77e511e0a9ee2801693c843234615dc15231be9d35ea26eb35d661e8a",
       "contract_sha256": "sha256:590eb8c25bccf680429674fe5f2e43d2b85b96b2e5867d09bf1753bc05e7001f"
     },

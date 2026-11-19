@@ -3,7 +3,8 @@
 //! - Prints one non-JSON line first (some real servers log to stdout).
 //! - `tools/list` pages through `FAKE_TOOL_PAGES` pages (default 1) of two tools each.
 //! - Tool `echo` returns its arguments; `env` returns the process environment keys;
-//!   `roots` asks the client for `roots/list` and returns whatever came back.
+//!   `roots` asks the client for `roots/list` and returns whatever came back;
+//!   `client_capabilities` returns the capabilities the client's `initialize` carried.
 
 use std::io::{BufRead, Write};
 
@@ -19,6 +20,7 @@ fn main() {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(1);
+    let mut client_capabilities = Value::Null;
     let mut lines = stdin.lock().lines();
     while let Some(Ok(line)) = lines.next() {
         let Ok(msg) = serde_json::from_str::<Value>(&line) else {
@@ -28,11 +30,14 @@ fn main() {
             continue; // notification
         };
         let result = match msg["method"].as_str().unwrap_or_default() {
-            "initialize" => json!({
-                "protocolVersion": msg["params"]["protocolVersion"],
-                "capabilities": { "tools": {} },
-                "serverInfo": { "name": "fake", "version": "1.0.0" }
-            }),
+            "initialize" => {
+                client_capabilities = msg["params"]["capabilities"].clone();
+                json!({
+                    "protocolVersion": msg["params"]["protocolVersion"],
+                    "capabilities": { "tools": {} },
+                    "serverInfo": { "name": "fake", "version": "1.0.0" }
+                })
+            }
             "tools/list" => {
                 let page: usize = msg["params"]["cursor"]
                     .as_str()
@@ -55,6 +60,7 @@ fn main() {
             }
             "tools/call" => match msg["params"]["name"].as_str().unwrap_or_default() {
                 "echo" => text(&msg["params"]["arguments"].to_string()),
+                "client_capabilities" => text(&client_capabilities.to_string()),
                 "env" => {
                     let mut keys: Vec<String> = std::env::vars().map(|(k, _)| k).collect();
                     keys.sort();

@@ -1423,6 +1423,11 @@ null. Completed calls produce one failed check with references to both evidence
 namespaces, not two violations. Explicit response-status predicates still require
 an observed matching response; cancellation does not fabricate one.
 
+A forbidden call names what it forbids: a path, a query, a body or a header beside the
+method. A ban on a whole method also bans every read the server makes with that method
+(GitHub's GraphQL reads are POSTs), and version 2 preservation already fails a write that
+commits. `crates/scenario/tests/forbidden_call_scope.rs` rejects an unscoped ban.
+
 `allow_tool_error` applies only to required-call acceptance and is rejected as an
 inert forbidden-call option. Required successful calls cannot be satisfied by request
 receipts or canceled operations.

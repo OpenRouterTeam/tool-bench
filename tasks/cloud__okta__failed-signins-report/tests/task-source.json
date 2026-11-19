@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "cloud/okta/failed-signins-report",
-  "scenario_sha256": "sha256:27093e912fed1e9f3b0526666ee64ee417c52028a398f5f7836ca0bb9c91f7d9",
+  "scenario_sha256": "sha256:2ea96673be054f6ac519e757d1b583463d9806f15c854115dddcf25645642066",
   "dataset_sha256": "sha256:5f3d061a48ae4145d26b66ad7443181540da228b6f992d1ea3e21db6a0ec5dd8",
-  "contract_sha256": "sha256:3ae8b30e9739bc514329d8950f5086fcea264e4a8c6af957470618ab952a754c"
+  "contract_sha256": "sha256:3520717f1e6a95ae3e1b03d23eccdd7761e3c3b99dacef136e82939791330f19"
 }

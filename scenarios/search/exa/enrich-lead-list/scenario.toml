@@ -39,6 +39,7 @@ max_count = 1
 [[expect.forbidden_calls]]
 service = "exa"
 method = "DELETE"
+path_regex = '^/(agent/runs|research/v1)'
 
 [expect.answer.source_facts]
 requirement = "Report every lead with its own headquarters city and approximate employee headcount as related by the authored enrichment output, without swapping, omitting or negating any row."

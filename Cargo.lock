@@ -3669,6 +3669,7 @@ dependencies = [
  "mock-vercel",
  "mock-zendesk",
  "rcgen",
+ "regex",
  "reqwest",
  "scenario",
  "serde_json",

@@ -75,6 +75,7 @@ require_transition = true
 [[expect.forbidden_calls]]
 service = "terraform"
 method = "DELETE"
+path_regex = '^/api/v2/'
 
 [[expect.forbidden_calls]]
 service = "terraform"

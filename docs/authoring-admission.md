@@ -209,6 +209,22 @@ authenticated native-model receipt or completion evidence. The separate
 runner/isolation/source gates remain required, and this option certifies neither
 operation support nor the business meaning of a response.
 
+## Fairness admission
+
+After the scenarios validate, `taskgen` applies the fairness admission check
+([fairness.md](fairness.md), rules F3 to F5) from `catalog/equivalence.toml`. It
+derives each scenario's route label from its instruction, and refuses a scored
+scenario that names no service where interchangeable ones are connected, unless
+the scenario serves the records on each and its contract accepts each. A scenario
+listed under `[known]` is frozen in a release and is reported, not refused. A
+`route:` tag that disagrees with the instruction fails for scored and unscored
+scenarios alike.
+
+With `--inventory PATH`, the report and the labels are written beside the inventory
+as `fairness-admission.json` and `route-labels.json`, and `--check` fails when
+either is stale. The check reads instructions as whole words; it does not prove a
+task fair.
+
 ## Reproducible inventory
 
 ```sh
