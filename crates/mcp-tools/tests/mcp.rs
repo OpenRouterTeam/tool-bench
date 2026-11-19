@@ -398,3 +398,227 @@ async fn bridge_relays_server_requests_to_the_client_during_tool_calls() {
         .unwrap();
     assert!(text.contains("file:///app"), "{text}");
 }
+
+#[derive(Default)]
+struct Seen(std::sync::Mutex<Vec<front::Access>>);
+
+impl front::Observer for Seen {
+    fn served(&self, _method: &str, _body: &str) {}
+
+    fn accessed(&self, access: &front::Access) {
+        self.0.lock().unwrap().push(access.clone());
+    }
+}
+
+/// The front tells its observer who asked for what: the client's address, the name it
+/// gave, its session and the tool, for the harness and for anything else that speaks MCP
+/// to the endpoint, including a request it refuses.
+#[tokio::test]
+async fn the_front_reports_every_request_with_who_sent_it() {
+    let seen = std::sync::Arc::new(Seen::default());
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let address = listener.local_addr().unwrap();
+    let app = front::router_observed(StdioBackend::new(fake(&[])), Some(seen.clone()));
+    tokio::spawn(async move {
+        axum::serve(
+            listener,
+            app.into_make_service_with_connect_info::<SocketAddr>(),
+        )
+        .await
+        .unwrap()
+    });
+    let http = reqwest::Client::builder().no_proxy().build().unwrap();
+    let url = format!("http://{address}/mcp");
+    let post = |agent: &'static str, session: Option<String>, body: Value| {
+        let mut request = http.post(&url).header("user-agent", agent).json(&body);
+        if let Some(session) = session {
+            request = request.header("mcp-session-id", session);
+        }
+        async move { request.send().await.unwrap() }
+    };
+    let opened = post(
+        "claude-code/2.1.235",
+        None,
+        json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+            "protocolVersion": "2025-06-18", "capabilities": {},
+            "clientInfo": {"name": "claude-code", "version": "2.1.235"}
+        }}),
+    )
+    .await;
+    let session = opened.headers()["mcp-session-id"]
+        .to_str()
+        .unwrap()
+        .to_owned();
+    post(
+        "claude-code/2.1.235",
+        Some(session.clone()),
+        json!({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+            "params": {"name": "echo", "arguments": {"a": 1}}}),
+    )
+    .await;
+    // A second client with no session of its own is refused, and still seen.
+    let refused = post(
+        "curl/8.5.0",
+        Some("tb-999999".into()),
+        json!({"jsonrpc": "2.0", "id": 1, "method": "tools/list"}),
+    )
+    .await;
+    assert_eq!(refused.status(), 404);
+
+    let seen = seen.0.lock().unwrap().clone();
+    assert_eq!(seen.len(), 3, "{seen:?}");
+    assert!(
+        seen.iter()
+            .all(|access| access.peer.as_deref() == Some("127.0.0.1"))
+    );
+    assert_eq!(
+        (
+            seen[0].method.as_str(),
+            seen[0].client.as_deref(),
+            seen[0].session.as_deref()
+        ),
+        ("initialize", Some("claude-code"), Some(session.as_str()))
+    );
+    assert_eq!(
+        (
+            seen[1].method.as_str(),
+            seen[1].tool.as_deref(),
+            seen[1].client.as_deref()
+        ),
+        ("tools/call", Some("echo"), None)
+    );
+    assert_eq!(seen[1].user_agent.as_deref(), Some("claude-code/2.1.235"));
+    assert_eq!(
+        (seen[2].user_agent.as_deref(), seen[2].session.as_deref()),
+        (Some("curl/8.5.0"), Some("tb-999999"))
+    );
+}
+
+/// The reporter turns what the front saw into the reports the world stores: one when an
+/// endpoint starts, one per request, one per failed tool call.
+#[tokio::test]
+async fn the_reporter_sends_registration_requests_and_failed_tool_calls() {
+    use front::Observer;
+    use mcp_tools::access::{AccessReporter, report_url, request_report, tool_call_failed};
+
+    assert_eq!(
+        report_url("http://world-bootstrap:9000/_bench/ca.pem").as_deref(),
+        Some("http://world-bootstrap:9000/_bench/tool-access")
+    );
+    assert_eq!(report_url("http://world-bootstrap:9000/other"), None);
+
+    let (sender, mut receiver) = tokio::sync::mpsc::unbounded_channel();
+    let reporter = AccessReporter::new("github", sender);
+    let access = front::Access {
+        peer: Some("172.20.0.4".into()),
+        user_agent: Some("curl/8.5.0".into()),
+        session: Some("tb-000002".into()),
+        method: "tools/call".into(),
+        client: None,
+        tool: Some("issue_write".into()),
+    };
+    reporter.accessed(&access);
+    reporter.served(
+        "tools/call",
+        r#"{"jsonrpc":"2.0","id":1,"result":{"isError":true,"content":[]}}"#,
+    );
+    reporter.served(
+        "tools/call",
+        r#"{"jsonrpc":"2.0","id":2,"result":{"content":[]}}"#,
+    );
+    reporter.served(
+        "tools/list",
+        r#"{"jsonrpc":"2.0","id":3,"error":{"code":-1}}"#,
+    );
+    drop(reporter);
+    let mut reports = Vec::new();
+    while let Some(report) = receiver.recv().await {
+        reports.push(report);
+    }
+    assert_eq!(
+        reports,
+        [
+            json!({"endpoint": "github", "event": "registered"}),
+            request_report("github", &access),
+            json!({"endpoint": "github", "event": "tool_error"}),
+        ]
+    );
+    assert_eq!(
+        reports[1],
+        json!({
+            "endpoint": "github", "event": "request", "method": "tools/call",
+            "peer": "172.20.0.4", "user_agent": "curl/8.5.0",
+            "session": "tb-000002", "tool": "issue_write"
+        })
+    );
+    assert!(tool_call_failed(
+        r#"{"jsonrpc":"2.0","id":1,"error":{"code":-32602}}"#
+    ));
+    assert!(!tool_call_failed("not json"));
+}
+
+/// What the server saw as the client's capabilities, read through the bridge.
+async fn capabilities_seen_by_the_server(client_capabilities: Value) -> Value {
+    let addr = start_bridge(&[]).await;
+    let url = format!("http://{addr}/mcp");
+    let http = reqwest::Client::builder().no_proxy().build().unwrap();
+    let init = json!({"jsonrpc": "2.0", "id": 1, "method": "initialize",
+        "params": {"protocolVersion": "2025-06-18", "capabilities": client_capabilities, "clientInfo": {"name": "t", "version": "0"}}});
+    let resp = http.post(&url).json(&init).send().await.unwrap();
+    let sid = resp.headers()["mcp-session-id"]
+        .to_str()
+        .unwrap()
+        .to_owned();
+    let call = json!({"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "client_capabilities", "arguments": {}}});
+    let body = http
+        .post(&url)
+        .header("mcp-session-id", &sid)
+        .header("accept", "application/json, text/event-stream")
+        .json(&call)
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    let data = body
+        .lines()
+        .filter_map(|line| line.strip_prefix("data:"))
+        .next_back()
+        .unwrap()
+        .trim_start();
+    let response: Value = serde_json::from_str(data).unwrap();
+    serde_json::from_str(response["result"]["content"][0]["text"].as_str().unwrap()).unwrap()
+}
+
+/// A trial has nobody to answer a confirmation prompt, so a server is never told the client
+/// can show one. The client's other capabilities reach the server unchanged.
+#[tokio::test]
+async fn bridge_hides_the_elicitation_capability_from_the_server() {
+    let seen = capabilities_seen_by_the_server(
+        json!({"elicitation": {}, "roots": {"listChanged": true}, "sampling": {}}),
+    )
+    .await;
+    assert_eq!(
+        seen,
+        json!({"roots": {"listChanged": true}, "sampling": {}})
+    );
+
+    let unchanged = capabilities_seen_by_the_server(json!({"roots": {}})).await;
+    assert_eq!(unchanged, json!({"roots": {}}));
+}
+
+#[test]
+fn hide_elicitation_leaves_other_requests_and_malformed_capabilities_alone() {
+    use mcp_tools::bridge::hide_elicitation;
+    let mut call = json!({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
+        "params": {"name": "echo", "arguments": {"elicitation": true}}});
+    let before = call.clone();
+    hide_elicitation(&mut call);
+    assert_eq!(call, before);
+
+    let mut odd = json!({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"capabilities": "none"}});
+    let before = odd.clone();
+    hide_elicitation(&mut odd);
+    assert_eq!(odd, before);
+}

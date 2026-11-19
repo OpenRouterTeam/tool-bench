@@ -32,11 +32,16 @@ valid_alternative = [
 id = "search/firecrawl/crawl-api-reference"
 valid_alternative = [
   "crates/world/tests/firecrawl_contracts.rs::case_equivalent_api_seeds_are_valid",
+  "crates/world/tests/firecrawl_contracts.rs::the_site_root_with_an_api_filter_and_the_section_path_are_valid_seeds",
 ]
 
 [scenario.near_miss]
+partial = [
+  "crates/world/tests/firecrawl_contracts.rs::a_crawl_that_collects_part_of_the_section_fails",
+]
 collateral_change = [
   "crates/world/tests/firecrawl_contracts.rs::additional_unrequested_crawls_fail_preservation",
+  "crates/world/tests/firecrawl_contracts.rs::a_whole_domain_crawl_from_an_api_page_collects_the_guides_too",
 ]
 
 [[scenario]]
@@ -73,4 +78,129 @@ id = "search/tavily/competitor-pricing-research"
 partial = [
   "crates/world/tests/remaining_research_contracts.rs::pricing_off_page_or_missing_competitors_fail",
   "crates/world/tests/remaining_research_contracts.rs::pricing_wrong_model_duplicate_or_missing_research_fail",
+]
+
+# The eleven tasks that any connected search vendor can answer. The valid alternative is the
+# same fact reached through each of the four services; the near miss is a look-alike or
+# superseded page's values.
+
+[[scenario]]
+id = "search/brave/funding-news-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::funding_news_passes_through_each_of_the_four_search_services",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::funding_news_last_years_round_fails_on_every_route",
+]
+
+[[scenario]]
+id = "search/brave/hosting-sla-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::hosting_sla_passes_through_each_of_the_four_search_services",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::hosting_sla_archived_and_look_alike_values_fail_on_every_route",
+]
+
+[[scenario]]
+id = "search/brave/keynote-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::keynote_passes_through_each_of_the_four_search_services",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::keynote_meetup_version_fails_on_every_route",
+]
+
+[[scenario]]
+id = "search/exa/sdk-timeout-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::sdk_timeout_passes_through_each_of_the_four_search_services",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::sdk_timeout_legacy_option_fails_on_every_route",
+]
+
+[[scenario]]
+id = "search/exa/vp-profile-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::vp_profile_passes_through_each_of_the_four_search_services",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::vp_profile_former_director_fails_on_every_route",
+]
+
+[[scenario]]
+id = "search/firecrawl/team-pricing-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::team_pricing_passes_through_each_of_the_four_search_services",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::team_pricing_last_years_price_fails_on_every_route",
+]
+
+[[scenario]]
+id = "search/multi/funding-and-pricing-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::funding_and_pricing_passes_with_both_halves_from_any_one_search_service",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::funding_and_pricing_last_years_price_fails_on_every_route",
+]
+
+[[scenario]]
+id = "search/multi/github-issue-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::github_issue_accepts_the_page_read_through_each_search_service",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::github_issue_rejects_a_look_alike_read_and_the_beta_figures_on_every_route",
+]
+
+[[scenario]]
+id = "search/multi/zendesk-reply-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::zendesk_reply_accepts_the_page_read_through_each_search_service",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::zendesk_reply_rejects_a_look_alike_read_and_a_superseded_figure_on_every_route",
+]
+
+[[scenario]]
+id = "search/tavily/vendor-rate-limit-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::vendor_rate_limit_passes_through_each_of_the_four_search_services",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::vendor_rate_limit_deprecated_figure_fails_on_every_route",
+]
+
+[[scenario]]
+id = "search/tavily/webhook-sunset-any-search"
+valid_alternative = [
+  "crates/world/tests/any_search_vendor_contracts.rs::webhook_sunset_passes_through_each_of_the_four_search_services",
+]
+
+[scenario.near_miss]
+wrong_entity = [
+  "crates/world/tests/any_search_vendor_contracts.rs::webhook_sunset_api_key_deadline_fails_on_every_route",
 ]

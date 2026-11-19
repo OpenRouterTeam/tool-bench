@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__brave__caterer-saturday-hours"
 description = "Find a local caterer's phone and Saturday hours among look-alike businesses"
-keywords = ["lookup","single-service","brave","disambiguation"]
+keywords = ["lookup","single-service","brave","disambiguation","route:kind"]
 
 [metadata]
 scenario = "search/brave/caterer-saturday-hours"

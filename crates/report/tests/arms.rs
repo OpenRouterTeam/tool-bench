@@ -59,7 +59,7 @@ fn unattest(root: &Path, trial: &str, context_overflow: bool) {
         "name": "claude-code", "version": "2.1.235",
         "model_info": {"name": "claude-sonnet-5", "provider": "anthropic"}
     });
-    if assessment.contract_ok && assessment.environment_ok {
+    if assessment.scored() {
         write(&verifier.join("reward.json"), &json!(assessment.metrics()));
         result["verifier_result"] = json!({"rewards": assessment.metrics()});
     } else {
@@ -624,6 +624,102 @@ fn two_arms_are_paired_by_task_with_wins_losses_ties_and_flips() {
     );
 }
 
+/// "Finds a tool the instruction does not name" is read apart: each arm's pass rate and
+/// the paired difference are split by the route label of the task.
+#[test]
+fn pass_rates_and_the_paired_difference_are_split_by_route_label() {
+    let (a, b) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
+    let (left, right) = (a.path(), b.path());
+    // Both arms pass the tasks that name their product or a kind only one service has.
+    for (index, task) in [
+        "search__elasticsearch__latency-by-region",
+        "ops__datadog__checkout-p95-peak",
+        "search__brave__caterer-saturday-hours",
+        "code__github__not-a-task",
+    ]
+    .iter()
+    .enumerate()
+    {
+        pass(left, &format!("named{index}__1"), task);
+        pass(right, &format!("named{index}__1"), task);
+    }
+    // Of the two that name neither, A passes both and B passes one.
+    pass(left, "sla__1", "search__brave__hosting-sla-any-search");
+    pass(right, "sla__1", "search__brave__hosting-sla-any-search");
+    pass(left, "timeout__1", "search__exa__sdk-timeout-any-search");
+    fail(right, "timeout__1", "search__exa__sdk-timeout-any-search");
+    let (a, b) = (arm("A", left), arm("B", right));
+
+    let summary = arms::summarize(&b);
+    let routes: Vec<_> = summary
+        .routes
+        .iter()
+        .map(|route| {
+            (
+                route.group.as_str(),
+                route.tasks,
+                route.rate.passed,
+                route.rate.assessed,
+            )
+        })
+        .collect();
+    assert_eq!(
+        routes,
+        [
+            ("route:kind", 1, 1, 1),
+            ("route:named", 2, 2, 2),
+            ("route:unnamed", 2, 1, 2),
+            ("unlabelled", 1, 1, 1),
+        ]
+    );
+
+    let paired = arms::compare(&a, &b);
+    let split: Vec<_> = paired
+        .routes
+        .iter()
+        .map(|route| {
+            (
+                route.route.as_str(),
+                route.paired_tasks,
+                route.mean_a,
+                route.mean_b,
+                route.mean_diff,
+            )
+        })
+        .collect();
+    assert_eq!(
+        split,
+        [
+            ("route:kind", 1, 1.0, 1.0, 0.0),
+            ("route:named", 2, 1.0, 1.0, 0.0),
+            ("route:unnamed", 2, 1.0, 0.5, -0.5),
+            ("unlabelled", 1, 1.0, 1.0, 0.0),
+        ]
+    );
+    assert_eq!(paired.routes[0].ci95, None, "one task has no interval");
+    assert_eq!(paired.routes[1].ci95, Some((0.0, 0.0)));
+    let (low, high) = paired.routes[2].ci95.unwrap();
+    assert!((-1.0..=-0.5).contains(&low) && (-0.5..=0.0).contains(&high));
+
+    let markdown = arms::report(&[a, b]).markdown();
+    assert!(
+        markdown.contains("## Pass rate by what the instruction says about the route"),
+        "{markdown}"
+    );
+    assert!(
+        markdown.contains("| route:unnamed | 100.0% (2/2); 2 tasks | 50.0% (1/2); 2 tasks |"),
+        "{markdown}"
+    );
+    assert!(
+        markdown.contains("| route:unnamed | 2 | 100.0% | 50.0% | -50.0 ("),
+        "{markdown}"
+    );
+    assert!(
+        markdown.contains("| route:named | 2 | 100.0% | 100.0% | +0.0 (+0.0 to +0.0) |"),
+        "{markdown}"
+    );
+}
+
 #[test]
 fn arms_that_differ_in_evaluator_tasks_or_contracts_are_flagged_as_not_comparable() {
     let (a, b) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
@@ -910,10 +1006,102 @@ fn an_agent_timeout_that_was_still_graded_is_an_assessed_trial() {
         (exceptions[0].name.as_str(), exceptions[0].trials),
         ("AgentTimeoutError", 2)
     );
+    // A timeout is still a pass or a fail; the report says how many of each timed out.
+    let timeouts = &summary.agent_timeouts;
+    assert_eq!(
+        (timeouts.passed, timeouts.failed, timeouts.unassessed),
+        (1, 1, 0)
+    );
+    let markdown = arms::report(&[loaded]).markdown();
+    assert!(markdown.contains("| Host exceptions on assessed trials | 2 × AgentTimeoutError |"));
     assert!(
-        arms::report(&[loaded])
-            .markdown()
-            .contains("| Host exceptions on assessed trials | 2 × AgentTimeoutError |")
+        markdown
+            .contains("| Agent timeouts: graded pass / graded fail / not assessed | 1 / 1 / 0 |"),
+        "{markdown}"
+    );
+}
+
+#[test]
+fn failed_trials_are_counted_by_what_the_evidence_says_went_wrong() {
+    let root = tempfile::tempdir().unwrap();
+    let root = root.path();
+    pass(root, "ok__1", "code__github__a");
+    for (trial, task) in [
+        ("none__1", "code__github__b"),
+        ("detour__1", "code__github__c"),
+        ("flaky__1", "code__github__d"),
+    ] {
+        fail(root, trial, task);
+    }
+    let mut loaded = arm("A", root);
+    // The summary reads what the verifier wrote. Set the three failed trials to the
+    // three cases: no call to the task's services, a failure on history alone, and a
+    // trial whose service failed one call and refused others.
+    for trial in &mut loaded.trials {
+        let metrics: &[(&str, f64)] = match trial.trial.as_str() {
+            "none__1" => &[
+                ("task_service_calls", 0.0),
+                ("tool_server_side_channel", 1.0),
+            ],
+            "detour__1" => &[("task_service_calls", 4.0), ("history_only_failure", 1.0)],
+            "flaky__1" => &[
+                ("task_service_calls", 2.0),
+                ("service_error_calls", 1.0),
+                ("refused_calls", 3.0),
+            ],
+            _ => &[("task_service_calls", 5.0)],
+        };
+        for (name, value) in [
+            ("tool_server_observed", 1.0),
+            ("tool_server_side_channel", 0.0),
+            ("history_only_failure", 0.0),
+            ("service_error_calls", 0.0),
+            ("refused_calls", 0.0),
+        ]
+        .iter()
+        .chain(metrics)
+        {
+            trial.metrics.insert((*name).to_owned(), *value);
+        }
+    }
+    let summary = arms::summarize(&loaded);
+    assert_eq!(summary.tool_server_side_channel_trials, Some(1));
+    let causes = summary.failure_causes;
+    assert_eq!(causes.without_task_service_calls, Some(1));
+    assert_eq!(causes.history_only, Some(1));
+    assert_eq!(causes.with_service_errors, Some(1));
+    assert_eq!(causes.with_refused_calls, Some(1));
+    let markdown = arms::report(&[loaded]).markdown();
+    for line in [
+        "| Trials where a second client reached the tool servers | 1 |",
+        "| Failed trials with no call to the task's own services | 1 |",
+        "| Failed trials whose final state was right (history only) | 1 |",
+        "| Failed trials where a service failed a call / refused a call | 1 / 1 |",
+    ] {
+        assert!(markdown.contains(line), "{line}\n{markdown}");
+    }
+
+    // Trials graded before these metrics existed say so instead of reporting a zero.
+    let mut older = arm("A", root);
+    for trial in &mut older.trials {
+        for name in [
+            "tool_server_observed",
+            "tool_server_side_channel",
+            "task_service_calls",
+            "history_only_failure",
+            "service_error_calls",
+            "refused_calls",
+        ] {
+            trial.metrics.remove(name);
+        }
+    }
+    let summary = arms::summarize(&older);
+    assert_eq!(summary.tool_server_side_channel_trials, None);
+    assert_eq!(summary.failure_causes.history_only, None);
+    assert!(
+        arms::report(&[older]).markdown().contains(
+            "| Failed trials whose final state was right (history only) | not recorded |"
+        )
     );
 }
 

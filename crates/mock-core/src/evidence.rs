@@ -3,7 +3,7 @@ use serde_json::Value;
 
 use crate::{
     events::OperationEvent,
-    grading::{EVALUATOR_VERSION, Expect, Grade, GradeInput, InterfacePolicy, grade},
+    grading::{EVALUATOR_VERSION, Expect, Grade, GradeInput, InterfacePolicy, agent_calls, grade},
     journal::JournalEntry,
     lifecycle::Finalization,
     provenance::{DatasetSource, canonical_sha256},
@@ -11,7 +11,7 @@ use crate::{
     world::WorldState,
 };
 
-pub const EVIDENCE_SCHEMA_VERSION: u32 = 7;
+pub const EVIDENCE_SCHEMA_VERSION: u32 = 8;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -19,6 +19,9 @@ pub struct WorldEvidence {
     pub schema_version: u32,
     pub evaluator_version: u32,
     pub scenario: String,
+    /// The services the scenario lists as the task's own.
+    #[serde(default)]
+    pub task_services: Vec<String>,
     pub source: DatasetSource,
     pub initial_state_sha256: String,
     pub initial_state: Value,
@@ -32,6 +35,11 @@ pub struct WorldEvidence {
     pub finalization: Finalization,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fault_records: Vec<crate::faults::FaultRecord>,
+    /// Every MCP request the tools container reported, and how many reports were dropped.
+    #[serde(default)]
+    pub tool_access: Vec<crate::tool_access::ToolAccess>,
+    #[serde(default)]
+    pub tool_access_dropped: usize,
 }
 
 impl WorldEvidence {
@@ -48,6 +56,7 @@ impl WorldEvidence {
             schema_version: EVIDENCE_SCHEMA_VERSION,
             evaluator_version: EVALUATOR_VERSION,
             scenario: world.meta.id.clone(),
+            task_services: world.meta.services.clone(),
             source: world.source().clone(),
             initial_state_sha256: canonical_sha256(&world.initial_snapshot()),
             initial_state: world.initial_snapshot(),
@@ -60,6 +69,8 @@ impl WorldEvidence {
             answer: world.answer.clone(),
             finalization: world.finalization(),
             fault_records: world.fault_records().to_vec(),
+            tool_access: world.tool_access().to_vec(),
+            tool_access_dropped: world.tool_access_dropped(),
         }
     }
 
@@ -75,6 +86,16 @@ impl WorldEvidence {
             initial_state: Some(&self.initial_state),
             events: Some(&self.events),
         });
+        assessment.tool_servers = Some(crate::tool_access::summarize(
+            &self.tool_access,
+            self.tool_access_dropped,
+        ));
+        if !self.task_services.is_empty() {
+            assessment.attribute_calls(
+                &agent_calls(&self.journal, &self.tools_ips, &self.startup),
+                &self.task_services,
+            );
+        }
         if self.schema_version != EVIDENCE_SCHEMA_VERSION
             || self.evaluator_version != EVALUATOR_VERSION
         {

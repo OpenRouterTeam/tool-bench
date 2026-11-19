@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__exa__fleet-charger-research"
 description = "Commission a pro deep-research report on depot V2G chargers in Germany"
-keywords = ["write","single-service","exa"]
+keywords = ["write","single-service","exa","route:named"]
 
 [metadata]
 scenario = "search/exa/fleet-charger-research"

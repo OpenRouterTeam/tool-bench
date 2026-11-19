@@ -60,10 +60,12 @@ path_regex = "^/api/v1/"
 [[expect.forbidden_calls]]
 service = "okta"
 method = "PUT"
+path_regex = '^/api/v1/'
 
 [[expect.forbidden_calls]]
 service = "okta"
 method = "DELETE"
+path_regex = '^/api/v1/'
 
 [[solution.call]]
 endpoint = "okta"

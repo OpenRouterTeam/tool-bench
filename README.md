@@ -18,6 +18,11 @@ loaded from a fictional dataset per task. The models are deterministic: a logica
 clock, seeded IDs, a journal of every request. They are models, not
 conformance-tested copies of the hosted APIs.
 
+A trial has no person to answer a server's confirmation prompt. The bridge in front
+of each server therefore does not pass on the client's `elicitation` capability, and
+a server takes the path it documents for a client that cannot be asked: the pinned
+Okta server, for one, deactivates a user without first asking.
+
 ## Tasks
 
 150 tasks in six groups. Each group has 20 single-service tasks, four per service,
@@ -32,6 +37,12 @@ that ask for a written reply.
 | `collab` | Google Workspace, Jira, Linear, Notion, Slack | 25 |
 | `ops` | Datadog, Grafana, Kubernetes, PagerDuty, Sentry | 26 |
 | `search` | Brave Search, Elasticsearch, Exa, Firecrawl, Tavily | 25 |
+
+In the `search` group, eleven tasks ask for a web lookup without naming a search
+vendor. Any of the four web-search services can answer them; such a task's directory
+names the service its reference solution uses. Every search task carries a `route:*`
+tag saying whether its instruction names the vendor (`route:named`), a kind of data
+one service offers (`route:kind`) or neither (`route:unnamed`).
 
 Examples: file an issue, scale a deployment, refund an order in Stripe and tell the
 customer in Zendesk. Instructions read as a user would ask and name no tools. Each task
@@ -57,9 +68,11 @@ data determines.
 | 3 | Integrity violation: the world was reached around the MCP servers |
 | 4 | Invalid contract |
 | 5 | Environment error: the evidence is missing or does not match the task |
-| 6 | Unresolved: the grader could not decide either way; reward 0 |
+| 6 | Unresolved: the grader could not decide either way; not scored |
 
-Codes 4 and 5 mean the trial could not be assessed, which is a benchmark fault: the
+Codes 4, 5 and 6 are not scores. Codes 4 and 5 mean the trial could not be assessed,
+which is a benchmark fault; code 6 means the reply could not be decided, which is not a
+failure of the model. For all three the
 verifier writes `reward.invalid.json` instead of `reward.json`, and Harbor records an
 error instead of a zero. Under stock Harbor a context overflow appears as Harbor's
 `ContextWindowExceededError`, not as code 2. The rules are in

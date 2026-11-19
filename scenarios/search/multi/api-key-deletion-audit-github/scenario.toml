@@ -4,7 +4,7 @@ title = "Trace a deleted API key from the audit logs to the GitHub PR that rotat
 now = "2026-10-30T09:30:00Z"
 seed = "search-multi-api-key-deletion-audit-github"
 services = ["elasticsearch", "github"]
-tags = ["lookup", "multi-service", "elasticsearch", "github", "disambiguation"]
+tags = ["lookup", "multi-service", "elasticsearch", "github", "disambiguation", "route:named"]
 timeout_sec = 900
 
 [scenario.family]
@@ -164,10 +164,12 @@ method = "GET"
 [[expect.forbidden_calls]]
 service = "github"
 method = "PUT"
+path_regex = '^/api/v3/'
 
 [[expect.forbidden_calls]]
 service = "github"
 method = "PATCH"
+path_regex = '^/api/v3/'
 
 [[expect.forbidden_calls]]
 service = "github"

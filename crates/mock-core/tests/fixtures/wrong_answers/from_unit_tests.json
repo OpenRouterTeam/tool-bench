@@ -129,7 +129,7 @@
    "style": "opposite-predicate"
   }
  ],
- "search/brave/hosting-sla-lookup": [
+ "search/brave/hosting-sla-any-search": [
   {
    "answer": "The SLA commits to 99.9% with a 5% credit. (Another page says 99.95% and 10%.)",
    "expect": "reject",

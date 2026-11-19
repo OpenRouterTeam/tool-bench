@@ -354,7 +354,7 @@
       "service": "jira",
       "method": "DELETE",
       "path": null,
-      "path_regex": null,
+      "path_regex": "^/rest/",
       "query_contains": null,
       "body": null,
       "body_contains": null,

@@ -22,6 +22,11 @@ fn rate_cell(rate: &PassRate) -> String {
     cell
 }
 
+/// A failure-cause count, or a note that the trials' evaluator did not record it.
+fn cause(count: Option<usize>) -> String {
+    count.map_or_else(|| "not recorded".to_owned(), |count| count.to_string())
+}
+
 fn spread(stats: &Option<Distribution>) -> String {
     stats.as_ref().map_or_else(
         || "n/a".to_owned(),
@@ -84,6 +89,9 @@ fn group_rows(
         })
         .collect()
 }
+
+/// What the route labels mean, under each table that splits by them.
+const ROUTE_NOTE: &str = "`route:named`: the instruction names each product the task needs. `route:kind`: it names a kind of thing only one connected service has. `route:unnamed`: it names neither, so the agent has to find the tool. `unlabelled`: a task this build has no label for. Labels: `docs/coverage/route-labels.json`.\n\n";
 
 fn paired_cell(passed: usize, assessed: usize, rate: f64) -> String {
     format!("{passed}/{assessed} ({:.0}%)", rate * 100.0)
@@ -156,6 +164,26 @@ fn comparison(out: &mut String, comparison: &PairedComparison) {
         );
     }
     out.push('\n');
+    let _ = writeln!(
+        out,
+        "### By route\n\n| Route | Paired tasks | {a} | {b} | Δ points (95% paired bootstrap) |\n|---|---|---|---|---|"
+    );
+    for route in &comparison.routes {
+        let interval = route.ci95.map_or_else(String::new, |(low, high)| {
+            format!(" ({:+.1} to {:+.1})", low * 100.0, high * 100.0)
+        });
+        let _ = writeln!(
+            out,
+            "| {} | {} | {} | {} | {:+.1}{interval} |",
+            route.route,
+            route.paired_tasks,
+            percent(Some(route.mean_a)),
+            percent(Some(route.mean_b)),
+            route.mean_diff * 100.0
+        );
+    }
+    out.push('\n');
+    out.push_str(ROUTE_NOTE);
     if comparison.flips.is_empty() {
         let _ = writeln!(out, "No paired task differs between the arms.\n");
         return;
@@ -272,6 +300,43 @@ impl Report {
             row(arms, "Trials with MCP bypass", |arm| {
                 arm.mcp_bypass_trials.to_string()
             }),
+            row(
+                arms,
+                "Trials where a second client reached the tool servers",
+                |arm| cause(arm.tool_server_side_channel_trials),
+            ),
+            row(
+                arms,
+                "Failed trials with no call to the task's own services",
+                |arm| cause(arm.failure_causes.without_task_service_calls),
+            ),
+            row(
+                arms,
+                "Failed trials whose final state was right (history only)",
+                |arm| cause(arm.failure_causes.history_only),
+            ),
+            row(
+                arms,
+                "Failed trials where a service failed a call / refused a call",
+                |arm| {
+                    format!(
+                        "{} / {}",
+                        cause(arm.failure_causes.with_service_errors),
+                        cause(arm.failure_causes.with_refused_calls)
+                    )
+                },
+            ),
+            row(
+                arms,
+                "Agent timeouts: graded pass / graded fail / not assessed",
+                |arm| {
+                    let timeouts = &arm.agent_timeouts;
+                    format!(
+                        "{} / {} / {}",
+                        timeouts.passed, timeouts.failed, timeouts.unassessed
+                    )
+                },
+            ),
         ];
         if arms
             .iter()
@@ -379,7 +444,15 @@ impl Report {
             arms,
             &group_rows(arms, |arm| &arm.scopes),
         );
+        out.push_str("## Pass rate by what the instruction says about the route\n\n");
+        table(
+            &mut out,
+            "Route",
+            arms,
+            &group_rows(arms, |arm| &arm.routes),
+        );
         out.push_str("Cells are pass rate (passed/assessed trials), then trials excluded from that rate, then distinct tasks.\n\n");
+        out.push_str(ROUTE_NOTE);
 
         out.push_str("## Failed checks\n\n");
         let mut checks: Vec<(&str, usize)> = Vec::new();

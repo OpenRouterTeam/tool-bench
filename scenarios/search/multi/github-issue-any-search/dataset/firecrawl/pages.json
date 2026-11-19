@@ -1,0 +1,37 @@
+[
+  {
+    "_key": "https://lumenrail.io/blog/scale-plan-generally-available",
+    "title": "The Scale plan is generally available | Lumenrail Blog",
+    "description": "Today the Lumenrail Scale plan leaves beta and is generally available to every customer. Scale costs $349 per month billed annually ($419 billed monthly) and includes 50M events per month, 13 months of data retention and SAML SSO. Additional events are $6 per million. Customers on the Scale beta keep their beta price until their next renewal.",
+    "language": "en",
+    "markdown": "Today the Lumenrail Scale plan leaves beta and is generally available to every customer. Scale costs $349 per month billed annually ($419 billed monthly) and includes 50M events per month, 13 months of data retention and SAML SSO. Additional events are $6 per million. Customers on the Scale beta keep their beta price until their next renewal."
+  },
+  {
+    "_key": "https://lumenrail.io/pricing",
+    "title": "Pricing | Lumenrail",
+    "description": "Lumenrail pricing. Starter: $79 per month billed annually, 5M events per month. Scale: $349 per month billed annually ($419 billed monthly), 50M events per month, SAML SSO, 13-month retention. Enterprise: custom pricing and volume. Extra events on Scale cost $6 per million.",
+    "language": "en",
+    "markdown": "Lumenrail pricing. Starter: $79 per month billed annually, 5M events per month. Scale: $349 per month billed annually ($419 billed monthly), 50M events per month, SAML SSO, 13-month retention. Enterprise: custom pricing and volume. Extra events on Scale cost $6 per million."
+  },
+  {
+    "_key": "https://lumenrail.io/blog/introducing-scale-beta",
+    "title": "Introducing the Scale plan (beta) | Lumenrail Blog",
+    "description": "We're opening a beta of our new Scale plan for high-volume teams. During the beta, Scale is $299 per month and includes 25M events per month. Pricing will change at general availability.",
+    "language": "en",
+    "markdown": "We're opening a beta of our new Scale plan for high-volume teams. During the beta, Scale is $299 per month and includes 25M events per month. Pricing will change at general availability."
+  },
+  {
+    "_key": "https://www.lumenwise.com/pricing",
+    "title": "Plans and pricing | Lumenwise",
+    "description": "Lumenwise (smart lighting control) plans: Home $9 per month, Pro $49 per month, Scale $499 per month for up to 500 fixtures.",
+    "language": "en",
+    "markdown": "Lumenwise (smart lighting control) plans: Home $9 per month, Pro $49 per month, Scale $499 per month for up to 500 fixtures."
+  },
+  {
+    "_key": "https://www.saasnewsdaily.com/2026/10/28/lumenrail-scale-ga",
+    "title": "Lumenrail takes its Scale plan out of beta",
+    "description": "Product analytics startup Lumenrail made its Scale plan generally available this week. The company did not comment on how many customers joined the beta, which launched last November.",
+    "language": "en",
+    "markdown": "Product analytics startup Lumenrail made its Scale plan generally available this week. The company did not comment on how many customers joined the beta, which launched last November."
+  }
+]

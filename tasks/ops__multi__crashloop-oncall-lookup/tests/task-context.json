@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "ops/multi/crashloop-oncall-lookup",
-  "instruction_sha256": "sha256:17cc88d2eb66b474678caf93f820f029559151a998a2e524ac04560b53f7b560",
+  "instruction_sha256": "sha256:a6c778029d3244455d146d69a9c829e51e8f70334cad1e3e2e4784588259b12f",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:c31058af49c9541599b6483b1b47af6164ca6eceb69ff77defd95e08e63771e0",
+  "framing_sha256": "sha256:03d5eb54ed380b1bea45863fdfbd515bb2e97a0f55965b2a288899758beb02cd",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:ef97b8e5df31fbda6be6454343c99eee4133b9e1dbb2b814a1000cb214bb4c41"
+    "docker-compose.yaml": "sha256:169912fe4ec032ac7fc89abbfd53ab721fe900dda2246ac93bc72234e8ec2177"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:baa30060a75e77c5",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:cf9a49fa51dbc382",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

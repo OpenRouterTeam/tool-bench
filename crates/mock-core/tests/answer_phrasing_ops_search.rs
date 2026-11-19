@@ -275,19 +275,19 @@ fn caterer_other_phone_number_earns_no_reward() {
     rejects(&case, &["Phone: 207-555-0198. Saturday: 09:00-14:00."]);
 }
 
-// ---------- search/brave/competitor-funding-news ----------
+// ---------- search/brave/funding-news-any-search ----------
 
 #[test]
 fn funding_wrong_round_earns_no_reward() {
-    let case = Case::load("search/brave/competitor-funding-news");
+    let case = Case::load("search/brave/funding-news-any-search");
     rejects(&case, &["$45M Series A led by Halcyon Ventures."]);
 }
 
-// ---------- search/brave/hosting-sla-lookup ----------
+// ---------- search/brave/hosting-sla-any-search ----------
 
 #[test]
 fn sla_follows_the_published_table() {
-    let case = Case::load("search/brave/hosting-sla-lookup");
+    let case = Case::load("search/brave/hosting-sla-any-search");
     let content = "/services/brave/web/https:~1~1www.ironbarkhosting.com~1legal~1sla/content";
     let revised = rewritten(
         &case,
@@ -305,7 +305,7 @@ fn sla_follows_the_published_table() {
 
 #[test]
 fn sla_denied_or_archived_values_earn_no_reward() {
-    let case = Case::load("search/brave/hosting-sla-lookup");
+    let case = Case::load("search/brave/hosting-sla-any-search");
     rejects(
         &case,
         &[
@@ -315,11 +315,11 @@ fn sla_denied_or_archived_values_earn_no_reward() {
     );
 }
 
-// ---------- search/brave/keynote-recording ----------
+// ---------- search/brave/keynote-any-search ----------
 
 #[test]
 fn keynote_follows_the_video_duration() {
-    let case = Case::load("search/brave/keynote-recording");
+    let case = Case::load("search/brave/keynote-any-search");
     passes_after(
         &case,
         "/services/brave/videos/https:~1~1www.youtube.com~1watch?v=Zt4mQeL1x9c/duration",
@@ -330,7 +330,7 @@ fn keynote_follows_the_video_duration() {
 
 #[test]
 fn keynote_denied_speaker_or_other_recordings_earn_no_reward() {
-    let case = Case::load("search/brave/keynote-recording");
+    let case = Case::load("search/brave/keynote-any-search");
     rejects(
         &case,
         &[
@@ -366,27 +366,27 @@ fn duplicate_charge_wrong_amount_earns_no_reward() {
     rejects(&case, &["ORD-109002 and ORD-109003, both $96.40."]);
 }
 
-// ---------- search/exa/find-vp-engineering-profile ----------
+// ---------- search/exa/vp-profile-any-search ----------
 
 #[test]
 fn vp_profile_former_director_earns_no_reward() {
-    let case = Case::load("search/exa/find-vp-engineering-profile");
+    let case = Case::load("search/exa/vp-profile-any-search");
     rejects(&case, &["https://www.linkedin.com/in/priya-raman-4b21a9"]);
 }
 
-// ---------- search/exa/sdk-timeout-default ----------
+// ---------- search/exa/sdk-timeout-any-search ----------
 
 #[test]
 fn sdk_timeout_previous_major_version_option_earns_no_reward() {
-    let case = Case::load("search/exa/sdk-timeout-default");
+    let case = Case::load("search/exa/sdk-timeout-any-search");
     rejects(&case, &["request_timeout, default 60 seconds"]);
 }
 
-// ---------- search/firecrawl/northwind-team-pricing ----------
+// ---------- search/firecrawl/team-pricing-any-search ----------
 
 #[test]
 fn team_pricing_follows_the_pricing_page() {
-    let case = Case::load("search/firecrawl/northwind-team-pricing");
+    let case = Case::load("search/firecrawl/team-pricing-any-search");
     let markdown =
         "/services/firecrawl/pages/https:~1~1www.northwind-analytics.com~1pricing/markdown";
     let revised = rewritten(
@@ -405,7 +405,7 @@ fn team_pricing_follows_the_pricing_page() {
 
 #[test]
 fn team_pricing_denied_or_stale_values_earn_no_reward() {
-    let case = Case::load("search/firecrawl/northwind-team-pricing");
+    let case = Case::load("search/firecrawl/team-pricing-any-search");
     rejects(
         &case,
         &[
@@ -427,11 +427,11 @@ fn audit_github_other_user_earns_no_reward() {
     );
 }
 
-// ---------- search/multi/competitor-funding-and-pricing ----------
+// ---------- search/multi/funding-and-pricing-any-search ----------
 
 #[test]
 fn funding_pricing_passes_with_the_monthly_billing_aside() {
-    let case = Case::load("search/multi/competitor-funding-and-pricing");
+    let case = Case::load("search/multi/funding-and-pricing-any-search");
     case.passes(&[
         "$45M Series B led by Halcyon Ventures. Growth is $890/month billed annually, or $1,090 month to month.",
     ]);
@@ -439,7 +439,7 @@ fn funding_pricing_passes_with_the_monthly_billing_aside() {
 
 #[test]
 fn funding_pricing_follows_the_pricing_page() {
-    let case = Case::load("search/multi/competitor-funding-and-pricing");
+    let case = Case::load("search/multi/funding-and-pricing-any-search");
     let markdown = "/services/firecrawl/pages/https:~1~1www.norvikanalytics.com~1pricing/markdown";
     let repriced = rewritten(&case, markdown, "$890/month", "$920/month");
     passes_after(
@@ -452,7 +452,7 @@ fn funding_pricing_follows_the_pricing_page() {
 
 #[test]
 fn funding_pricing_denied_wrong_or_missing_values_earn_no_reward() {
-    let case = Case::load("search/multi/competitor-funding-and-pricing");
+    let case = Case::load("search/multi/funding-and-pricing-any-search");
     rejects(
         &case,
         &[
@@ -464,11 +464,11 @@ fn funding_pricing_denied_wrong_or_missing_values_earn_no_reward() {
     );
 }
 
-// ---------- search/tavily/vendor-rate-limit ----------
+// ---------- search/tavily/vendor-rate-limit-any-search ----------
 
 #[test]
 fn rate_limit_follows_the_documented_table() {
-    let case = Case::load("search/tavily/vendor-rate-limit");
+    let case = Case::load("search/tavily/vendor-rate-limit-any-search");
     let raw = "/services/tavily/pages/https:~1~1docs.quillstream.io~1api~1rate-limits/raw_content";
     let revised = rewritten(
         &case,
@@ -486,7 +486,7 @@ fn rate_limit_follows_the_documented_table() {
 
 #[test]
 fn rate_limit_denied_or_deprecated_values_earn_no_reward() {
-    let case = Case::load("search/tavily/vendor-rate-limit");
+    let case = Case::load("search/tavily/vendor-rate-limit-any-search");
     rejects(
         &case,
         &[
@@ -497,11 +497,11 @@ fn rate_limit_denied_or_deprecated_values_earn_no_reward() {
     );
 }
 
-// ---------- search/tavily/webhook-signature-sunset ----------
+// ---------- search/tavily/webhook-sunset-any-search ----------
 
 #[test]
 fn signature_sunset_follows_the_documented_date() {
-    let case = Case::load("search/tavily/webhook-signature-sunset");
+    let case = Case::load("search/tavily/webhook-sunset-any-search");
     let raw = "/services/tavily/pages/https:~1~1docs.ferrowave.dev~1guides~1webhooks~1verify-signatures/raw_content";
     let revised = rewritten(&case, raw, "January 15, 2027", "March 2, 2027");
     passes_after(
@@ -514,7 +514,7 @@ fn signature_sunset_follows_the_documented_date() {
 
 #[test]
 fn signature_sunset_denied_or_wrong_date_earns_no_reward() {
-    let case = Case::load("search/tavily/webhook-signature-sunset");
+    let case = Case::load("search/tavily/webhook-sunset-any-search");
     rejects(
         &case,
         &[

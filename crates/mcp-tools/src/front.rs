@@ -4,6 +4,7 @@
 use std::{
     collections::HashMap,
     future::Future,
+    net::SocketAddr,
     sync::{
         Arc, Mutex,
         atomic::{AtomicU64, Ordering},
@@ -14,10 +15,13 @@ use std::convert::Infallible;
 
 use axum::response::sse::{Event, Sse};
 use axum::{
-    Router,
+    Extension, Router,
     body::Bytes,
-    extract::State,
-    http::{HeaderMap, HeaderValue, StatusCode, header::CONTENT_TYPE},
+    extract::{ConnectInfo, State},
+    http::{
+        HeaderMap, HeaderValue, StatusCode,
+        header::{CONTENT_TYPE, USER_AGENT},
+    },
     response::{IntoResponse, Response},
     routing::post,
 };
@@ -53,9 +57,31 @@ pub trait Backend: Send + Sync + 'static {
     fn close(&self, session: Arc<Self::Session>) -> impl Future<Output = ()> + Send;
 }
 
-/// Passive observer of the response bodies a client was actually served.
+/// One MCP request as the front received it: who sent it, by what it said of itself, and
+/// what it asked for. No body is kept.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Access {
+    /// Address of the client, without its port. Absent when the listener was not
+    /// served with connection information.
+    pub peer: Option<String>,
+    pub user_agent: Option<String>,
+    /// The session the request carried, or the one an accepted `initialize` was given.
+    pub session: Option<String>,
+    /// The JSON-RPC method; empty for a client response.
+    pub method: String,
+    /// `clientInfo.name` of an `initialize` request.
+    pub client: Option<String>,
+    /// The tool a `tools/call` named.
+    pub tool: Option<String>,
+}
+
+/// Passive observer of the requests a front received and the response bodies a client
+/// was actually served.
 pub trait Observer: Send + Sync + 'static {
     fn served(&self, method: &str, body: &str);
+    /// Every well-formed request, before it is answered, including one the front then
+    /// refuses for its session.
+    fn accessed(&self, _access: &Access) {}
 }
 
 struct Front<B: Backend> {
@@ -89,6 +115,7 @@ pub fn router_observed<B: Backend>(backend: B, observer: Option<Arc<dyn Observer
 
 async fn handle_post<B: Backend>(
     State(front): State<Arc<Front<B>>>,
+    peer: Option<Extension<ConnectInfo<SocketAddr>>>,
     headers: HeaderMap,
     body: Bytes,
 ) -> Response {
@@ -106,29 +133,45 @@ async fn handle_post<B: Backend>(
     let id = msg.get("id").cloned().unwrap_or(Value::Null);
     let header = headers.get(SESSION_HEADER).and_then(|v| v.to_str().ok());
     let is_initialize = msg["method"] == "initialize";
+    let text = |value: &Value| value.as_str().map(str::to_owned);
+    let mut access = Access {
+        peer: peer.map(|Extension(ConnectInfo(address))| address.ip().to_string()),
+        user_agent: headers
+            .get(USER_AGENT)
+            .and_then(|value| value.to_str().ok())
+            .map(str::to_owned),
+        session: header.map(str::to_owned),
+        method: msg["method"].as_str().unwrap_or_default().to_owned(),
+        client: text(&msg["params"]["clientInfo"]["name"]).filter(|_| is_initialize),
+        tool: text(&msg["params"]["name"]).filter(|_| msg["method"] == "tools/call"),
+    };
 
-    let (session_id, session) = match header {
-        None if is_initialize => {
-            let session = match front.backend.open().await {
-                Ok(s) => Arc::new(s),
-                Err(e) => return rpc_error(StatusCode::BAD_GATEWAY, id, -32603, &e.to_string()),
-            };
-            let session_id = format!("tb-{:06}", front.next.fetch_add(1, Ordering::Relaxed));
-            front
-                .sessions
-                .lock()
-                .expect("sessions lock")
-                .insert(session_id.clone(), session.clone());
-            (session_id, session)
-        }
-        None => {
-            return rpc_error(
-                StatusCode::BAD_REQUEST,
-                id,
-                -32600,
-                "Missing Mcp-Session-Id",
-            );
-        }
+    let resolved = match header {
+        None if is_initialize => match front.backend.open().await {
+            Ok(session) => {
+                let session = Arc::new(session);
+                let session_id = format!("tb-{:06}", front.next.fetch_add(1, Ordering::Relaxed));
+                front
+                    .sessions
+                    .lock()
+                    .expect("sessions lock")
+                    .insert(session_id.clone(), session.clone());
+                access.session = Some(session_id.clone());
+                Ok((session_id, session))
+            }
+            Err(e) => Err(rpc_error(
+                StatusCode::BAD_GATEWAY,
+                id.clone(),
+                -32603,
+                &e.to_string(),
+            )),
+        },
+        None => Err(rpc_error(
+            StatusCode::BAD_REQUEST,
+            id.clone(),
+            -32600,
+            "Missing Mcp-Session-Id",
+        )),
         Some(sid) => match front
             .sessions
             .lock()
@@ -136,9 +179,21 @@ async fn handle_post<B: Backend>(
             .get(sid)
             .cloned()
         {
-            Some(session) => (sid.to_owned(), session),
-            None => return rpc_error(StatusCode::NOT_FOUND, id, -32001, "Session not found"),
+            Some(session) => Ok((sid.to_owned(), session)),
+            None => Err(rpc_error(
+                StatusCode::NOT_FOUND,
+                id.clone(),
+                -32001,
+                "Session not found",
+            )),
         },
+    };
+    if let Some(observer) = &front.observer {
+        observer.accessed(&access);
+    }
+    let (session_id, session) = match resolved {
+        Ok(resolved) => resolved,
+        Err(refusal) => return refusal,
     };
 
     let is_request = msg.get("id").is_some() && msg.get("method").is_some();

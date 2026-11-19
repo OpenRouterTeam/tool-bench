@@ -61,4 +61,3 @@ bound_call() {
 bound_call 7108 "$DIR/call-0.json" "$DIR/call-0.capture.json" 0 ""
 bound_call 7108 "$DIR/call-1.json" "$DIR/call-1.capture.json" 1 "$DIR/call-1.arguments-schema.json"
 bound_call 7108 "$DIR/call-2.json" "$DIR/call-2.capture.json" 0 ""
-bound_call 7108 "$DIR/call-3.json" "$DIR/call-3.capture.json" 0 ""

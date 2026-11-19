@@ -66,6 +66,7 @@ fields = [
 [[expect.forbidden_calls]]
 service = "argocd"
 method = "DELETE"
+path_regex = '^/api/v1/'
 
 [[expect.forbidden_calls]]
 service = "argocd"
@@ -81,15 +82,15 @@ allow = [
   { pointer = "/services/argocd/applications/argocd~1billing-worker/status/reconciledAt" },
   { pointer = "/services/argocd/applications/argocd~1billing-worker/status/sync" },
   { pointer = "/services/argocd/applications/argocd~1billing-worker/status/health" },
-  { pointer = "/services/argocd/applications/argocd~1billing-worker/status/history", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-worker(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/applications/argocd~1billing-worker/status/history", cause = { service = "argocd", methods = ["PUT", "POST"], path_regex = "^/api/v1/applications(/billing-worker(/spec|/sync)?)?$" } },
   { pointer = "/services/argocd/applications/argocd~1billing-worker/operation", matching = { operation = { sync = { revision = "b0826e986c9c73e0088c6ecb2a14458d247d2205" } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-worker/operation", kind = "remove_field", matching = { spec = { source = { targetRevision = "v1.42.0" } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-worker/operation", kind = "remove_field", matching = { status = { operationState = { operation = { sync = { revision = "b0826e986c9c73e0088c6ecb2a14458d247d2205", dryRun = true } } } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-worker/status/operationState", matching = { status = { operationState = { syncResult = { revision = "b0826e986c9c73e0088c6ecb2a14458d247d2205" } } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-worker/status/operationState", kind = "remove_field", matching = { operation = { sync = { revision = "b0826e986c9c73e0088c6ecb2a14458d247d2205" } } } },
   { pointer = "/services/argocd/sync_history/*", kind = "create", matching = { app = "argocd/billing-worker", history = { revision = "b0826e986c9c73e0088c6ecb2a14458d247d2205", source = { repoURL = "https://github.com/lumen-retail/billing-worker-deploy.git", path = "overlays/production", targetRevision = "v1.42.0" } } }, count_scope = "per_commit" },
-  { pointer = "/services/argocd/resources/*/manifest/spec", initial_matching = { app = "argocd/billing-worker", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-worker(/resource-tree|/managed-resources|/resource)?$" } },
-  { pointer = "/services/argocd/resources/*/manifest/data", initial_matching = { app = "argocd/billing-worker", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-worker(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/spec", initial_matching = { app = "argocd/billing-worker", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["PUT", "POST"], path_regex = "^/api/v1/applications(/billing-worker(/spec|/sync)?)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/data", initial_matching = { app = "argocd/billing-worker", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["PUT", "POST"], path_regex = "^/api/v1/applications(/billing-worker(/spec|/sync)?)?$" } },
   { pointer = "/services/argocd/resources/*/manifest/metadata/labels/app.kubernetes.io~1version", initial_matching = { app = "argocd/billing-worker", managed = true }, max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/annotations/deployment.kubernetes.io~1revision", initial_matching = { app = "argocd/billing-worker", kind = "Deployment", name = "billing-worker", namespace = "billing" } },
   { pointer = "/services/argocd/resources/*/manifest/metadata/generation", initial_matching = { app = "argocd/billing-worker", managed = true }, max_count = "all_matching" },
@@ -101,7 +102,7 @@ allow = [
   { pointer = "/services/argocd/resources/*/requiresPruning", initial_matching = { app = "argocd/billing-worker", managed = true }, max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/template_digest", initial_matching = { app = "argocd/billing-worker", kind = "Deployment", name = "billing-worker", namespace = "billing" } },
   { pointer = "/services/argocd/resources/*/content_digest", initial_matching = { app = "argocd/billing-worker", managed = true }, max_count = "all_matching" },
-  { pointer = "/services/argocd/resources/*/manifest/spec/replicas", initial_matching = { app = "argocd/billing-worker", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-worker", kind = "Deployment", name = "billing-worker", namespace = "billing" } } }], max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-worker(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/spec/replicas", initial_matching = { app = "argocd/billing-worker", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-worker", kind = "Deployment", name = "billing-worker", namespace = "billing" } } }], max_count = "all_matching", cause = { service = "argocd", methods = ["PUT", "POST"], path_regex = "^/api/v1/applications(/billing-worker(/spec|/sync)?)?$" } },
   { pointer = "/services/argocd/resources/*/manifest/status", initial_matching = { app = "argocd/billing-worker", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-worker", kind = "Deployment", name = "billing-worker", namespace = "billing" } } }], max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/resourceVersion", initial_matching = { app = "argocd/billing-worker", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-worker", kind = "Deployment", name = "billing-worker", namespace = "billing" } } }], max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/generation", initial_matching = { app = "argocd/billing-worker", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-worker", kind = "Deployment", name = "billing-worker", namespace = "billing" } } }], max_count = "all_matching" },
@@ -127,11 +128,6 @@ tool = "update_application_spec"
 template = true
 arguments = { applicationName = "billing-worker", applicationNamespace = "argocd", spec = "${billing_spec}" }
 replacements = [{ pointer = "/spec/source/targetRevision", value = "v1.42.0" }]
-
-[[solution.call]]
-endpoint = "argocd"
-tool = "get_application"
-arguments = { applicationName = "billing-worker", applicationNamespace = "argocd" }
 
 [[solution.call]]
 endpoint = "argocd"

@@ -93,6 +93,7 @@ path = "/api/v1/namespaces/payments/pods/ledger-worker-zx4mrndj8b-gdg8j/log"
 [[expect.forbidden_calls]]
 service = "kubernetes"
 method = "DELETE"
+path_regex = '^/apis?/'
 
 [[solution.call]]
 endpoint = "kubernetes"

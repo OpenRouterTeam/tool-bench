@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:baa30060a75e77c5
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "code/github/triage-duplicate-charge"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:cf9a49fa51dbc382
     stop_signal: SIGKILL
     networks:
       default: {}

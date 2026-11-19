@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/multi/github-issue-any-search",
+  "scenario_sha256": "sha256:36da45eebb82dbd1ddbcba8baa91b50e67e96174a9b2e8ec0ceeafd18db023c0",
+  "dataset_sha256": "sha256:a0fd501d79a6cf5ba07f98f80c31ebe095a9c32c217108432e74ae0461355459",
+  "contract_sha256": "sha256:19d40bf886111ad4791bdee7a5b4b745646dc4313b951b601ccf8469695c1564"
+}

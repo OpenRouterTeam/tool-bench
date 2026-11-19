@@ -134,7 +134,7 @@
       "service": "datadog",
       "method": "DELETE",
       "path": null,
-      "path_regex": null,
+      "path_regex": "^/api/v[12]/",
       "query_contains": null,
       "body": null,
       "body_contains": null,

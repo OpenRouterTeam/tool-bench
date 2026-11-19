@@ -44,8 +44,10 @@ REVIEWED = {
         "Northwind renewal signed",
         "f455a8e0ae473a71afc6ea05a174a7fa586478d0e70d864250f8e13b1d640278",
     ),
+    # The instruction gained its opening sentence, which states the scenario's own time;
+    # the request after it is the reviewed text, word for word.
     "plan": (
-        "5536d04bf19a8efcd8641b8af05b96f25486f8cfef72567383c4a576580c29e0",
+        "07286ce35e5b0b9dd9892f765b2aea21df5a8c6a4dd361ed77c001f87e845678",
         "Q1 planning sync?",
         "aa2959ce75f7ac115569ca667df4460d6ddab39add820813552c9a90293ae15c",
     ),

@@ -31,4 +31,3 @@ call() (
 call 7108 "$DIR/call-0.json"
 call 7108 "$DIR/call-1.json"
 call 7108 "$DIR/call-2.json"
-call 7108 "$DIR/call-3.json"

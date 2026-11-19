@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/brave/hosting-sla-any-search",
+  "scenario_sha256": "sha256:3005b81362a6ee9203f1cbe4c22205df7bdd095d9e20d5c79fbcd37a1758f917",
+  "dataset_sha256": "sha256:c7d5b143bc4d7a1a4eed96891de5d1763eb9036d6a751fa27f966b0f8fb2baf2",
+  "contract_sha256": "sha256:7c5cdd0e33511b6a99217663b9ffdac7204a10505f5f7ca6351a136116f40637"
+}

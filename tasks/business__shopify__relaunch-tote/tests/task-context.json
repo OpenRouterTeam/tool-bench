@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "business/shopify/relaunch-tote",
-  "instruction_sha256": "sha256:cbb2e026675623822d16cb6bb43f9625b03acb204d8cbfaf862d39a930f6b7df",
+  "instruction_sha256": "sha256:d06800fb4211e04bd8a76b5eb3ac4f7f2e9f1361c12798bd5077beee249b9c0b",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:f5bb6400b6ee4387f765229bf9dec4b1b9e60165b6bb9bb478a3d4fd62e9384f",
+  "framing_sha256": "sha256:64f7b18db2d21ce162a79316df965f50e8edbe567f3e90f6905aba9fed4a36de",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:a540ec9e6f359cd2d9aeb5183e9c6ea345e5be98f4853f5206632b1ae880acf3"
+    "docker-compose.yaml": "sha256:1c68ca27c5fb221680b8cab6a1194365d564f66082f15c837ddc752de43b6030"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:baa30060a75e77c5",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:cf9a49fa51dbc382",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

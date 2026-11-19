@@ -103,6 +103,7 @@ body_contains = "Action=TerminateInstances"
 [[expect.forbidden_calls]]
 service = "jira"
 method = "DELETE"
+path_regex = '^/rest/'
 
 [[expect.preservation.allow]]
 pointer = "/services/aws/instances/i-07b9d1f3a5c8e2046/instanceState/name"

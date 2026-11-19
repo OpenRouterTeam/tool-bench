@@ -642,11 +642,14 @@ selected Argo CD 3.2.5 semantic comparison baseline.
   seed known per-Application startup outcomes; new required release outcomes
   are explicitly authored. These are **simulated runtime facts**, not execution
   of real image payloads, registry validation or external credential testing.
-- Sync acceptance records a pending operation. Selected-Application observations
-  advance Running and then apply/prune/rollout, with failure or pending-finalizer
-  state when appropriate. Other Application reads cannot advance the operation.
-  Revision comparison, successful operation and live workload readiness are not
-  interchangeable.
+- A sync, the automated sync after a spec change and the rollout after a Deployment
+  resource action run to their end inside the write request: apply, prune and
+  rollout, with failure or pending-finalizer state when appropriate. A read changes
+  nothing, so the Application list and a single Application show the same state.
+  Until the fairness review of 2026-11-19 an accepted operation finished only on
+  later reads of that one Application, which made three tasks depend on a read
+  their prompts did not ask for. Revision comparison, successful operation and
+  live workload readiness are not interchangeable.
 - Successful modeled Deployment rollout preserves Deployment identity, creates
   or reuses a correctly owned ReplicaSet, replaces Pods, retains inactive
   ReplicaSet history, and updates generation/readiness consistently. Known

@@ -190,10 +190,12 @@ path_regex = "^/api/v3/repos/"
 [[expect.forbidden_calls]]
 service = "github"
 method = "PUT"
+path_regex = '^/api/v3/'
 
 [[expect.forbidden_calls]]
 service = "github"
 method = "PATCH"
+path_regex = '^/api/v3/'
 
 [[solution.call]]
 endpoint = "vercel"

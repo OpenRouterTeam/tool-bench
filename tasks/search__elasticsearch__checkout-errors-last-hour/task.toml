@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__elasticsearch__checkout-errors-last-hour"
 description = "Find the service with the most production 5xx errors in the last hour"
-keywords = ["lookup","single-service","elasticsearch","disambiguation"]
+keywords = ["lookup","single-service","elasticsearch","disambiguation","route:named"]
 
 [metadata]
 scenario = "search/elasticsearch/checkout-errors-last-hour"
