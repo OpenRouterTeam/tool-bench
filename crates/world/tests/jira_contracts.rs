@@ -320,16 +320,37 @@ async fn assignment_accepts_a_coincident_transition_and_email_identity_alias() {
     passed(&trial.assess());
 }
 
+/// The request is for an owner and a status. Moving the ticket first and assigning it second
+/// ends in the same state as the other order, so the order of the two writes is not graded.
 #[tokio::test]
-async fn progression_before_assignment_is_not_repaired_by_later_assignment() {
+async fn progression_before_assignment_reaches_the_same_end_state_and_passes() {
     let trial = Trial::new("assign-go-no-go-review");
     trial.transition("PAY-124", "11", json!({})).await;
     trial
         .edit("PAY-124", json!({"assignee": {"name": "lena.fischer"}}))
         .await;
-    let assessment = trial.assess();
-    failed(&assessment);
-    assert!(!assessment.ordering_ok);
+    passed(&trial.assess());
+}
+
+#[tokio::test]
+async fn either_order_still_needs_both_the_right_owner_and_the_status() {
+    // Moved, never assigned.
+    let trial = Trial::new("assign-go-no-go-review");
+    trial.transition("PAY-124", "11", json!({})).await;
+    failed(&trial.assess());
+    // Moved, then assigned to the owner named on the archived page.
+    let trial = Trial::new("assign-go-no-go-review");
+    trial.transition("PAY-124", "11", json!({})).await;
+    trial
+        .edit("PAY-124", json!({"assignee": {"name": "marcus.webb"}}))
+        .await;
+    failed(&trial.assess());
+    // Assigned, never moved.
+    let trial = Trial::new("assign-go-no-go-review");
+    trial
+        .edit("PAY-124", json!({"assignee": {"name": "lena.fischer"}}))
+        .await;
+    failed(&trial.assess());
 }
 
 #[tokio::test]
