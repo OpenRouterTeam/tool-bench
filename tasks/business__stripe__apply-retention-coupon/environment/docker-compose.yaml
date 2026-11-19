@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cdf593dc7ce14a81
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:5e16c92e0d6f7c7a
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "business/stripe/apply-retention-coupon"
