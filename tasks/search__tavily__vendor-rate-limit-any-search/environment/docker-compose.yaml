@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cac94f9898b072d0
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:eab0c6c0d72038bd
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "search/tavily/vendor-rate-limit-any-search"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:9c36dbb7a4c5776d
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b2fe6f5782511b41
     stop_signal: SIGKILL
     networks:
       default: {}

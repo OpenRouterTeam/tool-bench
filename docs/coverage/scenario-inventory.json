@@ -17080,8 +17080,8 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/firecrawl/crawl-api-reference",
-        "scenario_sha256": "sha256:9745533e4ef69e4614a5718193ebbb93d8c73a6b6873f55430413642f0eae06f",
-        "dataset_sha256": "sha256:111c613fda92b40b2e0fbe4161ab530954bfaed1f9b75ac04553e76f55dd9c4a",
+        "scenario_sha256": "sha256:e4fb569e19fb6b92ed2beff877a52e2160f43562af71788ae0fda29800cd64e3",
+        "dataset_sha256": "sha256:e9abcbc8228d7a8bf16febed3bb448a74edf8df8fa1296b28fb1570792e2857d",
         "contract_sha256": "sha256:f33cd60f312c3acb31911b930f8cecc497aeee9ff13cb7884b37416761e88c0d"
       },
       "instruction_sha256": "sha256:4866644f707742325a78078afab4d4096024e65df4140fdfaa7c5c7203d2c69d",
@@ -17142,10 +17142,10 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 1,
+          "valid_alternative": 2,
           "near_miss": {
-            "collateral_change": 1,
-            "partial": 0,
+            "collateral_change": 2,
+            "partial": 1,
             "undone_prohibited_change": 0,
             "wrong_entity": 0
           }
