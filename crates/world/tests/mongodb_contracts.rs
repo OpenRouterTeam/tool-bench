@@ -336,7 +336,11 @@ async fn a_refund_date_on_the_scenario_day_is_an_optional_stamp_like_the_orders_
         )
         .await;
         let assessment = trial.assess();
-        assert_eq!(assessment.outcome, Outcome::Pass, "{change}: {assessment:?}");
+        assert_eq!(
+            assessment.outcome,
+            Outcome::Pass,
+            "{change}: {assessment:?}"
+        );
         assert!(assessment.preservation_checked && assessment.history_checked);
     }
 }

@@ -428,7 +428,10 @@ async fn the_primary_company_property_cannot_name_another_company() {
             .associate("contacts", "512001", "companies", "18234004", 279)
             .await;
         let result = trial.assess();
-        assert_eq!(result.reward, 0.0, "{other} corrected={corrected}: {result:?}");
+        assert_eq!(
+            result.reward, 0.0,
+            "{other} corrected={corrected}: {result:?}"
+        );
         assert!(result.state_ok && result.records_ok && result.environment_ok);
         assert!(!result.preservation_ok && result.history_checked);
     }
