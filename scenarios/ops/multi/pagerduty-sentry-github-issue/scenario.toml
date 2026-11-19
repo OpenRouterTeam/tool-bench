@@ -32,7 +32,7 @@ selector = { collection = "/services/github/issues", created = true }
 equals = 1
 
 [[expect.records]]
-selector = { collection = "/services/github/issues", key_prefix = "lumen-labs/checkout#", created = true, field_patterns = { "/title" = "^CHECKOUT-API-3F: \\S" } }
+selector = { collection = "/services/github/issues", key_prefix = "lumen-labs/checkout#", created = true, field_patterns = { "/title" = "^CHECKOUT-API-3F([^[:alnum:]]|$)" } }
 equals = 1
 fields = { "/state" = "open", "/user" = "hana", "/assignees" = [] }
 optional_fields = { "/locked" = false, "/milestone" = "", "/type" = "", "/parent" = "" }
@@ -148,7 +148,7 @@ action = { selector = { collection = "/services/pagerduty/notes", key_prefix = "
 
 [expect.preservation]
 allow = [
-  { pointer = "/services/github/issues/*", kind = "create", matching = { user = "hana", state = "open", assignees = [] }, field_patterns = { "/title" = "^CHECKOUT-API-3F: \\S" }, cause = { service = "github", methods = ["POST", "PATCH"], path_regex = "^(/api/v3/repos/lumen-labs/checkout/issues(/[0-9]+)?|/api/graphql)$" } },
+  { pointer = "/services/github/issues/*", kind = "create", matching = { user = "hana", state = "open", assignees = [] }, field_patterns = { "/title" = "^CHECKOUT-API-3F([^[:alnum:]]|$)" }, cause = { service = "github", methods = ["POST", "PATCH"], path_regex = "^(/api/v3/repos/lumen-labs/checkout/issues(/[0-9]+)?|/api/graphql)$" } },
   { pointer = "/services/pagerduty/notes/*", kind = "create", matching = { user = { id = "PLWEBR5", type = "user_reference" } }, field_patterns = { "/content" = "[0-9]" }, references = [{ source_field = "/user/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q7CHKAP15PCT1D/notes$" } },
   { pointer = "/services/pagerduty/log_entries/*", kind = "create", matching = { type = "annotate_log_entry", incident = { id = "Q7CHKAP15PCT1D" }, service = { id = "PSVCHKA" } }, references = [{ source_field = "/agent/id", target = { collection = "/services/pagerduty/account", key_prefix = "account" }, target_field = "/user_id" }], cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q7CHKAP15PCT1D/notes$" } },
   { pointer = "/services/pagerduty/incidents/Q7CHKAP15PCT1D/updated_at", cause = { service = "pagerduty", methods = ["POST"], path_regex = "^/incidents/Q7CHKAP15PCT1D/notes$" } },

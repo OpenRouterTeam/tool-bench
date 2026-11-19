@@ -890,6 +890,15 @@ async fn escalation_unlisted_issue_wording_passes_with_the_required_facts_and_fa
             "CHECKOUT-API-3F: connection pool exhausted in create_order",
             ISSUE_BODY,
         ),
+        // The request shows a colon after the short ID as an example, not as a rule.
+        (
+            "CHECKOUT-API-3F - connection pool exhausted in create_order",
+            ISSUE_BODY,
+        ),
+        (
+            "CHECKOUT-API-3F connection pool exhausted in create_order",
+            ISSUE_BODY,
+        ),
         // Markdown code spans around the culprit do not change what the description says.
         (
             ISSUE_TITLE,
@@ -920,6 +929,11 @@ async fn escalation_unlisted_issue_wording_passes_with_the_required_facts_and_fa
         ),
         (
             "CHECKOUT-API-3C: could not obtain connection from pool",
+            ISSUE_BODY,
+        ),
+        // A longer identifier that begins with the short ID is another identifier.
+        (
+            "CHECKOUT-API-3FX: could not obtain connection from pool",
             ISSUE_BODY,
         ),
     ] {
