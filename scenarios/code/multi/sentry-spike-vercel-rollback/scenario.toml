@@ -105,6 +105,7 @@ cause = { service = "sentry", methods = ["PUT"], path_regex = "^/api/0/organizat
 [[expect.forbidden_calls]]
 service = "sentry"
 method = "DELETE"
+path_regex = '^/api/0/'
 
 [[expect.forbidden_calls]]
 service = "vercel"

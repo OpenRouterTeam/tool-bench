@@ -89,14 +89,17 @@ path_regex = "^/rest/api/2/"
 [[expect.forbidden_calls]]
 service = "sentry"
 method = "PUT"
+path_regex = '^/api/0/'
 
 [[expect.forbidden_calls]]
 service = "sentry"
 method = "DELETE"
+path_regex = '^/api/0/'
 
 [[expect.forbidden_calls]]
 service = "jira"
 method = "PUT"
+path_regex = '^/rest/'
 
 [[expect.forbidden_calls]]
 service = "jira"

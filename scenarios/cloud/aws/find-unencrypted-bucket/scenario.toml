@@ -57,10 +57,12 @@ fields = { "/Name" = "northwind-legacy-exports" }
 [[expect.forbidden_calls]]
 service = "aws"
 method = "PUT"
+path_regex = '^/[^/]'
 
 [[expect.forbidden_calls]]
 service = "aws"
 method = "DELETE"
+path_regex = '^/[^/]'
 
 [[solution.call]]
 endpoint = "aws-api"

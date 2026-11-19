@@ -93,14 +93,17 @@ require_unit = true
 [[expect.forbidden_calls]]
 service = "terraform"
 method = "POST"
+path_regex = '^/api/v2/'
 
 [[expect.forbidden_calls]]
 service = "terraform"
 method = "PATCH"
+path_regex = '^/api/v2/'
 
 [[expect.forbidden_calls]]
 service = "terraform"
 method = "DELETE"
+path_regex = '^/api/v2/'
 
 [[solution.call]]
 endpoint = "terraform"

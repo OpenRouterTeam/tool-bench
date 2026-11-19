@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/multi/argocd-degraded-gitlab-commit",
-  "scenario_sha256": "sha256:cbf1dc663e04b34002a1acc91868ac117731f3a987993d788f344a97e580352d",
+  "scenario_sha256": "sha256:e31ded6abb4424625db9306153e42e4177a16b0bfff60ef9b31caaf1baa1e5b3",
   "dataset_sha256": "sha256:71955cb890c5150afa9dcad3a1d5b8a942a66a48fc2144258494e8dde9a47927",
-  "contract_sha256": "sha256:e0434a2ba5e6cff2a023e91d1f1dc26e6dea48d510e99bbb655cc297128f593b"
+  "contract_sha256": "sha256:60918be23530c1d8503bd47419c70ce23c74ef3016051f80209bce504f3f118b"
 }

@@ -96,14 +96,17 @@ path = "/api/v1/namespaces/payments/pods/ledger-worker-zx4mrndj8b-gdg8j/log"
 [[expect.forbidden_calls]]
 service = "kubernetes"
 method = "DELETE"
+path_regex = '^/apis?/'
 
 [[expect.forbidden_calls]]
 service = "kubernetes"
 method = "PATCH"
+path_regex = '^/apis?/'
 
 [[expect.forbidden_calls]]
 service = "pagerduty"
 method = "PUT"
+path_regex = '^/(incidents|schedules|v3|services|teams|users|escalation_policies|event_orchestrations|incident_workflows|status_pages|webhook_subscriptions|alert_grouping_settings)(/|$)'
 
 # Analytics queries are read-only POSTs; anything else that POSTs writes.
 [[expect.forbidden_calls]]

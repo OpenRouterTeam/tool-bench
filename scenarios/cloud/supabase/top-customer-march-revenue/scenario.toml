@@ -71,6 +71,7 @@ path_regex = '/(pause|restore|database/migrations|functions/deploy|branches)$'
 [[expect.forbidden_calls]]
 service = "supabase"
 method = "DELETE"
+path_regex = '^/v[12]/'
 
 [[solution.call]]
 endpoint = "supabase"

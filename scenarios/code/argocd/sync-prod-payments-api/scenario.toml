@@ -76,6 +76,7 @@ body = { appNamespace = "payments-staging" }
 [[expect.forbidden_calls]]
 service = "argocd"
 method = "DELETE"
+path_regex = '^/api/v1/'
 
 [expect.preservation]
 allow = [

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/grafana/top-5xx-checkout-pod",
-  "scenario_sha256": "sha256:b106f566dc232bfcb812b2dbb9025e5841e93bb58f484a740b8ce8af8b5f41fa",
+  "scenario_sha256": "sha256:06bb9477c2e45eb26c6db2c86ea2217f9c81a02d2ed1073f12ecaa1e7f87ac65",
   "dataset_sha256": "sha256:a03b1eb14fbf3895864d1445d04b64c188efab0bdcdb31377eb687eb592991d6",
-  "contract_sha256": "sha256:6b712eae22eb179dd855aac9a1ad9eb1dbc80de7b7a45eecf869953d38ed584e"
+  "contract_sha256": "sha256:f3dd5393f129a710267be0dc300477f9ce4e0426404827b6e586f17cae1e0140"
 }

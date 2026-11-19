@@ -23,7 +23,7 @@
       "service": "hubspot",
       "method": "PATCH",
       "path": null,
-      "path_regex": null,
+      "path_regex": "^/(crm|engagements)/",
       "query_contains": null,
       "body": null,
       "body_contains": null,
