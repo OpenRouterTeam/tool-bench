@@ -41,7 +41,11 @@ Release 2 keeps the first and removes the second.
 
 A replacement keeps the instruction word for word and the original vendor's dataset
 as it was; it adds the same pages to the other three search services and accepts a
-read through any of them. Each replacement's `scenario.toml` opens with a note.
+read through any of them. One instruction differs by a word:
+`search/multi/zendesk-reply-any-search` says "an open Zendesk ticket" where the original
+said "an open support ticket", because four connected services can hold a support
+ticket and the ticket half accepts Zendesk only. Each replacement's `scenario.toml`
+opens with a note.
 
 ## Running or grading release 1
 

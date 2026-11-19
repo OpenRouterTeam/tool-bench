@@ -38,7 +38,11 @@ Eleven tasks are replaced; the mapping is in
 `releases/archive/tool-bench-public-dev-1/README.md`, with the originals' sources. In
 each replacement:
 
-- the instruction is the original, word for word;
+- the instruction is the original, word for word, except that
+  `search/multi/zendesk-reply-any-search` says "an open Zendesk ticket" where the
+  original said "an open support ticket": four connected services can hold a support
+  ticket, the ticket half accepts Zendesk only, and the fairness admission check
+  refuses a scored task that leaves such a service unnamed;
 - the original vendor's dataset is kept as it was, so the answer contract reads the same
   records with the same patterns;
 - the same pages, look-alikes and superseded pages included, are written in the dataset
