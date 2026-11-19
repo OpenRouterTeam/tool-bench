@@ -7,7 +7,7 @@ use std::{
 
 use mock_core::{
     evidence::WorldEvidence,
-    grading::{EVALUATOR_VERSION, Expect, GradeInput, Outcome, grade},
+    grading::{EVALUATOR_VERSION, Expect, GradeInput, grade},
     provenance::{DatasetSource, ExecutionManifest, TaskContext},
     runner::{RunnerAdmission, RunnerPolicy},
 };
