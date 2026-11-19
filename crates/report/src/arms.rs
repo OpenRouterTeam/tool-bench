@@ -1052,7 +1052,7 @@ mod tests {
             "route:kind"
         );
         assert_eq!(
-            task_route("search__brave__hosting-sla-lookup"),
+            task_route("search__brave__hosting-sla-any-search"),
             "route:unnamed"
         );
         assert_eq!(task_route("ops__pagerduty__ack"), UNLABELLED_ROUTE);

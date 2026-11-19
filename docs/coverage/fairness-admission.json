@@ -7,7 +7,7 @@
     "accepted means the scenario serves records on every member and no contract entry takes one member alone. That each member returns the same facts, that the reference reply then passes and that doing nothing fails is run by crates/world/tests/fairness_routes.rs.",
     "A flagged task listed under known is frozen in a release and is reported, not refused; any other flagged scored task fails taskgen."
   ],
-  "known_release": "tool-bench-public-dev-1",
+  "known_release": "tool-bench-public-dev-2",
   "summary": {
     "scored_tasks": 150,
     "scored_routes": {
@@ -15,15 +15,14 @@
       "route:named": 120,
       "route:unnamed": 19
     },
-    "scored_flagged": 19,
+    "scored_flagged": 9,
     "scored_flagged_by_class": {
       "crm": 2,
       "orders": 1,
-      "support_tickets": 7,
-      "web_search": 11
+      "support_tickets": 7
     },
-    "scored_accepting_a_class": 0,
-    "unscored_tasks": 9,
+    "scored_accepting_a_class": 10,
+    "unscored_tasks": 4,
     "unscored_flagged": 2
   },
   "flagged": [
@@ -35,17 +34,7 @@
     "business/zendesk/escalate-outage-ticket",
     "business/zendesk/find-invoice-attachment",
     "business/zendesk/reply-refund-and-solve",
-    "search/brave/competitor-funding-news",
-    "search/brave/hosting-sla-lookup",
-    "search/brave/keynote-recording",
-    "search/exa/find-vp-engineering-profile",
-    "search/exa/sdk-timeout-default",
-    "search/firecrawl/northwind-team-pricing",
-    "search/multi/competitor-funding-and-pricing",
-    "search/multi/competitor-research-github-issue",
-    "search/multi/vendor-rate-limit-zendesk-reply",
-    "search/tavily/vendor-rate-limit",
-    "search/tavily/webhook-signature-sunset"
+    "search/multi/zendesk-reply-any-search"
   ],
   "tasks": [
     {
@@ -1857,434 +1846,6 @@
       ]
     },
     {
-      "id": "diagnostic/multi/funding-news-any-search",
-      "scored": false,
-      "route": "route:unnamed",
-      "flagged": false,
-      "services": [
-        {
-          "service": "brave",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "the news"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "exa",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "the news"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "firecrawl",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "the news"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "tavily",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "the news"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "diagnostic/multi/hosting-sla-any-search",
-      "scored": false,
-      "route": "route:unnamed",
-      "flagged": false,
-      "services": [
-        {
-          "service": "brave",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "on the web",
-                "look it up"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "exa",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "on the web",
-                "look it up"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "firecrawl",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "on the web",
-                "look it up"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "tavily",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "on the web",
-                "look it up"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "diagnostic/multi/sdk-timeout-any-search",
-      "scored": false,
-      "route": "route:unnamed",
-      "flagged": false,
-      "services": [
-        {
-          "service": "brave",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "online",
-                "documentation"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "exa",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "online",
-                "documentation"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "firecrawl",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "online",
-                "documentation"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "tavily",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "online",
-                "documentation"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "diagnostic/multi/team-pricing-any-search",
-      "scored": false,
-      "route": "route:unnamed",
-      "flagged": false,
-      "services": [
-        {
-          "service": "brave",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "public pricing"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "exa",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "public pricing"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "firecrawl",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "public pricing"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "tavily",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "public pricing"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "diagnostic/multi/vendor-rate-limit-any-search",
-      "scored": false,
-      "route": "route:unnamed",
-      "flagged": false,
-      "services": [
-        {
-          "service": "brave",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "documentation"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "exa",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "documentation"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "firecrawl",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "documentation"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        },
-        {
-          "service": "tavily",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "documentation"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": true
-            }
-          ]
-        }
-      ]
-    },
-    {
       "id": "diagnostic/stripe/clarify-ambiguous-refund",
       "scored": false,
       "route": "route:named",
@@ -2842,11 +2403,10 @@
       ]
     },
     {
-      "id": "search/brave/competitor-funding-news",
+      "id": "search/brave/funding-news-any-search",
       "scored": true,
       "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "flagged": false,
       "services": [
         {
           "service": "brave",
@@ -2863,22 +2423,74 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on exa, firecrawl, tavily",
-                "required_calls[0] takes brave alone"
-              ]
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "the news"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "the news"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "the news"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
             }
           ]
         }
       ]
     },
     {
-      "id": "search/brave/hosting-sla-lookup",
+      "id": "search/brave/hosting-sla-any-search",
       "scored": true,
       "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "flagged": false,
       "services": [
         {
           "service": "brave",
@@ -2896,22 +2508,77 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on exa, firecrawl, tavily",
-                "required_calls[0] takes brave alone"
-              ]
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web",
+                "look it up"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web",
+                "look it up"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web",
+                "look it up"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
             }
           ]
         }
       ]
     },
     {
-      "id": "search/brave/keynote-recording",
+      "id": "search/brave/keynote-any-search",
       "scored": true,
       "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "flagged": false,
       "services": [
         {
           "service": "brave",
@@ -2928,11 +2595,64 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on exa, firecrawl, tavily",
-                "required_calls[0] takes brave alone"
-              ]
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
             }
           ]
         }
@@ -3014,35 +2734,6 @@
       ]
     },
     {
-      "id": "search/exa/find-vp-engineering-profile",
-      "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
-      "services": [
-        {
-          "service": "exa",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on brave, firecrawl, tavily",
-                "required_calls[0] takes exa alone"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
       "id": "search/exa/fleet-charger-research",
       "scored": true,
       "route": "route:named",
@@ -3058,12 +2749,31 @@
       ]
     },
     {
-      "id": "search/exa/sdk-timeout-default",
+      "id": "search/exa/sdk-timeout-any-search",
       "scored": true,
       "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "flagged": false,
       "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online",
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
         {
           "service": "exa",
           "route": "route:unnamed",
@@ -3080,11 +2790,119 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on brave, firecrawl, tavily",
-                "required_calls[0] takes exa alone"
-              ]
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online",
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "online",
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/exa/vp-profile-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
             }
           ]
         }
@@ -3121,37 +2939,6 @@
       ]
     },
     {
-      "id": "search/firecrawl/northwind-team-pricing",
-      "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
-      "services": [
-        {
-          "service": "firecrawl",
-          "route": "route:unnamed",
-          "classes": [
-            {
-              "class": "web_search",
-              "kind_words": [
-                "public pricing"
-              ],
-              "members": [
-                "brave",
-                "exa",
-                "firecrawl",
-                "tavily"
-              ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on brave, exa, tavily"
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
       "id": "search/firecrawl/pause-broken-pricing-monitor",
       "scored": true,
       "route": "route:named",
@@ -3167,33 +2954,10 @@
       ]
     },
     {
-      "id": "search/multi/api-key-deletion-audit-github",
-      "scored": true,
-      "route": "route:named",
-      "flagged": false,
-      "services": [
-        {
-          "service": "elasticsearch",
-          "route": "route:named",
-          "words": [
-            "Elasticsearch"
-          ]
-        },
-        {
-          "service": "github",
-          "route": "route:named",
-          "words": [
-            "GitHub"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "search/multi/competitor-funding-and-pricing",
+      "id": "search/firecrawl/team-pricing-any-search",
       "scored": true,
       "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "flagged": false,
       "services": [
         {
           "service": "brave",
@@ -3210,11 +2974,26 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on exa, tavily",
-                "required_calls[0] takes brave alone"
-              ]
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
             }
           ]
         },
@@ -3233,31 +3012,18 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on exa, tavily",
-                "required_calls[0] takes brave alone"
-              ]
+              "accepted": true
             }
           ]
-        }
-      ]
-    },
-    {
-      "id": "search/multi/competitor-research-github-issue",
-      "scored": true,
-      "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
-      "services": [
+        },
         {
-          "service": "exa",
+          "service": "tavily",
           "route": "route:unnamed",
           "classes": [
             {
               "class": "web_search",
               "kind_words": [
-                "on the web"
+                "public pricing"
               ],
               "members": [
                 "brave",
@@ -3265,12 +3031,23 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on brave, firecrawl, tavily",
-                "information[0] accepts a read of exa only"
-              ]
+              "accepted": true
             }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/multi/api-key-deletion-audit-github",
+      "scored": true,
+      "route": "route:named",
+      "flagged": false,
+      "services": [
+        {
+          "service": "elasticsearch",
+          "route": "route:named",
+          "words": [
+            "Elasticsearch"
           ]
         },
         {
@@ -3305,12 +3082,244 @@
       ]
     },
     {
-      "id": "search/multi/vendor-rate-limit-zendesk-reply",
+      "id": "search/multi/funding-and-pricing-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "public pricing"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/multi/github-issue-any-search",
+      "scored": true,
+      "route": "route:unnamed",
+      "flagged": false,
+      "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "github",
+          "route": "route:named",
+          "words": [
+            "GitHub"
+          ]
+        },
+        {
+          "service": "tavily",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "on the web"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "search/multi/zendesk-reply-any-search",
       "scored": true,
       "route": "route:unnamed",
       "flagged": true,
       "known": true,
       "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
         {
           "service": "tavily",
           "route": "route:unnamed",
@@ -3326,12 +3335,7 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on brave, exa, firecrawl",
-                "information[0] accepts a read of tavily only",
-                "information[1] accepts a read of tavily only"
-              ]
+              "accepted": true
             }
           ]
         },
@@ -3391,12 +3395,68 @@
       ]
     },
     {
-      "id": "search/tavily/vendor-rate-limit",
+      "id": "search/tavily/vendor-rate-limit-any-search",
       "scored": true,
       "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "flagged": false,
       "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "documentation"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
         {
           "service": "tavily",
           "route": "route:unnamed",
@@ -3412,23 +3472,75 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on brave, exa, firecrawl",
-                "required_calls[0] takes tavily alone"
-              ]
+              "accepted": true
             }
           ]
         }
       ]
     },
     {
-      "id": "search/tavily/webhook-signature-sunset",
+      "id": "search/tavily/webhook-sunset-any-search",
       "scored": true,
       "route": "route:unnamed",
-      "flagged": true,
-      "known": true,
+      "flagged": false,
       "services": [
+        {
+          "service": "brave",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "docs"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "exa",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "docs"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
+        {
+          "service": "firecrawl",
+          "route": "route:unnamed",
+          "classes": [
+            {
+              "class": "web_search",
+              "kind_words": [
+                "docs"
+              ],
+              "members": [
+                "brave",
+                "exa",
+                "firecrawl",
+                "tavily"
+              ],
+              "accepted": true
+            }
+          ]
+        },
         {
           "service": "tavily",
           "route": "route:unnamed",
@@ -3444,11 +3556,7 @@
                 "firecrawl",
                 "tavily"
               ],
-              "accepted": false,
-              "gaps": [
-                "the scenario serves no records on brave, exa, firecrawl",
-                "required_calls[0] takes tavily alone"
-              ]
+              "accepted": true
             }
           ]
         }

@@ -14,11 +14,13 @@
 #   job         the job, in the words of a request
 #   kind_words  what an instruction calls the job when it names no product; any case
 #   members     catalog service names, at least two
-#   [class.read]  optional: how each member's MCP server asks for the class's job, as one
-#                 HTTP request to the mock. `{query}` is the query of the scenario's
-#                 reference call, `{query_url}` the same percent-encoded. A scenario that
-#                 accepts every member is run through each of these
-#                 (crates/world/tests/fairness_routes.rs).
+#   [[class.read.<member>]]  optional: how the member's MCP server asks for the class's
+#                 job, as HTTP requests to the mock, one per tool that can do it. `{query}`
+#                 is the query of the scenario's reference call, `{query_url}` the same
+#                 percent-encoded. A scenario that accepts every member is run through
+#                 each of these (crates/world/tests/fairness_routes.rs).
+#   [class.queries]  optional: scenario id to what an agent would type, for a scenario
+#                 whose reference solution does not search (it maps a site, say).
 #
 # [known]  scored tasks that fail the check and are frozen in a release
 #   release  the release whose manifest holds their source hashes
@@ -172,21 +174,28 @@ job = "find or read a public web page"
 kind_words = ["on the web", "online", "the news", "search the web", "web search", "look it up", "public pricing", "documentation", "docs"]
 members = ["brave", "exa", "firecrawl", "tavily"]
 
-[class.read.brave]
+[class.queries]
+"search/tavily/webhook-sunset-any-search" = "Ferrowave verifying webhook signatures v1 stop sending"
+
+[[class.read.brave]]
 method = "GET"
 path = "/res/v1/llm/context?q={query_url}"
 
-[class.read.exa]
+[[class.read.brave]]
+method = "GET"
+path = "/res/v1/videos/search?q={query_url}"
+
+[[class.read.exa]]
 method = "POST"
 path = "/search"
 body = '{"query": "{query}", "contents": {"text": true}}'
 
-[class.read.firecrawl]
+[[class.read.firecrawl]]
 method = "POST"
 path = "/v2/search"
 body = '{"query": "{query}", "scrapeOptions": {"formats": ["markdown"]}}'
 
-[class.read.tavily]
+[[class.read.tavily]]
 method = "POST"
 path = "/search"
 body = '{"query": "{query}", "include_raw_content": true}'
@@ -295,11 +304,14 @@ members = ["mongodb", "supabase"]
 
 # ───────────────────────────── Known ─────────────────────────────
 
-# What the check flags in release 1. A scenario's source hash is frozen in the release
-# manifest, so these are listed here and repaired in the next release. A task leaves this
-# list when its repaired version is in `scenarios/`; nothing is added to it.
+# What the check flags in the current release. A scenario's source hash is frozen in the
+# release manifest, so these are listed here and repaired in the next release. A task
+# leaves this list when its repaired version is in `scenarios/`; nothing is added to it.
+#
+# The eleven search lookups of release 1 that kept their pages on one vendor were on this
+# list; release 2 replaced them (releases/archive/tool-bench-public-dev-1/).
 [known]
-release = "tool-bench-public-dev-1"
+release = "tool-bench-public-dev-2"
 tasks = [
   "business/hubspot/largest-open-deal",
   "business/hubspot/log-call-note-initech",
@@ -309,15 +321,5 @@ tasks = [
   "business/zendesk/escalate-outage-ticket",
   "business/zendesk/find-invoice-attachment",
   "business/zendesk/reply-refund-and-solve",
-  "search/brave/competitor-funding-news",
-  "search/brave/hosting-sla-lookup",
-  "search/brave/keynote-recording",
-  "search/exa/find-vp-engineering-profile",
-  "search/exa/sdk-timeout-default",
-  "search/firecrawl/northwind-team-pricing",
-  "search/multi/competitor-funding-and-pricing",
-  "search/multi/competitor-research-github-issue",
-  "search/multi/vendor-rate-limit-zendesk-reply",
-  "search/tavily/vendor-rate-limit",
-  "search/tavily/webhook-signature-sunset",
+  "search/multi/zendesk-reply-any-search",
 ]

@@ -4,7 +4,10 @@
 //! and every fact a reply must state; the reference reply then passes; no reply fails.
 //!
 //! The scenarios are discovered, not listed, so a new one that accepts a class is run
-//! through each member without a change here.
+//! through each member without a change here. Three things are left to a scenario's own
+//! contract test: a fact read from a related record (a second page), a fact the grader
+//! derives from prose with no capture pattern, and the pass of a task that also changes
+//! something, since its change is not scripted here.
 
 mod support;
 
@@ -37,9 +40,7 @@ fn accepting() -> Vec<(Scenario, Class)> {
     let mut found = Vec::new();
     for scenario in discover(&root().join("scenarios")).unwrap() {
         let task = equivalence.assess(&scenario).unwrap();
-        if task.flagged {
-            continue;
-        }
+        // A task flagged for another class is still run through the one it accepts.
         for id in task.accepted_classes() {
             let class = equivalence
                 .classes
@@ -82,14 +83,22 @@ fn trial(scenario: &Scenario, class: &Class) -> ContractTrial {
     ContractTrial::load_from_directory(&scenario.dir, &specs)
 }
 
-/// What the reference solution types into its first search.
-fn query(scenario: &Scenario) -> &str {
+/// What the reference solution types into its first search, or what the class says an
+/// agent would type when the reference solution does not search.
+fn query<'a>(scenario: &'a Scenario, class: &'a Class) -> &'a str {
+    let id = &scenario.meta.id;
     scenario
         .solution
         .calls
         .iter()
         .find_map(|call| call.arguments.get("query").and_then(Value::as_str))
-        .unwrap_or_else(|| panic!("{}: no reference call has a query", scenario.meta.id))
+        .or_else(|| class.queries.get(id).map(String::as_str))
+        .unwrap_or_else(|| {
+            panic!(
+                "{id}: no reference call has a query; add one under [class.queries] of {}",
+                class.id
+            )
+        })
 }
 
 fn percent_encoded(text: &str) -> String {
@@ -103,33 +112,48 @@ fn percent_encoded(text: &str) -> String {
         .collect()
 }
 
-/// The class's job asked of `member`, with the scenario's own query.
+/// The class's job asked of `member` through each of its tools, with the scenario's own
+/// query. The responses are returned together.
 async fn read(trial: &ContractTrial, class: &Class, member: &str, query: &str) -> String {
-    let ClassRead { method, path, body } = class
+    let reads = class
         .read
         .get(member)
         .unwrap_or_else(|| panic!("class {} has no read for {member}", class.id));
-    let path = path.replace("{query_url}", &percent_encoded(query));
-    let body = body.as_ref().map_or(Value::Null, |body| {
-        let quoted = serde_json::to_string(query).unwrap();
-        serde_json::from_str(&body.replace("{query}", &quoted[1..quoted.len() - 1])).unwrap()
-    });
-    trial
-        .call_from(member, method, &path, body)
-        .await
-        .to_string()
+    let mut returned = String::new();
+    for ClassRead { method, path, body } in reads {
+        let path = path.replace("{query_url}", &percent_encoded(query));
+        let body = body.as_ref().map_or(Value::Null, |body| {
+            let quoted = serde_json::to_string(query).unwrap();
+            serde_json::from_str(&body.replace("{query}", &quoted[1..quoted.len() - 1])).unwrap()
+        });
+        returned.push_str(
+            &trial
+                .call_from(member, method, &path, body)
+                .await
+                .to_string(),
+        );
+    }
+    returned
 }
 
-/// The page that holds the facts and each fact a reply must state, read from the record
-/// the answer contract selects.
-fn facts(scenario: &Scenario, trial: &ContractTrial) -> Vec<(String, String)> {
+/// What a read on `member` must return: for a lookup, the page and the facts of the record
+/// the answer contract selects; for a task that acts on what it read, the excerpts its
+/// information check asks of that member's own read.
+fn facts(scenario: &Scenario, trial: &ContractTrial, member: &str) -> Vec<(String, String)> {
     let id = &scenario.meta.id;
-    let contract = scenario
+    let Some(contract) = scenario
         .expect
         .answer
         .as_ref()
         .and_then(|answer| answer.record_facts.as_ref())
-        .unwrap_or_else(|| panic!("{id}: routes are compared on a record_facts answer"));
+    else {
+        let wanted = excerpts(scenario, member);
+        assert!(
+            !wanted.is_empty(),
+            "{id}: routes are compared on a record_facts answer or an information read of {member}"
+        );
+        return wanted;
+    };
     let world = trial.world.lock().unwrap();
     let state = world.snapshot();
     let selected = contract
@@ -154,6 +178,9 @@ fn facts(scenario: &Scenario, trial: &ContractTrial) -> Vec<(String, String)> {
         let source = text(&fact.field);
         let value = match &fact.capture {
             Some(pattern) => Regex::new(pattern).unwrap().captures(&source).unwrap()[1].to_owned(),
+            // The grader derives this one from prose by its kind; there is no value to
+            // look for in another member's rendering of the page.
+            None if source.contains('\n') => continue,
             None => source,
         };
         wanted.push((name.clone(), value));
@@ -161,8 +188,36 @@ fn facts(scenario: &Scenario, trial: &ContractTrial) -> Vec<(String, String)> {
     wanted
 }
 
+/// The excerpts each information check wants from a read of `member`.
+fn excerpts(scenario: &Scenario, member: &str) -> Vec<(String, String)> {
+    let mut wanted = Vec::new();
+    for (index, check) in scenario.expect.information.iter().enumerate() {
+        let projection = if check.prerequisite.service == member {
+            &check.projection
+        } else if let Some(read) = check
+            .alternatives
+            .iter()
+            .find(|read| read.prerequisite.service == member)
+        {
+            &read.projection
+        } else {
+            continue;
+        };
+        for excerpt in projection.iter().flat_map(|field| &field.excerpts) {
+            wanted.push((format!("information[{index}]"), excerpt.clone()));
+        }
+    }
+    wanted
+}
+
+/// A task with no state, record or relation check: the reply alone decides it.
+fn lookup(scenario: &Scenario) -> bool {
+    let expect = &scenario.expect;
+    expect.state.is_empty() && expect.records.is_empty() && expect.relations.is_empty()
+}
+
 #[test]
-fn the_refined_search_lookups_are_the_scenarios_that_accept_a_class() {
+fn the_any_search_tasks_are_the_scenarios_that_accept_a_class() {
     let accepting = accepting();
     let ids: Vec<&str> = accepting
         .iter()
@@ -174,35 +229,58 @@ fn the_refined_search_lookups_are_the_scenarios_that_accept_a_class() {
     assert_eq!(
         ids,
         [
-            "diagnostic/multi/funding-news-any-search",
-            "diagnostic/multi/hosting-sla-any-search",
-            "diagnostic/multi/sdk-timeout-any-search",
-            "diagnostic/multi/team-pricing-any-search",
-            "diagnostic/multi/vendor-rate-limit-any-search",
+            "search/brave/funding-news-any-search",
+            "search/brave/hosting-sla-any-search",
+            "search/brave/keynote-any-search",
+            "search/exa/sdk-timeout-any-search",
+            "search/exa/vp-profile-any-search",
+            "search/firecrawl/team-pricing-any-search",
+            "search/multi/funding-and-pricing-any-search",
+            "search/multi/github-issue-any-search",
+            "search/multi/zendesk-reply-any-search",
+            "search/tavily/vendor-rate-limit-any-search",
+            "search/tavily/webhook-sunset-any-search",
         ]
     );
+    // A query listed for a scenario that no longer accepts the class is stale.
+    for (scenario, class) in &accepting {
+        for id in class.queries.keys() {
+            assert!(
+                ids.contains(&id.as_str()),
+                "{}: stale query for {id}",
+                class.id
+            );
+        }
+        assert!(!query(scenario, class).is_empty());
+    }
 }
 
-/// Each member returns the page and the facts, and the reference reply passes after a
-/// read on that member alone.
+/// Each member returns the page and the facts, and the reference reply to a lookup passes
+/// after a read on that member alone.
 #[tokio::test]
 async fn every_accepted_member_returns_the_facts_and_the_reference_reply_passes() {
+    let mut lookups = 0;
     for (scenario, class) in accepting() {
         let id = &scenario.meta.id;
         for member in &class.members {
             let trial = trial(&scenario, &class);
-            let returned = read(&trial, &class, member, query(&scenario)).await;
-            for (name, value) in facts(&scenario, &trial) {
+            let returned = read(&trial, &class, member, query(&scenario, &class)).await;
+            for (name, value) in facts(&scenario, &trial, member) {
                 assert!(
                     returned.contains(&value),
                     "{id}: {member} does not return {name} ({value:?})"
                 );
             }
+            if !lookup(&scenario) {
+                continue;
+            }
+            lookups += 1;
             let grade = trial.assess_with_answer(scenario.solution.answer.as_deref());
             assert_eq!(grade.outcome, Outcome::Pass, "{id} via {member}: {grade:?}");
             assert!(grade.history_ok && grade.preservation_ok, "{grade:?}");
         }
     }
+    assert_eq!(lookups, 9 * 4, "nine lookups through four services");
 }
 
 /// Doing nothing scores 0, and so does a read on any member with no reply.
@@ -214,7 +292,7 @@ async fn no_reply_fails_on_every_route() {
         assert_eq!(idle.assess().outcome, Outcome::Fail, "{id}: doing nothing");
         for member in &class.members {
             let trial = trial(&scenario, &class);
-            read(&trial, &class, member, query(&scenario)).await;
+            read(&trial, &class, member, query(&scenario, &class)).await;
             assert_eq!(trial.assess().outcome, Outcome::Fail, "{id} via {member}");
         }
     }

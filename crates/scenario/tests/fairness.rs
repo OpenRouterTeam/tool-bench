@@ -10,7 +10,8 @@ use scenario::{
     fairness::{Equivalence, Route, TaskFairness},
 };
 
-/// The search lookups of release 1 that name no vendor and keep their pages on one.
+/// The search tasks of release 1 that name no vendor and keep their pages on one. Release 2
+/// archived them under `releases/archive/tool-bench-public-dev-1/scenarios/`.
 const SINGLE_VENDOR_SEARCH: [&str; 11] = [
     "search/brave/competitor-funding-news",
     "search/brave/hosting-sla-lookup",
@@ -25,14 +26,24 @@ const SINGLE_VENDOR_SEARCH: [&str; 11] = [
     "search/tavily/webhook-signature-sunset",
 ];
 
-/// Their refined versions, which serve the pages on all four search services.
-const ANY_SEARCH: [&str; 5] = [
-    "diagnostic/multi/funding-news-any-search",
-    "diagnostic/multi/hosting-sla-any-search",
-    "diagnostic/multi/sdk-timeout-any-search",
-    "diagnostic/multi/team-pricing-any-search",
-    "diagnostic/multi/vendor-rate-limit-any-search",
+/// Their replacements, which serve the pages on all four search services.
+const ANY_SEARCH: [&str; 11] = [
+    "search/brave/funding-news-any-search",
+    "search/brave/hosting-sla-any-search",
+    "search/brave/keynote-any-search",
+    "search/exa/sdk-timeout-any-search",
+    "search/exa/vp-profile-any-search",
+    "search/firecrawl/team-pricing-any-search",
+    "search/multi/funding-and-pricing-any-search",
+    "search/multi/github-issue-any-search",
+    "search/multi/zendesk-reply-any-search",
+    "search/tavily/vendor-rate-limit-any-search",
+    "search/tavily/webhook-sunset-any-search",
 ];
+
+/// The one replacement that still fails: any search service is accepted, but the
+/// instruction says "support ticket" and never says Zendesk.
+const TICKET_SYSTEM_UNNAMED: &str = "search/multi/zendesk-reply-any-search";
 
 fn root() -> &'static Path {
     Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."))
@@ -59,23 +70,31 @@ fn the_class_file_has_a_row_for_every_catalog_service_and_known_members() {
 }
 
 #[test]
-fn the_single_vendor_search_lookups_are_flagged_and_their_refined_versions_pass() {
+fn the_single_vendor_search_tasks_are_flagged_and_their_replacements_accept_any_vendor() {
+    let archive = root().join("releases/archive/tool-bench-public-dev-1/scenarios");
     for id in SINGLE_VENDOR_SEARCH {
-        let task = assess(id);
-        assert!(task.flagged && task.known, "{id}: {task:?}");
+        let scenario = Scenario::load(&archive.join(id)).unwrap();
+        let task = equivalence().assess(&scenario).unwrap();
+        assert!(task.flagged, "{id}: {task:?}");
         assert_eq!(task.route, Route::Unnamed, "{id}");
         assert!(task.refused_classes().contains("web_search"), "{id}");
     }
     for id in ANY_SEARCH {
         let task = assess(id);
-        assert!(!task.flagged, "{id}: {task:?}");
         assert_eq!(task.route, Route::Unnamed, "{id}");
         assert_eq!(
             task.accepted_classes(),
             BTreeSet::from(["web_search"]),
             "{id}"
         );
+        assert_eq!(task.flagged, id == TICKET_SYSTEM_UNNAMED, "{id}: {task:?}");
     }
+    let ticket = assess(TICKET_SYSTEM_UNNAMED);
+    assert!(ticket.known);
+    assert_eq!(
+        ticket.refused_classes(),
+        BTreeSet::from(["support_tickets"])
+    );
 }
 
 /// The list in `catalog/equivalence.toml` is what the check flags among scored tasks, no
@@ -90,12 +109,19 @@ fn the_known_list_is_exactly_the_scored_tasks_the_check_flags() {
     let flagged: BTreeSet<&str> = report.flagged.iter().map(String::as_str).collect();
     assert_eq!(known, flagged);
     assert_eq!(known.len(), equivalence.known.tasks.len(), "listed twice");
-    assert_eq!(flagged.len(), 19);
+    assert_eq!(flagged.len(), 9);
+    assert_eq!(report.known_release, "tool-bench-public-dev-2");
     assert_eq!(report.summary.scored_tasks, 150);
     assert_eq!(report.summary.scored_routes["route:named"], 120);
     assert_eq!(report.summary.scored_routes["route:kind"], 11);
     assert_eq!(report.summary.scored_routes["route:unnamed"], 19);
-    assert_eq!(report.summary.scored_flagged_by_class["web_search"], 11);
+    assert_eq!(report.summary.scored_accepting_a_class, 10);
+    assert!(
+        !report
+            .summary
+            .scored_flagged_by_class
+            .contains_key("web_search")
+    );
     assert_eq!(report.summary.scored_flagged_by_class["support_tickets"], 7);
     assert_eq!(report.summary.scored_flagged_by_class["crm"], 2);
     assert_eq!(report.summary.scored_flagged_by_class["orders"], 1);
@@ -159,7 +185,7 @@ fn a_kind_only_one_service_has_is_a_route_of_its_own() {
 #[test]
 fn a_contract_entry_that_takes_one_member_is_not_acceptance() {
     let equivalence = equivalence();
-    let mut scenario = load("diagnostic/multi/hosting-sla-any-search");
+    let mut scenario = load("search/brave/hosting-sla-any-search");
     scenario.expect.required_calls.push(CallMatch {
         service: "brave".into(),
         ..CallMatch::default()
@@ -171,7 +197,7 @@ fn a_contract_entry_that_takes_one_member_is_not_acceptance() {
         ["required_calls[0] takes brave alone"]
     );
 
-    let mut scenario = load("diagnostic/multi/hosting-sla-any-search");
+    let mut scenario = load("search/brave/hosting-sla-any-search");
     scenario.meta.services.retain(|service| service != "tavily");
     let task = equivalence.assess(&scenario).unwrap();
     assert!(task.flagged);
@@ -184,7 +210,7 @@ fn a_contract_entry_that_takes_one_member_is_not_acceptance() {
 #[test]
 fn a_route_tag_must_agree_with_the_instruction() {
     let equivalence = equivalence();
-    let mut scenario = load("diagnostic/multi/hosting-sla-any-search");
+    let mut scenario = load("search/brave/hosting-sla-any-search");
     assert!(scenario.meta.tags.iter().any(|tag| tag == "route:unnamed"));
     for tag in &mut scenario.meta.tags {
         if tag == "route:unnamed" {
@@ -194,7 +220,7 @@ fn a_route_tag_must_agree_with_the_instruction() {
     let error = equivalence.assess(&scenario).unwrap_err().to_string();
     assert_eq!(
         error,
-        "diagnostic/multi/hosting-sla-any-search: tagged route:named, but its instruction reads as route:unnamed"
+        "search/brave/hosting-sla-any-search: tagged route:named, but its instruction reads as route:unnamed"
     );
 }
 

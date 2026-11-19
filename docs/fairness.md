@@ -26,7 +26,7 @@ measures where the data was filed.
 | F1 | The reference solution scores 1 and the do-nothing agent scores 0 | `deploy/stock-campaign.sh` | Run by hand against the images; not in CI |
 | F2 | The instruction names no tool, API path or data location a real user would not name | None | Authoring rule (`CONTRIBUTING.md`) |
 | F3 | Every task has a route label, and the label is what its instruction says | `taskgen` | Enforced |
-| F4 | Where interchangeable services are connected, every one leads to a pass, or the instruction names one | `taskgen` | Enforced for new and changed tasks; 19 tasks of release 1 are listed as known |
+| F4 | Where interchangeable services are connected, every one leads to a pass, or the instruction names one | `taskgen` | Enforced for new and changed tasks; 9 tasks of release 2 are listed as known |
 | F5 | The contract takes no single vendor the instruction does not name | `taskgen`, with F4 | Enforced, as F4 |
 | F6 | Each accepted route reaches a pass | `crates/world/tests/fairness_routes.rs` | Enforced in process; the Docker oracle still runs one route |
 | F7 | The same facts are on every accepted route | `crates/world/tests/fairness_routes.rs` | Enforced for the facts; look-alikes are not compared |
@@ -110,18 +110,33 @@ report: for every scenario its label, the words that decided it, and for each cl
 held against it the members and what keeps one from being a route to a pass.
 `flagged` lists the scored tasks that fail.
 
+Release 1 held eleven search tasks that named no vendor and kept their pages on one;
+the check flags each of them where they are archived
+(`releases/archive/tool-bench-public-dev-1/`). Release 2 replaced them with tasks that
+accept any of the four search services. What is still listed: eight `business` tasks
+that say "our CRM", "support ticket", "our helpdesk" or "the store", and
+`search/multi/zendesk-reply-any-search`, which accepts any search service and says
+"support ticket" without naming Zendesk.
+
 ### F6 and F7. Every accepted route
 
-`crates/world/tests/fairness_routes.rs` finds each scenario that passes a class by
-accepting it and runs it once per member against the in-process world. A class
-declares how each member's MCP server asks for its job (`[class.read.<member>]`, one
-HTTP request); the test issues that request with the reference solution's own query.
-For each member:
+`crates/world/tests/fairness_routes.rs` finds each scenario that accepts a class and
+runs it once per member against the in-process world. A class declares how each
+member's MCP server asks for its job (`[[class.read.<member>]]`, one HTTP request per
+tool that can do it); the test issues those requests with the reference solution's
+own query, or with the query listed under `[class.queries]` when the reference
+solution does not search. For each member:
 
 - the response holds the page the answer contract selects and every fact a reply
-  must state;
-- the reference reply then passes, with history and preservation intact;
+  must state, or, for a task that acts on what it read, the excerpts its
+  `information` check asks of that member;
+- for a lookup, the reference reply then passes, with history and preservation
+  intact;
 - a read with no reply fails, and so does doing nothing.
+
+Left to a scenario's own contract test: a fact read from a second page, a fact the
+grader derives from prose with no capture pattern, and the pass of a task that also
+changes something.
 
 The Docker oracle (`deploy/stock-campaign.sh`) still replays one `[[solution.call]]`
 list, so it proves one route through the real MCP servers. A scenario has no form

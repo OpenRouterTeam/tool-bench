@@ -73,8 +73,12 @@ pub struct Class {
     pub job: String,
     pub kind_words: Vec<String>,
     pub members: Vec<String>,
+    /// How each member is asked for the job; a member with several tools has several.
     #[serde(default)]
-    pub read: BTreeMap<String, ClassRead>,
+    pub read: BTreeMap<String, Vec<ClassRead>>,
+    /// What an agent would type, for a scenario whose reference solution does not search.
+    #[serde(default)]
+    pub queries: BTreeMap<String, String>,
 }
 
 /// Scored tasks of a frozen release that fail the check and cannot be edited there.
