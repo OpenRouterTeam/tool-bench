@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:71b8430844f46d1f
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "search/elasticsearch/duplicate-charge-lookup"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:65e67149813b683a
     stop_signal: SIGKILL
     networks:
       default: {}
