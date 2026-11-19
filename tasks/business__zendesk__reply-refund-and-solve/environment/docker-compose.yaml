@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:71b8430844f46d1f
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:1312cb2fc223dc2f
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "business/zendesk/reply-refund-and-solve"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:65e67149813b683a
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:20c68b232c89bf83
     stop_signal: SIGKILL
     networks:
       default: {}
