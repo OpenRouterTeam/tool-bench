@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "collab/linear/pull-issue-into-cycle",
-  "instruction_sha256": "sha256:79507e71ece4f8d70d58f0f38df6cb029770ee5019a3341d41ed2cd1b156afc6",
+  "instruction_sha256": "sha256:e6852bb7c2825d8567441db464478f6caa56871d59845c6e7abcf56a0d98a210",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:a0e4d1d1c2fe98dd3873c8c8a03b675d7edb02e4998c7db821ff13d1ad1022c4",
+  "framing_sha256": "sha256:2baeaedbf95850112e38859792527c26f22e0c616b9c9ffb425f834702577a7d",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:66e4810cab7a9adf7d822770b3a2e044e3c33077f1ef49ff31d68f5920a0a590"
+    "docker-compose.yaml": "sha256:7c47b793e8a93229edf45bfc6997784a095c65e3187aaf4a16095b59c01e994b"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:78d7bd92c3713107",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b435f731ac61bd27",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cfe3e80acc055e4e",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b3b3310cc456a4bd",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

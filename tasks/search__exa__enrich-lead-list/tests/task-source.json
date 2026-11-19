@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/exa/enrich-lead-list",
-  "scenario_sha256": "sha256:9c4f3aeb62b62055d7e0ea0f75dfd8cc748e934d4597e4caa346c0f6ce3017ad",
+  "scenario_sha256": "sha256:306460a9e9bc2b2f664c176385df265b2945fe8d096ee9a483ffe64b24573ac1",
   "dataset_sha256": "sha256:581b7f1b8fd2d7bae595fdbb6f704539f1722bb765ed78e08832fbfe8b20535c",
-  "contract_sha256": "sha256:90dd4444a20c7c21f16c369ddd5121b625971ffbd7d4df5ef523d735b09839e7"
+  "contract_sha256": "sha256:02da18f76daaf1ae22535ec6060e2b149c884b24aba7a75effffc0f090f4836d"
 }

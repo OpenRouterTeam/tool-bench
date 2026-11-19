@@ -36,6 +36,14 @@ pointer = "/services/hubspot/contacts/512001/properties/email"
 pointer = "/services/hubspot/contacts/512001/properties/company"
 matching = { properties = { company = "Pied Piper" } }
 
+# HubSpot also carries a contact's primary company as the contact property
+# `associatedcompanyid`, which the property list shows. Setting it to the Pied Piper company's
+# ID is part of the same move. The association above is still required: here the property
+# alone does not create one.
+[[expect.preservation.allow]]
+pointer = "/services/hubspot/contacts/512001/properties/associatedcompanyid"
+numeric_fields = { "/properties/associatedcompanyid" = 18234004 }
+
 [[expect.preservation.allow]]
 pointer = "/services/hubspot/contacts/512001/properties/lastmodifieddate"
 

@@ -299,7 +299,7 @@
       "service": "terraform",
       "method": "DELETE",
       "path": null,
-      "path_regex": null,
+      "path_regex": "^/api/v2/",
       "query_contains": null,
       "body": null,
       "body_contains": null,

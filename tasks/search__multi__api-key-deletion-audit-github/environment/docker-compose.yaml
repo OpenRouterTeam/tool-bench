@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:78d7bd92c3713107
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cfe3e80acc055e4e
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "search/multi/api-key-deletion-audit-github"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b435f731ac61bd27
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b3b3310cc456a4bd
     stop_signal: SIGKILL
     networks:
       default: {}

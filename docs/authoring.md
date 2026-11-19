@@ -87,16 +87,16 @@ prompt_date = "date_time"   # or "date", when any time on that day gives the sam
 ```
 
 ```text
-Today is 2026-10-30, and it's 14:00 UTC right now. Marcus pinged me ...
+It is 14:00 UTC on Friday 30 October 2026. Marcus pinged me ...
 ```
 
-A declared scenario does not load unless its instruction says `Today is <date of now>`
-(and `<HH:MM> UTC` for `date_time`), and no instruction may state another day in that form.
-The form is the one the surface audit's date check reads
-([exposure-and-surface-audit.md](exposure-and-surface-audit.md#date-coherence-item-9-native-side)),
-so a declared task is `coherent` there. This is a statement in the prompt; it does not set
-the harness's own date context, which stays an open item
-([contracts.md](contracts.md#business-time-policy)).
+A declared scenario does not load unless its instruction states `now`, either in that
+sentence or as `Today is 2026-10-30` (the form the surface audit's date check reads,
+[exposure-and-surface-audit.md](exposure-and-surface-audit.md#date-coherence-item-9-native-side);
+`date_time` then also needs `14:00 UTC`). In every scenario, declared or not, a statement
+in either form whose time, weekday or date is not that of `now` is refused. This is a
+statement in the prompt; it does not set the harness's own date context, which stays an
+open item ([contracts.md](contracts.md#business-time-policy)).
 
 Mix per service:
 

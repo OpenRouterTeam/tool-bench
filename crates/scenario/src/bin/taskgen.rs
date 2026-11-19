@@ -1,5 +1,6 @@
 //! taskgen [--scenarios scenarios] [--catalog catalog/services.toml] [--out tasks]
 //!         [--world-image IMG] [--tools-image IMG] [--check] [--print-images] [--inventory PATH] [--include-examples]
+//!         [--equivalence catalog/equivalence.toml]
 //!         [--exposure VARIANT [--exposure-seed N] [--exposure-token-budget N]]
 //!         [--awareness-condition CELL] [--runner-admission optional|required]
 //!
@@ -8,6 +9,12 @@
 //! differs from what would be generated (CI guard for hand edits and unpublished sources).
 //! `--print-images` prints the two references (the defaults unless overridden) and exits.
 //! Sources are hashed only for a reference that is not overridden.
+//!
+//! Every run applies the fairness admission check (`scenario::fairness`,
+//! `docs/fairness.md`): a scored task that names no service where interchangeable ones
+//! are connected fails, unless each is accepted or the task is frozen in a release.
+//! `--inventory PATH` also writes `fairness-admission.json` and `route-labels.json`
+//! beside it, and `--check` fails when either is stale.
 //!
 //! `--exposure` (relevant_only, context_feasible, organization_pack, full_catalog,
 //! randomized_order, confusing_distractors) controls which pinned MCP endpoints and tools
@@ -35,6 +42,7 @@ fn main() -> anyhow::Result<()> {
     let mut args = std::env::args().skip(1);
     let mut scenarios = PathBuf::from("scenarios");
     let mut catalog_path = PathBuf::from("catalog/services.toml");
+    let mut equivalence_path = PathBuf::from("catalog/equivalence.toml");
     let mut out = PathBuf::from("tasks");
     let mut world_image = None;
     let mut tools_image = None;
@@ -55,6 +63,7 @@ fn main() -> anyhow::Result<()> {
         match arg.as_str() {
             "--scenarios" => scenarios = PathBuf::from(value()?),
             "--catalog" => catalog_path = PathBuf::from(value()?),
+            "--equivalence" => equivalence_path = PathBuf::from(value()?),
             "--out" => out = PathBuf::from(value()?),
             "--world-image" => world_image = Some(value()?),
             "--tools-image" => tools_image = Some(value()?),
@@ -120,14 +129,38 @@ fn main() -> anyhow::Result<()> {
         .collect::<anyhow::Result<Vec<_>>>()?;
     let inventory = scenario::coverage::inventory(&all, validated, &tools)?;
     let inventory_json = serde_json::to_string_pretty(&inventory)? + "\n";
-    if check && let Some(path) = &inventory_path {
-        let current =
-            std::fs::read_to_string(path).with_context(|| format!("reading {}", path.display()))?;
-        if current != inventory_json {
-            bail!(
-                "{} is stale; regenerate the source coverage inventory",
-                path.display()
-            )
+    let equivalence = scenario::fairness::Equivalence::load(&equivalence_path)?;
+    equivalence.validate(&catalog)?;
+    let fairness = equivalence.report(&all)?;
+    fairness.admit()?;
+    // The inventory and the two fairness files are generated together and live together.
+    let generated = inventory_path.as_ref().map(|path| {
+        [
+            (
+                path.clone(),
+                inventory_json,
+                "the source coverage inventory",
+            ),
+            (
+                path.with_file_name("fairness-admission.json"),
+                serde_json::to_string_pretty(&fairness).expect("report serializes") + "\n",
+                "the fairness admission report",
+            ),
+            (
+                path.with_file_name("route-labels.json"),
+                serde_json::to_string_pretty(&fairness.route_labels()).expect("labels serialize")
+                    + "\n",
+                "the route labels",
+            ),
+        ]
+    });
+    if check {
+        for (path, json, what) in generated.iter().flatten() {
+            let current = std::fs::read_to_string(path)
+                .with_context(|| format!("reading {}", path.display()))?;
+            if &current != json {
+                bail!("{} is stale; regenerate {what}", path.display())
+            }
         }
     }
     // Example scenarios exercise the mocks but are not benchmark tasks.
@@ -201,11 +234,11 @@ fn main() -> anyhow::Result<()> {
         }
         println!("ok: {} tasks up to date", tasks.len());
     } else {
-        if let Some(path) = &inventory_path {
+        for (path, json, _) in generated.iter().flatten() {
             if let Some(parent) = path.parent() {
                 std::fs::create_dir_all(parent)?
             }
-            std::fs::write(path, &inventory_json)?;
+            std::fs::write(path, json)?;
         }
         println!(
             "wrote {} tasks to {} ({} scenarios validated)",

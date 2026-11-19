@@ -30,52 +30,60 @@ fn the_tasks_that_depend_on_today_declare_it_and_state_it() {
         (
             "collab/linear/pull-issue-into-cycle",
             PromptDate::Date,
-            "Today is 2026-10-29",
+            "It is 15:00 UTC on Thursday 29 October 2026.",
         ),
         (
             "collab/google/schedule-q1-planning",
             PromptDate::Date,
-            "Today is 2026-10-29",
+            "It is 15:00 UTC on Thursday 29 October 2026.",
         ),
         (
             "collab/multi/slack-pagerduty-dbre-oncall",
             PromptDate::DateTime,
-            "Today is 2026-10-30",
+            "It is 14:00 UTC on Friday 30 October 2026.",
         ),
     ] {
         let scenario = Scenario::load(&source(id)).unwrap();
         assert_eq!(scenario.meta.prompt_date, Some(declared), "{id}");
-        assert!(scenario.instruction.contains(statement), "{id}");
-        assert!(
-            scenario
-                .meta
-                .now
-                .starts_with(&statement["Today is ".len()..]),
-            "{id}"
-        );
+        assert!(scenario.instruction.starts_with(statement), "{id}");
     }
 }
 
 #[test]
 fn a_declared_scenario_does_not_load_without_its_date() {
     let id = "collab/linear/pull-issue-into-cycle";
-    let undated = with_instruction(id, |text| text.replace("Today is 2026-10-29. ", ""));
+    let undated = with_instruction(id, |text| {
+        text.replace("It is 15:00 UTC on Thursday 29 October 2026. ", "")
+    });
     let error = Scenario::load(undated.path()).unwrap_err().to_string();
     assert!(
-        error.contains(id) && error.contains("Today is 2026-10-29"),
+        error.contains(id) && error.contains("It is 15:00 UTC on Thursday 29 October 2026"),
         "{error}"
     );
 
     // The agent's own date in round `utl1`, which made cycle 43 the "current" one.
-    let misdated = with_instruction(id, |text| text.replace("2026-10-29", "2026-11-19"));
+    let misdated = with_instruction(id, |text| {
+        text.replace("Thursday 29 October 2026", "Thursday 19 November 2026")
+    });
     let error = Scenario::load(misdated.path()).unwrap_err().to_string();
-    assert!(error.contains("2026-11-19"), "{error}");
+    assert!(error.contains("19 november 2026"), "{error}");
 }
 
+/// The dated prompts of the other groups carry no declaration. Their statement is still held
+/// to `now`: every scenario loads, and a copy with the wrong weekday does not.
 #[test]
-fn a_declared_time_does_not_load_without_its_utc_time() {
-    let id = "collab/multi/slack-pagerduty-dbre-oncall";
-    let untimed = with_instruction(id, |text| text.replace("14:00 UTC", "two in the afternoon"));
-    let error = Scenario::load(untimed.path()).unwrap_err().to_string();
-    assert!(error.contains("14:00 UTC"), "{error}");
+fn a_dated_prompt_with_no_declaration_is_still_held_to_now() {
+    let id = "ops/pagerduty/payments-oncall-now";
+    let scenario = Scenario::load(&source(id)).unwrap();
+    assert_eq!(scenario.meta.prompt_date, None);
+    assert!(
+        scenario
+            .instruction
+            .starts_with("It is 14:00 UTC on Friday 30 October 2026.")
+    );
+    let wrong_weekday = with_instruction(id, |text| text.replace("on Friday 30", "on Saturday 30"));
+    let error = Scenario::load(wrong_weekday.path())
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("saturday 30 october 2026"), "{error}");
 }

@@ -70,10 +70,12 @@ path_regex = "/sync$"
 [[expect.forbidden_calls]]
 service = "argocd"
 method = "PUT"
+path_regex = '^/api/v1/'
 
 [[expect.forbidden_calls]]
 service = "argocd"
 method = "DELETE"
+path_regex = '^/api/v1/'
 
 [expect.preservation]
 allow = [

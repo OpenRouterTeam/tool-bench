@@ -47,5 +47,6 @@ reqwest.workspace = true
 tokio.workspace = true
 
 [dev-dependencies]
+regex.workspace = true
 scenario = { path = "../scenario" }
 tempfile.workspace = true

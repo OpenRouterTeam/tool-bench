@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "ops/pagerduty/reassign-replication-lag",
-  "instruction_sha256": "sha256:483144b2b644debd0926417befbf3ca37ac4d7f65fbb77180d4d449469802595",
+  "instruction_sha256": "sha256:c0da25e783c6c90af1d30a5e87f7f375d75f77e5ff34fce4a3f0a55b950a4dbd",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:1b6a98ab0381d50e7be371132210179ead8d08bd714bb8043a484c785abeafeb",
+  "framing_sha256": "sha256:0db3c5bd9f119701856d107112ad2324c74ddabf87645e7e6e7b78a35c2a3947",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:5338cde62538528d5df1ef2e8763937c2d1efbca31cf0de819fcad641af47d57"
+    "docker-compose.yaml": "sha256:1f26698fb781911b911a7a4b5a387cd05a0a8b16572d725edfeae4b4f9184ffc"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:78d7bd92c3713107",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b435f731ac61bd27",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cfe3e80acc055e4e",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b3b3310cc456a4bd",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

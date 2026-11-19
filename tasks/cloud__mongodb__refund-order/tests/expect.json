@@ -116,6 +116,62 @@
         "ascii_case_insensitive": false,
         "element_matching": null,
         "identity_field": null
+      },
+      {
+        "pointer": "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refund/refundedAt",
+        "kind": "update",
+        "matching": null,
+        "field_patterns": {
+          "/refund/refundedAt/$date": "^2026-03-14T"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refund/refundedAt",
+        "kind": "update",
+        "matching": null,
+        "field_patterns": {
+          "/refund/refundedAt": "^2026-03-14(T|\\z)"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refundedAt",
+        "kind": "update",
+        "matching": null,
+        "field_patterns": {
+          "/refundedAt/$date": "^2026-03-14T"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
+        "pointer": "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refundedAt",
+        "kind": "update",
+        "matching": null,
+        "field_patterns": {
+          "/refundedAt": "^2026-03-14(T|\\z)"
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
       }
     ],
     "equivalent_numbers": []

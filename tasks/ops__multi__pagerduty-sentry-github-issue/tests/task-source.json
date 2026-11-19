@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/multi/pagerduty-sentry-github-issue",
-  "scenario_sha256": "sha256:b002207d2ebd5446e98015f49ee5f031576f9887b4ccd27cf9fce14e11198a4f",
+  "scenario_sha256": "sha256:5d9a7766b4d4d0cb526e1bf4affc3c934145f6f94c3f442704506372c55d9bae",
   "dataset_sha256": "sha256:dd229caa02e52945cd3e4277aaf98cf43b487c1ba687b8572491e08b353c46b3",
-  "contract_sha256": "sha256:379d277764f5f205f646226c67b15b65169ec25369c8ecc1d0253b985eaf4b01"
+  "contract_sha256": "sha256:0476f51a7a5241a86f477813a7e6a3dd9a0d58bf34d4077eedeb133e1fcf5a4f"
 }

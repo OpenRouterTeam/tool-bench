@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "ops/grafana/silence-replica-maintenance",
-  "instruction_sha256": "sha256:890022e809e52fbcd969a7da227eaad9e8f5af75819a32edaaa4c9e89bcfdd36",
+  "instruction_sha256": "sha256:9a1222795651a1d38f73ee8f7f24630148f5db5d6ed2b001a1c8f4812291bdb1",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:4ae60a4f32b863818cfe5103489c6d5b2695f8b7f2b75f23c0392ca7e901e864",
+  "framing_sha256": "sha256:a250f310291c28990704b8a49c5d2c501d1f6f28f2c5a6de7b5951d8e7eb6e0b",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:5d229b67ee6e632a22830c8fd52af612da23c17b235295ceb693e51d34ad326c"
+    "docker-compose.yaml": "sha256:e11065fbbeb7853ada78fcdb4e2ff6f72140da0544c75cfa895046d51935eb97"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:78d7bd92c3713107",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b435f731ac61bd27",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cfe3e80acc055e4e",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b3b3310cc456a4bd",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

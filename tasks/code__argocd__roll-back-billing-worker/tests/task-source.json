@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/argocd/roll-back-billing-worker",
-  "scenario_sha256": "sha256:e6b2d21110eb3c54341c1fb7786158d06ddecb0b7f62003fd546a235d3a26556",
+  "scenario_sha256": "sha256:06c8c25dbdf65a24f4dedc40f18b6102c0bd955b55bc46680cef2e228aea4f98",
   "dataset_sha256": "sha256:abe64f655499cd5dfe462504f5b074edcc7975b94f1b75b91f35de21222d5c06",
-  "contract_sha256": "sha256:4fc18f6c5308a47d7703e424b5871452f957ab8155a55e42004817761212728e"
+  "contract_sha256": "sha256:f7946c09ea0989daf5d732fc7099f9ac1cae62857fef72409bb7e293f267034f"
 }

@@ -105,6 +105,7 @@ optional = true
 [[expect.forbidden_calls]]
 service = "jira"
 method = "PUT"
+path_regex = '^/rest/'
 
 [[expect.forbidden_calls]]
 service = "jira"

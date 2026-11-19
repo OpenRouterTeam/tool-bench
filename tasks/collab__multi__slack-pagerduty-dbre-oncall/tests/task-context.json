@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "collab/multi/slack-pagerduty-dbre-oncall",
-  "instruction_sha256": "sha256:4768ba8faddce9f7a92fe703c7ae6822ace35f042359d92ca349cf8b5c10461a",
+  "instruction_sha256": "sha256:0288d50ad8c0380d64c80eb89e5a3222fd124be1b7c9618ece6cd2bf116623b1",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:1e127a78e171f16101b11db412b89aa78d0e6acdefbee972e21c648689f18434",
+  "framing_sha256": "sha256:02afbb67c7eea2f97407c4301a77636d7f30093c3652bf23f54c0c99ee64ac19",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:9672190082a6f74ccefe593a39ae5d8f4d52c681e5b6a2ae9fecff9d11711831"
+    "docker-compose.yaml": "sha256:e9dd7849d0c28f934285a8d8f8ec2d94a77111d8508254943bc3203a9b682d12"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:78d7bd92c3713107",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b435f731ac61bd27",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cfe3e80acc055e4e",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b3b3310cc456a4bd",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

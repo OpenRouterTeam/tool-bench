@@ -49,6 +49,7 @@ target_field = "/id"
 [[expect.forbidden_calls]]
 service = "grafana"
 method = "DELETE"
+path_regex = '^/(api|oncall/api)/'
 
 [[expect.forbidden_calls]]
 service = "grafana"

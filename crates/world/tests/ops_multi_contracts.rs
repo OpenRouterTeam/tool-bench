@@ -755,6 +755,38 @@ fn trace_trial() -> ContractTrial {
     )
 }
 
+const TRACE_ANSWER: &str = "Issue STOREFRONT-WEB-7Q first appeared in release storefront@5.2.0. It was introduced by PR #57, authored by Sofia Alvarez.";
+const TRACE_PULL: &str = "/api/v3/repos/lumen-labs/storefront/pulls/57";
+
+/// GitHub answers some reads over GraphQL, which is a POST. A read-only trace may use
+/// them. A write through the REST API is still refused.
+#[tokio::test]
+async fn trace_accepts_graphql_reads_and_rejects_rest_writes() {
+    let read = trace_trial();
+    read.call("GET", TRACE_PULL, Value::Null).await;
+    read.call(
+        "POST",
+        "/api/graphql",
+        json!({"query":"query{repository(owner:\"lumen-labs\",name:\"storefront\"){id}}"}),
+    )
+    .await;
+    let assessment = read.assess_with_answer(Some(TRACE_ANSWER));
+    assert_eq!(assessment.outcome, Outcome::Pass, "{assessment:?}");
+
+    let written = trace_trial();
+    written.call("GET", TRACE_PULL, Value::Null).await;
+    written
+        .request(
+            "POST",
+            "/api/v3/repos/lumen-labs/storefront/issues",
+            json!({"title":"Cart drawer TypeError"}),
+        )
+        .await;
+    let assessment = written.assess_with_answer(Some(TRACE_ANSWER));
+    assert_eq!(assessment.outcome, Outcome::Fail, "{assessment:?}");
+    assert!(!assessment.forbidden_calls_ok, "{assessment:?}");
+}
+
 /// A merged pull request whose branch is gone still shows what it changed: the trace from
 /// the release commit to its pull request can be checked from the pull request's side.
 #[tokio::test]

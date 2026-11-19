@@ -83,6 +83,20 @@
         "identity_field": null
       },
       {
+        "pointer": "/services/hubspot/contacts/512001/properties/associatedcompanyid",
+        "kind": "update",
+        "matching": null,
+        "numeric_fields": {
+          "/properties/associatedcompanyid": 18234004
+        },
+        "max_count": 1,
+        "count_scope": "trial",
+        "add_set_values": null,
+        "ascii_case_insensitive": false,
+        "element_matching": null,
+        "identity_field": null
+      },
+      {
         "pointer": "/services/hubspot/contacts/512001/properties/lastmodifieddate",
         "kind": "update",
         "matching": null,

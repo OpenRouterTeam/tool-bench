@@ -3,7 +3,10 @@
 #
 # What changed: the same pages are served by all four connected web-search services
 # (Brave, Exa, Firecrawl, Tavily), and a read through any of them is accepted. The
-# instruction is the original, word for word.
+# instruction is the original with one word changed: "an open support ticket" is now "an
+# open Zendesk ticket". Zendesk, HubSpot, Salesforce and Jira can each hold a support
+# ticket, and the ticket half accepts Zendesk only, so the instruction says where the
+# ticket lives. It still names no search vendor.
 #
 # Why: the instruction asks for a kind of lookup and names no vendor, while the original
 # kept each page on one vendor (Tavily), so no other could answer. This task scores

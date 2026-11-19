@@ -41,6 +41,27 @@ matching = { refund = { reason = "damaged in transit" } }
 [[expect.preservation.allow]]
 pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refund/amount"
 
+# The order stamps each status it has reached (`createdAt`, `shippedAt`, `deliveredAt`), so a
+# refund date is an addition a careful agent may make: beside the reason and the amount, or at
+# the top level beside the other stamps. It is optional. When present it is a date on the
+# scenario's day, 2026-03-14 UTC, as an extended-JSON date or an ISO 8601 string. Any other
+# new field, and a date on another day, still fails.
+[[expect.preservation.allow]]
+pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refund/refundedAt"
+field_patterns = { "/refund/refundedAt/$date" = '^2026-03-14T' }
+
+[[expect.preservation.allow]]
+pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refund/refundedAt"
+field_patterns = { "/refund/refundedAt" = '^2026-03-14(T|\z)' }
+
+[[expect.preservation.allow]]
+pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refundedAt"
+field_patterns = { "/refundedAt/$date" = '^2026-03-14T' }
+
+[[expect.preservation.allow]]
+pointer = "/services/mongodb/db.shop.orders/65f1a000000000000000000a/refundedAt"
+field_patterns = { "/refundedAt" = '^2026-03-14(T|\z)' }
+
 [[solution.call]]
 endpoint = "mongodb"
 tool = "find"

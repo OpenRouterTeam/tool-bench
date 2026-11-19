@@ -8,6 +8,7 @@ pub mod clarification;
 pub mod connections;
 pub mod coverage;
 pub mod exposure;
+pub mod fairness;
 pub mod family;
 pub mod framing;
 pub mod images;
