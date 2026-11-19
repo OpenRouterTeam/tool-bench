@@ -290,11 +290,42 @@ pub struct ArmSummary {
     pub mcp_bypass_trials: usize,
     /// Host exceptions on trials that were still assessed (an agent timeout is graded).
     pub exceptions_on_assessed_trials: Vec<Count>,
+    /// Trials the agent did not finish in its time limit, by how they were graded.
+    pub agent_timeouts: AgentTimeouts,
+    /// What the verifier's own evidence says about the failed trials.
+    pub failure_causes: FailureCauses,
     pub usage: HarnessUsage,
     /// Every trial left out of the pass rate, with the reason.
     pub unassessed: Vec<Unassessed>,
     pub warnings: Vec<String>,
     pub trial_records: Vec<TrialRecord>,
+}
+
+/// The host exception Harbor records when the agent runs out of time.
+const AGENT_TIMEOUT: &str = "AgentTimeoutError";
+
+/// Trials stopped at the agent's time limit. The verifier still grades what the agent
+/// left, so a timeout is a pass or a fail in the pass rate; this row keeps it visible.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+pub struct AgentTimeouts {
+    pub passed: usize,
+    pub failed: usize,
+    /// Timed out and not assessed (no reward, withheld or unresolved).
+    pub unassessed: usize,
+}
+
+/// Counts over the trials graded fail. One trial can be in several. A count is absent
+/// when no assessed trial carries its metric (evaluator 46 and earlier).
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+pub struct FailureCauses {
+    /// No call reached a service the task is about: the agent never got to the task.
+    pub without_task_service_calls: Option<usize>,
+    /// The final state was right and only the history was wrong.
+    pub history_only: Option<usize>,
+    /// A service failed at least one call (5xx, 408 or 429).
+    pub with_service_errors: Option<usize>,
+    /// A service refused at least one call (another 4xx, or an error in a 2xx reply).
+    pub with_refused_calls: Option<usize>,
 }
 
 fn sum(values: impl Iterator<Item = Option<u64>>) -> Option<u64> {
@@ -494,6 +525,45 @@ pub fn summarize(arm: &Arm) -> ArmSummary {
                 .iter()
                 .filter_map(|trial| trial.exception.as_ref().map(|value| value.kind.clone())),
         ),
+        agent_timeouts: {
+            let timed_out = |trial: &&TrialRecord| {
+                trial
+                    .exception
+                    .as_ref()
+                    .is_some_and(|exception| exception.kind == AGENT_TIMEOUT)
+            };
+            let of = |status: fn(&TrialRecord) -> bool| {
+                trials
+                    .iter()
+                    .filter(timed_out)
+                    .filter(|trial| status(trial))
+                    .count()
+            };
+            AgentTimeouts {
+                passed: of(|trial| trial.status == Status::Pass),
+                failed: of(|trial| trial.status.assessed() && trial.status != Status::Pass),
+                unassessed: of(|trial| !trial.status.assessed()),
+            }
+        },
+        failure_causes: {
+            let cause = |metric: &str, holds: fn(f64) -> bool| {
+                assessed
+                    .iter()
+                    .any(|trial| trial.metric(metric).is_some())
+                    .then(|| {
+                        failed
+                            .iter()
+                            .filter(|trial| trial.metric(metric).is_some_and(holds))
+                            .count()
+                    })
+            };
+            FailureCauses {
+                without_task_service_calls: cause("task_service_calls", |calls| calls == 0.0),
+                history_only: cause("history_only_failure", |flag| flag == 1.0),
+                with_service_errors: cause("service_error_calls", |calls| calls > 0.0),
+                with_refused_calls: cause("refused_calls", |calls| calls > 0.0),
+            }
+        },
         usage: HarnessUsage {
             trials_reporting_tokens: trials
                 .iter()

@@ -22,6 +22,11 @@ fn rate_cell(rate: &PassRate) -> String {
     cell
 }
 
+/// A failure-cause count, or a note that the trials' evaluator did not record it.
+fn cause(count: Option<usize>) -> String {
+    count.map_or_else(|| "not recorded".to_owned(), |count| count.to_string())
+}
+
 fn spread(stats: &Option<Distribution>) -> String {
     stats.as_ref().map_or_else(
         || "n/a".to_owned(),
@@ -272,6 +277,38 @@ impl Report {
             row(arms, "Trials with MCP bypass", |arm| {
                 arm.mcp_bypass_trials.to_string()
             }),
+            row(
+                arms,
+                "Failed trials with no call to the task's own services",
+                |arm| cause(arm.failure_causes.without_task_service_calls),
+            ),
+            row(
+                arms,
+                "Failed trials whose final state was right (history only)",
+                |arm| cause(arm.failure_causes.history_only),
+            ),
+            row(
+                arms,
+                "Failed trials where a service failed a call / refused a call",
+                |arm| {
+                    format!(
+                        "{} / {}",
+                        cause(arm.failure_causes.with_service_errors),
+                        cause(arm.failure_causes.with_refused_calls)
+                    )
+                },
+            ),
+            row(
+                arms,
+                "Agent timeouts: graded pass / graded fail / not assessed",
+                |arm| {
+                    let timeouts = &arm.agent_timeouts;
+                    format!(
+                        "{} / {} / {}",
+                        timeouts.passed, timeouts.failed, timeouts.unassessed
+                    )
+                },
+            ),
         ];
         if arms
             .iter()
