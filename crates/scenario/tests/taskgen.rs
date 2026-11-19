@@ -110,13 +110,13 @@ fn lookup_scenarios_use_preservation_enforcing_contracts() {
         .iter()
         .filter(|scenario| scenario.meta.tags.iter().any(|tag| tag == "lookup"))
         .collect();
-    assert_eq!(lookups.len(), 51);
+    assert_eq!(lookups.len(), 56);
     assert_eq!(
         lookups
             .iter()
             .filter(|scenario| !scenario.meta.id.starts_with("example/"))
             .count(),
-        50
+        55
     );
     for scenario in lookups {
         assert_eq!(scenario.expect.version, 2, "{}", scenario.meta.id);
@@ -247,7 +247,7 @@ fn diagnostic_examples_require_explicit_generation_and_never_inflate_the_scored_
         .output()
         .unwrap();
     assert!(result.status.success(), "{result:?}");
-    assert_eq!(fs::read_dir(&output).unwrap().count(), 154);
+    assert_eq!(fs::read_dir(&output).unwrap().count(), 159);
     assert!(
         output
             .join("diagnostic__stripe__no-action-already-refunded/tests/materialization/base.json")
@@ -261,9 +261,9 @@ fn diagnostic_examples_require_explicit_generation_and_never_inflate_the_scored_
     let counts: serde_json::Value = serde_json::from_slice(&fs::read(inventory).unwrap()).unwrap();
     assert_eq!(counts["summary"]["scored_tasks"], 150);
     assert_eq!(counts["summary"]["unscored_examples"], 2);
-    assert_eq!(counts["summary"]["unscored_diagnostics"], 2);
-    assert_eq!(counts["summary"]["reference_calls"], 462);
-    assert_eq!(counts["summary"]["static_argument_schemas"], 444);
+    assert_eq!(counts["summary"]["unscored_diagnostics"], 7);
+    assert_eq!(counts["summary"]["reference_calls"], 470);
+    assert_eq!(counts["summary"]["static_argument_schemas"], 452);
     assert_eq!(counts["summary"]["deferred_argument_schemas"], 18);
     assert_eq!(counts["summary"]["scored_declared_unscorable"], 0);
     assert!(

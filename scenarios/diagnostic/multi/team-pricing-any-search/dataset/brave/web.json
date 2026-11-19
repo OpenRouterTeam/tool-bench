@@ -1,0 +1,58 @@
+[
+  {
+    "_key": "https://www.northwind-analytics.com/pricing",
+    "url": "https://www.northwind-analytics.com/pricing",
+    "title": "Pricing | Northwind Analytics",
+    "description": "Simple plans for product teams of every size: Starter, Team, Business and Enterprise. Save 20% with annual billing.",
+    "content": "# Pricing\n\nSimple plans for product teams of every size. Prices in USD. Save 20% with annual billing.\n\n## Starter\n\n**$29/month** billed annually ($35 billed monthly)\n\n- 3 seats\n- 1M tracked events per month\n- 90-day data retention\n\n## Team\n\n**$79/month** billed annually ($99 billed monthly)\n\n- 12 seats included, additional seats $8/seat/month\n- 10M tracked events per month\n- Funnels, retention and cohort reports\n- 13-month data retention\n\n## Business\n\n**$249/month** billed annually ($299 billed monthly)\n\n- 40 seats included\n- 50M tracked events per month\n- SSO (SAML) and audit logs\n\n## Enterprise\n\nCustom pricing. Unlimited seats, dedicated support and a 99.95% uptime SLA. [Contact sales](https://www.northwind-analytics.com/contact-sales)\n\n---\n\nPrices updated September 1, 2026. See the [changelog](https://www.northwind-analytics.com/changelog) for details.",
+    "keywords": "plans cost price seats annual monthly team plan"
+  },
+  {
+    "_key": "https://www.northwind-analytics.com/blog/2025-pricing-update",
+    "url": "https://www.northwind-analytics.com/blog/2025-pricing-update",
+    "title": "Our 2025 pricing update | Northwind Analytics Blog",
+    "description": "Starting today we're simplifying our plans. The new Team plan is $69/month billed annually and includes 10 seats.",
+    "content": "# Our 2025 pricing update\n\n*February 3, 2025*\n\nStarting today we're simplifying our plans. The new **Team** plan is **$69/month** billed annually and includes **10 seats**. Starter stays at $25/month with 3 seats, and Business is $199/month with 30 seats.\n\nExisting customers keep their current price until renewal.",
+    "keywords": "pricing plans team plan price"
+  },
+  {
+    "_key": "https://www.g2.com/products/northwind-analytics/pricing",
+    "url": "https://www.g2.com/products/northwind-analytics/pricing",
+    "title": "Northwind Analytics Pricing 2026 | G2",
+    "description": "Northwind Analytics pricing: Starter $25, Team $69 per month (10 users), Business $199. Compare editions and reviews.",
+    "content": "# Northwind Analytics Pricing\n\nPricing information supplied by the vendor. Last updated March 2025.\n\n| Edition | Price |\n|---|---|\n| Starter | $25 per month (3 users) |\n| Team | $69 per month (10 users) |\n| Business | $199 per month (30 users) |\n\nUser reviews: 4.5 / 5 (312 reviews)",
+    "keywords": "plans cost seats team"
+  },
+  {
+    "_key": "https://www.northwind-analytics.com",
+    "url": "https://www.northwind-analytics.com",
+    "title": "Northwind Analytics | Product analytics for fast-moving teams",
+    "description": "Understand how customers use your product with funnels, retention and cohorts.",
+    "content": "# Product analytics for fast-moving teams\n\nNorthwind Analytics shows you how customers use your product: funnels, retention, cohorts and session insights in one place.\n\n[See pricing](https://www.northwind-analytics.com/pricing) · [Read the blog](https://www.northwind-analytics.com/blog) · [Contact sales](https://www.northwind-analytics.com/contact-sales)\n\nTrusted by 4,000+ product teams."
+  },
+  {
+    "_key": "https://www.northwind-analytics.com/changelog",
+    "url": "https://www.northwind-analytics.com/changelog",
+    "title": "Changelog | Northwind Analytics",
+    "description": "September 1, 2026 - Pricing: Team now includes more seats. Annual and monthly prices updated.",
+    "content": "# Changelog\n\n## September 1, 2026\n\n- Pricing: Team now includes 12 seats (up from 10). Annual and monthly prices updated.\n- Business now includes 40 seats.\n\n## June 12, 2026\n\n- Cohort comparison reports are generally available.",
+    "keywords": "pricing team seats"
+  },
+  {
+    "_key": "https://www.northwindtraders.com/pricing",
+    "url": "https://www.northwindtraders.com/pricing",
+    "title": "Wholesale Pricing | Northwind Traders",
+    "description": "Volume pricing for specialty foods and beverages. Team and Business accounts.",
+    "content": "# Wholesale pricing\n\nNorthwind Traders offers tiered pricing for restaurants and retailers.\n\n- **Team** accounts (up to 5 buyers): 8% volume discount\n- **Business** accounts: 12% volume discount, net-30 terms\n\nCall 1-800-555-0199 to open an account.",
+    "keywords": "northwind pricing team"
+  },
+  {
+    "_key": "https://techcrunch.com/2026/05/14/northwind-analytics-series-b/",
+    "url": "https://techcrunch.com/2026/05/14/northwind-analytics-series-b/",
+    "title": "Northwind Analytics raises $60M Series B to take on product analytics incumbents",
+    "description": "The company says it now serves more than 4,000 product teams and will expand its Team and Business plans.",
+    "page_age": "2026-05-14",
+    "content": "The company says it now serves more than 4,000 product teams and will expand its Team and Business plans.",
+    "keywords": "northwind analytics pricing plans"
+  }
+]

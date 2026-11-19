@@ -127,7 +127,7 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
     let inventory = coverage::inventory(&scenarios, validated, &tools).unwrap();
     assert_eq!(inventory.summary.scored_tasks, 150);
     assert_eq!(inventory.summary.unscored_examples, 2);
-    assert_eq!(inventory.summary.unscored_diagnostics, 2);
+    assert_eq!(inventory.summary.unscored_diagnostics, 7);
     family_metadata_is_exported(&inventory);
     assert_eq!(inventory.summary.scored_version_two, 150);
     assert_eq!(inventory.summary.scored_legacy, 0);
@@ -180,7 +180,7 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
         inventory.summary.declared_result_contracts,
         std::collections::BTreeMap::from([
             (scenario::oracle_results::ResultContract::AwsApiV1, 11),
-            (scenario::oracle_results::ResultContract::McpEnvelopeV1, 359),
+            (scenario::oracle_results::ResultContract::McpEnvelopeV1, 367),
             (
                 scenario::oracle_results::ResultContract::FirecrawlNativeV1,
                 8
@@ -454,6 +454,16 @@ fn family_metadata_is_exported(inventory: &coverage::Inventory) {
         let family = row.family.as_ref().map(|family| family.primary.key());
         match row.id.split('/').next().unwrap() {
             "example" => assert!(!row.scored && family.is_none(), "{}", row.id),
+            // Refined variants of scored search lookups: unscored, with a scored family.
+            "diagnostic" if row.id.starts_with("diagnostic/multi/") => {
+                assert!(!row.scored && !row.scripted_user, "{}", row.id);
+                assert!(!matches!(family, Some("no_action" | "clarification")));
+                row.family
+                    .as_ref()
+                    .expect("refined family")
+                    .validate()
+                    .unwrap();
+            }
             "diagnostic" => {
                 assert!(!row.scored, "{}", row.id);
                 assert!(matches!(family, Some("no_action" | "clarification")));

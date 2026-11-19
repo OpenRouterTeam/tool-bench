@@ -16,7 +16,7 @@
   "summary": {
     "scored_tasks": 150,
     "unscored_examples": 2,
-    "unscored_diagnostics": 2,
+    "unscored_diagnostics": 7,
     "scored_families": {
       "baseline": 18,
       "cross_system_identity": 8,
@@ -50,11 +50,11 @@
     },
     "scored_lookups": 50,
     "scored_writes": 100,
-    "reference_calls": 462,
-    "static_argument_schemas": 444,
+    "reference_calls": 470,
+    "static_argument_schemas": 452,
     "deferred_argument_schemas": 18,
     "declared_result_contracts": {
-      "mcp_envelope_v1": 359,
+      "mcp_envelope_v1": 367,
       "aws_api_v1": 11,
       "argo_api_v1": 21,
       "okta_api_v1": 19,
@@ -12232,6 +12232,524 @@
           "tool": "slack_send_message",
           "snapshot_path": "servers/snapshots/slack.json",
           "snapshot_sha256": "sha256:a7a04bcef2270d7c72b823475b9ffb2e2eefca3a605a6201989d3055b1d3c693",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
+      "id": "diagnostic/multi/funding-news-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "diagnostic/multi/funding-news-any-search",
+        "scenario_sha256": "sha256:ab2d8f97e6c7b815a2e2e936a20c4401bb1add2fa72dd8143d4b4b16f578944e",
+        "dataset_sha256": "sha256:10f8c71aff9235a5246cee58dc46b4058d2df670768cf0c361d45a5b3280d170",
+        "contract_sha256": "sha256:1c13ed9b47fa3440e920c590ec15fad1d15b80b6776c309a92c6f663bbfa4ee9"
+      },
+      "instruction_sha256": "sha256:b8d90d5893848b40272540aadad8c484e2c574bf5f8abf0ee247661b3844eee9",
+      "scored": false,
+      "family": {
+        "schema_version": 1,
+        "primary": "stale_state",
+        "secondary": [
+          "entity_ambiguity"
+        ],
+        "dependency_depth": 1,
+        "rationale": "This week's 45M Series B led by Halcyon (2026-10-27) competes with the 2025 12M Series A led by Fjord Capital and a DealBase page still listing Series A as latest; Norvik Labs 30M is a look-alike."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
+      ],
+      "tags": [
+        "lookup",
+        "multi-service",
+        "refined",
+        "route:unnamed",
+        "any-search-server"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 0,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 0,
+      "information_prerequisites": 0,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 0,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 1
+      },
+      "effect_permissions": {},
+      "answer_check": "source_bound_record_facts",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 0,
+          "near_miss": {}
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [],
+        "unreviewed_operations": [
+          "brave-search.brave_news_search"
+        ]
+      },
+      "source_gaps": [
+        "legacy_answer_file_collection",
+        "validation_evidence_missing",
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "brave-search",
+          "tool": "brave_news_search",
+          "snapshot_path": "servers/snapshots/brave-search.json",
+          "snapshot_sha256": "sha256:da2b22c433a86c1e43a822691e496367dae7694fe46dcb9500c2e403518b6858",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
+      "id": "diagnostic/multi/hosting-sla-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "diagnostic/multi/hosting-sla-any-search",
+        "scenario_sha256": "sha256:3e6cc121625f96a549b4d5cae4f37d9bb92aab4c40ea637ce56c42cab63bc2db",
+        "dataset_sha256": "sha256:df44a24c04a961fc7c5e6624cf7e8f8e38f9221375d52e12396cf7fefbd5f83e",
+        "contract_sha256": "sha256:7c5cdd0e33511b6a99217663b9ffdac7204a10505f5f7ca6351a136116f40637"
+      },
+      "instruction_sha256": "sha256:2db8376f5806934300fb1a34b07b09f6ef4212bf7e46f3690d6885e012fd29cf",
+      "scored": false,
+      "family": {
+        "schema_version": 1,
+        "primary": "stale_state",
+        "secondary": [
+          "entity_ambiguity"
+        ],
+        "dependency_depth": 1,
+        "rationale": "Current SLA (effective 2026-07-01) gives Business 99.95 and a 10 percent credit; the archived 2024 SLA page and a 2025 Reddit post say 99.9 and 5 percent; look-alike IronBank Hosting says 99.99 and 20."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
+      ],
+      "tags": [
+        "lookup",
+        "multi-service",
+        "refined",
+        "route:unnamed",
+        "any-search-server"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 0,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 0,
+      "information_prerequisites": 0,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 0,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 1
+      },
+      "effect_permissions": {},
+      "answer_check": "source_bound_record_facts",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 0,
+          "near_miss": {}
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [],
+        "unreviewed_operations": [
+          "brave-search.brave_web_search"
+        ]
+      },
+      "source_gaps": [
+        "legacy_answer_file_collection",
+        "validation_evidence_missing",
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "brave-search",
+          "tool": "brave_web_search",
+          "snapshot_path": "servers/snapshots/brave-search.json",
+          "snapshot_sha256": "sha256:da2b22c433a86c1e43a822691e496367dae7694fe46dcb9500c2e403518b6858",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
+      "id": "diagnostic/multi/sdk-timeout-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "diagnostic/multi/sdk-timeout-any-search",
+        "scenario_sha256": "sha256:cb7c69ec89c800289cb5bdc28500b35dc0f69970867ab1a93c864deced34b4f9",
+        "dataset_sha256": "sha256:65e368ce391f9b90de669e0b8368bf3c01b353ed225d0e45089517989534f79f",
+        "contract_sha256": "sha256:b2b5b7caab960fe7a77f6dd0b8a7426c4c010cc7ebc8c1e452968ccc8b69c0bf"
+      },
+      "instruction_sha256": "sha256:35acf4a8c5882f426f428a3a77c122ff79d61fc5b9a1d6ee79a04764feec4b3b",
+      "scored": false,
+      "family": {
+        "schema_version": 1,
+        "primary": "stale_state",
+        "secondary": [
+          "entity_ambiguity"
+        ],
+        "dependency_depth": 1,
+        "rationale": "v4 docs give timeout_seconds default 30; legacy v3 docs and a 2024 Stack Overflow answer give request_timeout 60; Node SDK timeoutMs 120000 and a README example using 10 are look-alikes."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
+      ],
+      "tags": [
+        "lookup",
+        "multi-service",
+        "refined",
+        "route:unnamed",
+        "any-search-server"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 0,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 0,
+      "information_prerequisites": 0,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 0,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 1
+      },
+      "effect_permissions": {},
+      "answer_check": "source_bound_record_facts",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 0,
+          "near_miss": {}
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [],
+        "unreviewed_operations": [
+          "exa.get_code_context_exa",
+          "exa.web_fetch_exa"
+        ]
+      },
+      "source_gaps": [
+        "legacy_answer_file_collection",
+        "validation_evidence_missing",
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "exa",
+          "tool": "get_code_context_exa",
+          "snapshot_path": "servers/snapshots/exa.json",
+          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "exa",
+          "tool": "web_fetch_exa",
+          "snapshot_path": "servers/snapshots/exa.json",
+          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
+      "id": "diagnostic/multi/team-pricing-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "diagnostic/multi/team-pricing-any-search",
+        "scenario_sha256": "sha256:04fb221610ba3d2aa03b1ca4396d6e8352dbe28bab1700643ff8c60dd57f9e6e",
+        "dataset_sha256": "sha256:8792f848c7d401126c36f9296bc40a5cada27e4afa1c9e6675e7d5f6cc819c30",
+        "contract_sha256": "sha256:7863bbf75f734f6da0ed86155b8eed4e5d56da2bc172f17fd20260f6fdacc08f"
+      },
+      "instruction_sha256": "sha256:9dfe4340ab897a595e0b4ee8d15f84d789ca86cfdcb80600a580c99a80a6df86",
+      "scored": false,
+      "family": {
+        "schema_version": 1,
+        "primary": "stale_state",
+        "secondary": [
+          "entity_ambiguity"
+        ],
+        "dependency_depth": 2,
+        "rationale": "Live pricing page (updated 2026-09-01) says Team $79 annual with 12 seats; the Feb 2025 blog post and G2 listing (updated March 2025) say $69 and 10 seats; Northwind Traders is a look-alike."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
+      ],
+      "tags": [
+        "lookup",
+        "multi-service",
+        "refined",
+        "route:unnamed",
+        "any-search-server"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 0,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 0,
+      "information_prerequisites": 0,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 0,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 1
+      },
+      "effect_permissions": {},
+      "answer_check": "source_bound_record_facts",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 0,
+          "near_miss": {}
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [],
+        "unreviewed_operations": [
+          "firecrawl.firecrawl_scrape",
+          "firecrawl.firecrawl_search"
+        ]
+      },
+      "source_gaps": [
+        "legacy_answer_file_collection",
+        "validation_evidence_missing",
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "firecrawl",
+          "tool": "firecrawl_search",
+          "snapshot_path": "servers/snapshots/firecrawl.json",
+          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "firecrawl",
+          "tool": "firecrawl_scrape",
+          "snapshot_path": "servers/snapshots/firecrawl.json",
+          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
+      "id": "diagnostic/multi/vendor-rate-limit-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "diagnostic/multi/vendor-rate-limit-any-search",
+        "scenario_sha256": "sha256:ef0712f5352589840ecf1de3acf93209159fbb4ab81e0e895994925def6eb763",
+        "dataset_sha256": "sha256:a2abccd4e2a3056b6ce2c6d1f4e58c644998c5ce9605ade326749e75ff14ed9f",
+        "contract_sha256": "sha256:f5b1164410e351399e3606298ba723016251856d233f8749b7493a614d02f783"
+      },
+      "instruction_sha256": "sha256:e9eb7a4af406454c4a6b6beddaac938ee3ce64c377003ae2740556531a56393a",
+      "scored": false,
+      "family": {
+        "schema_version": 1,
+        "primary": "stale_state",
+        "secondary": [
+          "entity_ambiguity"
+        ],
+        "dependency_depth": 2,
+        "rationale": "Quillstream v3 docs (updated 2026-09-14) say Business 1,200 rpm; the deprecated v2 page and a 2025 review say 600 and a 2025 forum post 900; Quillpad Business 300 is a look-alike vendor."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
+      ],
+      "tags": [
+        "lookup",
+        "multi-service",
+        "refined",
+        "route:unnamed",
+        "any-search-server"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 0,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 0,
+      "information_prerequisites": 0,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 0,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 1
+      },
+      "effect_permissions": {},
+      "answer_check": "source_bound_record_facts",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 0,
+          "near_miss": {}
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [],
+        "unreviewed_operations": [
+          "tavily.tavily_extract",
+          "tavily.tavily_search"
+        ]
+      },
+      "source_gaps": [
+        "legacy_answer_file_collection",
+        "validation_evidence_missing",
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "tavily",
+          "tool": "tavily_search",
+          "snapshot_path": "servers/snapshots/tavily.json",
+          "snapshot_sha256": "sha256:f205acc0be2a6e43fd83e3afc60470f2b76c7614b43b47d60c4ba4dd782592f4",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "tavily",
+          "tool": "tavily_extract",
+          "snapshot_path": "servers/snapshots/tavily.json",
+          "snapshot_sha256": "sha256:f205acc0be2a6e43fd83e3afc60470f2b76c7614b43b47d60c4ba4dd782592f4",
           "arguments": "static_validated",
           "deferred_paths": [],
           "result_contract": "mcp_envelope_v1",
