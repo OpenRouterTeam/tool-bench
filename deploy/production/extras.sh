@@ -10,7 +10,7 @@ set -eu
 HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/env.sh"
 : "${RUN_PREFIX:=tb-local}"
-: "${OBSERVE_TRIAL:=search-brave-hosting-sla-lookup-a1}"
+: "${OBSERVE_TRIAL:=search-brave-hosting-sla-any-search-a1}"
 : "${PROBE_TASKS:=business__stripe__customer-mrr ops__multi__pagerduty-sentry-github-issue}"
 : "${HOLD_SEC:=30}"
 : "${STOPFIX_TASK:=business__stripe__customer-mrr}"
