@@ -386,6 +386,10 @@ pub struct Grade {
     pub service_error_calls: usize,
     /// World requests that did not come from the tools container.
     pub mcp_bypass: usize,
+    /// What reached the MCP tool servers, from the reports the tools container sent to
+    /// the world. Absent when the assessment was not made from sealed evidence.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool_servers: Option<crate::tool_access::ToolServerSummary>,
 }
 
 impl Grade {
@@ -506,6 +510,20 @@ impl Grade {
             self.task_service_calls
                 .map(|calls| ("task_service_calls", calls as f64)),
         )
+        .chain(self.tool_servers.iter().flat_map(|servers| {
+            [
+                ("tool_server_observed", b(servers.observed)),
+                ("tool_server_requests", servers.requests as f64),
+                ("tool_server_clients", servers.clients.len() as f64),
+                (
+                    "tool_server_outside_requests",
+                    servers.outside_requests as f64,
+                ),
+                ("tool_server_side_channel", b(servers.outside_requests > 0)),
+                ("tool_calls", servers.tool_calls as f64),
+                ("tool_call_errors", servers.tool_call_errors as f64),
+            ]
+        }))
         .collect()
     }
 
@@ -1138,6 +1156,7 @@ pub fn grade(input: &GradeInput) -> Grade {
         refused_calls,
         service_error_calls,
         mcp_bypass,
+        tool_servers: None,
     }
 }
 

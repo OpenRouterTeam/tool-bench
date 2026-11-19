@@ -35,6 +35,11 @@ pub struct WorldEvidence {
     pub finalization: Finalization,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fault_records: Vec<crate::faults::FaultRecord>,
+    /// Every MCP request the tools container reported, and how many reports were dropped.
+    #[serde(default)]
+    pub tool_access: Vec<crate::tool_access::ToolAccess>,
+    #[serde(default)]
+    pub tool_access_dropped: usize,
 }
 
 impl WorldEvidence {
@@ -64,6 +69,8 @@ impl WorldEvidence {
             answer: world.answer.clone(),
             finalization: world.finalization(),
             fault_records: world.fault_records().to_vec(),
+            tool_access: world.tool_access().to_vec(),
+            tool_access_dropped: world.tool_access_dropped(),
         }
     }
 
@@ -79,6 +86,10 @@ impl WorldEvidence {
             initial_state: Some(&self.initial_state),
             events: Some(&self.events),
         });
+        assessment.tool_servers = Some(crate::tool_access::summarize(
+            &self.tool_access,
+            self.tool_access_dropped,
+        ));
         if !self.task_services.is_empty() {
             assessment.attribute_calls(
                 &agent_calls(&self.journal, &self.tools_ips, &self.startup),

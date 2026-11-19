@@ -43,6 +43,7 @@ pub mod sheet_date;
 pub mod startup;
 pub mod store;
 pub mod surface_audit;
+pub mod tool_access;
 pub mod transport;
 mod url_host;
 pub mod world;

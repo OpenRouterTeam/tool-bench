@@ -52,6 +52,9 @@ pub struct WorldState {
     fault_schedule: Option<FaultSchedule>,
     initial_fault_schedule: Option<FaultSchedule>,
     fault_records: Vec<FaultRecord>,
+    /// What the tools container reported reaching its MCP servers.
+    tool_access: Vec<crate::tool_access::ToolAccess>,
+    tool_access_dropped: usize,
     user: Option<crate::scripted_user::UserState>,
 }
 
@@ -308,6 +311,8 @@ impl WorldState {
             fault_schedule: dataset.fault_schedule.clone(),
             initial_fault_schedule: dataset.fault_schedule,
             fault_records: Vec::new(),
+            tool_access: Vec::new(),
+            tool_access_dropped: 0,
             user: dataset
                 .scripted_user
                 .map(crate::scripted_user::UserScript::start),
@@ -373,6 +378,8 @@ impl WorldState {
         self.epoch += 1;
         self.fault_schedule = self.initial_fault_schedule.clone();
         self.fault_records.clear();
+        self.tool_access.clear();
+        self.tool_access_dropped = 0;
         self.user = self.user.take().map(|user| user.script().clone().start());
         Ok(())
     }
@@ -469,6 +476,30 @@ impl WorldState {
 
     pub fn fault_records(&self) -> &[FaultRecord] {
         &self.fault_records
+    }
+
+    /// Keeps one report from the tools container, in arrival order. A world that is no
+    /// longer open keeps nothing: its evidence is being sealed or already is.
+    pub fn record_tool_access(&mut self, report: crate::tool_access::ToolAccessReport) -> bool {
+        if self.finalization().phase != crate::lifecycle::Phase::Open {
+            return false;
+        }
+        if self.tool_access.len() >= crate::tool_access::MAX_RECORDS {
+            self.tool_access_dropped += 1;
+            return true;
+        }
+        let seq = self.tool_access.len() as u64 + 1;
+        self.tool_access
+            .push(crate::tool_access::ToolAccess { seq, report });
+        true
+    }
+
+    pub fn tool_access(&self) -> &[crate::tool_access::ToolAccess] {
+        &self.tool_access
+    }
+
+    pub fn tool_access_dropped(&self) -> usize {
+        self.tool_access_dropped
     }
 }
 
