@@ -71,9 +71,32 @@ There are 4 per service, at `scenarios/<group>/<service>/<slug>/`:
 
 | File | Content |
 |---|---|
-| `scenario.toml` | `[scenario]` (id = path, title, now, seed, services, tags, timeout_sec), `[[expect.*]]`, `[[solution.call]]`, optional `[solution] answer` |
+| `scenario.toml` | `[scenario]` (id = path, title, now, seed, services, tags, timeout_sec, optional `prompt_date`), `[[expect.*]]`, `[[solution.call]]`, optional `[solution] answer` |
 | `instruction.md` | What a real user would ask. No tool names, API paths, or hints about which service has the data, unless a real user would name it ("in our GitHub Enterprise"). If you expect an answer, ask for it to be written to `/app/answer.md`. |
 | `dataset/<service>/*.json` | The world this scenario starts from. Curated, realistic, and small enough to read. Include distractors: similar names, closed vs. open items, other projects. |
+
+If the outcome depends on today's date or on the time ("the current cycle", "who is on
+call now", a weekday given without a year), say what today is. The agent's own clock reads
+the day the trial runs, not the scenario's `now`, so such a request has its one answer only
+if the prompt carries the date. Declare it and state it:
+
+```toml
+[scenario]
+now = "2026-10-30T14:00:00Z"
+prompt_date = "date_time"   # or "date", when any time on that day gives the same outcome
+```
+
+```text
+Today is 2026-10-30, and it's 14:00 UTC right now. Marcus pinged me ...
+```
+
+A declared scenario does not load unless its instruction says `Today is <date of now>`
+(and `<HH:MM> UTC` for `date_time`), and no instruction may state another day in that form.
+The form is the one the surface audit's date check reads
+([exposure-and-surface-audit.md](exposure-and-surface-audit.md#date-coherence-item-9-native-side)),
+so a declared task is `coherent` there. This is a statement in the prompt; it does not set
+the harness's own date context, which stays an open item
+([contracts.md](contracts.md#business-time-policy)).
 
 Mix per service:
 
