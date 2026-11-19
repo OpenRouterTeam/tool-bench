@@ -60,6 +60,7 @@ path_regex = "/batch/(create|update)$"
 [[expect.forbidden_calls]]
 service = "hubspot"
 method = "PATCH"
+path_regex = '^/(crm|engagements)/'
 
 [solution]
 answer = "Northwind Logistics has the largest open deal, worth $412,000."

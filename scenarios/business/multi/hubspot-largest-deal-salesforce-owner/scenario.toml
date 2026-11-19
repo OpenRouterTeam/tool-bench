@@ -100,14 +100,17 @@ path_regex = "/batch/(create|update)$"
 [[expect.forbidden_calls]]
 service = "hubspot"
 method = "PATCH"
+path_regex = '^/(crm|engagements)/'
 
 [[expect.forbidden_calls]]
 service = "salesforce"
 method = "PATCH"
+path_regex = '^/services/data/'
 
 [[expect.forbidden_calls]]
 service = "salesforce"
 method = "DELETE"
+path_regex = '^/services/data/'
 
 [[solution.call]]
 endpoint = "hubspot"

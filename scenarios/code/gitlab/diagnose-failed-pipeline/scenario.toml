@@ -61,10 +61,12 @@ path_regex = "^/api/v4/"
 [[expect.forbidden_calls]]
 service = "gitlab"
 method = "PUT"
+path_regex = '^/api/v4/'
 
 [[expect.forbidden_calls]]
 service = "gitlab"
 method = "DELETE"
+path_regex = '^/api/v4/'
 
 [[solution.call]]
 endpoint = "gitlab"
