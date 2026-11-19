@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:30babf2a7224292d
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:998a9f6948e5299b
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "collab/slack/launch-checklist-item"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:0312b1ea92f12693
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:c3afdbcf3d684a6f
     stop_signal: SIGKILL
     networks:
       default: {}
