@@ -41,7 +41,7 @@ after any change to an image input, and commit them with the change.
 ```bash
 cargo run --locked -p scenario --bin taskgen -- --inventory docs/coverage/scenario-inventory.json
 cargo run --locked -p scenario --bin taskgen -- --check --inventory docs/coverage/scenario-inventory.json
-cargo run --locked -p scenario --bin release-manifest -- --manifest releases/tool-bench-public-dev-1.json --freeze
+cargo run --locked -p scenario --bin release-manifest -- --manifest releases/tool-bench-public-dev-2.json --freeze
 ```
 
 `taskgen` validates every scenario before it writes anything
