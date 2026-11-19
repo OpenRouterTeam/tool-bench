@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:ef57a87206d1904c
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:d4f85a7773b3fe7b
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "search/brave/keynote-recording"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:93dab02abe0fe777
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:70ba3082204800df
     stop_signal: SIGKILL
     networks:
       default: {}
