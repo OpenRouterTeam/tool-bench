@@ -624,6 +624,102 @@ fn two_arms_are_paired_by_task_with_wins_losses_ties_and_flips() {
     );
 }
 
+/// "Finds a tool the instruction does not name" is read apart: each arm's pass rate and
+/// the paired difference are split by the route label of the task.
+#[test]
+fn pass_rates_and_the_paired_difference_are_split_by_route_label() {
+    let (a, b) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());
+    let (left, right) = (a.path(), b.path());
+    // Both arms pass the tasks that name their product or a kind only one service has.
+    for (index, task) in [
+        "search__elasticsearch__latency-by-region",
+        "ops__datadog__checkout-p95-peak",
+        "search__brave__caterer-saturday-hours",
+        "code__github__not-a-task",
+    ]
+    .iter()
+    .enumerate()
+    {
+        pass(left, &format!("named{index}__1"), task);
+        pass(right, &format!("named{index}__1"), task);
+    }
+    // Of the two that name neither, A passes both and B passes one.
+    pass(left, "sla__1", "search__brave__hosting-sla-lookup");
+    pass(right, "sla__1", "search__brave__hosting-sla-lookup");
+    pass(left, "deal__1", "business__hubspot__largest-open-deal");
+    fail(right, "deal__1", "business__hubspot__largest-open-deal");
+    let (a, b) = (arm("A", left), arm("B", right));
+
+    let summary = arms::summarize(&b);
+    let routes: Vec<_> = summary
+        .routes
+        .iter()
+        .map(|route| {
+            (
+                route.group.as_str(),
+                route.tasks,
+                route.rate.passed,
+                route.rate.assessed,
+            )
+        })
+        .collect();
+    assert_eq!(
+        routes,
+        [
+            ("route:kind", 1, 1, 1),
+            ("route:named", 2, 2, 2),
+            ("route:unnamed", 2, 1, 2),
+            ("unlabelled", 1, 1, 1),
+        ]
+    );
+
+    let paired = arms::compare(&a, &b);
+    let split: Vec<_> = paired
+        .routes
+        .iter()
+        .map(|route| {
+            (
+                route.route.as_str(),
+                route.paired_tasks,
+                route.mean_a,
+                route.mean_b,
+                route.mean_diff,
+            )
+        })
+        .collect();
+    assert_eq!(
+        split,
+        [
+            ("route:kind", 1, 1.0, 1.0, 0.0),
+            ("route:named", 2, 1.0, 1.0, 0.0),
+            ("route:unnamed", 2, 1.0, 0.5, -0.5),
+            ("unlabelled", 1, 1.0, 1.0, 0.0),
+        ]
+    );
+    assert_eq!(paired.routes[0].ci95, None, "one task has no interval");
+    assert_eq!(paired.routes[1].ci95, Some((0.0, 0.0)));
+    let (low, high) = paired.routes[2].ci95.unwrap();
+    assert!((-1.0..=-0.5).contains(&low) && (-0.5..=0.0).contains(&high));
+
+    let markdown = arms::report(&[a, b]).markdown();
+    assert!(
+        markdown.contains("## Pass rate by what the instruction says about the route"),
+        "{markdown}"
+    );
+    assert!(
+        markdown.contains("| route:unnamed | 100.0% (2/2); 2 tasks | 50.0% (1/2); 2 tasks |"),
+        "{markdown}"
+    );
+    assert!(
+        markdown.contains("| route:unnamed | 2 | 100.0% | 50.0% | -50.0 ("),
+        "{markdown}"
+    );
+    assert!(
+        markdown.contains("| route:named | 2 | 100.0% | 100.0% | +0.0 (+0.0 to +0.0) |"),
+        "{markdown}"
+    );
+}
+
 #[test]
 fn arms_that_differ_in_evaluator_tasks_or_contracts_are_flagged_as_not_comparable() {
     let (a, b) = (tempfile::tempdir().unwrap(), tempfile::tempdir().unwrap());

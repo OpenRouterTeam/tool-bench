@@ -85,6 +85,9 @@ fn group_rows(
         .collect()
 }
 
+/// What the route labels mean, under each table that splits by them.
+const ROUTE_NOTE: &str = "`route:named`: the instruction names each product the task needs. `route:kind`: it names a kind of thing only one connected service has. `route:unnamed`: it names neither, so the agent has to find the tool. `unlabelled`: a task this build has no label for. Labels: `docs/coverage/route-labels.json`.\n\n";
+
 fn paired_cell(passed: usize, assessed: usize, rate: f64) -> String {
     format!("{passed}/{assessed} ({:.0}%)", rate * 100.0)
 }
@@ -156,6 +159,26 @@ fn comparison(out: &mut String, comparison: &PairedComparison) {
         );
     }
     out.push('\n');
+    let _ = writeln!(
+        out,
+        "### By route\n\n| Route | Paired tasks | {a} | {b} | Δ points (95% paired bootstrap) |\n|---|---|---|---|---|"
+    );
+    for route in &comparison.routes {
+        let interval = route.ci95.map_or_else(String::new, |(low, high)| {
+            format!(" ({:+.1} to {:+.1})", low * 100.0, high * 100.0)
+        });
+        let _ = writeln!(
+            out,
+            "| {} | {} | {} | {} | {:+.1}{interval} |",
+            route.route,
+            route.paired_tasks,
+            percent(Some(route.mean_a)),
+            percent(Some(route.mean_b)),
+            route.mean_diff * 100.0
+        );
+    }
+    out.push('\n');
+    out.push_str(ROUTE_NOTE);
     if comparison.flips.is_empty() {
         let _ = writeln!(out, "No paired task differs between the arms.\n");
         return;
@@ -379,7 +402,15 @@ impl Report {
             arms,
             &group_rows(arms, |arm| &arm.scopes),
         );
+        out.push_str("## Pass rate by what the instruction says about the route\n\n");
+        table(
+            &mut out,
+            "Route",
+            arms,
+            &group_rows(arms, |arm| &arm.routes),
+        );
         out.push_str("Cells are pass rate (passed/assessed trials), then trials excluded from that rate, then distinct tasks.\n\n");
+        out.push_str(ROUTE_NOTE);
 
         out.push_str("## Failed checks\n\n");
         let mut checks: Vec<(&str, usize)> = Vec::new();
