@@ -58,7 +58,7 @@ at that commit as `datasetRef` ([production.md](../../../docs/production.md#comp
 
 A task that keeps its name and differs from release 1 in instruction, dataset or
 contract is listed in `CHANGED_IN_PLACE` in `crates/scenario/tests/release_manifest.rs`,
-and the test fails when the list and the sources disagree. There are 47. Their
+and the test fails when the list and the sources disagree. There are 50. Their
 release 1 sources are the repository at the commit above.
 
 | Group | Changed | Of |
@@ -66,7 +66,7 @@ release 1 sources are the repository at the commit above.
 | business | 11 | 25 |
 | cloud | 6 | 25 |
 | code | 10 | 24 |
-| collab | 4 | 25 |
+| collab | 7 | 25 |
 | ops | 13 | 26 |
 | search | 3, beside the eleven replaced | 25 |
 
@@ -100,14 +100,23 @@ What changed, by kind. A task can appear under more than one.
   `multi/zendesk-order-status-shopify`, `multi/zendesk-refund-via-stripe`,
   `zendesk/create-ticket-for-caller`, `zendesk/escalate-outage-ticket`,
   `zendesk/find-invoice-attachment`, `zendesk/reply-refund-and-solve`.
-- **The prompt states the date (8 tasks, instruction).** The agent's clock is the day of
-  the run and the world's is the scenario's, so "tonight" and "tomorrow" pointed at a
-  window that had passed.
+- **The prompt states the date (10 tasks, instruction).** The agent's clock is the day
+  of the run and the world's is the scenario's, so "tonight", "tomorrow", "the current
+  cycle" and a date with no year pointed at the wrong day. The loader now refuses a
+  stated date that disagrees with the scenario's.
   ops: `datadog/schedule-replica-downtime`, `grafana/silence-replica-maintenance`,
   `multi/crashloop-oncall-lookup`, `multi/datadog-latency-argocd-rollback`,
   `pagerduty/cover-shift-override`, `pagerduty/payments-oncall-now`,
   `pagerduty/reassign-replication-lag`.
-  collab: `multi/slack-pagerduty-dbre-oncall`.
+  collab: `multi/slack-pagerduty-dbre-oncall`, `google/schedule-q1-planning`,
+  `linear/pull-issue-into-cycle`.
+- **An Argo CD write finishes inside the write (4 tasks, mock and contract).** A sync, a
+  rollback and a restart were complete only after the agent read the application
+  again, which the prompts do not ask for. The contracts now permit the controller's
+  effects from the write that starts the work.
+  code: `argocd/restart-indexer-worker`, `argocd/roll-back-billing-worker`,
+  `argocd/sync-prod-payments-api`.
+  ops: `multi/datadog-latency-argocd-rollback`.
 - **One task each.**
   `business/hubspot/dana-joins-pied-piper`: the contract allows the contact's primary
   company property when it is the Pied Piper company, and the prompt says her Hooli
@@ -118,6 +127,8 @@ What changed, by kind. A task can appear under more than one.
   scenario's day.
   `ops/multi/pagerduty-sentry-github-issue`: a title that starts with the short ID and
   any separator is the title asked for.
+  `collab/jira/assign-go-no-go-review`: the order of the two writes is not graded; both
+  orders end with the same owner and status.
   `search/firecrawl/crawl-api-reference`: the dataset gains the docs site's sitemap.
   Without one, and with no page at `/api/`, the two crawls the request describes
   collected nothing, and the only seed that passed was a page the request does not
@@ -132,7 +143,7 @@ each server no longer passes that capability on.
 ## What can still be compared across the two releases
 
 - A task both releases score that is not listed above has the same instruction,
-  dataset and contract in both: 92 tasks, two of which are the Okta tasks above. The
+  dataset and contract in both: 89 tasks, two of which are the Okta tasks above. The
   search tasks kept in release 2 gained a `route:*` tag, which moves their
   scenario-source hash and nothing else.
 - A task listed above is a different version under the same name. Do not pool its

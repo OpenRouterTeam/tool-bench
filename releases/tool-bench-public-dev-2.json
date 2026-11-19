@@ -500,27 +500,27 @@
       "split": "public_development",
       "family": "tool_ambiguity",
       "family_sha256": "sha256:9229fd9e494b4d052933cde1d1bee35ac4f0e60ed47e4200b65b21c8d532b2c8",
-      "scenario_sha256": "sha256:37b5df8967f8a31eab3bc904c6d5f669cf3ce725adca528f83007ae3b0aaa84e",
+      "scenario_sha256": "sha256:78b8a5a6c67bb275f85e07e1dd16b43c68e7228f3e442d8a59ca7453aa3c44d3",
       "dataset_sha256": "sha256:bba20372a18de28627c03c1435fac2321c66eaa746f34fd2a108261284d2949b",
-      "contract_sha256": "sha256:c01e6325d010784d3ab1506a1f1039ebdea44e8ec4f409dbbff99000779f3cbd"
+      "contract_sha256": "sha256:0d3968a5e7c919d8dd70660fa2a191d954e38a502e4d1a8fa817541f639fafa0"
     },
     {
       "task_id": "code/argocd/roll-back-billing-worker",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:1a93ce794ce781eb3a10799d29e19baec595e0f95b20c110b0a6e569582db2ff",
-      "scenario_sha256": "sha256:c7b68ad734ad7c353816f327a2a834675cf4805cdd48aa352f18fdf76cf78764",
+      "scenario_sha256": "sha256:06c8c25dbdf65a24f4dedc40f18b6102c0bd955b55bc46680cef2e228aea4f98",
       "dataset_sha256": "sha256:abe64f655499cd5dfe462504f5b074edcc7975b94f1b75b91f35de21222d5c06",
-      "contract_sha256": "sha256:5a0f8612c3b6426eb7a7ad64b2d8ccbd5d6ab9b0563dd8ba5eb51b911b6d1922"
+      "contract_sha256": "sha256:f7946c09ea0989daf5d732fc7099f9ac1cae62857fef72409bb7e293f267034f"
     },
     {
       "task_id": "code/argocd/sync-prod-payments-api",
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:40647a42ebfc15e7eb8003ab59c8fa5fa7f87fad4fca0576c72d14349f4cc030",
-      "scenario_sha256": "sha256:bad4f40a12caf38388fd9ce21603d1ba66c5f3e484f5515b4fa042eb94e10d39",
+      "scenario_sha256": "sha256:d525f65f3e6cd86243309c506d1cb0fcc963d03b92904e04ca0c102dc99f8c3c",
       "dataset_sha256": "sha256:4d34dda48d3ad4dfd9dd30d4082748f507f09799d621541a6d5c4e7083c48945",
-      "contract_sha256": "sha256:94490e920ba145c10864d2586ae3a892334bdaa86352e935681cfab16932ab5a"
+      "contract_sha256": "sha256:ec88c36478ec28e09bab07a7aa5a37ae78e8a14d4ca0bdbcef2a21369d674200"
     },
     {
       "task_id": "code/github/approve-merge-dependency-bump",
@@ -725,7 +725,7 @@
       "split": "public_development",
       "family": "baseline",
       "family_sha256": "sha256:ec82540ac8f04b7e12d5107747297da6eac66b616dee43795fecdf619d9a7c37",
-      "scenario_sha256": "sha256:23e8da704f89341c8166e5b58b589ffd7d8c1fdb6921082aa1030a3573ed6a9c",
+      "scenario_sha256": "sha256:1593a4968b866d011c088bd82032b891e189ae03bdd54ce21c76a1b8fedaca47",
       "dataset_sha256": "sha256:c750c83e5b9ddf6d6cd5a40d09cb38960db3863646c9e13f7d240f10aea769aa",
       "contract_sha256": "sha256:3b46cbe837881708be74dbef41eecfef817903882c0209c37c4c4de1fd71f059"
     },
@@ -743,9 +743,9 @@
       "split": "public_development",
       "family": "stale_state",
       "family_sha256": "sha256:13d0d60dfe905d665b7393ef6c2e2b7621b0232403ed62b2ba0c1125ac0f66c1",
-      "scenario_sha256": "sha256:664e156f782ebe490ed8064ca386e657da83106205178998313aa1acfc9f1885",
+      "scenario_sha256": "sha256:ca64b2ac096a7aa2f7febdf592d4ab56838d6d73dc8857aba02c0373faaa1f61",
       "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
-      "contract_sha256": "sha256:58ade06ac71bc74083cf3987f715afd9d01c16ad7b87d63078d56e608cff1f4e"
+      "contract_sha256": "sha256:954c94fd9479c2344716c499075aa16e45323bb1598a0987564d4a8e01e16106"
     },
     {
       "task_id": "collab/jira/blocked-sprint-item",
@@ -797,7 +797,7 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:f4f1455b7666f5dfb14bb010ea60c4b557658ce2417be467af691c1c96bd452f",
-      "scenario_sha256": "sha256:4c017477daa62c5f2a381774741091e805ef308ae59030ef9a420ce3a14aa446",
+      "scenario_sha256": "sha256:53e29c3f62c4c9aad3fcd80cb3669af55f6ecdaec22bea50a9aa63420d22f6d2",
       "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
       "contract_sha256": "sha256:da23bad93994abd82ec91d6a9008cd5e51004ecefb079f9df8a9617cb4de33ea"
     },
@@ -851,7 +851,7 @@
       "split": "public_development",
       "family": "entity_ambiguity",
       "family_sha256": "sha256:993b833e6c06dd792756b297095a6c454df6796cc890bdf567f4cb5636460dd2",
-      "scenario_sha256": "sha256:4506297783bd7caab5a36a4f0276ae60b8313f2728d752e5b74f1f130ebe2d03",
+      "scenario_sha256": "sha256:d423a60d6500281454d13f89b07c47b5fc1dadeae23626f94de81afc9044bf4f",
       "dataset_sha256": "sha256:66a0bdc15356c209fa8d86e46f75f740be88df00977c60393b78ed720d44cf44",
       "contract_sha256": "sha256:3807039271e087c8bcd791ddd9a2354ebb6b5b36ef9042d6d366b654a4aa5e31"
     },
@@ -1058,9 +1058,9 @@
       "split": "public_development",
       "family": "dependency_depth",
       "family_sha256": "sha256:8aa785bc29c46ef58340a5e18223a3ec10a739ea626a69abe9d3bc0a300eca2f",
-      "scenario_sha256": "sha256:252d65bd062070df92cdea91ebfe7af7525cc49d8eb2abb8a3c163a4a7cf2bf1",
+      "scenario_sha256": "sha256:91b89c4e7d6153e7f52145d3196b5678491d14cd6bc886e2ace2f0fa03e75b83",
       "dataset_sha256": "sha256:c7a2bc700d99472e3e855155d02046f043cdcaf2353534930e81124fbb57489d",
-      "contract_sha256": "sha256:d62462d51dcec487bebb480197b9dd4ebf5629f2bc01dff634c650cb6f7e5c2a"
+      "contract_sha256": "sha256:f9fcf452acc2f8fedf9d86c2bf2d7e8331586e01901939c82a236d541a43648f"
     },
     {
       "task_id": "ops/multi/oom-limit-and-sentry-resolve",

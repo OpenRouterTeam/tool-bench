@@ -108,7 +108,10 @@ const CHANGED_IN_PLACE: &[&str] = &[
     "code/multi/vercel-deploy-github-pr-lookup",
     "code/terraform/payments-db-upgrade-failure",
     "code/terraform/unlock-orders-prod",
+    "collab/google/schedule-q1-planning",
+    "collab/jira/assign-go-no-go-review",
     "collab/jira/blocked-sprint-item",
+    "collab/linear/pull-issue-into-cycle",
     "collab/multi/jira-sentry-crash-impact",
     "collab/multi/slack-pagerduty-dbre-oncall",
     "collab/notion/launch-date-owner",
@@ -132,7 +135,7 @@ const CHANGED_IN_PLACE: &[&str] = &[
 
 /// Release 1 stays readable, and what release 2 changed is named: eleven search tasks left
 /// (their sources are archived) and eleven joined, and of the 139 tasks the two share only
-/// the 47 in `CHANGED_IN_PLACE` differ in instruction, dataset or contract. The manifest does
+/// the 50 in `CHANGED_IN_PLACE` differ in instruction, dataset or contract. The manifest does
 /// not freeze instruction bytes, so release 1's are compared from the hashes recorded beside
 /// the archive.
 #[test]
@@ -202,7 +205,7 @@ fn the_earlier_release_is_kept_and_every_difference_from_it_is_named() {
         })
         .collect();
     assert_eq!(changed, CHANGED_IN_PLACE);
-    assert_eq!(CHANGED_IN_PLACE.len(), 47);
+    assert_eq!(CHANGED_IN_PLACE.len(), 50);
 }
 
 #[test]
