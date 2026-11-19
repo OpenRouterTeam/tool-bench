@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__firecrawl__pause-broken-pricing-monitor"
 description = "Pause the failing monitor among look-alikes and run the healthy one"
-keywords = ["write","single-service","firecrawl","disambiguation"]
+keywords = ["write","single-service","firecrawl","disambiguation","route:named"]
 
 [metadata]
 scenario = "search/firecrawl/pause-broken-pricing-monitor"

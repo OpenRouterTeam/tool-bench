@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/exa/vp-profile-any-search",
+  "scenario_sha256": "sha256:9c8aeae60709871f7c59b3c7225ba47a0deaf484dded06dee4e083b1bd0f0c8c",
+  "dataset_sha256": "sha256:6f1958b50a316a3bf4ef01d90bafc2f27ad2182ab206f1e5510affe8313eeac2",
+  "contract_sha256": "sha256:70e796327ab2266f5b16e5dc50f3a26d3879a466671acf25e65e1249b90822ce"
+}

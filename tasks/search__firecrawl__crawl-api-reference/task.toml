@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__firecrawl__crawl-api-reference"
 description = "Crawl only the API reference section of a partner's docs"
-keywords = ["write","single-service","firecrawl"]
+keywords = ["write","single-service","firecrawl","route:named"]
 
 [metadata]
 scenario = "search/firecrawl/crawl-api-reference"

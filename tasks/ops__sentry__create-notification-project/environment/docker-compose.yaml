@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:71b8430844f46d1f
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cdf593dc7ce14a81
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "ops/sentry/create-notification-project"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:65e67149813b683a
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:a7844225357d4d1d
     stop_signal: SIGKILL
     networks:
       default: {}

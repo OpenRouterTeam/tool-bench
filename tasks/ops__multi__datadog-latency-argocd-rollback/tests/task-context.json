@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "ops/multi/datadog-latency-argocd-rollback",
-  "instruction_sha256": "sha256:59ccd0dd7ba7e67eb1848bfc04cd3f703f5d4d33f4c36eb2189dbb73cfb01f8b",
+  "instruction_sha256": "sha256:1e10fd9204cf40a04e3a764bf97ffe3e740615ac0073adbfd1371ffe77dcc14b",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:f9fed4587082318768351d1efc215d9a6e1648a496ff491147390fcce5ee86a2",
+  "framing_sha256": "sha256:ffe899386d00b676ae7b40b7d972d157bbaff1be6ddd6f8225f0efaec02ab440",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:816159d5a699e543251ef155f9b7e9c9434103a081e67ed168b681e5de348cd8"
+    "docker-compose.yaml": "sha256:79a4c5151b2c78d0194a4dac734f14f052c647fb7bf43086af0ed2046b9636ad"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:71b8430844f46d1f",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:65e67149813b683a",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cdf593dc7ce14a81",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:a7844225357d4d1d",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",
