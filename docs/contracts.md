@@ -1655,10 +1655,15 @@ direct child/status edit. Per-commit creation/deletion counts bound each actual
 commit, not the number of reference calls or all revisions across the trial.
 This is observed HTTP-operation attribution, not full MCP dispatch/information-
 acquisition correlation or a general asynchronous controller provenance protocol.
-GET is admitted for reviewed observation-driven controller effects; matching the
-polling endpoint does not itself establish that a prior write or a completed
-rollout occurred. Those prerequisites and outcomes still need independent state,
-relationship and history checks. It is not a blanket read-mutation exemption.
+The four Argo CD write contracts name the write itself as the cause: workload,
+history and child-record changes are permitted from the sync, the spec update or the
+resource action that started them, because that mock finishes the work inside the
+write and a read changes nothing. GET is admitted for reviewed observation-driven
+controller effects, and the three Firecrawl crawl and monitor contracts still use it
+for a job that advances when its status is polled. Matching the cause does not itself
+establish that a prior write or a completed rollout occurred. Those prerequisites and
+outcomes still need independent state, relationship and history checks. It is not a
+blanket read-mutation exemption.
 
 ## Current-parent permissions and captured answers
 
