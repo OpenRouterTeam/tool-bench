@@ -1,0 +1,323 @@
+# Which connected services can do the same kind of job, and what an instruction calls them.
+# `taskgen` reads this for the fairness admission check (docs/fairness.md).
+#
+# [[service]]  one row per catalog service
+#   name    catalog service name
+#   names   product names as an instruction writes them, matched as whole words with their
+#           capitals. An instruction that contains one names the service (route "named").
+#   only    words for a kind of thing no other connected service has, matched as whole
+#           words in any case. An instruction that contains one points at the service
+#           without naming it (route "kind").
+#
+# [[class]]  services that are interchangeable for one kind of job
+#   id          short name used in reports
+#   job         the job, in the words of a request
+#   kind_words  what an instruction calls the job when it names no product; any case
+#   members     catalog service names, at least two
+#   [class.read]  optional: how each member's MCP server asks for the class's job, as one
+#                 HTTP request to the mock. `{query}` is the query of the scenario's
+#                 reference call, `{query_url}` the same percent-encoded. A scenario that
+#                 accepts every member is run through each of these
+#                 (crates/world/tests/fairness_routes.rs).
+#
+# [known]  scored tasks that fail the check and are frozen in a release
+#   release  the release whose manifest holds their source hashes
+#   tasks    scenario ids. A flagged scored task that is not listed here fails `taskgen`.
+#
+# A class is a reviewed judgment that an agent could reasonably try any member for the
+# request. A class that is missing hides the fault the check exists to catch; a member
+# that does not belong makes the check ask for a product name a user would give anyway.
+#
+# The check, for each service a scenario lists: the instruction names it (`names`), or
+# points at it (`only`), or it is unnamed. An unnamed service is held against each of its
+# classes whose `kind_words` the instruction uses, or against all of its classes when it
+# uses none. The scenario passes a class when it serves records on every member and no
+# contract entry takes one member alone.
+
+# ───────────────────────────── Services ─────────────────────────────
+
+[[service]]
+name = "firecrawl"
+names = ["Firecrawl"]
+
+[[service]]
+name = "brave"
+names = ["Brave"]
+# Brave is the only connected server with local business search.
+only = ["local business listing", "local business listings"]
+
+[[service]]
+name = "exa"
+names = ["Exa"]
+
+[[service]]
+name = "tavily"
+names = ["Tavily"]
+
+[[service]]
+name = "elasticsearch"
+names = ["Elasticsearch", "Elastic", "Kibana"]
+
+[[service]]
+name = "github"
+names = ["GitHub"]
+
+[[service]]
+name = "gitlab"
+names = ["GitLab"]
+
+[[service]]
+name = "argocd"
+names = ["Argo CD", "ArgoCD", "Argo"]
+
+[[service]]
+name = "terraform"
+names = ["Terraform", "HCP Terraform", "Terraform Cloud"]
+
+[[service]]
+name = "vercel"
+names = ["Vercel"]
+
+[[service]]
+name = "datadog"
+names = ["Datadog"]
+
+[[service]]
+name = "grafana"
+names = ["Grafana"]
+
+[[service]]
+name = "kubernetes"
+names = ["Kubernetes", "K8s", "k8s", "kubectl"]
+# The only connected server that reads pods and namespaces or holds Helm releases.
+only = ["namespace", "namespaces", "pod", "pods", "Helm release"]
+
+[[service]]
+name = "pagerduty"
+names = ["PagerDuty"]
+
+[[service]]
+name = "sentry"
+names = ["Sentry"]
+
+[[service]]
+name = "aws"
+names = ["AWS", "Amazon", "S3", "EC2", "IAM", "CloudWatch", "Route 53", "RDS", "Lambda"]
+
+[[service]]
+name = "cloudflare"
+names = ["Cloudflare"]
+
+[[service]]
+name = "mongodb"
+names = ["MongoDB", "Mongo", "Atlas"]
+
+[[service]]
+name = "okta"
+names = ["Okta"]
+
+[[service]]
+name = "supabase"
+names = ["Supabase"]
+
+[[service]]
+name = "hubspot"
+names = ["HubSpot"]
+
+[[service]]
+name = "salesforce"
+names = ["Salesforce"]
+
+[[service]]
+name = "shopify"
+names = ["Shopify"]
+
+[[service]]
+name = "stripe"
+names = ["Stripe"]
+
+[[service]]
+name = "zendesk"
+names = ["Zendesk"]
+
+[[service]]
+name = "google"
+names = ["Google", "Gmail", "Google Drive", "Google Sheets", "Google Docs", "Google Calendar"]
+# The only connected mailbox and the only connected calendar.
+only = ["email", "emails", "emailed", "inbox", "mailbox", "calendar"]
+
+[[service]]
+name = "jira"
+names = ["Jira", "Confluence", "Atlassian"]
+
+[[service]]
+name = "linear"
+names = ["Linear"]
+
+[[service]]
+name = "notion"
+names = ["Notion"]
+
+[[service]]
+name = "slack"
+names = ["Slack"]
+# The only connected chat with channels.
+only = ["channel", "channels"]
+
+# ───────────────────────────── Classes ─────────────────────────────
+
+[[class]]
+id = "web_search"
+job = "find or read a public web page"
+kind_words = ["on the web", "online", "the news", "search the web", "web search", "look it up", "public pricing", "documentation", "docs"]
+members = ["brave", "exa", "firecrawl", "tavily"]
+
+[class.read.brave]
+method = "GET"
+path = "/res/v1/llm/context?q={query_url}"
+
+[class.read.exa]
+method = "POST"
+path = "/search"
+body = '{"query": "{query}", "contents": {"text": true}}'
+
+[class.read.firecrawl]
+method = "POST"
+path = "/v2/search"
+body = '{"query": "{query}", "scrapeOptions": {"formats": ["markdown"]}}'
+
+[class.read.tavily]
+method = "POST"
+path = "/search"
+body = '{"query": "{query}", "include_raw_content": true}'
+
+[[class]]
+id = "crm"
+job = "read or change a deal, contact, company or note in the CRM"
+kind_words = ["crm", "pipeline"]
+members = ["hubspot", "salesforce"]
+
+[[class]]
+id = "support_tickets"
+job = "read, open or answer a support ticket"
+kind_words = ["support ticket", "support tickets", "helpdesk", "help desk", "support line", "support case"]
+members = ["zendesk", "hubspot", "salesforce", "jira"]
+
+[[class]]
+id = "customer_records"
+job = "look up a customer"
+kind_words = ["customer record", "customer account"]
+members = ["shopify", "stripe", "hubspot", "salesforce", "zendesk"]
+
+[[class]]
+id = "orders"
+job = "read or change an order"
+kind_words = ["the store", "our store", "storefront", "order"]
+members = ["shopify", "mongodb", "supabase"]
+
+[[class]]
+id = "payments"
+job = "read a charge or refund one"
+kind_words = ["refund", "charge", "payment"]
+members = ["stripe", "shopify"]
+
+[[class]]
+id = "issue_trackers"
+job = "read, file or move an issue"
+kind_words = ["issue", "ticket", "bug", "tracker", "backlog"]
+members = ["jira", "linear", "github", "gitlab"]
+
+[[class]]
+id = "code_hosts"
+job = "work with a repository, a pull or merge request, or a CI run"
+kind_words = ["repository", "repo", "pull request", "merge request", "pipeline", "ci run"]
+members = ["github", "gitlab"]
+
+[[class]]
+id = "documents"
+job = "read or edit a page, document or table"
+kind_words = ["wiki", "page", "doc", "document", "runbook", "spreadsheet", "sheet"]
+members = ["notion", "jira", "google", "slack"]
+
+[[class]]
+id = "messages"
+job = "read or send a message"
+kind_words = ["message", "thread", "dm"]
+members = ["slack", "google"]
+
+[[class]]
+id = "dashboards_and_alerts"
+job = "read a dashboard or metric, or read or set a monitor or an alarm"
+kind_words = ["dashboard", "monitor", "alert", "alarm", "metric", "metrics"]
+members = ["datadog", "grafana", "aws"]
+
+[[class]]
+id = "errors_and_logs"
+job = "read errors or logs"
+kind_words = ["error", "errors", "logs", "log", "exception", "crash"]
+members = ["sentry", "datadog", "grafana", "aws", "elasticsearch"]
+
+[[class]]
+id = "on_call"
+job = "read who is on call, or read or change an incident"
+kind_words = ["on call", "on-call", "incident", "page"]
+members = ["pagerduty", "grafana", "datadog"]
+
+[[class]]
+id = "deploys"
+job = "read or change what is deployed"
+kind_words = ["deploy", "deployment", "rollout", "release"]
+members = ["argocd", "kubernetes", "vercel"]
+
+[[class]]
+id = "infrastructure"
+job = "read or change cloud infrastructure"
+kind_words = ["infrastructure", "infra"]
+members = ["terraform", "aws", "cloudflare"]
+
+[[class]]
+id = "dns"
+job = "read or change a DNS record"
+kind_words = ["dns", "dns record", "cname"]
+members = ["cloudflare", "aws"]
+
+[[class]]
+id = "identity"
+job = "read or change a user account, a group or a sign-in policy"
+kind_words = ["sso", "sign-in", "user account", "directory"]
+members = ["okta", "aws", "google"]
+
+[[class]]
+id = "databases"
+job = "query or change a database"
+kind_words = ["database", "db"]
+members = ["mongodb", "supabase"]
+
+# ───────────────────────────── Known ─────────────────────────────
+
+# What the check flags in release 1. A scenario's source hash is frozen in the release
+# manifest, so these are listed here and repaired in the next release. A task leaves this
+# list when its repaired version is in `scenarios/`; nothing is added to it.
+[known]
+release = "tool-bench-public-dev-1"
+tasks = [
+  "business/hubspot/largest-open-deal",
+  "business/hubspot/log-call-note-initech",
+  "business/multi/zendesk-order-status-shopify",
+  "business/multi/zendesk-refund-via-stripe",
+  "business/zendesk/create-ticket-for-caller",
+  "business/zendesk/escalate-outage-ticket",
+  "business/zendesk/find-invoice-attachment",
+  "business/zendesk/reply-refund-and-solve",
+  "search/brave/competitor-funding-news",
+  "search/brave/hosting-sla-lookup",
+  "search/brave/keynote-recording",
+  "search/exa/find-vp-engineering-profile",
+  "search/exa/sdk-timeout-default",
+  "search/firecrawl/northwind-team-pricing",
+  "search/multi/competitor-funding-and-pricing",
+  "search/multi/competitor-research-github-issue",
+  "search/multi/vendor-rate-limit-zendesk-reply",
+  "search/tavily/vendor-rate-limit",
+  "search/tavily/webhook-signature-sunset",
+]
