@@ -6,10 +6,10 @@
   "framing_sha256": "sha256:909f697336437c3f4233a697391dd19dcd7c8df738e6545c41660b932846d8b5",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:0c2cf6e262b7bff6aa8d50206f9bf5e8da609d46c126b7945e706d0ee47402ec"
+    "docker-compose.yaml": "sha256:06c3c6f75362cb5ba4971caf87cfe05871bc8a10efa1036cc1ce7afef84243a3"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:cfe3e80acc055e4e",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b3b3310cc456a4bd",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:8923603603d9159d",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:e7cf421247029335",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",
