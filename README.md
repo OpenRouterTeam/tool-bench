@@ -18,6 +18,11 @@ loaded from a fictional dataset per task. The models are deterministic: a logica
 clock, seeded IDs, a journal of every request. They are models, not
 conformance-tested copies of the hosted APIs.
 
+A trial has no person to answer a server's confirmation prompt. The bridge in front
+of each server therefore does not pass on the client's `elicitation` capability, and
+a server takes the path it documents for a client that cannot be asked: the pinned
+Okta server, for one, deactivates a user without first asking.
+
 ## Tasks
 
 150 tasks in six groups. Each group has 20 single-service tasks, four per service,

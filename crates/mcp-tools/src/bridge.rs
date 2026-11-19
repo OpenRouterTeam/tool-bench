@@ -41,6 +41,23 @@ pub fn sort_tools_by_name(response: &mut Value) {
     }
 }
 
+/// Removes the `elicitation` capability from a client's `initialize` request.
+///
+/// A trial has no person to answer a server's confirmation prompt. A server that is told the
+/// client can show one asks, and reads the unattended client's decline as the user's refusal:
+/// the pinned Okta server then cancels `deactivate_user` without calling the API. Without the
+/// capability a server takes the path it documents for a client that cannot be asked, which
+/// is the path the tool-list capture and the reference solutions already run.
+pub fn hide_elicitation(initialize: &mut Value) {
+    if let Some(capabilities) = initialize
+        .get_mut("params")
+        .and_then(|params| params.get_mut("capabilities"))
+        .and_then(Value::as_object_mut)
+    {
+        capabilities.remove("elicitation");
+    }
+}
+
 impl Backend for StdioBackend {
     type Session = Arc<StdioConn>;
 
@@ -48,7 +65,10 @@ impl Backend for StdioBackend {
         StdioConn::spawn(&self.spec).await
     }
 
-    async fn request(&self, session: &Self::Session, msg: Value) -> anyhow::Result<Reply> {
+    async fn request(&self, session: &Self::Session, mut msg: Value) -> anyhow::Result<Reply> {
+        if msg["method"] == "initialize" {
+            hide_elicitation(&mut msg);
+        }
         // Tool calls stream, so elicitation/sampling/roots requests reach the client.
         if msg["method"] == "tools/call" {
             return Ok(Reply::Stream(session.call_streaming(msg)));
