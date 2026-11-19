@@ -1,5 +1,5 @@
 {
-  "search/firecrawl/northwind-team-pricing": [
+  "search/firecrawl/team-pricing-any-search": [
     {
       "style": "terse",
       "expect": "pass",
@@ -83,7 +83,7 @@
       "answer": "m.okafor deleted ci-deploy-bot at 16:42 UTC on 2026-10-29. GitHub username: mokafor. Pull request: #58, which was merged on October 29."
     }
   ],
-  "search/multi/competitor-funding-and-pricing": [
+  "search/multi/funding-and-pricing-any-search": [
     {
       "style": "terse",
       "expect": "pass",
@@ -125,7 +125,7 @@
       "answer": "1. Funding: $45M Series B led by Halcyon Ventures.\n2. Pricing: the Growth plan costs $1,090 per month when billed annually."
     }
   ],
-  "search/exa/sdk-timeout-default": [
+  "search/exa/sdk-timeout-any-search": [
     {
       "style": "terse",
       "expect": "pass",
@@ -209,7 +209,7 @@
       "answer": "Market leader: VoltHaven (Hamburg), 31% of installed depot V2G units in Germany. Typical price of its 22 kW bidirectional unit: EUR 7,450."
     }
   ],
-  "search/exa/find-vp-engineering-profile": [
+  "search/exa/vp-profile-any-search": [
     {
       "style": "terse",
       "expect": "pass",
@@ -335,7 +335,7 @@
       "answer": "Juniper & Rye Catering (Portland, OR): 503-555-0142. Saturday hours: 10:00–16:00."
     }
   ],
-  "search/brave/keynote-recording": [
+  "search/brave/keynote-any-search": [
     {
       "style": "terse",
       "expect": "pass",
@@ -377,7 +377,7 @@
       "answer": "Speaker: Marta Lindqvist. Duration: 28:40. URL: https://www.youtube.com/watch?v=Zt4mQeL1x9c"
     }
   ],
-  "search/brave/hosting-sla-lookup": [
+  "search/brave/hosting-sla-any-search": [
     {
       "style": "terse",
       "expect": "pass",
@@ -419,7 +419,7 @@
       "answer": "Ironbark Hosting Business plan: 99.95% monthly uptime. If uptime falls just below that commitment, the service credit is 25% of the monthly fee."
     }
   ],
-  "search/brave/competitor-funding-news": [
+  "search/brave/funding-news-any-search": [
     {
       "style": "terse",
       "expect": "pass",
@@ -461,7 +461,7 @@
       "answer": "Norvik Analytics raised $61 million in a Series B led by Halcyon Ventures."
     }
   ],
-  "search/tavily/webhook-signature-sunset": [
+  "search/tavily/webhook-sunset-any-search": [
     {
       "style": "terse",
       "expect": "pass",
@@ -545,7 +545,7 @@
       "answer": "FrostLink (Oslo) has the largest market share at 38%. Its list price is EUR 3.80 per sensor per month."
     }
   ],
-  "search/tavily/vendor-rate-limit": [
+  "search/tavily/vendor-rate-limit-any-search": [
     {
       "style": "terse",
       "expect": "pass",

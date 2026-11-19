@@ -1,0 +1,98 @@
+# Replaces `search/tavily/webhook-signature-sunset`, which is archived under
+# `releases/archive/tool-bench-public-dev-1/`. Release `tool-bench-public-dev-2`.
+#
+# What changed: the same pages are served by all four connected web-search services
+# (Brave, Exa, Firecrawl, Tavily), and a read through any of them is accepted. The
+# instruction is the original, word for word.
+#
+# Why: the instruction asks for a kind of lookup and names no vendor, while the original
+# kept each page on one vendor (Tavily), so no other could answer. This task scores
+# what the instruction asks. The pages exist on no public site, so an answer from outside
+# the tool servers still fails, and `mcp_only` still rejects a request that reaches the
+# world around them.
+#
+# The single-vendor `required_calls` entry is gone, and no entry replaces it: an entry
+# names one service and every entry must hold. The answer check carries the route, as it
+# always has in `search/firecrawl/team-pricing-any-search` and its original.
+[scenario]
+id = "search/tavily/webhook-sunset-any-search"
+title = "Find the v1 webhook signature sunset date among look-alike deprecations (any connected search vendor)"
+now = "2026-10-30T09:15:00Z"
+seed = "search-tavily-webhook-sunset-any-search"
+services = ["brave", "exa", "firecrawl", "tavily"]
+tags = ["lookup", "single-service", "any-search-vendor", "disambiguation", "route:unnamed"]
+timeout_sec = 900
+
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 2
+rationale = "The v1 signature sunset is 2027-01-15 on the verify-signatures page; look-alike dates are v1 API keys 2026-12-01, SDK 3.x EOL 2026-11-30 and the archived v1 webhooks page saying June 30, 2026."
+
+# Distractors: v1 API keys (2026-12-01), SDK 3.x EOL (2026-11-30), archived v1 page (2026-06-30).
+[expect]
+version = 2
+audit_history = true
+
+# The page is the webhook-signature guide on docs.ferrowave.dev. It holds exactly one date,
+# the day v1 signatures stop being sent. The API-key guide and the archived v1 page also
+# hold one date each, so those look-alike deadlines count as another record's value.
+[expect.answer.record_facts]
+requirement = "State the date on which Ferrowave stops sending v1 webhook signatures according to the webhook-signature guide of its current developer docs, and name the header that guide says to verify instead."
+mode = "statements"
+context = [
+  "(v1 header: ${old_header})",
+  "not ${old_header}",
+  "not ${key_deadline}",
+  "(${v2_algorithm} over timestamp and body)",
+]
+
+[expect.answer.record_facts.selector]
+collection = "/services/tavily/pages"
+field_patterns = { "/url" = '^https://docs\.ferrowave\.dev/', "/title" = '(?i)webhook signatures' }
+
+[expect.answer.record_facts.facts.date]
+field = "/raw_content"
+kind = "date"
+
+[expect.answer.record_facts.facts.header]
+field = "/raw_content"
+capture = 'Switch your verification to `([^`]+)`'
+kind = "identifier"
+
+[expect.answer.record_facts.related.api_keys]
+collection = "/services/tavily/pages"
+filter = { matching = { "/url" = "https://docs.ferrowave.dev/guides/api-keys" } }
+allow_absence = true
+
+[expect.answer.record_facts.facts.key_deadline]
+record = "api_keys"
+field = "/raw_content"
+kind = "date"
+optional = true
+
+[expect.answer.record_facts.facts.old_header]
+field = "/raw_content"
+capture = 'v1 `([^`]+)` header'
+kind = "identifier"
+optional = true
+
+[expect.answer.record_facts.facts.v2_algorithm]
+field = "/raw_content"
+capture = 'v2=<hex (HMAC-SHA\d+)'
+kind = "text"
+optional = true
+
+[solution]
+answer = "Date: 2027-01-15 Header: Ferrowave-Signature-V2"
+
+[[solution.call]]
+endpoint = "tavily"
+tool = "tavily_map"
+arguments = { url = "https://docs.ferrowave.dev", max_depth = 2 }
+
+[[solution.call]]
+endpoint = "tavily"
+tool = "tavily_extract"
+arguments = { urls = ["https://docs.ferrowave.dev/guides/webhooks/verify-signatures", "https://docs.ferrowave.dev/changelog"] }

@@ -29,7 +29,7 @@
       "answer": "PO-48213, $12,480.00, due November 20, 2026; the September invoice was PO-47790."
     }
   ],
-  "search/brave/keynote-recording": [
+  "search/brave/keynote-any-search": [
     {
       "style": "names_another_record_after",
       "expect": "pass",
@@ -37,7 +37,7 @@
       "answer": "Marta Lindqvist, 47:12, https://www.youtube.com/watch?v=Zt4mQeL1x9c. The 12:05 highlights cut is https://www.youtube.com/watch?v=r8Kq2PgN7aE."
     }
   ],
-  "search/exa/sdk-timeout-default": [
+  "search/exa/sdk-timeout-any-search": [
     {
       "style": "names_another_record_after",
       "expect": "pass",

@@ -1,0 +1,76 @@
+# Replaces `search/exa/find-vp-engineering-profile`, which is archived under
+# `releases/archive/tool-bench-public-dev-1/`. Release `tool-bench-public-dev-2`.
+#
+# What changed: the same pages are served by all four connected web-search services
+# (Brave, Exa, Firecrawl, Tavily), and a read through any of them is accepted. The
+# instruction is the original, word for word.
+#
+# Why: the instruction asks for a kind of lookup and names no vendor, while the original
+# kept each page on one vendor (Exa), so no other could answer. This task scores
+# what the instruction asks. The pages exist on no public site, so an answer from outside
+# the tool servers still fails, and `mcp_only` still rejects a request that reaches the
+# world around them.
+#
+# The single-vendor `required_calls` entry is gone, and no entry replaces it: an entry
+# names one service and every entry must hold. The answer check carries the route, as it
+# always has in `search/firecrawl/team-pricing-any-search` and its original.
+[scenario]
+id = "search/exa/vp-profile-any-search"
+title = "Find the right person's LinkedIn profile among namesakes (any connected search vendor)"
+now = "2026-10-27T15:45:00Z"
+seed = "search-exa-vp-profile-any-search"
+services = ["brave", "exa", "firecrawl", "tavily"]
+tags = ["lookup", "single-service", "any-search-vendor", "disambiguation", "route:unnamed"]
+timeout_sec = 900
+
+[scenario.family]
+schema_version = 1
+primary = "entity_ambiguity"
+secondary = ["stale_state"]
+dependency_depth = 1
+rationale = "Four Priya Raman profiles: priya-raman-tessellate (VP Eng, Tessellate Bio), a former Tessellate Bio director now CTO at Kestrel Genomics, a Tessellate Analytics data scientist and a Boston cardiologist."
+
+# Right profile: priya-raman-tessellate. Distractors: a former Tessellate Bio director (now
+# CTO elsewhere), a data scientist at Tessellate Analytics, and a Boston cardiologist.
+[expect]
+version = 2
+audit_history = true
+
+# The profile is found by what the instruction states: a people result for Priya Raman
+# whose headline and current position are VP of Engineering at Tessellate Bio.
+[expect.answer.record_facts]
+requirement = "Give the LinkedIn profile URL of the Priya Raman who currently holds the VP of Engineering role at Tessellate Bio."
+mode = "statements"
+context = [
+  "(role confirmed on ${team_page_url})",
+  "not https://www.linkedin.com/in/priya-raman-4b21a9",
+  "team page: ${team_page_url}",
+]
+# The company's team page corroborates the role; it is not a profile.
+
+[expect.answer.record_facts.selector]
+collection = "/services/exa/documents"
+matching = { category = "people", author = "Priya Raman" }
+field_patterns = { "/title" = 'VP of Engineering - Tessellate Bio \|', "/text" = 'Tessellate Bio, VP of Engineering \(\d{4}-present\)' }
+
+[expect.answer.record_facts.facts.url]
+field = "/url"
+kind = "identifier"
+
+[expect.answer.record_facts.related.team_page]
+collection = "/services/exa/documents"
+filter = { matching = { "/category" = "company" }, patterns = { "/url" = 'tessellate\.bio/team$' } }
+
+[expect.answer.record_facts.facts.team_page_url]
+record = "team_page"
+field = "/url"
+kind = "identifier"
+optional = true
+
+[solution]
+answer = "https://www.linkedin.com/in/priya-raman-tessellate"
+
+[[solution.call]]
+endpoint = "exa"
+tool = "people_search_exa"
+arguments = { query = "Priya Raman VP of Engineering Tessellate Bio Boston" }

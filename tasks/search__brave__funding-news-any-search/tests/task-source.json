@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "scenario": "search/brave/funding-news-any-search",
+  "scenario_sha256": "sha256:7688a10d17df4ab3205828069f2b3cc88315d1b22271f62ffb2d1a0ca205d5d7",
+  "dataset_sha256": "sha256:d3d21c5e960f228c0fddf0ebbd1878915ff6f597f7aead9821b42fc5043d044f",
+  "contract_sha256": "sha256:1c13ed9b47fa3440e920c590ec15fad1d15b80b6776c309a92c6f663bbfa4ee9"
+}

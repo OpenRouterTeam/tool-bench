@@ -16,7 +16,7 @@
   "summary": {
     "scored_tasks": 150,
     "unscored_examples": 2,
-    "unscored_diagnostics": 7,
+    "unscored_diagnostics": 2,
     "scored_families": {
       "baseline": 18,
       "cross_system_identity": 8,
@@ -46,15 +46,15 @@
     "scored_source_gaps": {
       "legacy_answer_file_collection": 55,
       "unreviewed_reference_operation": 71,
-      "validation_evidence_missing": 115
+      "validation_evidence_missing": 104
     },
     "scored_lookups": 50,
     "scored_writes": 100,
-    "reference_calls": 470,
-    "static_argument_schemas": 452,
+    "reference_calls": 462,
+    "static_argument_schemas": 444,
     "deferred_argument_schemas": 18,
     "declared_result_contracts": {
-      "mcp_envelope_v1": 367,
+      "mcp_envelope_v1": 359,
       "aws_api_v1": 11,
       "argo_api_v1": 21,
       "okta_api_v1": 19,
@@ -75,8 +75,8 @@
     ],
     "scored_captured_argument_calls": 18,
     "scored_captured_argument_calls_validated": 18,
-    "scored_with_validation_evidence": 35,
-    "scored_without_validation_evidence": 115,
+    "scored_with_validation_evidence": 46,
+    "scored_without_validation_evidence": 104,
     "scored_with_every_near_miss_kind": 0,
     "scored_exercised_operations": 243,
     "scored_exercised_operations_reviewed": 0,
@@ -12240,524 +12240,6 @@
       ]
     },
     {
-      "id": "diagnostic/multi/funding-news-any-search",
-      "source": {
-        "schema_version": 1,
-        "scenario": "diagnostic/multi/funding-news-any-search",
-        "scenario_sha256": "sha256:ab2d8f97e6c7b815a2e2e936a20c4401bb1add2fa72dd8143d4b4b16f578944e",
-        "dataset_sha256": "sha256:10f8c71aff9235a5246cee58dc46b4058d2df670768cf0c361d45a5b3280d170",
-        "contract_sha256": "sha256:1c13ed9b47fa3440e920c590ec15fad1d15b80b6776c309a92c6f663bbfa4ee9"
-      },
-      "instruction_sha256": "sha256:b8d90d5893848b40272540aadad8c484e2c574bf5f8abf0ee247661b3844eee9",
-      "scored": false,
-      "family": {
-        "schema_version": 1,
-        "primary": "stale_state",
-        "secondary": [
-          "entity_ambiguity"
-        ],
-        "dependency_depth": 1,
-        "rationale": "This week's 45M Series B led by Halcyon (2026-10-27) competes with the 2025 12M Series A led by Fjord Capital and a DealBase page still listing Series A as latest; Norvik Labs 30M is a look-alike."
-      },
-      "scripted_user": false,
-      "services": [
-        "brave",
-        "exa",
-        "firecrawl",
-        "tavily"
-      ],
-      "tags": [
-        "lookup",
-        "multi-service",
-        "refined",
-        "route:unnamed",
-        "any-search-server"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 0,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 0,
-      "information_prerequisites": 0,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 0,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 1
-      },
-      "effect_permissions": {},
-      "answer_check": "source_bound_record_facts",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [],
-        "unreviewed_operations": [
-          "brave-search.brave_news_search"
-        ]
-      },
-      "source_gaps": [
-        "legacy_answer_file_collection",
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "brave-search",
-          "tool": "brave_news_search",
-          "snapshot_path": "servers/snapshots/brave-search.json",
-          "snapshot_sha256": "sha256:da2b22c433a86c1e43a822691e496367dae7694fe46dcb9500c2e403518b6858",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
-      "id": "diagnostic/multi/hosting-sla-any-search",
-      "source": {
-        "schema_version": 1,
-        "scenario": "diagnostic/multi/hosting-sla-any-search",
-        "scenario_sha256": "sha256:3e6cc121625f96a549b4d5cae4f37d9bb92aab4c40ea637ce56c42cab63bc2db",
-        "dataset_sha256": "sha256:df44a24c04a961fc7c5e6624cf7e8f8e38f9221375d52e12396cf7fefbd5f83e",
-        "contract_sha256": "sha256:7c5cdd0e33511b6a99217663b9ffdac7204a10505f5f7ca6351a136116f40637"
-      },
-      "instruction_sha256": "sha256:2db8376f5806934300fb1a34b07b09f6ef4212bf7e46f3690d6885e012fd29cf",
-      "scored": false,
-      "family": {
-        "schema_version": 1,
-        "primary": "stale_state",
-        "secondary": [
-          "entity_ambiguity"
-        ],
-        "dependency_depth": 1,
-        "rationale": "Current SLA (effective 2026-07-01) gives Business 99.95 and a 10 percent credit; the archived 2024 SLA page and a 2025 Reddit post say 99.9 and 5 percent; look-alike IronBank Hosting says 99.99 and 20."
-      },
-      "scripted_user": false,
-      "services": [
-        "brave",
-        "exa",
-        "firecrawl",
-        "tavily"
-      ],
-      "tags": [
-        "lookup",
-        "multi-service",
-        "refined",
-        "route:unnamed",
-        "any-search-server"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 0,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 0,
-      "information_prerequisites": 0,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 0,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 1
-      },
-      "effect_permissions": {},
-      "answer_check": "source_bound_record_facts",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [],
-        "unreviewed_operations": [
-          "brave-search.brave_web_search"
-        ]
-      },
-      "source_gaps": [
-        "legacy_answer_file_collection",
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "brave-search",
-          "tool": "brave_web_search",
-          "snapshot_path": "servers/snapshots/brave-search.json",
-          "snapshot_sha256": "sha256:da2b22c433a86c1e43a822691e496367dae7694fe46dcb9500c2e403518b6858",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
-      "id": "diagnostic/multi/sdk-timeout-any-search",
-      "source": {
-        "schema_version": 1,
-        "scenario": "diagnostic/multi/sdk-timeout-any-search",
-        "scenario_sha256": "sha256:cb7c69ec89c800289cb5bdc28500b35dc0f69970867ab1a93c864deced34b4f9",
-        "dataset_sha256": "sha256:65e368ce391f9b90de669e0b8368bf3c01b353ed225d0e45089517989534f79f",
-        "contract_sha256": "sha256:b2b5b7caab960fe7a77f6dd0b8a7426c4c010cc7ebc8c1e452968ccc8b69c0bf"
-      },
-      "instruction_sha256": "sha256:35acf4a8c5882f426f428a3a77c122ff79d61fc5b9a1d6ee79a04764feec4b3b",
-      "scored": false,
-      "family": {
-        "schema_version": 1,
-        "primary": "stale_state",
-        "secondary": [
-          "entity_ambiguity"
-        ],
-        "dependency_depth": 1,
-        "rationale": "v4 docs give timeout_seconds default 30; legacy v3 docs and a 2024 Stack Overflow answer give request_timeout 60; Node SDK timeoutMs 120000 and a README example using 10 are look-alikes."
-      },
-      "scripted_user": false,
-      "services": [
-        "brave",
-        "exa",
-        "firecrawl",
-        "tavily"
-      ],
-      "tags": [
-        "lookup",
-        "multi-service",
-        "refined",
-        "route:unnamed",
-        "any-search-server"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 0,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 0,
-      "information_prerequisites": 0,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 0,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 1
-      },
-      "effect_permissions": {},
-      "answer_check": "source_bound_record_facts",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [],
-        "unreviewed_operations": [
-          "exa.get_code_context_exa",
-          "exa.web_fetch_exa"
-        ]
-      },
-      "source_gaps": [
-        "legacy_answer_file_collection",
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "exa",
-          "tool": "get_code_context_exa",
-          "snapshot_path": "servers/snapshots/exa.json",
-          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "exa",
-          "tool": "web_fetch_exa",
-          "snapshot_path": "servers/snapshots/exa.json",
-          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
-      "id": "diagnostic/multi/team-pricing-any-search",
-      "source": {
-        "schema_version": 1,
-        "scenario": "diagnostic/multi/team-pricing-any-search",
-        "scenario_sha256": "sha256:04fb221610ba3d2aa03b1ca4396d6e8352dbe28bab1700643ff8c60dd57f9e6e",
-        "dataset_sha256": "sha256:8792f848c7d401126c36f9296bc40a5cada27e4afa1c9e6675e7d5f6cc819c30",
-        "contract_sha256": "sha256:7863bbf75f734f6da0ed86155b8eed4e5d56da2bc172f17fd20260f6fdacc08f"
-      },
-      "instruction_sha256": "sha256:9dfe4340ab897a595e0b4ee8d15f84d789ca86cfdcb80600a580c99a80a6df86",
-      "scored": false,
-      "family": {
-        "schema_version": 1,
-        "primary": "stale_state",
-        "secondary": [
-          "entity_ambiguity"
-        ],
-        "dependency_depth": 2,
-        "rationale": "Live pricing page (updated 2026-09-01) says Team $79 annual with 12 seats; the Feb 2025 blog post and G2 listing (updated March 2025) say $69 and 10 seats; Northwind Traders is a look-alike."
-      },
-      "scripted_user": false,
-      "services": [
-        "brave",
-        "exa",
-        "firecrawl",
-        "tavily"
-      ],
-      "tags": [
-        "lookup",
-        "multi-service",
-        "refined",
-        "route:unnamed",
-        "any-search-server"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 0,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 0,
-      "information_prerequisites": 0,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 0,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 1
-      },
-      "effect_permissions": {},
-      "answer_check": "source_bound_record_facts",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [],
-        "unreviewed_operations": [
-          "firecrawl.firecrawl_scrape",
-          "firecrawl.firecrawl_search"
-        ]
-      },
-      "source_gaps": [
-        "legacy_answer_file_collection",
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "firecrawl",
-          "tool": "firecrawl_search",
-          "snapshot_path": "servers/snapshots/firecrawl.json",
-          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "firecrawl",
-          "tool": "firecrawl_scrape",
-          "snapshot_path": "servers/snapshots/firecrawl.json",
-          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
-      "id": "diagnostic/multi/vendor-rate-limit-any-search",
-      "source": {
-        "schema_version": 1,
-        "scenario": "diagnostic/multi/vendor-rate-limit-any-search",
-        "scenario_sha256": "sha256:ef0712f5352589840ecf1de3acf93209159fbb4ab81e0e895994925def6eb763",
-        "dataset_sha256": "sha256:a2abccd4e2a3056b6ce2c6d1f4e58c644998c5ce9605ade326749e75ff14ed9f",
-        "contract_sha256": "sha256:f5b1164410e351399e3606298ba723016251856d233f8749b7493a614d02f783"
-      },
-      "instruction_sha256": "sha256:e9eb7a4af406454c4a6b6beddaac938ee3ce64c377003ae2740556531a56393a",
-      "scored": false,
-      "family": {
-        "schema_version": 1,
-        "primary": "stale_state",
-        "secondary": [
-          "entity_ambiguity"
-        ],
-        "dependency_depth": 2,
-        "rationale": "Quillstream v3 docs (updated 2026-09-14) say Business 1,200 rpm; the deprecated v2 page and a 2025 review say 600 and a 2025 forum post 900; Quillpad Business 300 is a look-alike vendor."
-      },
-      "scripted_user": false,
-      "services": [
-        "brave",
-        "exa",
-        "firecrawl",
-        "tavily"
-      ],
-      "tags": [
-        "lookup",
-        "multi-service",
-        "refined",
-        "route:unnamed",
-        "any-search-server"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 0,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 0,
-      "information_prerequisites": 0,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 0,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 1
-      },
-      "effect_permissions": {},
-      "answer_check": "source_bound_record_facts",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [],
-        "unreviewed_operations": [
-          "tavily.tavily_extract",
-          "tavily.tavily_search"
-        ]
-      },
-      "source_gaps": [
-        "legacy_answer_file_collection",
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "tavily",
-          "tool": "tavily_search",
-          "snapshot_path": "servers/snapshots/tavily.json",
-          "snapshot_sha256": "sha256:f205acc0be2a6e43fd83e3afc60470f2b76c7614b43b47d60c4ba4dd782592f4",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "tavily",
-          "tool": "tavily_extract",
-          "snapshot_path": "servers/snapshots/tavily.json",
-          "snapshot_sha256": "sha256:f205acc0be2a6e43fd83e3afc60470f2b76c7614b43b47d60c4ba4dd782592f4",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
       "id": "diagnostic/stripe/clarify-ambiguous-refund",
       "source": {
         "schema_version": 1,
@@ -16354,7 +15836,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/brave/caterer-saturday-hours",
-        "scenario_sha256": "sha256:5e201c5c128a5c60366a5b10403505df0439cccf6ea606409d9362c27c033b35",
+        "scenario_sha256": "sha256:a87e4cfdd7cf1c5d1a3ee3cb00f339b494d4aa473f10ea6d155765333d935825",
         "dataset_sha256": "sha256:4cb6924927056ef099afa13db9b6fedc71491a4c7613fb4b5fb1e0eb79d3eecb",
         "contract_sha256": "sha256:17b1e34259aaf331ed87b9b6d8d41802fdd318653c7fc3ee56452cdc293360fb"
       },
@@ -16378,7 +15860,8 @@
         "lookup",
         "single-service",
         "brave",
-        "disambiguation"
+        "disambiguation",
+        "route:kind"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -16444,13 +15927,13 @@
       ]
     },
     {
-      "id": "search/brave/competitor-funding-news",
+      "id": "search/brave/funding-news-any-search",
       "source": {
         "schema_version": 1,
-        "scenario": "search/brave/competitor-funding-news",
-        "scenario_sha256": "sha256:66641fe3d6254fee5c97a15513d5d43a70a62feb175aaaa05c56a5377b95a947",
-        "dataset_sha256": "sha256:07b257f9518255408ebcbb4d6093ba501c2caccf8328ce5b5b54ceb5b5748ebc",
-        "contract_sha256": "sha256:474497bff548835859e722411857b7ecaabb992c50b7067eb365d77b5201d400"
+        "scenario": "search/brave/funding-news-any-search",
+        "scenario_sha256": "sha256:7688a10d17df4ab3205828069f2b3cc88315d1b22271f62ffb2d1a0ca205d5d7",
+        "dataset_sha256": "sha256:d3d21c5e960f228c0fddf0ebbd1878915ff6f597f7aead9821b42fc5043d044f",
+        "contract_sha256": "sha256:1c13ed9b47fa3440e920c590ec15fad1d15b80b6776c309a92c6f663bbfa4ee9"
       },
       "instruction_sha256": "sha256:b8d90d5893848b40272540aadad8c484e2c574bf5f8abf0ee247661b3844eee9",
       "scored": true,
@@ -16465,12 +15948,16 @@
       },
       "scripted_user": false,
       "services": [
-        "brave"
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
       ],
       "tags": [
         "lookup",
         "single-service",
-        "brave"
+        "any-search-vendor",
+        "route:unnamed"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -16508,8 +15995,13 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
         },
         "reviewed_operations": [],
         "partially_reviewed_operations": [],
@@ -16519,7 +16011,6 @@
       },
       "source_gaps": [
         "legacy_answer_file_collection",
-        "validation_evidence_missing",
         "unreviewed_reference_operation"
       ],
       "reference_calls": [
@@ -16536,13 +16027,13 @@
       ]
     },
     {
-      "id": "search/brave/hosting-sla-lookup",
+      "id": "search/brave/hosting-sla-any-search",
       "source": {
         "schema_version": 1,
-        "scenario": "search/brave/hosting-sla-lookup",
-        "scenario_sha256": "sha256:b08c700ce0ff93631452be9c3ae11b93040ce0232d0bab14a5b00b56f8c3b2ee",
-        "dataset_sha256": "sha256:657c2b1f45fab6351445a6bd6b4d9a09af74500dc545aa56969a3e502e43698d",
-        "contract_sha256": "sha256:7b1b00af8775aeadb0d3567de11abeb7b60fd9af80b128d9e48a95e0e3e8afca"
+        "scenario": "search/brave/hosting-sla-any-search",
+        "scenario_sha256": "sha256:3005b81362a6ee9203f1cbe4c22205df7bdd095d9e20d5c79fbcd37a1758f917",
+        "dataset_sha256": "sha256:c7d5b143bc4d7a1a4eed96891de5d1763eb9036d6a751fa27f966b0f8fb2baf2",
+        "contract_sha256": "sha256:7c5cdd0e33511b6a99217663b9ffdac7204a10505f5f7ca6351a136116f40637"
       },
       "instruction_sha256": "sha256:2db8376f5806934300fb1a34b07b09f6ef4212bf7e46f3690d6885e012fd29cf",
       "scored": true,
@@ -16557,12 +16048,16 @@
       },
       "scripted_user": false,
       "services": [
-        "brave"
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
       ],
       "tags": [
         "lookup",
         "single-service",
-        "brave"
+        "any-search-vendor",
+        "route:unnamed"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -16600,8 +16095,13 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
         },
         "reviewed_operations": [],
         "partially_reviewed_operations": [],
@@ -16611,7 +16111,6 @@
       },
       "source_gaps": [
         "legacy_answer_file_collection",
-        "validation_evidence_missing",
         "unreviewed_reference_operation"
       ],
       "reference_calls": [
@@ -16628,13 +16127,13 @@
       ]
     },
     {
-      "id": "search/brave/keynote-recording",
+      "id": "search/brave/keynote-any-search",
       "source": {
         "schema_version": 1,
-        "scenario": "search/brave/keynote-recording",
-        "scenario_sha256": "sha256:32ef582e0d44e7a80954aed150534013580277befbc5466230c3b7a80d8822a1",
-        "dataset_sha256": "sha256:d851ecdff5abf3a8d48ed64dc4157c43b349ef98600e16f155a326c4b7c8f982",
-        "contract_sha256": "sha256:37913563ee229464b62a53cf45123ac2748eaa397ecbab9c209dfadad2a3dc77"
+        "scenario": "search/brave/keynote-any-search",
+        "scenario_sha256": "sha256:d25851749b51e05c54a53b9872df037e5c17ac3fb2c221670b93e5f9eb9d461b",
+        "dataset_sha256": "sha256:411e0020ef0c022f88269858e9100c97b7804d51df4bf997b1f69a9984d933e8",
+        "contract_sha256": "sha256:4c943ef2350bc8136ea312aa3f6aecb7cfb4b0d1e7bc64079b7e308c7ae697f0"
       },
       "instruction_sha256": "sha256:f95f8b0be521ddf245ffc9e953523b4243a245c0e8355a0aa87b3d81e5de053d",
       "scored": true,
@@ -16649,13 +16148,17 @@
       },
       "scripted_user": false,
       "services": [
-        "brave"
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
       ],
       "tags": [
         "lookup",
         "single-service",
-        "brave",
-        "disambiguation"
+        "any-search-vendor",
+        "disambiguation",
+        "route:unnamed"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -16693,8 +16196,13 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
         },
         "reviewed_operations": [],
         "partially_reviewed_operations": [],
@@ -16704,7 +16212,6 @@
       },
       "source_gaps": [
         "legacy_answer_file_collection",
-        "validation_evidence_missing",
         "unreviewed_reference_operation"
       ],
       "reference_calls": [
@@ -16725,7 +16232,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/elasticsearch/checkout-errors-last-hour",
-        "scenario_sha256": "sha256:79a46f6934d5dc9e1d31b16c8e58f612b08233f344f7d2ca3966ee69213578d0",
+        "scenario_sha256": "sha256:72e1f0b72f2f8d360cfe8f98005efbddc5a92d115e5e47db0be4a0d78405f7df",
         "dataset_sha256": "sha256:4ab9a3a18460d1d316b97e78f198a90f6329fa2923ed581014491615c2b1caee",
         "contract_sha256": "sha256:f54180bbaf6fa0dd3d679aceac82ff625b1badaeadf17f0fc2aaa28066b3ebf4"
       },
@@ -16748,7 +16255,8 @@
         "lookup",
         "single-service",
         "elasticsearch",
-        "disambiguation"
+        "disambiguation",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -16840,7 +16348,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/elasticsearch/deleted-api-key-audit",
-        "scenario_sha256": "sha256:706fedf7672caf1eaa7db2c0e1210e0bf9db39c1dc7fc516edf746416a79cf0e",
+        "scenario_sha256": "sha256:b48b063afe6e5211b62b95ff66149774df860e5d3e64cdbe96518443caf68602",
         "dataset_sha256": "sha256:7aff93de0395ad052644ed11527d19a67d485208f533a4cf333d75965580d5d6",
         "contract_sha256": "sha256:b9f1f12a1a6db0e81fe800f1c31a32637411cae8b54f70b0f7dd089542adb82f"
       },
@@ -16863,7 +16371,8 @@
         "lookup",
         "single-service",
         "elasticsearch",
-        "disambiguation"
+        "disambiguation",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -16944,7 +16453,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/elasticsearch/duplicate-charge-lookup",
-        "scenario_sha256": "sha256:04542cb2960b4bf96924cea774c40488529935e8fce919197592ba06c4f5490f",
+        "scenario_sha256": "sha256:ce5da55c1f01348e0ea8239103b77a238e65f16e29a205b8b90d2a466a64fc7e",
         "dataset_sha256": "sha256:0e83e375e139b9a05dc5655fb7472a898e9a9b33073286c04cc77abb9fb30306",
         "contract_sha256": "sha256:a9c72ad039c1c118068917d0e67859ee71bc25f390f987c6791c31fcc8119ac4"
       },
@@ -16965,7 +16474,8 @@
         "lookup",
         "single-service",
         "elasticsearch",
-        "disambiguation"
+        "disambiguation",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -17046,7 +16556,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/elasticsearch/latency-by-region",
-        "scenario_sha256": "sha256:fa9fa5eeff1715af592cf173e89d8fcae673799f09d7850ceeb13790b4b3ff8c",
+        "scenario_sha256": "sha256:3e504e562d90112db3eba6f97d4b24ca87dd528bdd5d8f0d52e3361adf8e48c6",
         "dataset_sha256": "sha256:50baf3bf1645633251012616f601b8caff25c411476daa3849baaefa7f66760b",
         "contract_sha256": "sha256:c05bee735f61dea3e4f7863bd18e2cc65e8d8d88351c1fa10787e1297a591a73"
       },
@@ -17068,7 +16578,8 @@
       "tags": [
         "lookup",
         "single-service",
-        "elasticsearch"
+        "elasticsearch",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -17149,7 +16660,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/exa/enrich-lead-list",
-        "scenario_sha256": "sha256:e1dccd26e21e37628f5780e9113c0f57af1a517a97b9fbd889d72bd292fbfdc9",
+        "scenario_sha256": "sha256:9c4f3aeb62b62055d7e0ea0f75dfd8cc748e934d4597e4caa346c0f6ce3017ad",
         "dataset_sha256": "sha256:581b7f1b8fd2d7bae595fdbb6f704539f1722bb765ed78e08832fbfe8b20535c",
         "contract_sha256": "sha256:90dd4444a20c7c21f16c369ddd5121b625971ffbd7d4df5ef523d735b09839e7"
       },
@@ -17171,7 +16682,8 @@
       "tags": [
         "write",
         "single-service",
-        "exa"
+        "exa",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -17243,104 +16755,11 @@
       ]
     },
     {
-      "id": "search/exa/find-vp-engineering-profile",
-      "source": {
-        "schema_version": 1,
-        "scenario": "search/exa/find-vp-engineering-profile",
-        "scenario_sha256": "sha256:1ddee7f0c4228a702d163f605e17edffdd132031d4543ed4ffe2252af565b445",
-        "dataset_sha256": "sha256:e0da727a09c7ec44aada55d1bbb1bb4b6f2a0f0865e5ccc0cd21eaa77b9403e6",
-        "contract_sha256": "sha256:e9b337b2c07fd999d965ce9e50c43194023de0f099546d1f9e763128afc46814"
-      },
-      "instruction_sha256": "sha256:a84490fde408facfa30f5a8161f01f53dd857f01f6d2c7feaa00867895042c5a",
-      "scored": true,
-      "family": {
-        "schema_version": 1,
-        "primary": "entity_ambiguity",
-        "secondary": [
-          "stale_state"
-        ],
-        "dependency_depth": 1,
-        "rationale": "Four Priya Raman profiles: priya-raman-tessellate (VP Eng, Tessellate Bio), a former Tessellate Bio director now CTO at Kestrel Genomics, a Tessellate Analytics data scientist and a Boston cardiologist."
-      },
-      "scripted_user": false,
-      "services": [
-        "exa"
-      ],
-      "tags": [
-        "lookup",
-        "single-service",
-        "exa",
-        "disambiguation"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 0,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 0,
-      "information_prerequisites": 0,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 0,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 1
-      },
-      "effect_permissions": {},
-      "answer_check": "source_bound_record_facts",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [],
-        "unreviewed_operations": [
-          "exa.people_search_exa"
-        ]
-      },
-      "source_gaps": [
-        "legacy_answer_file_collection",
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "exa",
-          "tool": "people_search_exa",
-          "snapshot_path": "servers/snapshots/exa.json",
-          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
       "id": "search/exa/fleet-charger-research",
       "source": {
         "schema_version": 1,
         "scenario": "search/exa/fleet-charger-research",
-        "scenario_sha256": "sha256:ad709c3bf4eaed51022284e9aa8c880aaab65435b83d5392cd43caba4c05ab42",
+        "scenario_sha256": "sha256:46f3598c8b9b4b9d77a08d289d122c0ed040078de63f8b0738daeaeeafab0dde",
         "dataset_sha256": "sha256:d59c6daf19f9841510be2954222f0c7e89bf63cfc77ff13466faeac934c62248",
         "contract_sha256": "sha256:acd56ec37b4cef5110267d5615ba97a2c13c8cfa156be2a9e3acf8654267a12b"
       },
@@ -17360,7 +16779,8 @@
       "tags": [
         "write",
         "single-service",
-        "exa"
+        "exa",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -17444,13 +16864,13 @@
       ]
     },
     {
-      "id": "search/exa/sdk-timeout-default",
+      "id": "search/exa/sdk-timeout-any-search",
       "source": {
         "schema_version": 1,
-        "scenario": "search/exa/sdk-timeout-default",
-        "scenario_sha256": "sha256:a29d0fb95ec640df5984f5a0738a19150ab70c20b5e1e3eaa7ee31dada205ca2",
-        "dataset_sha256": "sha256:1d1c15292e27c5cb577353e82fe59dd309afeb6e17acc19c41459e84c2ae9950",
-        "contract_sha256": "sha256:d34878f884874f838ecd1b96ef2d7c77919f99bf85a009cf7d59e07048b97945"
+        "scenario": "search/exa/sdk-timeout-any-search",
+        "scenario_sha256": "sha256:db786fcd18579d136879f079d0ff930508251db0735684a24de05cb133bd9bd9",
+        "dataset_sha256": "sha256:65e368ce391f9b90de669e0b8368bf3c01b353ed225d0e45089517989534f79f",
+        "contract_sha256": "sha256:b2b5b7caab960fe7a77f6dd0b8a7426c4c010cc7ebc8c1e452968ccc8b69c0bf"
       },
       "instruction_sha256": "sha256:35acf4a8c5882f426f428a3a77c122ff79d61fc5b9a1d6ee79a04764feec4b3b",
       "scored": true,
@@ -17465,12 +16885,16 @@
       },
       "scripted_user": false,
       "services": [
-        "exa"
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
       ],
       "tags": [
         "lookup",
         "single-service",
-        "exa"
+        "any-search-vendor",
+        "route:unnamed"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -17508,8 +16932,13 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
         },
         "reviewed_operations": [],
         "partially_reviewed_operations": [],
@@ -17520,7 +16949,6 @@
       },
       "source_gaps": [
         "legacy_answer_file_collection",
-        "validation_evidence_missing",
         "unreviewed_reference_operation"
       ],
       "reference_calls": [
@@ -17547,11 +16975,112 @@
       ]
     },
     {
+      "id": "search/exa/vp-profile-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "search/exa/vp-profile-any-search",
+        "scenario_sha256": "sha256:9c8aeae60709871f7c59b3c7225ba47a0deaf484dded06dee4e083b1bd0f0c8c",
+        "dataset_sha256": "sha256:6f1958b50a316a3bf4ef01d90bafc2f27ad2182ab206f1e5510affe8313eeac2",
+        "contract_sha256": "sha256:70e796327ab2266f5b16e5dc50f3a26d3879a466671acf25e65e1249b90822ce"
+      },
+      "instruction_sha256": "sha256:a84490fde408facfa30f5a8161f01f53dd857f01f6d2c7feaa00867895042c5a",
+      "scored": true,
+      "family": {
+        "schema_version": 1,
+        "primary": "entity_ambiguity",
+        "secondary": [
+          "stale_state"
+        ],
+        "dependency_depth": 1,
+        "rationale": "Four Priya Raman profiles: priya-raman-tessellate (VP Eng, Tessellate Bio), a former Tessellate Bio director now CTO at Kestrel Genomics, a Tessellate Analytics data scientist and a Boston cardiologist."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
+      ],
+      "tags": [
+        "lookup",
+        "single-service",
+        "any-search-vendor",
+        "disambiguation",
+        "route:unnamed"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 0,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 0,
+      "information_prerequisites": 0,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 0,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 1
+      },
+      "effect_permissions": {},
+      "answer_check": "source_bound_record_facts",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [],
+        "unreviewed_operations": [
+          "exa.people_search_exa"
+        ]
+      },
+      "source_gaps": [
+        "legacy_answer_file_collection",
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "exa",
+          "tool": "people_search_exa",
+          "snapshot_path": "servers/snapshots/exa.json",
+          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
       "id": "search/firecrawl/crawl-api-reference",
       "source": {
         "schema_version": 1,
         "scenario": "search/firecrawl/crawl-api-reference",
-        "scenario_sha256": "sha256:0699564001f6309b3085a6a23c0f9ccde2905324faa67020e6f5ae11863b8eb3",
+        "scenario_sha256": "sha256:9745533e4ef69e4614a5718193ebbb93d8c73a6b6873f55430413642f0eae06f",
         "dataset_sha256": "sha256:111c613fda92b40b2e0fbe4161ab530954bfaed1f9b75ac04553e76f55dd9c4a",
         "contract_sha256": "sha256:f33cd60f312c3acb31911b930f8cecc497aeee9ff13cb7884b37416761e88c0d"
       },
@@ -17571,7 +17100,8 @@
       "tags": [
         "write",
         "single-service",
-        "firecrawl"
+        "firecrawl",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -17656,7 +17186,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/firecrawl/monitor-competitor-pricing",
-        "scenario_sha256": "sha256:3f9d738899cccc65e57115b5bd7443ab08c7a811269f9b2789a4134673f5c7b9",
+        "scenario_sha256": "sha256:443973dafe12a2876ea5292dbbe33e400f662342f35a34880f232387703e161f",
         "dataset_sha256": "sha256:8db665fc1fc8ab0383a1f41134fca6e2137889082a55772198b4ef81f48b9161",
         "contract_sha256": "sha256:29c0c3aa8bdd2670ae02203b5d1273717605ec0cc501cdf7a2f7036277949c7c"
       },
@@ -17676,7 +17206,8 @@
       "tags": [
         "write",
         "single-service",
-        "firecrawl"
+        "firecrawl",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -17757,115 +17288,11 @@
       ]
     },
     {
-      "id": "search/firecrawl/northwind-team-pricing",
-      "source": {
-        "schema_version": 1,
-        "scenario": "search/firecrawl/northwind-team-pricing",
-        "scenario_sha256": "sha256:7ba80bbdb0d4c6fb7dc9e0653dc6f0a24ce6d80087a3c3857b8d688a8e4af99b",
-        "dataset_sha256": "sha256:c54a784b2c0864ca54388433e36cfdbc21ccf88ce92328c197b8d8a533a9963a",
-        "contract_sha256": "sha256:7863bbf75f734f6da0ed86155b8eed4e5d56da2bc172f17fd20260f6fdacc08f"
-      },
-      "instruction_sha256": "sha256:9dfe4340ab897a595e0b4ee8d15f84d789ca86cfdcb80600a580c99a80a6df86",
-      "scored": true,
-      "family": {
-        "schema_version": 1,
-        "primary": "stale_state",
-        "secondary": [
-          "entity_ambiguity"
-        ],
-        "dependency_depth": 2,
-        "rationale": "Live pricing page (updated 2026-09-01) says Team $79 annual with 12 seats; the Feb 2025 blog post and G2 listing (updated March 2025) say $69 and 10 seats; Northwind Traders is a look-alike."
-      },
-      "scripted_user": false,
-      "services": [
-        "firecrawl"
-      ],
-      "tags": [
-        "lookup",
-        "single-service",
-        "firecrawl",
-        "disambiguation"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 0,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 0,
-      "information_prerequisites": 0,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 0,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 1
-      },
-      "effect_permissions": {},
-      "answer_check": "source_bound_record_facts",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [],
-        "unreviewed_operations": [
-          "firecrawl.firecrawl_scrape",
-          "firecrawl.firecrawl_search"
-        ]
-      },
-      "source_gaps": [
-        "legacy_answer_file_collection",
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "firecrawl",
-          "tool": "firecrawl_search",
-          "snapshot_path": "servers/snapshots/firecrawl.json",
-          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "firecrawl",
-          "tool": "firecrawl_scrape",
-          "snapshot_path": "servers/snapshots/firecrawl.json",
-          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
       "id": "search/firecrawl/pause-broken-pricing-monitor",
       "source": {
         "schema_version": 1,
         "scenario": "search/firecrawl/pause-broken-pricing-monitor",
-        "scenario_sha256": "sha256:99621fc800792e55dee37834677f03730b1012c907739b5dbc96ca3e2aa02021",
+        "scenario_sha256": "sha256:3b2a085946d2aca39e42884e94a26dc279530231385ed688b1473c563f35fbdf",
         "dataset_sha256": "sha256:deb392fe148a9cc084cab48a5e533759c46f00e288e36186379fe962b4374ae2",
         "contract_sha256": "sha256:8c970f69e6943d4aea2b6dc98c93ab2cdbbf75ecea070bf5d92d44bb67a2f8ca"
       },
@@ -17888,7 +17315,8 @@
         "write",
         "single-service",
         "firecrawl",
-        "disambiguation"
+        "disambiguation",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -17993,11 +17421,123 @@
       ]
     },
     {
+      "id": "search/firecrawl/team-pricing-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "search/firecrawl/team-pricing-any-search",
+        "scenario_sha256": "sha256:c9039dcd51e3b95e434b81d08b4f67133031c66d632cc25bbb26248982889187",
+        "dataset_sha256": "sha256:8792f848c7d401126c36f9296bc40a5cada27e4afa1c9e6675e7d5f6cc819c30",
+        "contract_sha256": "sha256:7863bbf75f734f6da0ed86155b8eed4e5d56da2bc172f17fd20260f6fdacc08f"
+      },
+      "instruction_sha256": "sha256:9dfe4340ab897a595e0b4ee8d15f84d789ca86cfdcb80600a580c99a80a6df86",
+      "scored": true,
+      "family": {
+        "schema_version": 1,
+        "primary": "stale_state",
+        "secondary": [
+          "entity_ambiguity"
+        ],
+        "dependency_depth": 2,
+        "rationale": "Live pricing page (updated 2026-09-01) says Team $79 annual with 12 seats; the Feb 2025 blog post and G2 listing (updated March 2025) say $69 and 10 seats; Northwind Traders is a look-alike."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
+      ],
+      "tags": [
+        "lookup",
+        "single-service",
+        "any-search-vendor",
+        "disambiguation",
+        "route:unnamed"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 0,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 0,
+      "information_prerequisites": 0,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 0,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 1
+      },
+      "effect_permissions": {},
+      "answer_check": "source_bound_record_facts",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [],
+        "unreviewed_operations": [
+          "firecrawl.firecrawl_scrape",
+          "firecrawl.firecrawl_search"
+        ]
+      },
+      "source_gaps": [
+        "legacy_answer_file_collection",
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "firecrawl",
+          "tool": "firecrawl_search",
+          "snapshot_path": "servers/snapshots/firecrawl.json",
+          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "firecrawl",
+          "tool": "firecrawl_scrape",
+          "snapshot_path": "servers/snapshots/firecrawl.json",
+          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
       "id": "search/multi/api-key-deletion-audit-github",
       "source": {
         "schema_version": 1,
         "scenario": "search/multi/api-key-deletion-audit-github",
-        "scenario_sha256": "sha256:5af03786730e0753e2858ae340c5b54e4f852c672677fdb1a83b910871bbcf8c",
+        "scenario_sha256": "sha256:acc1821d9b3066519e76934e83a5d231887d54db7dfa437f512056f35d1da878",
         "dataset_sha256": "sha256:81ba09c6b875951f9af9ee377b5f1cdcbdcf0e1797a7093f544ee1a3d77ef36d",
         "contract_sha256": "sha256:19829ec0dfca321f124c1f9c8a5b72245e3a7edbf0f8a2493efb580a6722b149"
       },
@@ -18023,7 +17563,8 @@
         "multi-service",
         "elasticsearch",
         "github",
-        "disambiguation"
+        "disambiguation",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -18122,258 +17663,11 @@
       ]
     },
     {
-      "id": "search/multi/competitor-funding-and-pricing",
-      "source": {
-        "schema_version": 1,
-        "scenario": "search/multi/competitor-funding-and-pricing",
-        "scenario_sha256": "sha256:7f6ecb6000b1075dbc125e5dfc1fada0e3f25ebd3215ef84888950115b9610ae",
-        "dataset_sha256": "sha256:49661962ac9d0930073295330528a78de3e706dc353ca4380472892310b218d4",
-        "contract_sha256": "sha256:d547d94aa9f00955d231184b4809ed8acc4ee21dd68c266dd6d9cdabd7088e06"
-      },
-      "instruction_sha256": "sha256:fea7fb5f6863b9878cc2e877991a8e06dfc88cca6ea471414232da7adf6166dd",
-      "scored": true,
-      "family": {
-        "schema_version": 1,
-        "primary": "stale_state",
-        "secondary": [
-          "entity_ambiguity"
-        ],
-        "dependency_depth": 2,
-        "rationale": "Current facts are the 2026-10-27 $45M Series B and live Growth $890; stale ones are the 2025 $12M Series A, DealBase, the 2025 blog and Capterra at $690; Norvik Labs ($30M) is a look-alike."
-      },
-      "scripted_user": false,
-      "services": [
-        "brave",
-        "firecrawl"
-      ],
-      "tags": [
-        "lookup",
-        "multi-service",
-        "brave",
-        "firecrawl",
-        "disambiguation"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 0,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 0,
-      "information_prerequisites": 0,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 0,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 1
-      },
-      "effect_permissions": {},
-      "answer_check": "source_bound_record_facts",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [],
-        "unreviewed_operations": [
-          "brave-search.brave_news_search",
-          "firecrawl.firecrawl_scrape",
-          "firecrawl.firecrawl_search"
-        ]
-      },
-      "source_gaps": [
-        "legacy_answer_file_collection",
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "brave-search",
-          "tool": "brave_news_search",
-          "snapshot_path": "servers/snapshots/brave-search.json",
-          "snapshot_sha256": "sha256:da2b22c433a86c1e43a822691e496367dae7694fe46dcb9500c2e403518b6858",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "firecrawl",
-          "tool": "firecrawl_search",
-          "snapshot_path": "servers/snapshots/firecrawl.json",
-          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "firecrawl",
-          "tool": "firecrawl_scrape",
-          "snapshot_path": "servers/snapshots/firecrawl.json",
-          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
-      "id": "search/multi/competitor-research-github-issue",
-      "source": {
-        "schema_version": 1,
-        "scenario": "search/multi/competitor-research-github-issue",
-        "scenario_sha256": "sha256:642217e2a8a5327b2018a475b40e5a624916886de60538dfd7a5e652535104c4",
-        "dataset_sha256": "sha256:3456b404b0bb31859df7e1cf491a4a8a62b5c379919f0656fedfa8d3872e65e7",
-        "contract_sha256": "sha256:b880fff1e6ff1e3c5a4191ce36d58dc6ea2e63efd5b0ab5c0bd7f7b866868f74"
-      },
-      "instruction_sha256": "sha256:53fd56306ade803e342a0dc0da9e4919280b583e9881d41a12bc3d5cbfff5304",
-      "scored": true,
-      "family": {
-        "schema_version": 1,
-        "primary": "stale_state",
-        "secondary": [
-          "entity_ambiguity"
-        ],
-        "dependency_depth": 2,
-        "rationale": "GA post and live pricing (2026-10-27) say Scale $349 and 50M events; the 2025-11-10 beta post says $299 and 25M and closed issue 3 covers the beta; Lumenwise and the archived 2024 repo are look-alikes."
-      },
-      "scripted_user": false,
-      "services": [
-        "exa",
-        "github"
-      ],
-      "tags": [
-        "write",
-        "multi-service",
-        "exa",
-        "github",
-        "disambiguation"
-      ],
-      "contract_version": 2,
-      "preservation_required": true,
-      "history_required": true,
-      "state_checks": 0,
-      "record_checks": 2,
-      "metric_alarm_checks": 0,
-      "firecrawl_crawl_checks": 0,
-      "firecrawl_monitor_checks": 0,
-      "quantity_checks": 0,
-      "interval_coverage_checks": 0,
-      "tag_scope_checks": 0,
-      "array_length_permissions": 0,
-      "latest_record_checks": 0,
-      "cause_scoped_permissions": 0,
-      "initial_scope_permissions": 0,
-      "related_record_filters": 0,
-      "relationship_checks": 0,
-      "causal_checks": 1,
-      "information_prerequisites": 1,
-      "declared_content": {
-        "literal_business_text": 0,
-        "literal_html": 0,
-        "reviewed_static_text": 2,
-        "optional_reviewed_text": 0,
-        "conditional_reviewed_text": 0,
-        "identity_bound_text": 0,
-        "reviewed_field_projections": 0,
-        "source_bound_answers": 0
-      },
-      "effect_permissions": {
-        "create": 1
-      },
-      "answer_check": "none",
-      "reference_answer_template": false,
-      "declared_environment_faults": [],
-      "authoring": {
-        "captured_arguments": "none",
-        "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
-        },
-        "reviewed_operations": [],
-        "partially_reviewed_operations": [
-          "github.issue_write"
-        ],
-        "unreviewed_operations": [
-          "exa.web_fetch_exa",
-          "exa.web_search_exa",
-          "github.search_repositories"
-        ]
-      },
-      "source_gaps": [
-        "validation_evidence_missing",
-        "unreviewed_reference_operation"
-      ],
-      "reference_calls": [
-        {
-          "endpoint": "exa",
-          "tool": "web_search_exa",
-          "snapshot_path": "servers/snapshots/exa.json",
-          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "exa",
-          "tool": "web_fetch_exa",
-          "snapshot_path": "servers/snapshots/exa.json",
-          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "github",
-          "tool": "search_repositories",
-          "snapshot_path": "servers/snapshots/github.json",
-          "snapshot_sha256": "sha256:d2b464e570927936e43c8f1765f7ece21ed7eca612c91466985d3fd50596e69c",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "github",
-          "tool": "issue_write",
-          "snapshot_path": "servers/snapshots/github.json",
-          "snapshot_sha256": "sha256:d2b464e570927936e43c8f1765f7ece21ed7eca612c91466985d3fd50596e69c",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "mcp_envelope_v1",
-          "allowed_api_errors": []
-        }
-      ]
-    },
-    {
       "id": "search/multi/es-duplicate-charge-stripe-refund",
       "source": {
         "schema_version": 1,
         "scenario": "search/multi/es-duplicate-charge-stripe-refund",
-        "scenario_sha256": "sha256:6dbece027bcabfc30ffa68c649e3bdb83dea06db312cb2585b34f9f751f34b94",
+        "scenario_sha256": "sha256:1dee0fdcd4abc6bbf8b9d790c6c4679abea5e9b3fcf9b00b700d68f076058915",
         "dataset_sha256": "sha256:7d44e157b81301329006762550d08013790e411466e26eb037469e8575142d07",
         "contract_sha256": "sha256:7d5cc7538e3b4817f57821682659a226b4549b642d7828f96596d013d154ed7f"
       },
@@ -18398,7 +17692,8 @@
         "multi-service",
         "elasticsearch",
         "stripe",
-        "disambiguation"
+        "disambiguation",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -18499,13 +17794,274 @@
       ]
     },
     {
-      "id": "search/multi/vendor-rate-limit-zendesk-reply",
+      "id": "search/multi/funding-and-pricing-any-search",
       "source": {
         "schema_version": 1,
-        "scenario": "search/multi/vendor-rate-limit-zendesk-reply",
-        "scenario_sha256": "sha256:8391da788ed31da2587d89cffa4268a22671ab1f78a11e6ed16756017232192a",
-        "dataset_sha256": "sha256:f53cfb381e955cdac39298a04d9a5d9084eda34a7390f2259a695cbd015b9f58",
-        "contract_sha256": "sha256:e5c4b08d257910a1a148dc545f3054714b2033c7dc9532b4e4918ced649f4a89"
+        "scenario": "search/multi/funding-and-pricing-any-search",
+        "scenario_sha256": "sha256:78d34d019b3132c55ea83530a617a784d266bf82b766af3185f5a6dc521c5eb3",
+        "dataset_sha256": "sha256:0757a39ba9b123e1837e6d1800effd37bb1f39748245ac9a8587e2b6852b8555",
+        "contract_sha256": "sha256:e185fdc3a682c84953d9f19decded20c6cdb4aed398b6967c966999c46645336"
+      },
+      "instruction_sha256": "sha256:fea7fb5f6863b9878cc2e877991a8e06dfc88cca6ea471414232da7adf6166dd",
+      "scored": true,
+      "family": {
+        "schema_version": 1,
+        "primary": "stale_state",
+        "secondary": [
+          "entity_ambiguity"
+        ],
+        "dependency_depth": 2,
+        "rationale": "Current facts are the 2026-10-27 $45M Series B and live Growth $890; stale ones are the 2025 $12M Series A, DealBase, the 2025 blog and Capterra at $690; Norvik Labs ($30M) is a look-alike."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "tavily"
+      ],
+      "tags": [
+        "lookup",
+        "multi-service",
+        "any-search-vendor",
+        "disambiguation",
+        "route:unnamed"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 0,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 0,
+      "information_prerequisites": 0,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 0,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 1
+      },
+      "effect_permissions": {},
+      "answer_check": "source_bound_record_facts",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [],
+        "unreviewed_operations": [
+          "brave-search.brave_news_search",
+          "firecrawl.firecrawl_scrape",
+          "firecrawl.firecrawl_search"
+        ]
+      },
+      "source_gaps": [
+        "legacy_answer_file_collection",
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "brave-search",
+          "tool": "brave_news_search",
+          "snapshot_path": "servers/snapshots/brave-search.json",
+          "snapshot_sha256": "sha256:da2b22c433a86c1e43a822691e496367dae7694fe46dcb9500c2e403518b6858",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "firecrawl",
+          "tool": "firecrawl_search",
+          "snapshot_path": "servers/snapshots/firecrawl.json",
+          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "firecrawl",
+          "tool": "firecrawl_scrape",
+          "snapshot_path": "servers/snapshots/firecrawl.json",
+          "snapshot_sha256": "sha256:d9bd274fb97d35993c5ef4c1128ebc50d1a020e0130f023e8127d1b2b8af57a5",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
+      "id": "search/multi/github-issue-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "search/multi/github-issue-any-search",
+        "scenario_sha256": "sha256:36da45eebb82dbd1ddbcba8baa91b50e67e96174a9b2e8ec0ceeafd18db023c0",
+        "dataset_sha256": "sha256:a0fd501d79a6cf5ba07f98f80c31ebe095a9c32c217108432e74ae0461355459",
+        "contract_sha256": "sha256:19d40bf886111ad4791bdee7a5b4b745646dc4313b951b601ccf8469695c1564"
+      },
+      "instruction_sha256": "sha256:53fd56306ade803e342a0dc0da9e4919280b583e9881d41a12bc3d5cbfff5304",
+      "scored": true,
+      "family": {
+        "schema_version": 1,
+        "primary": "stale_state",
+        "secondary": [
+          "entity_ambiguity"
+        ],
+        "dependency_depth": 2,
+        "rationale": "GA post and live pricing (2026-10-27) say Scale $349 and 50M events; the 2025-11-10 beta post says $299 and 25M and closed issue 3 covers the beta; Lumenwise and the archived 2024 repo are look-alikes."
+      },
+      "scripted_user": false,
+      "services": [
+        "brave",
+        "exa",
+        "firecrawl",
+        "github",
+        "tavily"
+      ],
+      "tags": [
+        "write",
+        "multi-service",
+        "any-search-vendor",
+        "github",
+        "disambiguation",
+        "route:unnamed"
+      ],
+      "contract_version": 2,
+      "preservation_required": true,
+      "history_required": true,
+      "state_checks": 0,
+      "record_checks": 2,
+      "metric_alarm_checks": 0,
+      "firecrawl_crawl_checks": 0,
+      "firecrawl_monitor_checks": 0,
+      "quantity_checks": 0,
+      "interval_coverage_checks": 0,
+      "tag_scope_checks": 0,
+      "array_length_permissions": 0,
+      "latest_record_checks": 0,
+      "cause_scoped_permissions": 0,
+      "initial_scope_permissions": 0,
+      "related_record_filters": 0,
+      "relationship_checks": 0,
+      "causal_checks": 1,
+      "information_prerequisites": 1,
+      "declared_content": {
+        "literal_business_text": 0,
+        "literal_html": 0,
+        "reviewed_static_text": 2,
+        "optional_reviewed_text": 0,
+        "conditional_reviewed_text": 0,
+        "identity_bound_text": 0,
+        "reviewed_field_projections": 0,
+        "source_bound_answers": 0
+      },
+      "effect_permissions": {
+        "create": 1
+      },
+      "answer_check": "none",
+      "reference_answer_template": false,
+      "declared_environment_faults": [],
+      "authoring": {
+        "captured_arguments": "none",
+        "validation_evidence": {
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
+        },
+        "reviewed_operations": [],
+        "partially_reviewed_operations": [
+          "github.issue_write"
+        ],
+        "unreviewed_operations": [
+          "exa.web_fetch_exa",
+          "exa.web_search_exa",
+          "github.search_repositories"
+        ]
+      },
+      "source_gaps": [
+        "unreviewed_reference_operation"
+      ],
+      "reference_calls": [
+        {
+          "endpoint": "exa",
+          "tool": "web_search_exa",
+          "snapshot_path": "servers/snapshots/exa.json",
+          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "exa",
+          "tool": "web_fetch_exa",
+          "snapshot_path": "servers/snapshots/exa.json",
+          "snapshot_sha256": "sha256:eee8ce4ff331319b00e9a45e9f23a77cb7bccc9e985b62cc5537e87a7f0c988b",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "github",
+          "tool": "search_repositories",
+          "snapshot_path": "servers/snapshots/github.json",
+          "snapshot_sha256": "sha256:d2b464e570927936e43c8f1765f7ece21ed7eca612c91466985d3fd50596e69c",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        },
+        {
+          "endpoint": "github",
+          "tool": "issue_write",
+          "snapshot_path": "servers/snapshots/github.json",
+          "snapshot_sha256": "sha256:d2b464e570927936e43c8f1765f7ece21ed7eca612c91466985d3fd50596e69c",
+          "arguments": "static_validated",
+          "deferred_paths": [],
+          "result_contract": "mcp_envelope_v1",
+          "allowed_api_errors": []
+        }
+      ]
+    },
+    {
+      "id": "search/multi/zendesk-reply-any-search",
+      "source": {
+        "schema_version": 1,
+        "scenario": "search/multi/zendesk-reply-any-search",
+        "scenario_sha256": "sha256:507b92dc099545496d2710248900fb364b69f75df9d300192da016ca063a299b",
+        "dataset_sha256": "sha256:382666b77e511e0a9ee2801693c843234615dc15231be9d35ea26eb35d661e8a",
+        "contract_sha256": "sha256:590eb8c25bccf680429674fe5f2e43d2b85b96b2e5867d09bf1753bc05e7001f"
       },
       "instruction_sha256": "sha256:72275151db9ee01ec4bea136e728909b99346c7e2a181036b5b80f62189e6c69",
       "scored": true,
@@ -18520,15 +18076,19 @@
       },
       "scripted_user": false,
       "services": [
+        "brave",
+        "exa",
+        "firecrawl",
         "tavily",
         "zendesk"
       ],
       "tags": [
         "write",
         "multi-service",
-        "tavily",
+        "any-search-vendor",
         "zendesk",
-        "disambiguation"
+        "disambiguation",
+        "route:unnamed"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -18569,8 +18129,13 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
         },
         "reviewed_operations": [],
         "partially_reviewed_operations": [
@@ -18585,7 +18150,6 @@
         ]
       },
       "source_gaps": [
-        "validation_evidence_missing",
         "unreviewed_reference_operation"
       ],
       "reference_calls": [
@@ -18656,7 +18220,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/tavily/cold-chain-market-research",
-        "scenario_sha256": "sha256:202617bd40138b46d068857c5c7bfaf521a69853c7ea77c221812a3394033f85",
+        "scenario_sha256": "sha256:dd6bc44c8ee84fab5df9492b78b570859b2869b8b9aa534e36f0bc57744ed958",
         "dataset_sha256": "sha256:c923bf91a6244ea6a5d3a45fae0bd6a986f56617bc131d963188afc1d1b6df51",
         "contract_sha256": "sha256:0b87c5a4cca4f33f6f9426eaaf3399a28745c6baab87e8157d57271e8e538d24"
       },
@@ -18676,7 +18240,8 @@
       "tags": [
         "write",
         "single-service",
-        "tavily"
+        "tavily",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -18748,7 +18313,7 @@
       "source": {
         "schema_version": 1,
         "scenario": "search/tavily/competitor-pricing-research",
-        "scenario_sha256": "sha256:22d38d55f462f2a1876e1c386ba4f10978aa456c401264279fc618f308e5887a",
+        "scenario_sha256": "sha256:4f168291e76bfdb32bb2e57e71342f1aa26d5e5fd8cfd9c2a68a544fb7475d8e",
         "dataset_sha256": "sha256:3478a763cb21e467d1c3314146444a2e0a6e547385dc8e754398c65d4ecb4826",
         "contract_sha256": "sha256:ada72c6ccf193f495c6264fed29ab64b5aa2a8062e2dab64233cf35a4734fadd"
       },
@@ -18771,7 +18336,8 @@
         "write",
         "single-service",
         "tavily",
-        "disambiguation"
+        "disambiguation",
+        "route:named"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -18854,13 +18420,13 @@
       ]
     },
     {
-      "id": "search/tavily/vendor-rate-limit",
+      "id": "search/tavily/vendor-rate-limit-any-search",
       "source": {
         "schema_version": 1,
-        "scenario": "search/tavily/vendor-rate-limit",
-        "scenario_sha256": "sha256:651d3200538999a6b79f17f08fbd2155602c9646eef358c738dbc9fdc33dad47",
-        "dataset_sha256": "sha256:d9a53b2fa44548b0a8b07b3c32dc4cacabb362303d16646fc80804b69bf24594",
-        "contract_sha256": "sha256:8b2d506d0176bd445c57301374908ac8d591691e91e403304ba91a465b9cdce3"
+        "scenario": "search/tavily/vendor-rate-limit-any-search",
+        "scenario_sha256": "sha256:af8989ea0adf5afb7a3f98dad1ab95081fbcf13ffd28ddca8b543b1f2fd66f38",
+        "dataset_sha256": "sha256:a2abccd4e2a3056b6ce2c6d1f4e58c644998c5ce9605ade326749e75ff14ed9f",
+        "contract_sha256": "sha256:f5b1164410e351399e3606298ba723016251856d233f8749b7493a614d02f783"
       },
       "instruction_sha256": "sha256:e9eb7a4af406454c4a6b6beddaac938ee3ce64c377003ae2740556531a56393a",
       "scored": true,
@@ -18875,12 +18441,16 @@
       },
       "scripted_user": false,
       "services": [
+        "brave",
+        "exa",
+        "firecrawl",
         "tavily"
       ],
       "tags": [
         "lookup",
         "single-service",
-        "tavily"
+        "any-search-vendor",
+        "route:unnamed"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -18918,8 +18488,13 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
         },
         "reviewed_operations": [],
         "partially_reviewed_operations": [],
@@ -18930,7 +18505,6 @@
       },
       "source_gaps": [
         "legacy_answer_file_collection",
-        "validation_evidence_missing",
         "unreviewed_reference_operation"
       ],
       "reference_calls": [
@@ -18957,13 +18531,13 @@
       ]
     },
     {
-      "id": "search/tavily/webhook-signature-sunset",
+      "id": "search/tavily/webhook-sunset-any-search",
       "source": {
         "schema_version": 1,
-        "scenario": "search/tavily/webhook-signature-sunset",
-        "scenario_sha256": "sha256:6935b02826e38d412f03d28b4cba85d7fa74a5e628216f77f5b8221173099251",
-        "dataset_sha256": "sha256:4bb6fc9f500654ad032e30696fcf462ae019c212bd6a7bb646b4c5d7b3abec4e",
-        "contract_sha256": "sha256:cbfcb1692863c3538e6d92490ccf8d5bc71b4cda7f04b0eca011e504f2a7b170"
+        "scenario": "search/tavily/webhook-sunset-any-search",
+        "scenario_sha256": "sha256:3ef0cb686d8d0f3c92c3534c741140dd672d5fdefc654d5fd30c8614c5a251f3",
+        "dataset_sha256": "sha256:fc21fc384bc7db6c6a00ccce67284492cc5fd355961e3b9c98f09de3d5d53d5e",
+        "contract_sha256": "sha256:641a817bbe08ac1e0a6743f99de29b7a6f4ea43f7badb5a694f06315566e7bad"
       },
       "instruction_sha256": "sha256:0dfd6fca257841bef425a9cfe37d16001a0d216975c4b0d7de246234810f3be8",
       "scored": true,
@@ -18978,13 +18552,17 @@
       },
       "scripted_user": false,
       "services": [
+        "brave",
+        "exa",
+        "firecrawl",
         "tavily"
       ],
       "tags": [
         "lookup",
         "single-service",
-        "tavily",
-        "disambiguation"
+        "any-search-vendor",
+        "disambiguation",
+        "route:unnamed"
       ],
       "contract_version": 2,
       "preservation_required": true,
@@ -19022,8 +18600,13 @@
       "authoring": {
         "captured_arguments": "none",
         "validation_evidence": {
-          "valid_alternative": 0,
-          "near_miss": {}
+          "valid_alternative": 1,
+          "near_miss": {
+            "collateral_change": 0,
+            "partial": 0,
+            "undone_prohibited_change": 0,
+            "wrong_entity": 1
+          }
         },
         "reviewed_operations": [],
         "partially_reviewed_operations": [],
@@ -19034,7 +18617,6 @@
       },
       "source_gaps": [
         "legacy_answer_file_collection",
-        "validation_evidence_missing",
         "unreviewed_reference_operation"
       ],
       "reference_calls": [

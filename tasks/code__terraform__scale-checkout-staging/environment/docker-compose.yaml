@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:d4f85a7773b3fe7b
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:b2dd8257f9301a33
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "code/terraform/scale-checkout-staging"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:70ba3082204800df
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:5929a6d0cb607f7b
     stop_signal: SIGKILL
     networks:
       default: {}

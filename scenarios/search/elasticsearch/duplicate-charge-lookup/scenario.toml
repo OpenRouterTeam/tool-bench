@@ -4,7 +4,7 @@ title = "Find a customer's duplicate charge in the orders index"
 now = "2026-10-30T10:00:00Z"
 seed = "search-elasticsearch-duplicate-charge-lookup"
 services = ["elasticsearch"]
-tags = ["lookup", "single-service", "elasticsearch", "disambiguation"]
+tags = ["lookup", "single-service", "elasticsearch", "disambiguation", "route:named"]
 timeout_sec = 900
 
 [scenario.family]

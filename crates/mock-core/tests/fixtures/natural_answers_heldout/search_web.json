@@ -1,5 +1,5 @@
 {
-  "search/firecrawl/northwind-team-pricing": [
+  "search/firecrawl/team-pricing-any-search": [
     {
       "style": "note",
       "expect": "pass",
@@ -83,7 +83,7 @@
       "answer": "m.okafor deleted the ci-deploy-bot key at 16:42 UTC on October 29, 2026. On GitHub that is Sam Okafor, username sam. Sam's pull request on octo-org/deploy-pipeline is #56, which is still open and has not been merged."
     }
   ],
-  "search/multi/competitor-funding-and-pricing": [
+  "search/multi/funding-and-pricing-any-search": [
     {
       "style": "note",
       "expect": "pass",
@@ -125,7 +125,7 @@
       "answer": "1. Funding: Norvik Analytics raised $45M in a Series B led by Fjord Capital.\n2. Pricing: Growth is $890 per month, billed annually (norvikanalytics.com/pricing)."
     }
   ],
-  "search/exa/sdk-timeout-default": [
+  "search/exa/sdk-timeout-any-search": [
     {
       "style": "note",
       "expect": "pass",
@@ -167,7 +167,7 @@
       "answer": "Option: timeout_seconds\nDefault: 60 seconds\n\nThe option name is from the v4 configuration page; the default is the documented request timeout default for the Python client."
     }
   ],
-  "search/exa/find-vp-engineering-profile": [
+  "search/exa/vp-profile-any-search": [
     {
       "style": "note",
       "expect": "pass",
@@ -251,7 +251,7 @@
       "answer": "Juniper & Rye Catering\nPhone: 503-555-0142\nSaturday: 10:00-16:00"
     }
   ],
-  "search/brave/keynote-recording": [
+  "search/brave/keynote-any-search": [
     {
       "style": "note",
       "expect": "pass",
@@ -293,7 +293,7 @@
       "answer": "Speaker: Marta Lindqvist\nDuration: 47:12\nURL: https://www.youtube.com/watch?v=r8Kq2PgN7aE"
     }
   ],
-  "search/brave/hosting-sla-lookup": [
+  "search/brave/hosting-sla-any-search": [
     {
       "style": "note",
       "expect": "pass",
@@ -335,7 +335,7 @@
       "answer": "Uptime: 99.95% monthly on the Business plan\nService credit: 5% of the monthly fee\n\nSource: Ironbark Hosting SLA pages on ironbarkhosting.com"
     }
   ],
-  "search/brave/competitor-funding-news": [
+  "search/brave/funding-news-any-search": [
     {
       "style": "note",
       "expect": "pass",
@@ -377,7 +377,7 @@
       "answer": "Norvik Analytics raised $30 million in a Series B led by Halcyon Ventures, announced this week."
     }
   ],
-  "search/tavily/webhook-signature-sunset": [
+  "search/tavily/webhook-sunset-any-search": [
     {
       "style": "note",
       "expect": "pass",
@@ -419,7 +419,7 @@
       "answer": "Date: January 15, 2027\nHeader to verify: X-Ferrowave-Sig\n\nSource: Ferrowave webhook docs on docs.ferrowave.dev"
     }
   ],
-  "search/tavily/vendor-rate-limit": [
+  "search/tavily/vendor-rate-limit-any-search": [
     {
       "style": "note",
       "expect": "pass",

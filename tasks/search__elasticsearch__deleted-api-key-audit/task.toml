@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__elasticsearch__deleted-api-key-audit"
 description = "Find who deleted an API key in the audit logs"
-keywords = ["lookup","single-service","elasticsearch","disambiguation"]
+keywords = ["lookup","single-service","elasticsearch","disambiguation","route:named"]
 
 [metadata]
 scenario = "search/elasticsearch/deleted-api-key-audit"

@@ -4,7 +4,7 @@ title = "Average checkout latency per region from request logs"
 now = "2026-10-30T18:00:00Z"
 seed = "search-elasticsearch-latency-by-region"
 services = ["elasticsearch"]
-tags = ["lookup", "single-service", "elasticsearch"]
+tags = ["lookup", "single-service", "elasticsearch", "route:named"]
 timeout_sec = 900
 
 [scenario.family]

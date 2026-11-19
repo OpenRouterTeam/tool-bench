@@ -39,7 +39,7 @@ fn rewritten(case: &Case, pointer: &str, old: &str, new: &str) -> Value {
 
 #[test]
 fn brave_funding_round_is_read_from_this_weeks_headline() {
-    let case = Case::load("search/brave/competitor-funding-news");
+    let case = Case::load("search/brave/funding-news-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "Amount: $45M\nRound: Series B\nLead investor: Halcyon Ventures",
@@ -101,7 +101,7 @@ fn brave_funding_round_is_read_from_this_weeks_headline() {
 
 #[test]
 fn brave_sla_commitment_is_read_from_the_sla_in_force() {
-    let case = Case::load("search/brave/hosting-sla-lookup");
+    let case = Case::load("search/brave/hosting-sla-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "Uptime: 99.95%\nService credit: 10% of the monthly fee",
@@ -167,7 +167,7 @@ fn brave_sla_commitment_is_read_from_the_sla_in_force() {
 
 #[test]
 fn brave_keynote_recording_is_the_conference_channels_full_video() {
-    let case = Case::load("search/brave/keynote-recording");
+    let case = Case::load("search/brave/keynote-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "Marta Lindqvist gave the keynote; the video runs 47:12: https://www.youtube.com/watch?v=Zt4mQeL1x9c",
@@ -222,7 +222,7 @@ fn brave_keynote_recording_is_the_conference_channels_full_video() {
 
 #[test]
 fn exa_timeout_option_is_read_from_the_v4_reference() {
-    let case = Case::load("search/exa/sdk-timeout-default");
+    let case = Case::load("search/exa/sdk-timeout-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "Option: `timeout_seconds`\nDefault: 30 seconds",
@@ -282,7 +282,7 @@ fn exa_timeout_option_is_read_from_the_v4_reference() {
 
 #[test]
 fn exa_profile_is_selected_by_the_current_role_not_by_its_url() {
-    let case = Case::load("search/exa/find-vp-engineering-profile");
+    let case = Case::load("search/exa/vp-profile-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "https://www.linkedin.com/in/priya-raman-tessellate",
@@ -355,7 +355,7 @@ fn exa_profile_is_selected_by_the_current_role_not_by_its_url() {
 
 #[test]
 fn firecrawl_team_plan_is_read_from_the_live_pricing_page() {
-    let case = Case::load("search/firecrawl/northwind-team-pricing");
+    let case = Case::load("search/firecrawl/team-pricing-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "Team plan: $79/month billed annually, 12 seats included.",
@@ -417,7 +417,7 @@ fn firecrawl_team_plan_is_read_from_the_live_pricing_page() {
 
 #[test]
 fn tavily_rate_limit_is_read_from_the_current_reference_and_cited() {
-    let case = Case::load("search/tavily/vendor-rate-limit");
+    let case = Case::load("search/tavily/vendor-rate-limit-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "1200 requests/min for Business, from https://docs.quillstream.io/api/rate-limits",
@@ -497,13 +497,13 @@ fn tavily_rate_limit_is_read_from_the_current_reference_and_cited() {
 #[test]
 fn notations_the_reader_does_not_accept_never_pass() {
     // Digits are not read inside a hyphenated compound.
-    Case::load("search/firecrawl/northwind-team-pricing")
+    Case::load("search/firecrawl/team-pricing-any-search")
         .fails(&["$79 per month for a 12-seat team."]);
 }
 
 #[test]
 fn tavily_signature_sunset_is_the_date_of_the_signature_guide() {
-    let case = Case::load("search/tavily/webhook-signature-sunset");
+    let case = Case::load("search/tavily/webhook-sunset-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "Date: 2027-01-15\nHeader: Ferrowave-Signature-V2",
@@ -557,7 +557,7 @@ fn tavily_signature_sunset_is_the_date_of_the_signature_guide() {
 
 #[test]
 fn multi_funding_round_and_growth_price_come_from_two_independent_sources() {
-    let case = Case::load("search/multi/competitor-funding-and-pricing");
+    let case = Case::load("search/multi/funding-and-pricing-any-search");
     case.reference_is_source_bound();
     case.passes(&[
         "Funding: $45M Series B led by Halcyon Ventures.\nPricing: Growth is $890 per month, billed annually.",

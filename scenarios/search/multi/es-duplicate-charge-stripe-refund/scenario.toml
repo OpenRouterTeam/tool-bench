@@ -4,7 +4,7 @@ title = "Find a customer's double charge in the orders index and refund the dupl
 now = "2026-10-30T10:00:00Z"
 seed = "search-multi-es-duplicate-charge-stripe-refund"
 services = ["elasticsearch", "stripe"]
-tags = ["write", "multi-service", "elasticsearch", "stripe", "disambiguation"]
+tags = ["write", "multi-service", "elasticsearch", "stripe", "disambiguation", "route:named"]
 timeout_sec = 900
 
 [scenario.family]

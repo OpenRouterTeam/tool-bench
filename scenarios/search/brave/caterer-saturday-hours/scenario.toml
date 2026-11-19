@@ -4,7 +4,7 @@ title = "Find a local caterer's phone and Saturday hours among look-alike busine
 now = "2026-10-26T16:30:00Z"
 seed = "search-brave-caterer-saturday-hours"
 services = ["brave"]
-tags = ["lookup", "single-service", "brave", "disambiguation"]
+tags = ["lookup", "single-service", "brave", "disambiguation", "route:kind"]
 timeout_sec = 900
 
 [scenario.family]
