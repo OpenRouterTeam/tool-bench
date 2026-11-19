@@ -80,11 +80,59 @@ fn the_committed_release_freezes_the_current_scored_sources() {
 /// Tasks both releases score under one name that release 2 changed: the instruction, the
 /// dataset or the contract differs. Sorted by id. A release 1 result for one of these belongs
 /// to the earlier version of the task, whose sources are the repository at release 1's commit.
-const CHANGED_IN_PLACE: &[&str] = &["search/firecrawl/crawl-api-reference"];
+const CHANGED_IN_PLACE: &[&str] = &[
+    "business/hubspot/dana-joins-pied-piper",
+    "business/hubspot/largest-open-deal",
+    "business/hubspot/log-call-note-initech",
+    "business/multi/hubspot-largest-deal-salesforce-owner",
+    "business/multi/zendesk-order-status-shopify",
+    "business/multi/zendesk-refund-via-stripe",
+    "business/shopify/relaunch-tote",
+    "business/zendesk/create-ticket-for-caller",
+    "business/zendesk/escalate-outage-ticket",
+    "business/zendesk/find-invoice-attachment",
+    "business/zendesk/reply-refund-and-solve",
+    "cloud/aws/find-unencrypted-bucket",
+    "cloud/mongodb/refund-order",
+    "cloud/multi/aws-jira-decommission-worker",
+    "cloud/multi/aws-replica-lag-pagerduty-notion",
+    "cloud/okta/failed-signins-report",
+    "cloud/supabase/top-customer-march-revenue",
+    "code/argocd/find-degraded-app",
+    "code/argocd/restart-indexer-worker",
+    "code/argocd/roll-back-billing-worker",
+    "code/argocd/sync-prod-payments-api",
+    "code/gitlab/diagnose-failed-pipeline",
+    "code/multi/argocd-degraded-gitlab-commit",
+    "code/multi/sentry-spike-vercel-rollback",
+    "code/multi/vercel-deploy-github-pr-lookup",
+    "code/terraform/payments-db-upgrade-failure",
+    "code/terraform/unlock-orders-prod",
+    "collab/jira/blocked-sprint-item",
+    "collab/multi/jira-sentry-crash-impact",
+    "collab/multi/slack-pagerduty-dbre-oncall",
+    "collab/notion/launch-date-owner",
+    "ops/datadog/schedule-replica-downtime",
+    "ops/grafana/annotate-checkout-deploy",
+    "ops/grafana/silence-replica-maintenance",
+    "ops/grafana/top-5xx-checkout-pod",
+    "ops/kubernetes/crashloop-root-cause",
+    "ops/multi/crashloop-oncall-lookup",
+    "ops/multi/datadog-latency-argocd-rollback",
+    "ops/multi/pagerduty-sentry-github-issue",
+    "ops/multi/sentry-release-commit-lookup",
+    "ops/pagerduty/cover-shift-override",
+    "ops/pagerduty/payments-oncall-now",
+    "ops/pagerduty/reassign-replication-lag",
+    "ops/sentry/top-unresolved-checkout",
+    "search/exa/enrich-lead-list",
+    "search/firecrawl/crawl-api-reference",
+    "search/multi/api-key-deletion-audit-github",
+];
 
 /// Release 1 stays readable, and what release 2 changed is named: eleven search tasks left
 /// (their sources are archived) and eleven joined, and of the 139 tasks the two share only
-/// those in `CHANGED_IN_PLACE` differ in instruction, dataset or contract. The manifest does
+/// the 47 in `CHANGED_IN_PLACE` differ in instruction, dataset or contract. The manifest does
 /// not freeze instruction bytes, so release 1's are compared from the hashes recorded beside
 /// the archive.
 #[test]
@@ -154,6 +202,7 @@ fn the_earlier_release_is_kept_and_every_difference_from_it_is_named() {
         })
         .collect();
     assert_eq!(changed, CHANGED_IN_PLACE);
+    assert_eq!(CHANGED_IN_PLACE.len(), 47);
 }
 
 #[test]
