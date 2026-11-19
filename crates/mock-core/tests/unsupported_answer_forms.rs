@@ -36,7 +36,7 @@ use statement_support::Case;
 
 #[test]
 fn compound_rate_conversion_per_second_to_per_minute() {
-    let case = Case::load("search/tavily/vendor-rate-limit");
+    let case = Case::load("search/tavily/vendor-rate-limit-any-search");
     case.reference_is_source_bound();
 
     // Wrong controls: genuinely wrong rates or wrong sources.
@@ -120,7 +120,7 @@ fn microseconds_to_milliseconds_dimension_gap() {
 
 #[test]
 fn decimal_fraction_for_percentage() {
-    let case = Case::load("search/brave/hosting-sla-lookup");
+    let case = Case::load("search/brave/hosting-sla-any-search");
     case.reference_is_source_bound();
 
     // Wrong controls: the archived SLA's values.

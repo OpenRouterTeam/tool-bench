@@ -207,7 +207,7 @@ fn absent_records_cannot_supply_required_facts_or_mandatory_descendants() {
 
 #[test]
 fn optional_negative_context_cannot_erase_a_denial_of_a_required_fact() {
-    let mut case = Case::load("search/tavily/webhook-signature-sunset");
+    let mut case = Case::load("search/tavily/webhook-sunset-any-search");
     let pointer = "/services/tavily/pages/https:~1~1docs.ferrowave.dev~1guides~1webhooks~1verify-signatures/raw_content";
     let original = case.initial.pointer(pointer).unwrap().as_str().unwrap();
     let changed = original.replace("Ferrowave-Signature-V2", "X-Ferrowave-Sig");

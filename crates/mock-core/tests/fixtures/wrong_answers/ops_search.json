@@ -26,7 +26,7 @@
    "answer": "CHECKOUT-API-2R: DisallowedHost: Invalid HTTP_HOST header: '10.4.2.17:8000'. CHECKOUT-API-3F (OperationalError: could not obtain connection from pool within 5.0s) is in the list too."
   }
  ],
- "search/firecrawl/northwind-team-pricing": [
+ "search/firecrawl/team-pricing-any-search": [
   {
    "style": "in-suite regression",
    "expect": "reject",
@@ -56,7 +56,7 @@
    "answer": "The Enterprise plan is $79/month with 12 seats."
   }
  ],
- "search/tavily/webhook-signature-sunset": [
+ "search/tavily/webhook-sunset-any-search": [
   {
    "style": "in-suite regression",
    "expect": "reject",
@@ -76,7 +76,7 @@
    "answer": "January 15, 2027 or December 1, 2026; verify Ferrowave-Signature-V2."
   }
  ],
- "search/exa/sdk-timeout-default": [
+ "search/exa/sdk-timeout-any-search": [
   {
    "style": "number words",
    "expect": "reject",
@@ -88,7 +88,7 @@
    "answer": "request_timeout, default 60 seconds. The v4 page mentions timeout_seconds and 30 seconds."
   }
  ],
- "search/brave/hosting-sla-lookup": [
+ "search/brave/hosting-sla-any-search": [
   {
    "style": "number words",
    "expect": "reject",
@@ -101,7 +101,7 @@
    "answer": "The SLA commits to 99.9% with a 5% credit. The page in force says 99.95% and 10%."
   }
  ],
- "search/brave/competitor-funding-news": [
+ "search/brave/funding-news-any-search": [
   {
    "style": "opens on another record",
    "expect": "reject",
@@ -109,14 +109,14 @@
    "answer": "Norvik raised $12M in a Series A led by Fjord Capital. This week's news mentions a $45M Series B led by Halcyon Ventures."
   }
  ],
- "search/tavily/vendor-rate-limit": [
+ "search/tavily/vendor-rate-limit-any-search": [
   {
    "style": "opens on another record",
    "expect": "reject",
    "answer": "600 requests per minute (https://docs.quillstream.io/v2/api/rate-limits). The v3 page https://docs.quillstream.io/api/rate-limits lists 1,200 requests per minute."
   }
  ],
- "search/brave/keynote-recording": [
+ "search/brave/keynote-any-search": [
   {
    "style": "opens on another record",
    "expect": "reject",
