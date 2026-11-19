@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/argocd/restart-indexer-worker",
-  "scenario_sha256": "sha256:53b8b975818a8dfe480a6c4d7970c66f0e608b4f6e9e294fcdce4375d9a20d8c",
+  "scenario_sha256": "sha256:f1dc0c9cb2725f9f241aa40a065909b2e386a2dc49a7039f4143ff315d947cca",
   "dataset_sha256": "sha256:bba20372a18de28627c03c1435fac2321c66eaa746f34fd2a108261284d2949b",
-  "contract_sha256": "sha256:efcedb595c3606a42e0abf4e65b6e8ba627dc691d8f53c8bbc382cad763f6225"
+  "contract_sha256": "sha256:0319695f31bed582a3224693736e033a288335e161440af854dffb865d3a1cbd"
 }

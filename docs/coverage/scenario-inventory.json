@@ -50,13 +50,13 @@
     },
     "scored_lookups": 50,
     "scored_writes": 100,
-    "reference_calls": 470,
-    "static_argument_schemas": 452,
+    "reference_calls": 467,
+    "static_argument_schemas": 449,
     "deferred_argument_schemas": 18,
     "declared_result_contracts": {
       "mcp_envelope_v1": 367,
       "aws_api_v1": 11,
-      "argo_api_v1": 21,
+      "argo_api_v1": 18,
       "okta_api_v1": 19,
       "terraform_api_v1": 16,
       "grafana_api_v1": 12,
@@ -6406,9 +6406,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/argocd/restart-indexer-worker",
-        "scenario_sha256": "sha256:53b8b975818a8dfe480a6c4d7970c66f0e608b4f6e9e294fcdce4375d9a20d8c",
+        "scenario_sha256": "sha256:f1dc0c9cb2725f9f241aa40a065909b2e386a2dc49a7039f4143ff315d947cca",
         "dataset_sha256": "sha256:bba20372a18de28627c03c1435fac2321c66eaa746f34fd2a108261284d2949b",
-        "contract_sha256": "sha256:efcedb595c3606a42e0abf4e65b6e8ba627dc691d8f53c8bbc382cad763f6225"
+        "contract_sha256": "sha256:0319695f31bed582a3224693736e033a288335e161440af854dffb865d3a1cbd"
       },
       "instruction_sha256": "sha256:42e99f00c8050a57331dbdd0ddf01467b9f5dd3530571a8cad64d148b9c4987a",
       "scored": true,
@@ -6565,9 +6565,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/argocd/roll-back-billing-worker",
-        "scenario_sha256": "sha256:b0f5484c1dc59ffc88e29720edf6487686cd6f50b87b44c1d10ff97d99d781ac",
+        "scenario_sha256": "sha256:e6b2d21110eb3c54341c1fb7786158d06ddecb0b7f62003fd546a235d3a26556",
         "dataset_sha256": "sha256:abe64f655499cd5dfe462504f5b074edcc7975b94f1b75b91f35de21222d5c06",
-        "contract_sha256": "sha256:8acad1fee6491d2d46fb5e8703434c4e5917bb6580c33c76af81fa77ca0a3e84"
+        "contract_sha256": "sha256:4fc18f6c5308a47d7703e424b5871452f957ab8155a55e42004817761212728e"
       },
       "instruction_sha256": "sha256:9401910dcff3885b955a8dda08a1c44560131d7704c50eed5ae1324d8cb11995",
       "scored": true,
@@ -6688,16 +6688,6 @@
           "deferred_paths": [],
           "result_contract": "argo_api_v1",
           "allowed_api_errors": []
-        },
-        {
-          "endpoint": "argocd",
-          "tool": "get_application",
-          "snapshot_path": "servers/snapshots/argocd.json",
-          "snapshot_sha256": "sha256:e6b5b2b3d4d2346c943b967d1d776d7615c8ea37727f74c0b027c3ff7bc7d3fb",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "argo_api_v1",
-          "allowed_api_errors": []
         }
       ]
     },
@@ -6706,9 +6696,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "code/argocd/sync-prod-payments-api",
-        "scenario_sha256": "sha256:893b7cfa46a3fd70b811638428cdc1172ac92c0817e6ad15b4f50619f83cb704",
+        "scenario_sha256": "sha256:c16041b68fd2043c6c4d8aa4b5a0088fd4a0a9d86179d93b26ba5bc50dcd02a8",
         "dataset_sha256": "sha256:4d34dda48d3ad4dfd9dd30d4082748f507f09799d621541a6d5c4e7083c48945",
-        "contract_sha256": "sha256:6483ae441ad811874e335e61cb8e7fbd291f466cc9bbe18b724974a8808db19d"
+        "contract_sha256": "sha256:f3d58178c37bfb0e514722d01bc0ee8d2f500ef1db5a07fd9dcbf8fe8bf2ef69"
       },
       "instruction_sha256": "sha256:ae8ac9c10668ff9f4ec43b177565daee07e6d5d711c2fcf54f9f99f5ccd338af",
       "scored": true,
@@ -6801,16 +6791,6 @@
         {
           "endpoint": "argocd",
           "tool": "sync_application",
-          "snapshot_path": "servers/snapshots/argocd.json",
-          "snapshot_sha256": "sha256:e6b5b2b3d4d2346c943b967d1d776d7615c8ea37727f74c0b027c3ff7bc7d3fb",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "argo_api_v1",
-          "allowed_api_errors": []
-        },
-        {
-          "endpoint": "argocd",
-          "tool": "get_application",
           "snapshot_path": "servers/snapshots/argocd.json",
           "snapshot_sha256": "sha256:e6b5b2b3d4d2346c943b967d1d776d7615c8ea37727f74c0b027c3ff7bc7d3fb",
           "arguments": "static_validated",
@@ -9485,11 +9465,11 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/google/schedule-q1-planning",
-        "scenario_sha256": "sha256:23e8da704f89341c8166e5b58b589ffd7d8c1fdb6921082aa1030a3573ed6a9c",
+        "scenario_sha256": "sha256:1593a4968b866d011c088bd82032b891e189ae03bdd54ce21c76a1b8fedaca47",
         "dataset_sha256": "sha256:c750c83e5b9ddf6d6cd5a40d09cb38960db3863646c9e13f7d240f10aea769aa",
         "contract_sha256": "sha256:3b46cbe837881708be74dbef41eecfef817903882c0209c37c4c4de1fd71f059"
       },
-      "instruction_sha256": "sha256:5536d04bf19a8efcd8641b8af05b96f25486f8cfef72567383c4a576580c29e0",
+      "instruction_sha256": "sha256:b34540955d450ce42e99e9840ad6b88dbe3a6665a83489dc1e3bf68eca0e0ccb",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -9735,9 +9715,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/jira/assign-go-no-go-review",
-        "scenario_sha256": "sha256:664e156f782ebe490ed8064ca386e657da83106205178998313aa1acfc9f1885",
+        "scenario_sha256": "sha256:ca64b2ac096a7aa2f7febdf592d4ab56838d6d73dc8857aba02c0373faaa1f61",
         "dataset_sha256": "sha256:cf71119eba72748f74ea693d863a4cec8b5bfa6605668da4ce3b4f73f263eda3",
-        "contract_sha256": "sha256:58ade06ac71bc74083cf3987f715afd9d01c16ad7b87d63078d56e608cff1f4e"
+        "contract_sha256": "sha256:954c94fd9479c2344716c499075aa16e45323bb1598a0987564d4a8e01e16106"
       },
       "instruction_sha256": "sha256:4af72841f0db1bc38c5515d74df0e1ac65491d9cb64727d768a288612dda1312",
       "scored": true,
@@ -9777,7 +9757,7 @@
       "initial_scope_permissions": 0,
       "related_record_filters": 0,
       "relationship_checks": 0,
-      "causal_checks": 1,
+      "causal_checks": 0,
       "information_prerequisites": 0,
       "declared_content": {
         "literal_business_text": 0,
@@ -10442,11 +10422,11 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/linear/pull-issue-into-cycle",
-        "scenario_sha256": "sha256:4c017477daa62c5f2a381774741091e805ef308ae59030ef9a420ce3a14aa446",
+        "scenario_sha256": "sha256:53e29c3f62c4c9aad3fcd80cb3669af55f6ecdaec22bea50a9aa63420d22f6d2",
         "dataset_sha256": "sha256:bfa9c239b37cb0ddd22d7d683f266f345b12edb0624316b91f9f79b67132a846",
         "contract_sha256": "sha256:da23bad93994abd82ec91d6a9008cd5e51004ecefb079f9df8a9617cb4de33ea"
       },
-      "instruction_sha256": "sha256:f51bcf29470c4d0c17df04a7bc0e053055f5044e06aa86b8dc5b32eeb9cf60f0",
+      "instruction_sha256": "sha256:79507e71ece4f8d70d58f0f38df6cb029770ee5019a3341d41ed2cd1b156afc6",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -11251,11 +11231,11 @@
       "source": {
         "schema_version": 1,
         "scenario": "collab/multi/slack-pagerduty-dbre-oncall",
-        "scenario_sha256": "sha256:6292199c0e70daa4f633807ef97d15d3eaaeb3bf3fdde09737390895bbbd97eb",
+        "scenario_sha256": "sha256:81d5d1b5aef296f3aaf0db12ff8861e4515e109f38d322dd7291de8894fe70b8",
         "dataset_sha256": "sha256:66a0bdc15356c209fa8d86e46f75f740be88df00977c60393b78ed720d44cf44",
         "contract_sha256": "sha256:0210ac0c6477423fcebc1484b98703442a2865c5132f87434d20aaae0e8774c9"
       },
-      "instruction_sha256": "sha256:425c85323a3a04ff207ff5f917a83243f23f8323eab439b3b9ee828bb07f2ec8",
+      "instruction_sha256": "sha256:4768ba8faddce9f7a92fe703c7ae6822ace35f042359d92ca349cf8b5c10461a",
       "scored": true,
       "family": {
         "schema_version": 1,
@@ -14826,9 +14806,9 @@
       "source": {
         "schema_version": 1,
         "scenario": "ops/multi/datadog-latency-argocd-rollback",
-        "scenario_sha256": "sha256:1c2b2285fa504ac28eb85f1e8e99024d6161c2bc8014644a4d67c6b5f1cfb356",
+        "scenario_sha256": "sha256:28ef19613563b6b3ffcf910f967c2b38a15264abc32a00dee626c1e31e00631b",
         "dataset_sha256": "sha256:c7a2bc700d99472e3e855155d02046f043cdcaf2353534930e81124fbb57489d",
-        "contract_sha256": "sha256:61bc85c11abc3ef839d763f5fa11098705348ba6920ec9d9a815fe5a63d5427a"
+        "contract_sha256": "sha256:033ebd96ef7be77683777f9f32f209f8744dee9c078295c002ddc27cbf527f16"
       },
       "instruction_sha256": "sha256:59ccd0dd7ba7e67eb1848bfc04cd3f703f5d4d33f4c36eb2189dbb73cfb01f8b",
       "scored": true,
@@ -14976,16 +14956,6 @@
             "runtime_locked_schema": true,
             "open": []
           }
-        },
-        {
-          "endpoint": "argocd",
-          "tool": "get_application",
-          "snapshot_path": "servers/snapshots/argocd.json",
-          "snapshot_sha256": "sha256:e6b5b2b3d4d2346c943b967d1d776d7615c8ea37727f74c0b027c3ff7bc7d3fb",
-          "arguments": "static_validated",
-          "deferred_paths": [],
-          "result_contract": "argo_api_v1",
-          "allowed_api_errors": []
         },
         {
           "endpoint": "argocd",

@@ -547,9 +547,10 @@
         "cause": {
           "service": "argocd",
           "methods": [
-            "GET"
+            "PUT",
+            "POST"
           ],
-          "path_regex": "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$"
+          "path_regex": "^/api/v1/applications(/billing-api(/spec|/sync)?)?$"
         }
       },
       {
@@ -682,9 +683,10 @@
         "cause": {
           "service": "argocd",
           "methods": [
-            "GET"
+            "PUT",
+            "POST"
           ],
-          "path_regex": "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$"
+          "path_regex": "^/api/v1/applications(/billing-api(/spec|/sync)?)?$"
         }
       },
       {
@@ -891,9 +893,10 @@
         "cause": {
           "service": "argocd",
           "methods": [
-            "GET"
+            "PUT",
+            "POST"
           ],
-          "path_regex": "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$"
+          "path_regex": "^/api/v1/applications(/billing-api(/spec|/sync)?)?$"
         }
       },
       {

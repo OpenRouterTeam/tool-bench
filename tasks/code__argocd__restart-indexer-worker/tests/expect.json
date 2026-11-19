@@ -514,9 +514,9 @@
         "cause": {
           "service": "argocd",
           "methods": [
-            "GET"
+            "POST"
           ],
-          "path_regex": "^/api/v1/applications/search-indexer(/resource-tree|/managed-resources|/resource)?$"
+          "path_regex": "^/api/v1/applications/search-indexer/resource/actions$"
         }
       },
       {
@@ -538,9 +538,9 @@
         "cause": {
           "service": "argocd",
           "methods": [
-            "GET"
+            "POST"
           ],
-          "path_regex": "^/api/v1/applications/search-indexer(/resource-tree|/managed-resources|/resource)?$"
+          "path_regex": "^/api/v1/applications/search-indexer/resource/actions$"
         }
       },
       {

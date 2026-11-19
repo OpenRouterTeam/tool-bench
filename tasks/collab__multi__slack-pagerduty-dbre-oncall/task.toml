@@ -29,8 +29,8 @@ workspace_profile_sha256 = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b9
 
 framing = "neutral"
 framing_version = 1
-base_instruction_sha256 = "sha256:425c85323a3a04ff207ff5f917a83243f23f8323eab439b3b9ee828bb07f2ec8"
-rendered_instruction_sha256 = "sha256:425c85323a3a04ff207ff5f917a83243f23f8323eab439b3b9ee828bb07f2ec8"
+base_instruction_sha256 = "sha256:4768ba8faddce9f7a92fe703c7ae6822ace35f042359d92ca349cf8b5c10461a"
+rendered_instruction_sha256 = "sha256:4768ba8faddce9f7a92fe703c7ae6822ace35f042359d92ca349cf8b5c10461a"
 
 [agent]
 timeout_sec = 1200.0
