@@ -373,6 +373,70 @@ async fn relevant_company_text_and_unchanged_properties_allow_harmless_retries()
     assert_eq!(result.reward, 1.0, "{result:?}");
 }
 
+/// HubSpot also carries the primary company as the contact property `associatedcompanyid`.
+/// Setting it to Pied Piper is part of the same move, as text or as a number. Here the property
+/// alone creates no association, so the association is still what completes the move.
+#[tokio::test]
+async fn the_primary_company_property_set_to_pied_piper_belongs_to_the_move() {
+    for identity in [json!("18234004"), json!(18234004)] {
+        let trial = Trial::new("dana-joins-pied-piper");
+        trial
+            .update(
+                "contacts",
+                "512001",
+                json!({"email": "dana.whitfield@piedpiper.com", "associatedcompanyid": identity}),
+            )
+            .await;
+        let property_only = trial.assess();
+        assert_eq!(property_only.reward, 0.0, "{identity}: {property_only:?}");
+        assert!(
+            !property_only.records_ok && property_only.preservation_ok,
+            "{identity}: {property_only:?}"
+        );
+        trial
+            .associate("contacts", "512001", "companies", "18234004", 1)
+            .await;
+        let result = trial.assess();
+        assert_eq!(result.reward, 1.0, "{identity}: {result:?}");
+        assert!(result.preservation_checked && result.history_checked);
+    }
+}
+
+/// The property is allowed for the Pied Piper company only: another company's ID is a
+/// contact change nobody asked for, also when it is corrected afterwards.
+#[tokio::test]
+async fn the_primary_company_property_cannot_name_another_company() {
+    for (other, corrected) in [("18234005", false), ("18234003", false), ("18234005", true)] {
+        let trial = Trial::new("dana-joins-pied-piper");
+        trial
+            .update(
+                "contacts",
+                "512001",
+                json!({"email": "dana.whitfield@piedpiper.com", "associatedcompanyid": other}),
+            )
+            .await;
+        if corrected {
+            trial
+                .update(
+                    "contacts",
+                    "512001",
+                    json!({"associatedcompanyid": "18234004"}),
+                )
+                .await;
+        }
+        trial
+            .associate("contacts", "512001", "companies", "18234004", 279)
+            .await;
+        let result = trial.assess();
+        assert_eq!(
+            result.reward, 0.0,
+            "{other} corrected={corrected}: {result:?}"
+        );
+        assert!(result.state_ok && result.records_ok && result.environment_ok);
+        assert!(!result.preservation_ok && result.history_checked);
+    }
+}
+
 #[test]
 fn a_satisfied_contact_move_does_not_require_redundant_mutations() {
     let trial = Trial::with_dataset("dana-joins-pied-piper", |dataset| {
