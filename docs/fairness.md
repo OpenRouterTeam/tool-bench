@@ -113,10 +113,11 @@ held against it the members and what keeps one from being a route to a pass.
 Release 1 held eleven search tasks that named no vendor and kept their pages on one;
 the check flags each of them where they are archived
 (`releases/archive/tool-bench-public-dev-1/`). Release 2 replaced them with tasks that
-accept any of the four search services. What is still listed: eight `business` tasks
-that say "our CRM", "support ticket", "our helpdesk" or "the store", and
-`search/multi/zendesk-reply-any-search`, which accepts any search service and says
-"support ticket" without naming Zendesk.
+accept any of the four search services. Nine more tasks were repaired before release 2
+was frozen: eight `business` tasks said "our CRM", "support ticket", "our helpdesk" or
+"the store", and `search/multi/zendesk-reply-any-search` accepted any search service
+and said "support ticket" without naming Zendesk. Each now names its system, and
+release 2 lists no task.
 
 ### F6 and F7. Every accepted route
 

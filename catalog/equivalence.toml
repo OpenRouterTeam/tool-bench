@@ -309,17 +309,9 @@ members = ["mongodb", "supabase"]
 # leaves this list when its repaired version is in `scenarios/`; nothing is added to it.
 #
 # The eleven search lookups of release 1 that kept their pages on one vendor were on this
-# list; release 2 replaced them (releases/archive/tool-bench-public-dev-1/).
+# list; release 2 replaced them (releases/archive/tool-bench-public-dev-1/). Nine more were
+# repaired before release 2 was frozen: eight business prompts and the prompt of
+# `search/multi/zendesk-reply-any-search` now name their system. Release 2 lists none.
 [known]
 release = "tool-bench-public-dev-2"
-tasks = [
-  "business/hubspot/largest-open-deal",
-  "business/hubspot/log-call-note-initech",
-  "business/multi/zendesk-order-status-shopify",
-  "business/multi/zendesk-refund-via-stripe",
-  "business/zendesk/create-ticket-for-caller",
-  "business/zendesk/escalate-outage-ticket",
-  "business/zendesk/find-invoice-attachment",
-  "business/zendesk/reply-refund-and-solve",
-  "search/multi/zendesk-reply-any-search",
-]
+tasks = []

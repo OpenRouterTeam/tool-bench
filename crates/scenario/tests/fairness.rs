@@ -41,9 +41,9 @@ const ANY_SEARCH: [&str; 11] = [
     "search/tavily/webhook-sunset-any-search",
 ];
 
-/// The one replacement that still fails: any search service is accepted, but the
-/// instruction says "support ticket" and never says Zendesk.
-const TICKET_SYSTEM_UNNAMED: &str = "search/multi/zendesk-reply-any-search";
+/// The one replacement with a second half on a service of a class: any search service is
+/// accepted, and the instruction says the ticket is in Zendesk.
+const TICKET_SYSTEM_NAMED: &str = "search/multi/zendesk-reply-any-search";
 
 fn root() -> &'static Path {
     Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../.."))
@@ -87,18 +87,26 @@ fn the_single_vendor_search_tasks_are_flagged_and_their_replacements_accept_any_
             BTreeSet::from(["web_search"]),
             "{id}"
         );
-        assert_eq!(task.flagged, id == TICKET_SYSTEM_UNNAMED, "{id}: {task:?}");
+        assert!(!task.flagged, "{id}: {task:?}");
     }
-    let ticket = assess(TICKET_SYSTEM_UNNAMED);
-    assert!(ticket.known);
+    // "A support ticket" could be in any of four connected services, and the ticket half
+    // takes Zendesk alone: without the product's name the task is refused.
+    let mut ticket = load(TICKET_SYSTEM_NAMED);
+    assert!(ticket.instruction.contains("an open Zendesk ticket"));
+    ticket.instruction = ticket
+        .instruction
+        .replace("an open Zendesk ticket", "an open support ticket");
+    let unnamed = equivalence().assess(&ticket).unwrap();
+    assert!(unnamed.flagged && !unnamed.known);
     assert_eq!(
-        ticket.refused_classes(),
+        unnamed.refused_classes(),
         BTreeSet::from(["support_tickets"])
     );
 }
 
 /// The list in `catalog/equivalence.toml` is what the check flags among scored tasks, no
-/// more and no fewer. The number only goes down: a repaired task leaves the list.
+/// more and no fewer. The number only goes down: a repaired task leaves the list, and
+/// release 2 holds none.
 #[test]
 fn the_known_list_is_exactly_the_scored_tasks_the_check_flags() {
     let equivalence = equivalence();
@@ -109,32 +117,26 @@ fn the_known_list_is_exactly_the_scored_tasks_the_check_flags() {
     let flagged: BTreeSet<&str> = report.flagged.iter().map(String::as_str).collect();
     assert_eq!(known, flagged);
     assert_eq!(known.len(), equivalence.known.tasks.len(), "listed twice");
-    assert_eq!(flagged.len(), 9);
+    assert!(flagged.is_empty(), "{flagged:?}");
     assert_eq!(report.known_release, "tool-bench-public-dev-2");
     assert_eq!(report.summary.scored_tasks, 150);
-    assert_eq!(report.summary.scored_routes["route:named"], 120);
+    assert_eq!(report.summary.scored_routes["route:named"], 128);
     assert_eq!(report.summary.scored_routes["route:kind"], 11);
-    assert_eq!(report.summary.scored_routes["route:unnamed"], 19);
-    assert_eq!(report.summary.scored_accepting_a_class, 10);
-    assert!(
-        !report
-            .summary
-            .scored_flagged_by_class
-            .contains_key("web_search")
-    );
-    assert_eq!(report.summary.scored_flagged_by_class["support_tickets"], 7);
-    assert_eq!(report.summary.scored_flagged_by_class["crm"], 2);
-    assert_eq!(report.summary.scored_flagged_by_class["orders"], 1);
+    assert_eq!(report.summary.scored_routes["route:unnamed"], 11);
+    assert_eq!(report.summary.scored_accepting_a_class, 11);
+    assert!(report.summary.scored_flagged_by_class.is_empty());
 }
 
 #[test]
 fn a_flagged_scored_task_outside_the_known_list_is_refused() {
-    let mut equivalence = equivalence();
-    equivalence
-        .known
-        .tasks
-        .retain(|id| id != "business/hubspot/largest-open-deal");
-    let scenarios = discover(&root().join("scenarios")).unwrap();
+    let equivalence = equivalence();
+    let mut scenarios = discover(&root().join("scenarios")).unwrap();
+    let deal = scenarios
+        .iter_mut()
+        .find(|scenario| scenario.meta.id == "business/hubspot/largest-open-deal")
+        .unwrap();
+    assert!(deal.instruction.contains("In HubSpot"));
+    deal.instruction = deal.instruction.replace("In HubSpot", "In our CRM");
     let error = equivalence
         .report(&scenarios)
         .unwrap()
@@ -152,19 +154,19 @@ fn a_flagged_scored_task_outside_the_known_list_is_refused() {
 fn naming_the_product_clears_the_flag_and_a_kind_word_alone_does_not() {
     let equivalence = equivalence();
     let mut scenario = load("business/hubspot/largest-open-deal");
-    assert!(scenario.instruction.contains("In our CRM"));
+    assert!(scenario.instruction.contains("In HubSpot"));
+    let named = equivalence.assess(&scenario).unwrap();
+    assert!(!named.flagged);
+    assert_eq!(named.route, Route::Named);
+    assert_eq!(named.services[0].words, ["HubSpot"]);
+
+    scenario.instruction = scenario.instruction.replace("In HubSpot", "In our CRM");
     let unnamed = equivalence.assess(&scenario).unwrap();
     assert!(unnamed.flagged);
     assert_eq!(
         unnamed.services[0].classes[0].kind_words,
         ["crm", "pipeline"]
     );
-
-    scenario.instruction = scenario.instruction.replace("In our CRM", "In HubSpot");
-    let named = equivalence.assess(&scenario).unwrap();
-    assert!(!named.flagged);
-    assert_eq!(named.route, Route::Named);
-    assert_eq!(named.services[0].words, ["HubSpot"]);
 }
 
 #[test]
