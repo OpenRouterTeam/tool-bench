@@ -29,7 +29,8 @@ pub enum Status {
     Fail,
     ContextOverflow,
     IntegrityViolation,
-    /// The evidence cannot decide; needs adjudication. Not a model failure.
+    /// The evidence cannot decide; needs adjudication. Not a model failure. The verifier
+    /// withholds its reward (`reward.invalid.json`); older trials recorded a zero.
     Unresolved,
     /// The verifier wrote `reward.invalid.json`: invalid contract or environment error.
     WithheldReward,
@@ -719,6 +720,7 @@ pub(crate) fn load(root: &Path, directory: &Path) -> TrialRecord {
     let withheld = json_file(&verifier.join("reward.invalid.json"))
         .as_ref()
         .and_then(numbers);
+    let reward_published = recorded.is_some();
 
     let (status, checked) = match (&result, recorded, withheld) {
         (None, _, _) => (
@@ -778,7 +780,19 @@ pub(crate) fn load(root: &Path, directory: &Path) -> TrialRecord {
                 Some(note) => format!("{reason} ({note})"),
                 None => reason,
             });
-            (Status::WithheldReward, checked)
+            // An unresolved reply is withheld like an unassessable trial, and stays its
+            // own outcome: the trial ran and was read, and nobody has decided it.
+            let unresolved = Outcome::from_code(checked.metrics.get("outcome_code").copied())
+                == Outcome::Unresolved
+                && checked.assurance != Assurance::Failed;
+            (
+                if unresolved {
+                    Status::Unresolved
+                } else {
+                    Status::WithheldReward
+                },
+                checked,
+            )
         }
         (Some(_), None, None) => {
             let verifier_ran = host["verifier"]["started_at"].is_string()
@@ -842,7 +856,7 @@ pub(crate) fn load(root: &Path, directory: &Path) -> TrialRecord {
             .metrics
             .get("reward")
             .copied()
-            .filter(|_| status != Status::WithheldReward),
+            .filter(|_| reward_published),
         agent: text(&host["agent_info"]["name"])
             .or_else(|| text(&lock["agent"]["name"]))
             .unwrap_or_else(|| "unknown".into()),

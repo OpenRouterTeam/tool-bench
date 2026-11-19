@@ -59,7 +59,7 @@ fn unattest(root: &Path, trial: &str, context_overflow: bool) {
         "name": "claude-code", "version": "2.1.235",
         "model_info": {"name": "claude-sonnet-5", "provider": "anthropic"}
     });
-    if assessment.contract_ok && assessment.environment_ok {
+    if assessment.scored() {
         write(&verifier.join("reward.json"), &json!(assessment.metrics()));
         result["verifier_result"] = json!({"rewards": assessment.metrics()});
     } else {
@@ -1006,10 +1006,102 @@ fn an_agent_timeout_that_was_still_graded_is_an_assessed_trial() {
         (exceptions[0].name.as_str(), exceptions[0].trials),
         ("AgentTimeoutError", 2)
     );
+    // A timeout is still a pass or a fail; the report says how many of each timed out.
+    let timeouts = &summary.agent_timeouts;
+    assert_eq!(
+        (timeouts.passed, timeouts.failed, timeouts.unassessed),
+        (1, 1, 0)
+    );
+    let markdown = arms::report(&[loaded]).markdown();
+    assert!(markdown.contains("| Host exceptions on assessed trials | 2 × AgentTimeoutError |"));
     assert!(
-        arms::report(&[loaded])
-            .markdown()
-            .contains("| Host exceptions on assessed trials | 2 × AgentTimeoutError |")
+        markdown
+            .contains("| Agent timeouts: graded pass / graded fail / not assessed | 1 / 1 / 0 |"),
+        "{markdown}"
+    );
+}
+
+#[test]
+fn failed_trials_are_counted_by_what_the_evidence_says_went_wrong() {
+    let root = tempfile::tempdir().unwrap();
+    let root = root.path();
+    pass(root, "ok__1", "code__github__a");
+    for (trial, task) in [
+        ("none__1", "code__github__b"),
+        ("detour__1", "code__github__c"),
+        ("flaky__1", "code__github__d"),
+    ] {
+        fail(root, trial, task);
+    }
+    let mut loaded = arm("A", root);
+    // The summary reads what the verifier wrote. Set the three failed trials to the
+    // three cases: no call to the task's services, a failure on history alone, and a
+    // trial whose service failed one call and refused others.
+    for trial in &mut loaded.trials {
+        let metrics: &[(&str, f64)] = match trial.trial.as_str() {
+            "none__1" => &[
+                ("task_service_calls", 0.0),
+                ("tool_server_side_channel", 1.0),
+            ],
+            "detour__1" => &[("task_service_calls", 4.0), ("history_only_failure", 1.0)],
+            "flaky__1" => &[
+                ("task_service_calls", 2.0),
+                ("service_error_calls", 1.0),
+                ("refused_calls", 3.0),
+            ],
+            _ => &[("task_service_calls", 5.0)],
+        };
+        for (name, value) in [
+            ("tool_server_observed", 1.0),
+            ("tool_server_side_channel", 0.0),
+            ("history_only_failure", 0.0),
+            ("service_error_calls", 0.0),
+            ("refused_calls", 0.0),
+        ]
+        .iter()
+        .chain(metrics)
+        {
+            trial.metrics.insert((*name).to_owned(), *value);
+        }
+    }
+    let summary = arms::summarize(&loaded);
+    assert_eq!(summary.tool_server_side_channel_trials, Some(1));
+    let causes = summary.failure_causes;
+    assert_eq!(causes.without_task_service_calls, Some(1));
+    assert_eq!(causes.history_only, Some(1));
+    assert_eq!(causes.with_service_errors, Some(1));
+    assert_eq!(causes.with_refused_calls, Some(1));
+    let markdown = arms::report(&[loaded]).markdown();
+    for line in [
+        "| Trials where a second client reached the tool servers | 1 |",
+        "| Failed trials with no call to the task's own services | 1 |",
+        "| Failed trials whose final state was right (history only) | 1 |",
+        "| Failed trials where a service failed a call / refused a call | 1 / 1 |",
+    ] {
+        assert!(markdown.contains(line), "{line}\n{markdown}");
+    }
+
+    // Trials graded before these metrics existed say so instead of reporting a zero.
+    let mut older = arm("A", root);
+    for trial in &mut older.trials {
+        for name in [
+            "tool_server_observed",
+            "tool_server_side_channel",
+            "task_service_calls",
+            "history_only_failure",
+            "service_error_calls",
+            "refused_calls",
+        ] {
+            trial.metrics.remove(name);
+        }
+    }
+    let summary = arms::summarize(&older);
+    assert_eq!(summary.tool_server_side_channel_trials, None);
+    assert_eq!(summary.failure_causes.history_only, None);
+    assert!(
+        arms::report(&[older]).markdown().contains(
+            "| Failed trials whose final state was right (history only) | not recorded |"
+        )
     );
 }
 

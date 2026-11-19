@@ -68,9 +68,11 @@ data determines.
 | 3 | Integrity violation: the world was reached around the MCP servers |
 | 4 | Invalid contract |
 | 5 | Environment error: the evidence is missing or does not match the task |
-| 6 | Unresolved: the grader could not decide either way; reward 0 |
+| 6 | Unresolved: the grader could not decide either way; not scored |
 
-Codes 4 and 5 mean the trial could not be assessed, which is a benchmark fault: the
+Codes 4, 5 and 6 are not scores. Codes 4 and 5 mean the trial could not be assessed,
+which is a benchmark fault; code 6 means the reply could not be decided, which is not a
+failure of the model. For all three the
 verifier writes `reward.invalid.json` instead of `reward.json`, and Harbor records an
 error instead of a zero. Under stock Harbor a context overflow appears as Harbor's
 `ContextWindowExceededError`, not as code 2. The rules are in

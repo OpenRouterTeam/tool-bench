@@ -42,7 +42,7 @@ passed.
 | 1 | Fail: a required outcome is missing or wrong, or something else was changed | Yes |
 | 2 | Context overflow. Production trials never carry this code; see below | Yes, it is what the arm under test produced |
 | 3 | Integrity violation: the world was reached other than through the MCP servers | Yes |
-| 6 | Unresolved: the reply could not be read either way | Reward 0; see below |
+| 6 | Unresolved: the reply could not be read either way | No: not scored; see below |
 
 Two cases are deliberately **not** scored:
 
@@ -61,6 +61,12 @@ Two cases are deliberately **not** scored:
   there is no reward.
 
 `verifier/assessment.json` lists each failed check with its location and reason.
+`reward.json` also says where a failure came from: `task_service_calls` (zero when the
+agent never reached the task's own services), `refused_calls` and `service_error_calls`,
+`tool_calls` and `tool_call_errors`, `history_only_failure` (the final state was right)
+and `tool_server_side_channel` (a second client reached the tool servers). The rules are
+in [contracts.md](contracts.md#where-a-failure-came-from). `bench-report` has a row for
+each, and one for agent timeouts by how they were graded.
 `runner_admission_checked` is 0 for every production trial; see
 [Assurance](#assurance).
 
@@ -81,9 +87,17 @@ earns no reward. The reader's measured limits are in
 [What has been checked](#what-has-been-checked) has the rate on replies written by
 agents.
 
-The two consumers treat it differently. The production pipeline sees reward 0 and
-counts the trial as incorrect. `bench-report` lists unresolved trials beside the pass
-rate and leaves them out of it.
+Neither consumer scores it. From evaluator 47 the verifier withholds its reward as it
+does for a trial it could not assess: it writes `reward.invalid.json` instead of
+`reward.json` and exits with status 3, Harbor records `RewardFileNotFoundError`, and the
+production pipeline counts the trial as skipped. `bench-report` reads the withheld
+metrics, lists the trial as unresolved beside the pass rate and leaves it out of it.
+
+Evaluator 46 and earlier published a zero for it, which the production pipeline counted
+as incorrect while `bench-report` left it out. In round `utl1` that was 37 of 5,250
+trials (7 in the whole-list arm, 30 across the four layer arms). Watch the unresolved
+count per arm as you watch the skipped count: an arm whose replies are wordier loses
+more trials this way.
 
 ## Comparing arms
 
