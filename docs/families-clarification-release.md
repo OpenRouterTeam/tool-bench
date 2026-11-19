@@ -155,8 +155,11 @@ not validate, and the report refuses a held-out comparison against it.
 the record that results before 2026-11-19 belong to. Release 2 replaced eleven of
 its search tasks; their sources are archived, with the reason and the mapping, in
 `releases/archive/tool-bench-public-dev-1/`. `--check` against release 1 fails on
-the current sources by design. The other 139 tasks have the same dataset and
-contract in both releases.
+the current sources by design. Of the other 139 tasks, those that release 2 changed
+in instruction, dataset or contract are listed in that directory's README and in
+`CHANGED_IN_PLACE` (`crates/scenario/tests/release_manifest.rs`); the rest are the
+same task in both releases. The manifest does not freeze instruction bytes, so the
+test compares release 1's from `instruction-sha256.json` in the archive.
 
 `bench-report --require-attested <a> <b> --release <manifest>` admits both arms
 before pairing. `--release` belongs to the attested comparison only; the default

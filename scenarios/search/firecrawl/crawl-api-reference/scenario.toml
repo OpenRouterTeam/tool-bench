@@ -18,11 +18,17 @@ rationale = "Origin https://docs.lumenpay.dev and the /api/ prefix are given; th
 version = 2
 audit_history = true
 
-# Firecrawl tests the start URL against includePaths too, so the natural first attempt (the
-# site root given in the request with an /api/ filter) completes with no pages, and a crawl
-# cannot be removed afterwards. Such a job indexes nothing and costs no credits, so up to three
-# of them may accompany the requested crawl. Exactly one created crawl may plan any page, and
-# it must plan exactly the API section.
+# The docs site publishes a sitemap (`dataset/firecrawl/sitemap.json`), so the two crawls the
+# request describes reach the section: the site root with an /api/ filter, and the section
+# path itself, which is not a page. Until release `tool-bench-public-dev-2` the fixture had
+# neither a sitemap nor a page at /api/, both of those collected nothing, and the one seed
+# that passed was a page the request does not name, with `crawlEntireDomain` set.
+#
+# Firecrawl tests the start URL against includePaths too, so a crawl that skips the sitemap
+# from a seed its own filter excludes completes with no pages, and a crawl cannot be removed
+# afterwards. Such a job indexes nothing and costs no credits, so up to three of them may
+# accompany the requested crawl. Exactly one created crawl may plan any page, and it must
+# plan exactly the API section.
 [[expect.records]]
 selector = { collection = "/services/firecrawl/crawls", created = true, field_patterns = { "/plannedPages/0" = "^https?://" } }
 equals = 1

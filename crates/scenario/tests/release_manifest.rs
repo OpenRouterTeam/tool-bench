@@ -77,11 +77,19 @@ fn the_committed_release_freezes_the_current_scored_sources() {
     assert_eq!(release.comparison.denominators.len(), 3);
 }
 
-/// Release 1 stays readable, and release 2 differs from it only in the search group: eleven
-/// tasks left and eleven joined, and every task the two share has the same dataset and
-/// contract. Outside the search group the frozen entries are identical.
+/// Tasks both releases score under one name that release 2 changed: the instruction, the
+/// dataset or the contract differs. Sorted by id. A release 1 result for one of these belongs
+/// to the earlier version of the task, whose sources are the repository at release 1's commit.
+const CHANGED_IN_PLACE: &[&str] = &["search/firecrawl/crawl-api-reference"];
+
+/// Release 1 stays readable, and what release 2 changed is named: eleven search tasks left
+/// (their sources are archived) and eleven joined, and of the 139 tasks the two share only
+/// those in `CHANGED_IN_PLACE` differ in instruction, dataset or contract. The manifest does
+/// not freeze instruction bytes, so release 1's are compared from the hashes recorded beside
+/// the archive.
 #[test]
-fn the_earlier_release_is_kept_and_differs_only_in_the_search_group() {
+fn the_earlier_release_is_kept_and_every_difference_from_it_is_named() {
+    let archive = root().join("releases/archive/tool-bench-public-dev-1");
     let earlier =
         release_manifest::read(&root().join("releases/tool-bench-public-dev-1.json")).unwrap();
     let current = committed();
@@ -114,22 +122,38 @@ fn the_earlier_release_is_kept_and_differs_only_in_the_search_group() {
         "{joined:?}"
     );
     for id in &left {
-        let archived = root()
-            .join("releases/archive/tool-bench-public-dev-1/scenarios")
-            .join(id)
-            .join("scenario.toml");
+        let archived = archive.join("scenarios").join(id).join("scenario.toml");
         assert!(archived.is_file(), "{id} has no archived source");
     }
-    for (id, task) in &before {
-        let Some(now) = after.get(id) else { continue };
-        assert_eq!(
-            (&task.dataset_sha256, &task.contract_sha256, task.family),
-            (&now.dataset_sha256, &now.contract_sha256, now.family),
-            "{id}"
-        );
-        // Only the route label moved a kept search task's source hash.
-        assert!(task == now || id.starts_with("search/"), "{id}");
-    }
+
+    let earlier_instructions: BTreeMap<String, String> = serde_json::from_str(
+        &std::fs::read_to_string(archive.join("instruction-sha256.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        earlier_instructions.keys().collect::<Vec<_>>(),
+        before.keys().collect::<Vec<_>>()
+    );
+    let instructions: BTreeMap<String, String> = discover(&root().join("scenarios"))
+        .unwrap()
+        .into_iter()
+        .map(|scenario| {
+            let digest = mock_core::runner::sha256(scenario.instruction.as_bytes());
+            (scenario.meta.id, digest)
+        })
+        .collect();
+    let changed: Vec<&str> = before
+        .iter()
+        .filter_map(|(id, task)| {
+            let now = after.get(id)?;
+            assert_eq!(task.family, now.family, "{id}");
+            let same = task.dataset_sha256 == now.dataset_sha256
+                && task.contract_sha256 == now.contract_sha256
+                && earlier_instructions[id] == instructions[id];
+            (!same).then_some(id.as_str())
+        })
+        .collect();
+    assert_eq!(changed, CHANGED_IN_PLACE);
 }
 
 #[test]

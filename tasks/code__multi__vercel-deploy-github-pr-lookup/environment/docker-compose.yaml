@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:19ab1b4f5c3c7e9c
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:eab0c6c0d72038bd
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "code/multi/vercel-deploy-github-pr-lookup"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:5789877df5aaae2f
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b2fe6f5782511b41
     stop_signal: SIGKILL
     networks:
       default: {}

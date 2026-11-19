@@ -32,11 +32,16 @@ valid_alternative = [
 id = "search/firecrawl/crawl-api-reference"
 valid_alternative = [
   "crates/world/tests/firecrawl_contracts.rs::case_equivalent_api_seeds_are_valid",
+  "crates/world/tests/firecrawl_contracts.rs::the_site_root_with_an_api_filter_and_the_section_path_are_valid_seeds",
 ]
 
 [scenario.near_miss]
+partial = [
+  "crates/world/tests/firecrawl_contracts.rs::a_crawl_that_collects_part_of_the_section_fails",
+]
 collateral_change = [
   "crates/world/tests/firecrawl_contracts.rs::additional_unrequested_crawls_fail_preservation",
+  "crates/world/tests/firecrawl_contracts.rs::a_whole_domain_crawl_from_an_api_page_collects_the_guides_too",
 ]
 
 [[scenario]]

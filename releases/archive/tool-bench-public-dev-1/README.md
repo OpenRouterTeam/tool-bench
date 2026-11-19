@@ -7,7 +7,12 @@ instruction, the contract and the dataset they were graded with.
 
 Nothing loads this directory. It is outside `scenarios/`, so `taskgen` writes no task
 for it, the world image does not carry it, and no test reads it except the one that
-checks every task release 1 lost has its source here.
+compares the two releases (`crates/scenario/tests/release_manifest.rs`).
+
+`instruction-sha256.json` records the instruction hash of each of release 1's 150 tasks,
+taken from `docs/coverage/scenario-inventory.json` at release 1's commit. A release
+manifest freezes a task's `scenario.toml`, dataset and contract, not its instruction,
+so this file is what lets that test see an instruction that changed.
 
 ## Why they were replaced
 
@@ -45,10 +50,23 @@ the repository at commit `5b2cf1a6a296597aa2ce1d8b17fe46fe70d6d3ca`. Its tasks n
 the world image built from that commit. A harness pins it by passing a branch or tag
 at that commit as `datasetRef` ([production.md](../../../docs/production.md#comparing-arms)).
 
+## Tasks changed in place
+
+A task that keeps its name and differs from release 1 in instruction, dataset or
+contract is listed in `CHANGED_IN_PLACE` in `crates/scenario/tests/release_manifest.rs`,
+and the test fails when the list and the sources disagree. Its release 1 sources are
+the repository at the commit above.
+
+| Task | What changed | Why |
+|---|---|---|
+| `search/firecrawl/crawl-api-reference` | The dataset gains the docs site's sitemap. Instruction and contract are unchanged | With no sitemap and no page at `/api/`, the two crawls the request describes (the site root with an `/api/` filter, the section path) collected nothing, and the only seed that passed was a page the request does not name with `crawlEntireDomain` set. Every cell failed it with the whole tool list sent |
+
 ## What can still be compared across the two releases
 
-- The 125 tasks outside the search group are frozen identically in both.
-- The 14 search tasks kept in release 2 have the same instruction, dataset and
-  contract; only a `route:*` tag was added, which moves their scenario-source hash.
+- A task both releases score that is not listed above has the same instruction,
+  dataset and contract in both. The 13 other search tasks kept in release 2 gained a
+  `route:*` tag, which moves their scenario-source hash and nothing else.
+- A task listed above is a different version under the same name. Do not pool its
+  results across the releases.
 - The eleven replaced tasks are different tasks under different names. Do not pool
   their results with their originals'.
