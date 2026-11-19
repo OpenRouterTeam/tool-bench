@@ -16,12 +16,12 @@ fn current_evidence_is_versioned_and_prior_revisions_are_not_silently_rescored()
     let mut world = WorldState::from_dataset(dataset).unwrap();
     world.seal().unwrap();
     let evidence = WorldEvidence::capture(&world, &[], Ok(vec!["192.0.2.10".into()]));
-    assert_eq!(EVIDENCE_SCHEMA_VERSION, 7);
-    assert_eq!(EVALUATOR_VERSION, 46);
+    assert_eq!(EVIDENCE_SCHEMA_VERSION, 8);
+    assert_eq!(EVALUATOR_VERSION, 47);
     assert_eq!(evidence.schema_version, EVIDENCE_SCHEMA_VERSION);
     assert_eq!(evidence.evaluator_version, EVALUATOR_VERSION);
     assert!(evidence.assess(&contract, None, false).environment_ok);
-    for (schema, evaluator) in [(6, EVALUATOR_VERSION), (7, 45), (6, 45)] {
+    for (schema, evaluator) in [(7, EVALUATOR_VERSION), (8, 46), (7, 46)] {
         let mut historic = evidence.clone();
         historic.schema_version = schema;
         historic.evaluator_version = evaluator;

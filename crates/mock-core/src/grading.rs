@@ -30,7 +30,7 @@ use crate::{
     startup::{StartupCall, without_startup},
 };
 
-pub const EVALUATOR_VERSION: u32 = 46;
+pub const EVALUATOR_VERSION: u32 = 47;
 
 /// What a scenario expects (generated from `scenario.toml` into the task's `tests/expect.json`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -46,6 +46,9 @@ pub struct Expect {
     pub relations: Vec<RelationCheck>,
     #[serde(default)]
     pub audit_history: bool,
+    /// What a finding of the commit-by-commit audit does to the trial.
+    #[serde(default, skip_serializing_if = "HistoryStrictness::is_fail")]
+    pub history: HistoryStrictness,
     #[serde(default)]
     pub ordering: Vec<OrderingCheck>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -85,6 +88,7 @@ impl Default for Expect {
             records: Vec::new(),
             relations: Vec::new(),
             audit_history: false,
+            history: HistoryStrictness::default(),
             ordering: Vec::new(),
             information: Vec::new(),
             required_calls: Vec::new(),
@@ -95,6 +99,29 @@ impl Default for Expect {
             environment_faults: Vec::new(),
             interaction: None,
         }
+    }
+}
+
+/// Whether the history of a trial, or only its final state, decides the reward.
+///
+/// `audit_history = true` replays every commit: a change the contract does not allow is
+/// found even when a later call undid it. This says what such a finding does.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HistoryStrictness {
+    /// The history is the point: a change that was later undone fails the trial like
+    /// one that stayed.
+    #[default]
+    Fail,
+    /// The final state decides. A change that was later undone is listed in the
+    /// assessment's `history_findings` and does not fail the trial. Declared `ordering`
+    /// and `information` rules are about history by construction and still fail.
+    Report,
+}
+
+impl HistoryStrictness {
+    pub fn is_fail(&self) -> bool {
+        *self == Self::Fail
     }
 }
 
@@ -336,8 +363,27 @@ pub struct Grade {
     /// Empty whenever anything else failed: the refusals are then in `failures`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub refused_operations: Vec<RefusedOperation>,
+    /// Findings of the commit-by-commit audit that the contract asks to report, not to
+    /// score (`history = "report"`). Empty under the default strictness.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub history_findings: Vec<CheckFailure>,
+    /// No check of the final state failed: every proven failure of state, records,
+    /// relations or preservation, if any, came from replaying the commits.
+    pub final_state_ok: bool,
+    /// The trial failed and every failure came from its history: the final state, the
+    /// calls and the reply were all right. A detail of a fail, never a different reward.
+    pub history_only_failure: bool,
     /// World requests made through MCP servers, excluding their startup requests.
     pub api_calls: usize,
+    /// Of `api_calls`, those to the services the task's scenario lists. Absent when the
+    /// evidence does not say which services those are (`grade` alone cannot know).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub task_service_calls: Option<usize>,
+    /// Of `api_calls`, those the service refused: a 4xx reply other than 408 and 429, or
+    /// an application error inside a 2xx reply. The request was wrong for the service.
+    pub refused_calls: usize,
+    /// Of `api_calls`, those the service failed: a 5xx, 408 or 429 reply.
+    pub service_error_calls: usize,
     /// World requests that did not come from the tools container.
     pub mcp_bypass: usize,
 }
@@ -439,7 +485,54 @@ impl Grade {
             ("contract_version", f64::from(self.contract_version)),
             ("api_calls", self.api_calls as f64),
             ("mcp_bypass", self.mcp_bypass as f64),
+            ("final_state_ok", b(self.final_state_ok)),
+            ("history_only_failure", b(self.history_only_failure)),
+            ("history_findings", self.history_findings.len() as f64),
+            ("refused_calls", self.refused_calls as f64),
+            ("service_error_calls", self.service_error_calls as f64),
         ])
+        .into_iter()
+        .chain(
+            self.task_service_calls
+                .map(|calls| ("task_service_calls", calls as f64)),
+        )
+        .collect()
+    }
+
+    /// Counts the agent's calls to the task's own services. The verifier calls this with
+    /// the services the world evidence lists; a trial that fails with none of them never
+    /// reached the systems the task is about.
+    pub fn attribute_calls(&mut self, calls: &[&JournalEntry], task_services: &[String]) {
+        self.task_service_calls = Some(
+            calls
+                .iter()
+                .filter(|entry| task_services.contains(&entry.service))
+                .count(),
+        );
+    }
+}
+
+/// The agent's world requests: those that came through the tools container, without
+/// the requests MCP servers make on their own when a session opens.
+pub fn agent_calls<'a>(
+    journal: &'a [JournalEntry],
+    tools_ips: &[String],
+    startup: &[StartupCall],
+) -> Vec<&'a JournalEntry> {
+    let via_tools: Vec<&JournalEntry> = journal
+        .iter()
+        .filter(|e| e.service != crate::scripted_user::SERVICE && tools_ips.contains(&e.source))
+        .collect();
+    without_startup(&via_tools, startup)
+}
+
+/// A failure found by replaying the trial's commits, not by reading its final state.
+fn from_history(failure: &CheckFailure) -> bool {
+    match failure.check {
+        CheckKind::Ordering => true,
+        CheckKind::Preservation => !failure.event_evidence.is_empty(),
+        CheckKind::Records | CheckKind::State => failure.location.contains("/history"),
+        _ => false,
     }
 }
 
@@ -922,6 +1015,17 @@ pub fn grade(input: &GradeInput) -> Grade {
     if let Err(error) = answer_result {
         failures.push(record_failure(error, CheckKind::Answer, "answer".into()));
     }
+    // Under `history = "report"` the final state decides: what the replay found about
+    // state, records and preservation is set aside as findings. Ordering stays a failure.
+    let history_findings = if input.expect.history == HistoryStrictness::Report {
+        let (findings, kept): (Vec<_>, Vec<_>) = failures
+            .into_iter()
+            .partition(|failure| failure.check != CheckKind::Ordering && from_history(failure));
+        failures = kept;
+        findings
+    } else {
+        Vec::new()
+    };
     // A refusal stops the agent from one route, not necessarily from the task. When the
     // refusals are the only failures, every check passed on what the agent did with the
     // operations the mock does model, so the trial is graded without them and they are
@@ -975,6 +1079,23 @@ pub fn grade(input: &GradeInput) -> Grade {
     } else {
         Outcome::Fail
     };
+    let proven = |failure: &&CheckFailure| failure.disposition == CheckDisposition::Failed;
+    let final_state_ok = !failures.iter().filter(proven).any(|failure| {
+        matches!(
+            failure.check,
+            CheckKind::State | CheckKind::Records | CheckKind::Relations | CheckKind::Preservation
+        ) && !from_history(failure)
+    });
+    let history_only_failure = outcome == Outcome::Fail && failures.iter().all(from_history);
+    let (refused_calls, service_error_calls) =
+        agent_calls
+            .iter()
+            .fold((0, 0), |(refused, failed), entry| match entry.status {
+                408 | 429 | 500.. => (refused, failed + 1),
+                400..=499 => (refused + 1, failed),
+                _ if application_error(entry) => (refused + 1, failed),
+                _ => (refused, failed),
+            });
     Grade {
         evaluator_version: EVALUATOR_VERSION,
         contract_version: input.expect.version,
@@ -999,7 +1120,13 @@ pub fn grade(input: &GradeInput) -> Grade {
         adjudication_needed,
         failures,
         refused_operations,
+        history_findings,
+        final_state_ok,
+        history_only_failure,
         api_calls: agent_calls.len(),
+        task_service_calls: None,
+        refused_calls,
+        service_error_calls,
         mcp_bypass,
     }
 }
@@ -1184,16 +1311,21 @@ fn required_response_matches(entry: &JournalEntry, matcher: &CallMatch) -> bool 
     } else {
         matcher.response_status.contains(&entry.status)
     };
+    accepted_status && (matcher.allow_tool_error || !application_error(entry))
+}
+
+/// An error the service reports inside its reply: an MCP tool error, a JSON-RPC error, a
+/// GraphQL `errors` list or a Cloudflare `success: false`.
+fn application_error(entry: &JournalEntry) -> bool {
     let body = &entry.response_body;
-    let tool_error = body["isError"] == true
+    body["isError"] == true
         || (body.get("jsonrpc").is_some()
             && body.get("error").is_some_and(|value| !value.is_null()))
         || (entry.path.ends_with("/graphql")
             && body["errors"]
                 .as_array()
                 .is_some_and(|errors| !errors.is_empty()))
-        || (entry.service == "cloudflare" && body["success"] == false);
-    accepted_status && (matcher.allow_tool_error || !tool_error)
+        || (entry.service == "cloudflare" && body["success"] == false)
 }
 
 fn body_text(body: &Value) -> String {
