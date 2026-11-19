@@ -136,7 +136,7 @@ for scripted-user scenarios; the schema number was not changed here.
 
 ## Frozen release admission
 
-`releases/tool-bench-public-dev-1.json` freezes, before any result:
+`releases/tool-bench-public-dev-2.json` freezes, before any result:
 
 - every scored task's split, family, family-assignment hash, scenario-source
   hash, dataset hash and contract hash;
@@ -150,6 +150,13 @@ task set. The single `external_bundle_seals` entry is flagged
 `synthetic_fixture`; it exercises the sealed-input path and supports no
 held-out claim. A manifest with held-out tasks but only a synthetic seal does
 not validate, and the report refuses a held-out comparison against it.
+
+`releases/tool-bench-public-dev-1.json` is the earlier release, kept unchanged as
+the record that results before 2026-11-19 belong to. Release 2 replaced eleven of
+its search tasks; their sources are archived, with the reason and the mapping, in
+`releases/archive/tool-bench-public-dev-1/`. `--check` against release 1 fails on
+the current sources by design. The other 139 tasks have the same dataset and
+contract in both releases.
 
 `bench-report --require-attested <a> <b> --release <manifest>` admits both arms
 before pairing. `--release` belongs to the attested comparison only; the default

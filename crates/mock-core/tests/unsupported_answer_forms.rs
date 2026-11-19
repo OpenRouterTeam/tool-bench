@@ -110,7 +110,7 @@ fn microseconds_to_milliseconds_dimension_gap() {
 
 // ── 3. Decimal fraction for a percentage ───────────────────────────────
 //
-// hosting-sla-lookup: uptime = 99.95%, require_unit = true,
+// hosting-sla-any-search: uptime = 99.95%, require_unit = true,
 // units = ["%", "percent", "pct"].
 //
 // "0.9995 uptime" is the decimal-fraction equivalent of 99.95%.

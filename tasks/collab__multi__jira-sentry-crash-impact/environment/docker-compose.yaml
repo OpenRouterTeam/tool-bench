@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:5e16c92e0d6f7c7a
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:1e1fd07186fa6be5
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "collab/multi/jira-sentry-crash-impact"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:a7844225357d4d1d
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:455bdffe03383ea7
     stop_signal: SIGKILL
     networks:
       default: {}

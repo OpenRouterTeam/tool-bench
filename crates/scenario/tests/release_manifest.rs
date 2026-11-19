@@ -4,15 +4,22 @@
 //! The first test is a freshness gate like `taskgen --check`: after an
 //! intended scenario, contract or evaluator change, refreeze with
 //! `cargo run -p scenario --bin release-manifest -- --manifest
-//! releases/tool-bench-public-dev-1.json --freeze` (a new release identity is
+//! releases/tool-bench-public-dev-2.json --freeze` (a new release identity is
 //! required once results have been published against the old one).
+//!
+//! `releases/tool-bench-public-dev-1.json` is kept as the record of the earlier release.
+//! It is no longer what the sources freeze to: eleven of its search tasks are archived
+//! under `releases/archive/tool-bench-public-dev-1/`.
 
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
 
 use mock_core::family::DifficultyFamily;
 use scenario::{
     discover,
-    release::{Release, SplitAssignment},
+    release::{self, Release, SplitAssignment},
     release_manifest,
 };
 
@@ -21,7 +28,7 @@ fn root() -> PathBuf {
 }
 
 fn manifest() -> PathBuf {
-    root().join("releases/tool-bench-public-dev-1.json")
+    root().join("releases/tool-bench-public-dev-2.json")
 }
 
 fn committed() -> Release {
@@ -68,6 +75,61 @@ fn the_committed_release_freezes_the_current_scored_sources() {
     assert_eq!(release.comparison.repeats_per_task, 3);
     assert!(!release.comparison.sequential_stopping);
     assert_eq!(release.comparison.denominators.len(), 3);
+}
+
+/// Release 1 stays readable, and release 2 differs from it only in the search group: eleven
+/// tasks left and eleven joined, and every task the two share has the same dataset and
+/// contract. Outside the search group the frozen entries are identical.
+#[test]
+fn the_earlier_release_is_kept_and_differs_only_in_the_search_group() {
+    let earlier =
+        release_manifest::read(&root().join("releases/tool-bench-public-dev-1.json")).unwrap();
+    let current = committed();
+    assert_eq!(earlier.release_id, "tool-bench-public-dev-1");
+    assert_eq!(current.release_id, "tool-bench-public-dev-2");
+    assert_eq!(earlier.comparison, current.comparison);
+    assert_eq!(earlier.evaluator_version, current.evaluator_version);
+    let by_id = |release: &Release| -> BTreeMap<String, release::ReleaseTask> {
+        release
+            .tasks
+            .iter()
+            .map(|task| (task.task_id.clone(), task.clone()))
+            .collect()
+    };
+    let (before, after) = (by_id(&earlier), by_id(&current));
+    let left: Vec<_> = before
+        .keys()
+        .filter(|id| !after.contains_key(*id))
+        .collect();
+    let joined: Vec<_> = after
+        .keys()
+        .filter(|id| !before.contains_key(*id))
+        .collect();
+    assert_eq!((left.len(), joined.len()), (11, 11));
+    assert!(left.iter().all(|id| id.starts_with("search/")), "{left:?}");
+    assert!(
+        joined
+            .iter()
+            .all(|id| id.starts_with("search/") && id.ends_with("-any-search")),
+        "{joined:?}"
+    );
+    for id in &left {
+        let archived = root()
+            .join("releases/archive/tool-bench-public-dev-1/scenarios")
+            .join(id)
+            .join("scenario.toml");
+        assert!(archived.is_file(), "{id} has no archived source");
+    }
+    for (id, task) in &before {
+        let Some(now) = after.get(id) else { continue };
+        assert_eq!(
+            (&task.dataset_sha256, &task.contract_sha256, task.family),
+            (&now.dataset_sha256, &now.contract_sha256, now.family),
+            "{id}"
+        );
+        // Only the route label moved a kept search task's source hash.
+        assert!(task == now || id.starts_with("search/"), "{id}");
+    }
 }
 
 #[test]

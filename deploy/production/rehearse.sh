@@ -6,7 +6,7 @@
 set -eu
 HERE=$(cd "$(dirname "$0")" && pwd)
 . "$HERE/env.sh"
-: "${TRIAL_TASKS:=business__stripe__customer-mrr code__github__file-login-bug ops__multi__pagerduty-sentry-github-issue search__brave__hosting-sla-lookup business__multi__hubspot-largest-deal-salesforce-owner}"
+: "${TRIAL_TASKS:=business__stripe__customer-mrr code__github__file-login-bug ops__multi__pagerduty-sentry-github-issue search__brave__hosting-sla-any-search business__multi__hubspot-largest-deal-salesforce-owner}"
 : "${UNASSESSABLE_TASK:=business__stripe__customer-mrr}"
 : "${RUN_PREFIX:=tb-local}"
 for image in "$WORLD_IMAGE" "$TOOLS_IMAGE"; do
