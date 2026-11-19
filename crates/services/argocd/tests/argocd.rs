@@ -74,66 +74,58 @@ fn state(w: &SharedWorld) -> Value {
     w.lock().unwrap().snapshot()["services"]["argocd"].clone()
 }
 
-async fn observe_completed(app: &Router, name: &str, namespace: &str) -> Value {
-    for _attempt in 0..6 {
-        let (status, application) = call(
-            app,
-            "GET",
-            &format!("/api/v1/applications/{name}?appNamespace={namespace}"),
-            "",
-        )
-        .await;
-        assert_eq!(status, StatusCode::OK, "{application}");
-        if !application["operation"].is_object() {
-            return application;
-        }
-    }
-    panic!("controller did not finish the bounded fixture operation");
-}
-
 #[tokio::test]
-async fn accepted_sync_is_not_completion_and_other_application_reads_cannot_advance_it() {
+async fn a_sync_finishes_in_its_own_request_and_no_read_changes_the_store() {
     let world = world(PAYMENTS);
     let router = app(&world);
-    let (_, accepted) = call(
+    let (_, synced) = call(
         &router,
         "POST",
         "/api/v1/applications/payments-api/sync",
         r#"{"appNamespace":"payments","prune":true}"#,
     )
     .await;
-    assert!(accepted["operation"].is_object());
-    assert!(accepted["status"].get("operationState").is_none());
-    assert!(state(&world)["resources"].get(LEGACY_PROD_UID).is_some());
-    call(
-        &router,
-        "GET",
-        "/api/v1/applications/payments-api?appNamespace=payments-staging",
-        "",
-    )
-    .await;
-    assert!(
-        state(&world)["applications"]["payments/payments-api"]["status"]
-            .get("operationState")
-            .is_none()
-    );
-    let (_, running) = call(
+    assert!(synced.get("operation").is_none());
+    assert_eq!(synced["status"]["operationState"]["phase"], "Succeeded");
+    assert!(synced["status"]["operationState"]["finishedAt"].is_string());
+    assert!(state(&world)["resources"].get(LEGACY_PROD_UID).is_none());
+
+    let settled = state(&world);
+    let (_, read) = call(
         &router,
         "GET",
         "/api/v1/applications/payments-api?appNamespace=payments",
         "",
     )
     .await;
-    assert_eq!(running["status"]["operationState"]["phase"], "Running");
-    assert!(
-        running["status"]["operationState"]
-            .get("finishedAt")
-            .is_none()
-    );
-    assert!(state(&world)["resources"].get(LEGACY_PROD_UID).is_some());
-    let completed = observe_completed(&router, "payments-api", "payments").await;
-    assert_eq!(completed["status"]["operationState"]["phase"], "Succeeded");
-    assert!(state(&world)["resources"].get(LEGACY_PROD_UID).is_none());
+    assert_eq!(read, synced);
+    let (_, list) = call(&router, "GET", "/api/v1/applications", "").await;
+    let listed = list["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| {
+            item["metadata"]["namespace"] == "payments"
+                && item["metadata"]["name"] == "payments-api"
+        })
+        .unwrap();
+    assert_eq!(listed, &read);
+    for route in [
+        "resource-tree?appNamespace=payments",
+        "managed-resources?appNamespace=payments",
+        "resource?appNamespace=payments&namespace=payments&resourceName=payments-api&group=apps&kind=Deployment&version=v1",
+        "events?appNamespace=payments",
+    ] {
+        let (status, _) = call(
+            &router,
+            "GET",
+            &format!("/api/v1/applications/payments-api/{route}"),
+            "",
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{route}");
+    }
+    assert_eq!(settled, state(&world));
 }
 
 #[tokio::test]
@@ -148,11 +140,6 @@ async fn rollback_updates_live_workloads_and_real_child_ownership_not_commit_hea
         &billing_worker_body("v1.42.0", true),
     )
     .await;
-    assert_eq!(
-        state(&world)["resources"]["4277b63d-291e-513f-9f6c-5d185a2f7bb5"],
-        initial["resources"]["4277b63d-291e-513f-9f6c-5d185a2f7bb5"]
-    );
-    observe_completed(&router, "billing-worker", "argocd").await;
     let final_state = state(&world);
     let deployment = &final_state["resources"]["4277b63d-291e-513f-9f6c-5d185a2f7bb5"];
     assert_eq!(
@@ -218,21 +205,20 @@ async fn changing_git_health_metadata_cannot_make_an_existing_crashing_workload_
     });
     let router = app(&world);
     let before = state(&world);
-    call(
+    let (_, completed) = call(
         &router,
         "POST",
         "/api/v1/applications/billing-worker/sync",
         "",
     )
     .await;
-    let completed = observe_completed(&router, "billing-worker", "argocd").await;
     assert_eq!(completed["status"]["health"]["status"], "Degraded");
     assert_eq!(completed["status"]["operationState"]["phase"], "Failed");
     assert_eq!(before["sync_history"], state(&world)["sync_history"]);
 }
 
 #[tokio::test]
-async fn disabled_automation_persists_the_pin_without_deploying_and_duplicate_operations_reject() {
+async fn disabled_automation_persists_the_pin_without_deploying_until_a_manual_sync() {
     let world = world(ROLLBACK);
     let router = app(&world);
     let mut request: Value = serde_json::from_str(&billing_worker_body("v1.42.0", true)).unwrap();
@@ -247,28 +233,29 @@ async fn disabled_automation_persists_the_pin_without_deploying_and_duplicate_op
     let (_, observed) = call(&router, "GET", "/api/v1/applications/billing-worker", "").await;
     assert!(!observed["operation"].is_object());
     assert_eq!(observed["status"]["health"]["status"], "Degraded");
-    call(
+    let (status, completed) = call(
         &router,
         "POST",
         "/api/v1/applications/billing-worker/sync",
         "",
     )
     .await;
-    let (status, error) = call(
-        &router,
-        "POST",
-        "/api/v1/applications/billing-worker/sync",
-        "",
-    )
-    .await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
-    assert_eq!(error["code"], 9);
-    let completed = observe_completed(&router, "billing-worker", "argocd").await;
+    assert_eq!(status, StatusCode::OK);
     assert_eq!(completed["status"]["health"]["status"], "Healthy");
     assert_eq!(
         completed["spec"]["syncPolicy"]["automated"]["enabled"],
         false
     );
+    // A finished operation does not block the next one.
+    let (status, again) = call(
+        &router,
+        "POST",
+        "/api/v1/applications/billing-worker/sync",
+        "",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(again["status"]["operationState"]["phase"], "Succeeded");
 }
 
 #[tokio::test]
@@ -284,27 +271,14 @@ async fn pending_prune_finalizers_are_not_deleted_or_recorded_as_successful_depl
     });
     let router = app(&world);
     let initial_history = state(&world)["sync_history"].clone();
-    call(
+    let (_, application) = call(
         &router,
         "POST",
         "/api/v1/applications/payments-api/sync",
         r#"{"appNamespace":"payments","prune":true}"#,
     )
     .await;
-    call(
-        &router,
-        "GET",
-        "/api/v1/applications/payments-api?appNamespace=payments",
-        "",
-    )
-    .await;
-    let (_, application) = call(
-        &router,
-        "GET",
-        "/api/v1/applications/payments-api?appNamespace=payments",
-        "",
-    )
-    .await;
+    assert!(application["operation"].is_object());
     assert_eq!(application["status"]["operationState"]["phase"], "Running");
     assert!(
         application["status"]["operationState"]
@@ -316,6 +290,26 @@ async fn pending_prune_finalizers_are_not_deleted_or_recorded_as_successful_depl
             .is_string()
     );
     assert_eq!(initial_history, state(&world)["sync_history"]);
+    // The operation waits on the finalizer: a second sync is refused and a read moves nothing.
+    let waiting = state(&world);
+    let (status, error) = call(
+        &router,
+        "POST",
+        "/api/v1/applications/payments-api/sync",
+        r#"{"appNamespace":"payments","prune":true}"#,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert_eq!(error["code"], 9);
+    let (_, read) = call(
+        &router,
+        "GET",
+        "/api/v1/applications/payments-api?appNamespace=payments",
+        "",
+    )
+    .await;
+    assert_eq!(read, application);
+    assert_eq!(waiting, state(&world));
 }
 
 #[tokio::test]
@@ -338,17 +332,15 @@ async fn history_retention_zero_does_not_erase_authoritative_completion_or_dry_r
         r#"{"appNamespace":"payments","prune":true,"dryRun":true}"#,
     )
     .await;
-    observe_completed(&router, "payments-api", "payments").await;
     assert_eq!(initial["resources"], state(&world)["resources"]);
     assert_eq!(initial["sync_history"], state(&world)["sync_history"]);
-    call(
+    let (_, completed) = call(
         &router,
         "POST",
         "/api/v1/applications/payments-api/sync",
         r#"{"appNamespace":"payments","prune":true}"#,
     )
     .await;
-    let completed = observe_completed(&router, "payments-api", "payments").await;
     assert_eq!(completed["status"]["history"], json!([]));
     assert_eq!(
         state(&world)["sync_history"].as_object().unwrap().len(),
@@ -717,6 +709,24 @@ async fn lists_and_runs_resource_actions() {
         events[0]["message"],
         "admin ran action restart on resource apps/Deployment/search-indexer-worker"
     );
+    // The rollout the restart starts is finished by the restart itself, and a read moves nothing.
+    let worker = &s["resources"][WORKER_UID];
+    assert_eq!(
+        worker["manifest"]["metadata"]["generation"],
+        worker["manifest"]["status"]["observedGeneration"]
+    );
+    assert_eq!(worker["health"]["status"], "Healthy");
+    for route in ["", "/resource-tree", "/managed-resources"] {
+        let (status, _) = call(
+            &a,
+            "GET",
+            &format!("/api/v1/applications/search-indexer{route}"),
+            "",
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{route}");
+    }
+    assert_eq!(s, state(&w));
     // A ConfigMap has no actions.
     let (_, none) = call(
         &a,
@@ -740,9 +750,7 @@ async fn sync_with_prune_deletes_orphans_and_records_history() {
     )
     .await;
     assert_eq!(status, StatusCode::OK);
-    assert!(synced["operation"].is_object());
-    assert_eq!(synced["status"]["sync"]["status"], "OutOfSync");
-    let synced = observe_completed(&a, "payments-api", "payments").await;
+    assert!(synced.get("operation").is_none());
     let sha = "fe01f33d2a5392fa17c1c35f25d294d24075c28b";
     assert_eq!(synced["status"]["sync"]["status"], "Synced");
     assert_eq!(synced["status"]["sync"]["revision"], sha);
@@ -793,14 +801,13 @@ async fn sync_with_prune_deletes_orphans_and_records_history() {
 async fn sync_without_prune_stays_out_of_sync() {
     let w = world(PAYMENTS);
     let a = app(&w);
-    let (_, _) = call(
+    let (_, synced) = call(
         &a,
         "POST",
         "/api/v1/applications/payments-api/sync",
         r#"{"appNamespace":"payments"}"#,
     )
     .await;
-    let synced = observe_completed(&a, "payments-api", "payments").await;
     assert_eq!(synced["status"]["sync"]["status"], "OutOfSync");
     let skipped = synced["status"]["operationState"]["syncResult"]["resources"]
         .as_array()
@@ -816,14 +823,13 @@ async fn sync_without_prune_stays_out_of_sync() {
     // Dry run changes nothing but the operation state.
     let w = world(PAYMENTS);
     let a = app(&w);
-    let (_, _) = call(
+    let (_, dry) = call(
         &a,
         "POST",
         "/api/v1/applications/payments-api/sync",
         r#"{"appNamespace":"payments","prune":true,"dryRun":true}"#,
     )
     .await;
-    let dry = observe_completed(&a, "payments-api", "payments").await;
     assert_eq!(dry["status"]["history"].as_array().unwrap().len(), 2);
     assert_eq!(dry["status"]["sync"]["status"], "OutOfSync");
     assert!(state(&w)["resources"].get(LEGACY_PROD_UID).is_some());
@@ -895,9 +901,7 @@ async fn update_with_auto_sync_rolls_back() {
     )
     .await;
     assert_eq!(status, StatusCode::OK);
-    assert_eq!(updated["status"]["sync"]["status"], "OutOfSync");
-    assert!(updated["operation"].is_object());
-    let updated = observe_completed(&a, "billing-worker", "argocd").await;
+    assert!(updated.get("operation").is_none());
     let b = "b0826e986c9c73e0088c6ecb2a14458d247d2205";
     assert_eq!(updated["spec"]["source"]["targetRevision"], "v1.42.0");
     assert_eq!(updated["status"]["sync"]["status"], "Synced");
@@ -933,9 +937,8 @@ async fn update_without_auto_sync_goes_out_of_sync_then_syncs() {
     .await;
     assert_eq!(updated["status"]["sync"]["status"], "OutOfSync");
     assert_eq!(updated["status"]["history"].as_array().unwrap().len(), 3);
-    let (status, _) = call(&a, "POST", "/api/v1/applications/billing-worker/sync", "").await;
+    let (status, synced) = call(&a, "POST", "/api/v1/applications/billing-worker/sync", "").await;
     assert_eq!(status, StatusCode::OK);
-    let synced = observe_completed(&a, "billing-worker", "argocd").await;
     assert_eq!(synced["status"]["sync"]["status"], "Synced");
     assert_eq!(synced["status"]["history"][3]["id"], 3);
 

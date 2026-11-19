@@ -15,6 +15,7 @@ pub mod images;
 pub mod oracle_results;
 pub mod oracle_tools;
 pub mod profile;
+pub mod prompt_date;
 pub mod proxy_policy;
 pub mod release;
 pub mod release_manifest;
@@ -48,6 +49,9 @@ pub struct Meta {
     /// Reviewed difficulty family (`[scenario.family]`); required when scored.
     #[serde(default)]
     pub family: Option<family::ScenarioFamily>,
+    /// Set when the outcome depends on today: the instruction must then state `now`.
+    #[serde(default)]
+    pub prompt_date: Option<prompt_date::PromptDate>,
 }
 
 fn default_timeout() -> u32 {
@@ -114,6 +118,8 @@ impl Scenario {
         let instruction = fs::read_to_string(dir.join("instruction.md"))
             .with_context(|| format!("reading {}/instruction.md", dir.display()))?;
         family::check(&file.scenario).with_context(|| format!("loading {}", path.display()))?;
+        prompt_date::check(&file.scenario.now, &instruction, file.scenario.prompt_date)
+            .map_err(|error| anyhow::anyhow!("{}: {error}", file.scenario.id))?;
         Ok(Self {
             dir: dir.to_owned(),
             meta: file.scenario,

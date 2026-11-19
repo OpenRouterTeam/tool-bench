@@ -22,8 +22,7 @@ pub async fn tree(
     params: Params,
 ) -> ApiResult {
     let key = app_key(params.get("appNamespace"), &name);
-    let mut world = world.lock().expect("world lock");
-    model::observe(&mut world, &key)?;
+    let world = world.lock().expect("world lock");
     let store = model::store(&world);
     require_app(store, &key)?;
     let nodes: Vec<Value> = app_resources(store, &key)
@@ -47,7 +46,6 @@ pub async fn managed(
 ) -> ApiResult {
     let key = app_key(params.get("appNamespace"), &name);
     let mut world = world.lock().expect("world lock");
-    model::observe(&mut world, &key)?;
     let store = model::store(&world);
     let app = require_app(store, &key)?;
     if let Some(project) = params.non_empty("project")
@@ -129,8 +127,7 @@ pub async fn get_resource(
     params: Params,
 ) -> ApiResult {
     let key = app_key(params.get("appNamespace"), &name);
-    let mut world = world.lock().expect("world lock");
-    model::observe(&mut world, &key)?;
+    let world = world.lock().expect("world lock");
     let store = model::store(&world);
     require_app(store, &key)?;
     let resource = query_resource(store, &key, &name, &params)?;
@@ -322,7 +319,6 @@ pub async fn run_action(
         return Err(ArgoError::invalid(format!("action {action} is disabled")));
     }
     let uid = str_field(&resource, "/uid").to_owned();
-    let rv = model::next_resource_version(svc);
     let kind = str_field(&resource, "/kind").to_owned();
     let mut changed = resource.clone();
     apply_action(&mut changed["manifest"], &kind, &action, &now);
@@ -337,26 +333,35 @@ pub async fn run_action(
         changed["status"] = json!("OutOfSync");
         changed["health"] = json!({"status":"Progressing"});
     }
-    if let Some(r) = svc.store.collection_mut("resources").get_mut(&uid) {
-        *r = changed;
-        r["resourceVersion"] = json!(rv);
-        r["manifest"]["metadata"]["resourceVersion"] = json!(rv);
-        crate::rendered::refresh_resource(r);
-    }
-    let message = format!(
-        "admin ran action {action} on resource {}/{}/{}",
-        str_field(&resource, "/group"),
-        kind,
-        str_field(&resource, "/name"),
-    );
-    model::app_event(
-        svc,
-        &now,
-        &app,
-        "argocd-server",
-        "ResourceActionRan",
-        &message,
-    );
+    let result = model::atomically(svc, |svc| {
+        let rv = model::next_resource_version(svc);
+        if let Some(r) = svc.store.collection_mut("resources").get_mut(&uid) {
+            *r = changed;
+            r["resourceVersion"] = json!(rv);
+            r["manifest"]["metadata"]["resourceVersion"] = json!(rv);
+            crate::rendered::refresh_resource(r);
+        }
+        let message = format!(
+            "admin ran action {action} on resource {}/{}/{}",
+            str_field(&resource, "/group"),
+            kind,
+            str_field(&resource, "/name"),
+        );
+        model::app_event(
+            svc,
+            &now,
+            &app,
+            "argocd-server",
+            "ResourceActionRan",
+            &message,
+        );
+        // The rollout a Deployment action starts finishes here: no later request runs it.
+        if kind == "Deployment" {
+            model::roll_out(svc, &now, &key)?;
+        }
+        Ok(())
+    });
+    model::checked(world, result)?;
     Ok(json(StatusCode::OK, json!({})))
 }
 

@@ -38,11 +38,6 @@ pointer = "/services/jira/issues/PAY-124/fields/updated"
 [[expect.preservation.allow]]
 pointer = "/services/jira/issues/PAY-124/changelog"
 
-[[expect.ordering]]
-prerequisite = { selector = { collection = "/services/jira/issues", matching = { key = "PAY-124" } }, field = "/fields/assignee", equals = "lena.fischer" }
-action = { selector = { collection = "/services/jira/issues", matching = { key = "PAY-124" } }, field = "/fields/status", equals = "In Progress" }
-allow_same_commit = true
-
 [[solution.call]]
 endpoint = "atlassian"
 tool = "confluence_search"

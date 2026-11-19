@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "ops/multi/datadog-latency-argocd-rollback",
-  "scenario_sha256": "sha256:252d65bd062070df92cdea91ebfe7af7525cc49d8eb2abb8a3c163a4a7cf2bf1",
+  "scenario_sha256": "sha256:91b89c4e7d6153e7f52145d3196b5678491d14cd6bc886e2ace2f0fa03e75b83",
   "dataset_sha256": "sha256:c7a2bc700d99472e3e855155d02046f043cdcaf2353534930e81124fbb57489d",
-  "contract_sha256": "sha256:d62462d51dcec487bebb480197b9dd4ebf5629f2bc01dff634c650cb6f7e5c2a"
+  "contract_sha256": "sha256:f9fcf452acc2f8fedf9d86c2bf2d7e8331586e01901939c82a236d541a43648f"
 }

@@ -2,6 +2,8 @@
 id = "collab/google/schedule-q1-planning"
 title = "Schedule the Q1 planning sync Priya asked for by email"
 now = "2026-10-29T15:00:00Z"
+# The email asks for "Tuesday, November 3" with no year: after that day it reads as past.
+prompt_date = "date"
 seed = "collab-google-schedule-q1-planning"
 services = ["google"]
 tags = ["write", "single-service", "google", "gmail", "calendar"]

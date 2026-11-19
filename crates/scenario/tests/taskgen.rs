@@ -262,8 +262,8 @@ fn diagnostic_examples_require_explicit_generation_and_never_inflate_the_scored_
     assert_eq!(counts["summary"]["scored_tasks"], 150);
     assert_eq!(counts["summary"]["unscored_examples"], 2);
     assert_eq!(counts["summary"]["unscored_diagnostics"], 2);
-    assert_eq!(counts["summary"]["reference_calls"], 462);
-    assert_eq!(counts["summary"]["static_argument_schemas"], 444);
+    assert_eq!(counts["summary"]["reference_calls"], 459);
+    assert_eq!(counts["summary"]["static_argument_schemas"], 441);
     assert_eq!(counts["summary"]["deferred_argument_schemas"], 18);
     assert_eq!(counts["summary"]["scored_declared_unscorable"], 0);
     assert!(

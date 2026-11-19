@@ -482,4 +482,10 @@ pub fn initialize(service: &mut ServiceState, _now: i64) {
         }
         refresh_resource(resource);
     }
+    for (app, application) in &applications {
+        assert!(
+            !application["operation"].is_object() && !model::rollout_pending(&service.store, app),
+            "a baseline Application has no pending sync or rollout: only a write runs one"
+        );
+    }
 }

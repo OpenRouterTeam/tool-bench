@@ -99,9 +99,8 @@ pub async fn get(
     Path(name): Path<String>,
     params: Params,
 ) -> ApiResult {
-    let mut world = world.lock().expect("world lock");
+    let world = world.lock().expect("world lock");
     let key = app_key(params.get("appNamespace"), &name);
-    model::observe(&mut world, &key)?;
     let store = model::store(&world);
     let app = render_app(store, &key).ok_or_else(|| ArgoError::app_not_found(&name))?;
     Ok(json(StatusCode::OK, app))
@@ -156,50 +155,50 @@ pub async fn create(State(world): State<SharedWorld>, params: Params, body: Byte
                 "existing application spec is different, use upsert flag to force update",
             ));
         }
-        let result = apply_update(svc, &now, &key, &input, spec);
+        let result = model::atomically(svc, |svc| apply_update(svc, &now, &key, &input, spec));
         return Ok(json(StatusCode::OK, model::checked(world, result)?));
     }
 
-    let uid = svc.ids.next_uuid("application").to_string();
-    let rv = model::next_resource_version(svc);
-    let mut metadata = json!({
-        "name": name,
-        "namespace": ns,
-        "uid": uid,
-        "resourceVersion": rv,
-        "generation": 1,
-        "creationTimestamp": now,
+    let result = model::atomically(svc, |svc| {
+        let uid = svc.ids.next_uuid("application").to_string();
+        let rv = model::next_resource_version(svc);
+        let mut metadata = json!({
+            "name": name,
+            "namespace": ns,
+            "uid": uid,
+            "resourceVersion": rv,
+            "generation": 1,
+            "creationTimestamp": now,
+        });
+        for (k, v) in client_metadata(&input) {
+            metadata[k] = v;
+        }
+        let mut app = json!({
+            "metadata": metadata,
+            "spec": spec,
+            "status": {
+                "health": { "status": "Missing" },
+                "reconciledAt": now,
+                "sourceType": "Directory",
+                "controllerNamespace": DEFAULT_APP_NAMESPACE,
+            },
+        });
+        app["status"]["sync"] = json!({ "status": "OutOfSync" });
+        svc.store
+            .collection_mut("applications")
+            .insert(key.clone(), app.clone());
+        model::app_event(
+            svc,
+            &now,
+            &app,
+            "argocd-server",
+            "ResourceCreated",
+            "admin created application",
+        );
+        model::reconcile(svc, &now, &key)?;
+        Ok(render_app(&svc.store, &key).expect("just created"))
     });
-    for (k, v) in client_metadata(&input) {
-        metadata[k] = v;
-    }
-    let mut app = json!({
-        "metadata": metadata,
-        "spec": spec,
-        "status": {
-            "health": { "status": "Missing" },
-            "reconciledAt": now,
-            "sourceType": "Directory",
-            "controllerNamespace": DEFAULT_APP_NAMESPACE,
-        },
-    });
-    app["status"]["sync"] = json!({ "status": "OutOfSync" });
-    svc.store
-        .collection_mut("applications")
-        .insert(key.clone(), app.clone());
-    model::app_event(
-        svc,
-        &now,
-        &app,
-        "argocd-server",
-        "ResourceCreated",
-        "admin created application",
-    );
-    let result = model::reconcile(svc, &now, &key);
-    model::checked(world, result)?;
-    let svc = world.service_mut(NAME);
-    let out = render_app(&svc.store, &key).expect("just created");
-    Ok(json(StatusCode::OK, out))
+    Ok(json(StatusCode::OK, model::checked(world, result)?))
 }
 
 fn apply_update(
@@ -275,7 +274,7 @@ pub async fn update(
     let validation = model::validate_spec(&svc.store, &name, &ns, &spec);
     model::checked(world, validation)?;
     let svc = world.service_mut(NAME);
-    let result = apply_update(svc, &now, &key, &input, spec);
+    let result = model::atomically(svc, |svc| apply_update(svc, &now, &key, &input, spec));
     Ok(json(StatusCode::OK, model::checked(world, result)?))
 }
 
@@ -296,7 +295,7 @@ pub async fn update_spec(
     let validation = model::validate_spec(&svc.store, &name, namespace, &spec);
     model::checked(world, validation)?;
     let svc = world.service_mut(NAME);
-    let result = apply_update(svc, &now, &key, &application, spec);
+    let result = model::atomically(svc, |svc| apply_update(svc, &now, &key, &application, spec));
     let updated = model::checked(world, result)?;
     Ok(json(StatusCode::OK, updated["spec"].clone()))
 }
@@ -402,7 +401,7 @@ pub async fn sync(
     let world = &mut *guard;
     let now = world.clock.now_rfc3339();
     let svc = world.service_mut(NAME);
-    let result = model::sync(svc, &now, &key, req);
+    let result = model::atomically(svc, |svc| model::sync(svc, &now, &key, req));
     model::checked(world, result)?;
     let svc = world.service_mut(NAME);
     let out = render_app(&svc.store, &key).expect("app exists");

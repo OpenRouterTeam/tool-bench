@@ -96,6 +96,7 @@ async fn investigate(trial: &ContractTrial) {
     latency(trial, FULL_DAY, PROD_LATENCY).await;
 }
 
+/// Reads the application back. A read changes nothing: the write before it already finished.
 async fn observe(trial: &ContractTrial, name: &str) {
     for _attempt in 0..6 {
         native_arguments(
@@ -369,12 +370,36 @@ async fn rollback_rejects_a_tag_or_abbreviated_sha_when_the_full_commit_was_requ
     }
 }
 
+/// The pin deploys: the automated sync finishes inside the update, so no read after it is
+/// needed, and the application list shows the same finished state as the application.
 #[tokio::test]
-async fn rollback_rejects_a_pin_whose_deployment_was_never_observed_to_complete() {
+async fn rollback_is_done_by_the_pin_alone_with_no_later_read() {
     let trial = rollback_trial(|_| {});
     investigate(&trial).await;
     pin_spec(&trial, "billing-api", TARGET_COMMIT, |_| {}).await;
-    assert_outcome(&trial, Outcome::Fail);
+    assert_outcome(&trial, Outcome::Pass);
+    assert_eq!(
+        deployed_image(&trial),
+        "ghcr.io/lumen-retail/billing-api:2.8.0"
+    );
+    let settled = trial.world.lock().unwrap().snapshot()["services"]["argocd"].clone();
+    let list = trial
+        .call_from("argocd", "GET", "/api/v1/applications", Value::Null)
+        .await;
+    let listed = list["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| item["metadata"]["name"] == "billing-api")
+        .unwrap();
+    assert_eq!(listed["status"]["operationState"]["phase"], "Succeeded");
+    assert_eq!(listed["status"]["sync"]["revision"], TARGET_COMMIT);
+    observe(&trial, "billing-api").await;
+    assert_eq!(
+        settled,
+        trial.world.lock().unwrap().snapshot()["services"]["argocd"]
+    );
+    assert_outcome(&trial, Outcome::Pass);
 }
 
 #[tokio::test]

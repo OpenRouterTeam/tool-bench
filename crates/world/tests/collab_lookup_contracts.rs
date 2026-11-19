@@ -100,6 +100,42 @@ fn oncall_trial() -> ContractTrial {
     )
 }
 
+/// The first person on call for the production DBRE policy at `when` (the route's own default
+/// when empty).
+async fn first_on_call(trial: &ContractTrial, when: &str) -> String {
+    let oncalls = trial
+        .call(
+            "GET",
+            &format!("/oncalls?escalation_policy_ids%5B%5D=PEPDBRE{when}"),
+            Value::Null,
+        )
+        .await["oncalls"]
+        .clone();
+    oncalls
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entry| entry["escalation_level"] == 1)
+        .unwrap()["user"]["summary"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
+/// Why the prompt states the date and the time. Asked without a time, PagerDuty answers for
+/// the scenario's `now`. Asked for another day it answers for that day, and DBRE Primary hands
+/// off daily: an agent that sends its own date (2026-11-18 in round `utl1`) reads the backup's
+/// name as the first on call.
+#[tokio::test]
+async fn who_is_on_call_depends_on_the_day_the_question_is_asked_for() {
+    let trial = oncall_trial();
+    assert_eq!(first_on_call(&trial, "").await, "Dana Nguyen");
+    let stated = "&since=2026-10-30T14:00:00Z&until=2026-10-30T14:00:00Z";
+    assert_eq!(first_on_call(&trial, stated).await, "Dana Nguyen");
+    let later = "&since=2026-11-18T14:00:00Z&until=2026-11-18T14:00:00Z";
+    assert_eq!(first_on_call(&trial, later).await, "Sam Okafor");
+}
+
 #[tokio::test]
 async fn the_inventory_incident_is_routed_to_the_rotation_the_thread_names() {
     let trial = oncall_trial();

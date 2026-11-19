@@ -85,14 +85,14 @@ allow = [
   { pointer = "/services/argocd/applications/payments~1payments-api/status/reconciledAt" },
   { pointer = "/services/argocd/applications/payments~1payments-api/status/sync" },
   { pointer = "/services/argocd/applications/payments~1payments-api/status/health" },
-  { pointer = "/services/argocd/applications/payments~1payments-api/status/history", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/payments-api(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/applications/payments~1payments-api/status/history", cause = { service = "argocd", methods = ["POST"], path_regex = "^/api/v1/applications/payments-api/sync$" } },
   { pointer = "/services/argocd/applications/payments~1payments-api/operation", matching = { operation = { sync = { revision = "fe01f33d2a5392fa17c1c35f25d294d24075c28b" } } } },
   { pointer = "/services/argocd/applications/payments~1payments-api/operation", kind = "remove_field" },
   { pointer = "/services/argocd/applications/payments~1payments-api/status/operationState", matching = { status = { operationState = { syncResult = { revision = "fe01f33d2a5392fa17c1c35f25d294d24075c28b" } } } } },
   { pointer = "/services/argocd/applications/payments~1payments-api/status/operationState", kind = "remove_field", matching = { operation = { sync = { revision = "fe01f33d2a5392fa17c1c35f25d294d24075c28b" } } } },
   { pointer = "/services/argocd/sync_history/*", kind = "create", matching = { app = "payments/payments-api", history = { revision = "fe01f33d2a5392fa17c1c35f25d294d24075c28b", source = { repoURL = "https://github.com/lumen-retail/payments-api-deploy.git", path = "overlays/production" } } }, count_scope = "per_commit" },
-  { pointer = "/services/argocd/resources/*/manifest/spec", initial_matching = { app = "payments/payments-api", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/payments-api(/resource-tree|/managed-resources|/resource)?$" } },
-  { pointer = "/services/argocd/resources/*/manifest/data", initial_matching = { app = "payments/payments-api", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/payments-api(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/spec", initial_matching = { app = "payments/payments-api", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["POST"], path_regex = "^/api/v1/applications/payments-api/sync$" } },
+  { pointer = "/services/argocd/resources/*/manifest/data", initial_matching = { app = "payments/payments-api", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["POST"], path_regex = "^/api/v1/applications/payments-api/sync$" } },
   { pointer = "/services/argocd/resources/*/manifest/metadata/labels/app.kubernetes.io~1version", initial_matching = { app = "payments/payments-api", managed = true }, max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/annotations/deployment.kubernetes.io~1revision", initial_matching = { app = "payments/payments-api", kind = "Deployment", name = "payments-api", namespace = "payments" } },
   { pointer = "/services/argocd/resources/*/manifest/metadata/generation", initial_matching = { app = "payments/payments-api", managed = true }, max_count = "all_matching" },
@@ -105,7 +105,7 @@ allow = [
   { pointer = "/services/argocd/resources/*/template_digest", initial_matching = { app = "payments/payments-api", kind = "Deployment", name = "payments-api", namespace = "payments" } },
   { pointer = "/services/argocd/resources/*/content_digest", initial_matching = { app = "payments/payments-api", managed = true }, max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*", kind = "delete", initial_matching = { app = "payments/payments-api", managed = true, requiresPruning = true }, max_count = "all_matching" },
-  { pointer = "/services/argocd/resources/*/manifest/spec/replicas", initial_matching = { app = "payments/payments-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "payments/payments-api", kind = "Deployment", name = "payments-api", namespace = "payments" } } }], max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/payments-api(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/spec/replicas", initial_matching = { app = "payments/payments-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "payments/payments-api", kind = "Deployment", name = "payments-api", namespace = "payments" } } }], max_count = "all_matching", cause = { service = "argocd", methods = ["POST"], path_regex = "^/api/v1/applications/payments-api/sync$" } },
   { pointer = "/services/argocd/resources/*/manifest/status", initial_matching = { app = "payments/payments-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "payments/payments-api", kind = "Deployment", name = "payments-api", namespace = "payments" } } }], max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/resourceVersion", initial_matching = { app = "payments/payments-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "payments/payments-api", kind = "Deployment", name = "payments-api", namespace = "payments" } } }], max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/generation", initial_matching = { app = "payments/payments-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "payments/payments-api", kind = "Deployment", name = "payments-api", namespace = "payments" } } }], max_count = "all_matching" },
@@ -128,11 +128,6 @@ arguments = { search = "payments-api" }
 endpoint = "argocd"
 tool = "sync_application"
 arguments = { applicationName = "payments-api", applicationNamespace = "payments", prune = true }
-
-[[solution.call]]
-endpoint = "argocd"
-tool = "get_application"
-arguments = { applicationName = "payments-api", applicationNamespace = "payments" }
 
 [[solution.call]]
 endpoint = "argocd"

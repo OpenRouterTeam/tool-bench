@@ -185,7 +185,7 @@ fn source_inventory_counts_real_declarations_without_certifying_semantics_or_tri
                 scenario::oracle_results::ResultContract::FirecrawlNativeV1,
                 8
             ),
-            (scenario::oracle_results::ResultContract::ArgoApiV1, 21),
+            (scenario::oracle_results::ResultContract::ArgoApiV1, 18),
             (scenario::oracle_results::ResultContract::OktaApiV1, 19),
             (scenario::oracle_results::ResultContract::TerraformApiV1, 16),
             (scenario::oracle_results::ResultContract::GrafanaApiV1, 12),

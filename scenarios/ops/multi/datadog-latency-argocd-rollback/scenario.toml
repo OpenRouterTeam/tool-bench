@@ -107,14 +107,14 @@ allow = [
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/reconciledAt" },
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/sync" },
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/health" },
-  { pointer = "/services/argocd/applications/argocd~1billing-api/status/history", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/applications/argocd~1billing-api/status/history", cause = { service = "argocd", methods = ["PUT", "POST"], path_regex = "^/api/v1/applications(/billing-api(/spec|/sync)?)?$" } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/operation", matching = { operation = { sync = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/operation", kind = "remove_field", matching = { spec = { source = { targetRevision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/operation", kind = "remove_field", matching = { status = { operationState = { operation = { sync = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2", dryRun = true } } } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/operationState", matching = { status = { operationState = { syncResult = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } } },
   { pointer = "/services/argocd/applications/argocd~1billing-api/status/operationState", kind = "remove_field", matching = { operation = { sync = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } } },
   { pointer = "/services/argocd/sync_history/*", kind = "create", matching = { app = "argocd/billing-api", history = { revision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2", source = { repoURL = "https://github.com/lumen-retail/billing-api-deploy.git", path = "overlays/production", targetRevision = "f4befdc6efa7504dc43d29f4de52c0f1529f52d2" } } }, count_scope = "per_commit" },
-  { pointer = "/services/argocd/resources/*/manifest/spec", initial_matching = { app = "argocd/billing-api", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/spec", initial_matching = { app = "argocd/billing-api", managed = true }, max_count = "all_matching", cause = { service = "argocd", methods = ["PUT", "POST"], path_regex = "^/api/v1/applications(/billing-api(/spec|/sync)?)?$" } },
   { pointer = "/services/argocd/resources/*/manifest/metadata/labels/app.kubernetes.io~1version", initial_matching = { app = "argocd/billing-api", managed = true }, max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/annotations/deployment.kubernetes.io~1revision", initial_matching = { app = "argocd/billing-api", kind = "Deployment", name = "billing-api", namespace = "billing" } },
   { pointer = "/services/argocd/resources/*/manifest/metadata/generation", initial_matching = { app = "argocd/billing-api", managed = true }, max_count = "all_matching" },
@@ -126,7 +126,7 @@ allow = [
   { pointer = "/services/argocd/resources/*/requiresPruning", initial_matching = { app = "argocd/billing-api", managed = true }, max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/template_digest", initial_matching = { app = "argocd/billing-api", kind = "Deployment", name = "billing-api", namespace = "billing" } },
   { pointer = "/services/argocd/resources/*/content_digest", initial_matching = { app = "argocd/billing-api", managed = true }, max_count = "all_matching" },
-  { pointer = "/services/argocd/resources/*/manifest/spec/replicas", initial_matching = { app = "argocd/billing-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-api", kind = "Deployment", name = "billing-api", namespace = "billing" } } }], max_count = "all_matching", cause = { service = "argocd", methods = ["GET"], path_regex = "^/api/v1/applications/billing-api(/resource-tree|/managed-resources|/resource)?$" } },
+  { pointer = "/services/argocd/resources/*/manifest/spec/replicas", initial_matching = { app = "argocd/billing-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-api", kind = "Deployment", name = "billing-api", namespace = "billing" } } }], max_count = "all_matching", cause = { service = "argocd", methods = ["PUT", "POST"], path_regex = "^/api/v1/applications(/billing-api(/spec|/sync)?)?$" } },
   { pointer = "/services/argocd/resources/*/manifest/status", initial_matching = { app = "argocd/billing-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-api", kind = "Deployment", name = "billing-api", namespace = "billing" } } }], max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/resourceVersion", initial_matching = { app = "argocd/billing-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-api", kind = "Deployment", name = "billing-api", namespace = "billing" } } }], max_count = "all_matching" },
   { pointer = "/services/argocd/resources/*/manifest/metadata/generation", initial_matching = { app = "argocd/billing-api", kind = "ReplicaSet" }, initial_references = [{ source_field = "/controller_uid", target_field = "/uid", target = { collection = "/services/argocd/resources", matching = { app = "argocd/billing-api", kind = "Deployment", name = "billing-api", namespace = "billing" } } }], max_count = "all_matching" },
@@ -166,11 +166,6 @@ tool = "update_application_spec"
 template = true
 arguments = { applicationName = "billing-api", applicationNamespace = "argocd", spec = "${billing_spec}" }
 replacements = [{ pointer = "/spec/source/targetRevision", value = "${previous_release}" }]
-
-[[solution.call]]
-endpoint = "argocd"
-tool = "get_application"
-arguments = { applicationName = "billing-api", applicationNamespace = "argocd" }
 
 [[solution.call]]
 endpoint = "argocd"

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/argocd/sync-prod-payments-api",
-  "scenario_sha256": "sha256:bad4f40a12caf38388fd9ce21603d1ba66c5f3e484f5515b4fa042eb94e10d39",
+  "scenario_sha256": "sha256:d525f65f3e6cd86243309c506d1cb0fcc963d03b92904e04ca0c102dc99f8c3c",
   "dataset_sha256": "sha256:4d34dda48d3ad4dfd9dd30d4082748f507f09799d621541a6d5c4e7083c48945",
-  "contract_sha256": "sha256:94490e920ba145c10864d2586ae3a892334bdaa86352e935681cfab16932ab5a"
+  "contract_sha256": "sha256:ec88c36478ec28e09bab07a7aa5a37ae78e8a14d4ca0bdbcef2a21369d674200"
 }

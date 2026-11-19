@@ -12,7 +12,7 @@ for task in assign-go-no-go-review file-apple-pay-bug ship-refund-retries; do
   mkdir "$OUT/$task-original"
   cp "$OUT/tasks/collab__jira__$task/solution/"*.json "$OUT/$task-original/"
 done
-for variant in assign_atomic assign_premature assign_archived_owner assign_collateral \
+for variant in assign_atomic assign_status_first assign_archived_owner assign_collateral \
     bug_summary_only bug_short_summary bug_contradiction bug_unreviewed bug_wrong_assignee bug_wrong_label \
     ship_atomic ship_comment_first ship_identifier_only ship_wrong_issue ship_wrong_resolution; do
   reward=0
@@ -34,7 +34,10 @@ for variant in assign_atomic assign_premature assign_archived_owner assign_colla
       jq '.params.arguments.fields = "{\"assignee\":{\"name\":\"lena.fischer@octo-corp.example\"}}"' \
         "$OUT/$task-original/call-4.json" > "$TASK/solution/call-4.json"
       ;;
-    assign_premature)
+    assign_status_first)
+      # Status first, owner second: the same end state, so the order is not graded.
+      reward=1
+      outcome=0
       cp "$OUT/$task-original/call-4.json" "$TASK/solution/call-3.json"
       cp "$OUT/$task-original/call-3.json" "$TASK/solution/call-4.json"
       ;;
@@ -117,7 +120,6 @@ for variant in assign_atomic assign_premature assign_archived_owner assign_colla
       and .preservation_checked == 1 and .history_checked == 1
       and .runner_admission_checked == 1 and .runner_admission_ok == 1' "$result" >/dev/null
   case "$variant" in
-    assign_premature) jq -e '.ordering_ok == 0' "$result" >/dev/null ;;
     assign_collateral) jq -e '.preservation_ok == 0' "$result" >/dev/null ;;
   esac
   printf '%s\n' "$variant: Jira outcome, content disposition and admission passed"
