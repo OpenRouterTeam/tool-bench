@@ -646,8 +646,8 @@ fn pass_rates_and_the_paired_difference_are_split_by_route_label() {
     // Of the two that name neither, A passes both and B passes one.
     pass(left, "sla__1", "search__brave__hosting-sla-any-search");
     pass(right, "sla__1", "search__brave__hosting-sla-any-search");
-    pass(left, "deal__1", "business__hubspot__largest-open-deal");
-    fail(right, "deal__1", "business__hubspot__largest-open-deal");
+    pass(left, "timeout__1", "search__exa__sdk-timeout-any-search");
+    fail(right, "timeout__1", "search__exa__sdk-timeout-any-search");
     let (a, b) = (arm("A", left), arm("B", right));
 
     let summary = arms::summarize(&b);
