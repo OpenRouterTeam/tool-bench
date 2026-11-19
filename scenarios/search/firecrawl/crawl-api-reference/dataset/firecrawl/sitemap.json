@@ -1,0 +1,32 @@
+[
+  {
+    "_key": "https://docs.lumenpay.dev"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/guides/quickstart"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/guides/authentication"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/guides/testing"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/api/overview"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/api/payments"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/api/refunds"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/api/customers"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/api/webhooks"
+  },
+  {
+    "_key": "https://docs.lumenpay.dev/changelog"
+  }
+]
