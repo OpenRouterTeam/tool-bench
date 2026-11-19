@@ -328,6 +328,18 @@ async fn cycle_membership_and_progression_allow_combined_updates_and_retries() {
     fail(&trial.assess());
 }
 
+/// Why the prompt states the date. Cycle 43 starts on 2026-11-09, so it is the cycle whose
+/// dates contain any later day; the task's cycle is the one current on the scenario's date.
+#[tokio::test]
+async fn the_cycle_current_on_a_later_day_is_not_the_tasks_current_cycle() {
+    const NEXT_CYCLE: &str = "c70c9185-b7fb-567b-86c1-7aab564bfd93";
+    let trial = Trial::new("linear", "pull-issue-into-cycle");
+    trial
+        .update_issue("PAY-121", json!({"cycleId":NEXT_CYCLE,"stateId":PROGRESS}))
+        .await;
+    fail(&trial.assess());
+}
+
 #[tokio::test]
 async fn invalid_linear_compound_updates_do_not_publish_partial_history() {
     let trial = Trial::new("linear", "pull-issue-into-cycle");
