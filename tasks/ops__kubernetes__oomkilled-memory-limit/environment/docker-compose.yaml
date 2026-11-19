@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:eab0c6c0d72038bd
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:3365097eef4ba4a0
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "ops/kubernetes/oomkilled-memory-limit"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b2fe6f5782511b41
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:3b1f6a331ba1e451
     stop_signal: SIGKILL
     networks:
       default: {}
