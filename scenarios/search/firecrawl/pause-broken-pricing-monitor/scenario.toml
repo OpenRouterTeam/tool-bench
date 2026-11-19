@@ -4,7 +4,7 @@ title = "Pause the failing monitor among look-alikes and run the healthy one"
 now = "2026-10-29T15:00:00Z"
 seed = "search-firecrawl-pause-broken-pricing-monitor"
 services = ["firecrawl"]
-tags = ["write", "single-service", "firecrawl", "disambiguation"]
+tags = ["write", "single-service", "firecrawl", "disambiguation", "route:named"]
 timeout_sec = 900
 
 [scenario.family]

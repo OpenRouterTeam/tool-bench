@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__exa__enrich-lead-list"
 description = "Enrich a lead list with an Exa Agent run"
-keywords = ["write","single-service","exa"]
+keywords = ["write","single-service","exa","route:named"]
 
 [metadata]
 scenario = "search/exa/enrich-lead-list"

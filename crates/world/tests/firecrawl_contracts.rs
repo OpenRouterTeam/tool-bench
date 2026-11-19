@@ -127,12 +127,13 @@ async fn collect(trial: &ContractTrial, started: &Value) -> Value {
     result
 }
 
-/// A site-root seed that its own `includePaths` filter excludes: the job collects nothing.
+/// A crawl that skips the sitemap from a site-root seed its own `includePaths` filter
+/// excludes: the job collects nothing.
 async fn empty_crawl(trial: &ContractTrial, include: &str) {
     let started = crawl(
         trial,
         json!({"url":"https://docs.lumenpay.dev","crawlEntireDomain":false,
-            "includePaths":[include],"limit":100}),
+            "includePaths":[include],"limit":100,"sitemap":"skip"}),
     )
     .await;
     let result = collect(trial, &started).await;
@@ -309,6 +310,60 @@ async fn the_allowance_for_attempts_that_collected_nothing_is_bounded() {
         };
         assessment(&trial, expected);
     }
+}
+
+/// The crawls the request describes: the site root with an `/api/` filter, or with the rest
+/// of the site excluded, and the section path, which is not a page. The site's sitemap
+/// carries each of them to the five pages of the section.
+#[tokio::test]
+async fn the_site_root_with_an_api_filter_and_the_section_path_are_valid_seeds() {
+    let root = "https://docs.lumenpay.dev";
+    for changes in [
+        json!({"url":root,"crawlEntireDomain":false}),
+        json!({"url":root,"crawlEntireDomain":false,"includePaths":["/api/.*"]}),
+        json!({"url":root,"crawlEntireDomain":false,"includePaths":["api/*"]}),
+        json!({"url":root,"crawlEntireDomain":false,"includePaths":[],
+            "excludePaths":["^/$","^/guides/.*","^/changelog$"]}),
+        json!({"url":format!("{root}/api/"),"crawlEntireDomain":false,"includePaths":[]}),
+        json!({"url":format!("{root}/api"),"crawlEntireDomain":false,"includePaths":[]}),
+    ] {
+        let trial = prepared(CRAWL);
+        let started = crawl(&trial, changes.clone()).await;
+        assessment(&trial, Outcome::Pass);
+        assert_eq!(collect(&trial, &started).await["completed"], 5, "{changes}");
+        assessment(&trial, Outcome::Pass);
+    }
+}
+
+/// Part of the section is not the section: a page limit below its size, and a seed on one of
+/// its pages without the sibling traversal that reaches the others.
+#[tokio::test]
+async fn a_crawl_that_collects_part_of_the_section_fails() {
+    for (changes, collected) in [
+        (
+            json!({"url":"https://docs.lumenpay.dev","crawlEntireDomain":false,"limit":3}),
+            3,
+        ),
+        (json!({"crawlEntireDomain":false}), 1),
+    ] {
+        let trial = prepared(CRAWL);
+        let started = crawl(&trial, changes.clone()).await;
+        assert_eq!(
+            collect(&trial, &started).await["completed"],
+            collected,
+            "{changes}"
+        );
+        assessment(&trial, Outcome::Fail);
+    }
+}
+
+/// From a page of the section, `crawlEntireDomain` with no filter reaches the whole docs site.
+#[tokio::test]
+async fn a_whole_domain_crawl_from_an_api_page_collects_the_guides_too() {
+    let trial = prepared(CRAWL);
+    let started = crawl(&trial, json!({"includePaths":[]})).await;
+    assert_eq!(collect(&trial, &started).await["completed"], 10);
+    assessment(&trial, Outcome::Fail);
 }
 
 #[tokio::test]

@@ -82,7 +82,7 @@ async fn authenticated_firecrawl_requests_replay_with_exact_bodies_and_declared_
             .unwrap();
     let credential = catalog.launch("firecrawl").unwrap().env["FIRECRAWL_API_KEY"].clone();
     let directory = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../scenarios/search/firecrawl/northwind-team-pricing");
+        .join("../../scenarios/search/firecrawl/team-pricing-any-search");
     let state = shared(WorldState::from_dataset(Dataset::load(&directory).unwrap()).unwrap());
     let running = spawn(
         state.clone(),

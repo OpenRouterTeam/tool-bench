@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__elasticsearch__latency-by-region"
 description = "Average checkout latency per region from request logs"
-keywords = ["lookup","single-service","elasticsearch"]
+keywords = ["lookup","single-service","elasticsearch","route:named"]
 
 [metadata]
 scenario = "search/elasticsearch/latency-by-region"

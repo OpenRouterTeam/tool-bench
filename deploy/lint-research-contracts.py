@@ -6,8 +6,8 @@ import tomllib
 from pathlib import Path
 
 
-COMPETITOR = "search/multi/competitor-research-github-issue"
-VENDOR = "search/multi/vendor-rate-limit-zendesk-reply"
+COMPETITOR = "search/multi/github-issue-any-search"
+VENDOR = "search/multi/zendesk-reply-any-search"
 WRITE_SERVICES = {COMPETITOR: "github", VENDOR: "zendesk"}
 RESEARCH_SERVICES = {COMPETITOR: "exa", VENDOR: "tavily"}
 GA_SOURCES = {

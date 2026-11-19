@@ -360,14 +360,14 @@ async fn checkout_resolution_note() {
     .await;
 }
 
-// search/multi/competitor-research-github-issue
+// search/multi/github-issue-any-search
 
 const GA_TITLE: &str = "Lumenrail Scale plan is generally available";
 const GA_BODY: &str = "Lumenrail Scale plan (generally available): $349 per month billed annually, 50M events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available";
 
 async fn competitor_issue(title: &str, body: &str) -> Grade {
     let trial = ContractTrial::load_many_with_dataset(
-        "search/multi/competitor-research-github-issue",
+        "search/multi/github-issue-any-search",
         &[
             (&mock_exa::Exa, &[("x-api-key", "research-contract")]),
             (&mock_github::GitHub, &[]),
@@ -410,7 +410,7 @@ async fn competitor_issue(title: &str, body: &str) -> Grade {
 #[tokio::test]
 async fn competitor_issue_title() {
     Proof {
-        scenario: "search/multi/competitor-research-github-issue",
+        scenario: "search/multi/github-issue-any-search",
         field: "/title",
         also: &[],
         dictated: false,
@@ -434,7 +434,7 @@ async fn competitor_issue_title() {
 #[tokio::test]
 async fn competitor_issue_description() {
     Proof {
-        scenario: "search/multi/competitor-research-github-issue",
+        scenario: "search/multi/github-issue-any-search",
         field: "/body",
         also: &[],
         dictated: false,
@@ -457,14 +457,14 @@ async fn competitor_issue_description() {
     .await;
 }
 
-// search/multi/vendor-rate-limit-zendesk-reply
+// search/multi/zendesk-reply-any-search
 
 /// Replies with `reply` through the tool the reference solution uses. The service renders the
 /// Markdown to `html_body` and derives `body` from that rendering, so both fields always carry
 /// the same reply, and a wrong reply fails both checks.
 async fn vendor_reply(reply: String) -> Grade {
     let trial = ContractTrial::load_many_with_dataset(
-        "search/multi/vendor-rate-limit-zendesk-reply",
+        "search/multi/zendesk-reply-any-search",
         &[
             (
                 &mock_tavily::Tavily,
@@ -530,7 +530,7 @@ const WRONG_RATE_LIMIT_REPLIES: [&str; 4] = [
 #[tokio::test]
 async fn vendor_rate_limit_reply_text() {
     Proof {
-        scenario: "search/multi/vendor-rate-limit-zendesk-reply",
+        scenario: "search/multi/zendesk-reply-any-search",
         field: "/body",
         also: &["field /html_body:"],
         dictated: false,
@@ -544,7 +544,7 @@ async fn vendor_rate_limit_reply_text() {
 #[tokio::test]
 async fn vendor_rate_limit_reply_rendering() {
     Proof {
-        scenario: "search/multi/vendor-rate-limit-zendesk-reply",
+        scenario: "search/multi/zendesk-reply-any-search",
         field: "/html_body",
         also: &["field /body:"],
         dictated: false,

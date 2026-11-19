@@ -6,7 +6,7 @@ services:
       tools:
         condition: service_healthy
   world:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:c39e9948e7666274
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:78d7bd92c3713107
     stop_signal: SIGKILL
     environment:
       SCENARIO_ID: "code/argocd/find-degraded-app"
@@ -45,7 +45,7 @@ services:
       timeout: 3s
       retries: 60
   tools:
-    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fddebf0225b086f5
+    image: us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:b435f731ac61bd27
     stop_signal: SIGKILL
     networks:
       default: {}

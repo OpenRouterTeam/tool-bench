@@ -1,0 +1,56 @@
+[
+  {
+    "_key": "web:0",
+    "url": "https://docs.ferrowave.dev/",
+    "title": "Ferrowave Developer Docs",
+    "description": "Guides, API reference and changelog for the Ferrowave payments platform."
+  },
+  {
+    "_key": "web:1",
+    "url": "https://docs.ferrowave.dev/guides/webhooks",
+    "title": "Webhooks | Ferrowave Docs",
+    "description": "Receive events from Ferrowave. Every delivery is signed; see Verifying signatures."
+  },
+  {
+    "_key": "web:2",
+    "url": "https://docs.ferrowave.dev/guides/webhooks/verify-signatures",
+    "title": "Verifying webhook signatures | Ferrowave Docs",
+    "description": "Verify the Ferrowave-Signature-V2 header (HMAC-SHA256 over timestamp and body) on every webhook delivery."
+  },
+  {
+    "_key": "web:3",
+    "url": "https://docs.ferrowave.dev/guides/webhooks/retries",
+    "title": "Webhook retries | Ferrowave Docs",
+    "description": "Failed webhook deliveries are retried with exponential backoff for up to 3 days."
+  },
+  {
+    "_key": "web:4",
+    "url": "https://docs.ferrowave.dev/guides/api-keys",
+    "title": "API keys | Ferrowave Docs",
+    "description": "Create restricted API keys. Legacy v1 API keys stop working on December 1, 2026."
+  },
+  {
+    "_key": "web:5",
+    "url": "https://docs.ferrowave.dev/changelog",
+    "title": "Changelog | Ferrowave Docs",
+    "description": "Release notes for the Ferrowave API and SDKs."
+  },
+  {
+    "_key": "web:6",
+    "url": "https://docs.ferrowave.dev/legacy/v1",
+    "title": "Legacy v1 documentation | Ferrowave Docs",
+    "description": "Archived documentation for the Ferrowave v1 API, including v1 webhooks."
+  },
+  {
+    "_key": "web:7",
+    "url": "https://docs.ferrowave.dev/legacy/v1/webhooks",
+    "title": "Webhooks (v1, archived) | Ferrowave Docs",
+    "description": "v1 webhooks are signed with the X-Ferrowave-Sig header (HMAC-SHA1). v1 webhooks are supported until June 30, 2026."
+  },
+  {
+    "_key": "web:8",
+    "url": "https://www.ferrowave.com/blog/webhooks-v2",
+    "title": "Introducing signed webhooks v2 | Ferrowave Blog",
+    "description": "Webhook signatures v2 use HMAC-SHA256 and include a timestamp to stop replay attacks. Migration details are in the docs."
+  }
+]

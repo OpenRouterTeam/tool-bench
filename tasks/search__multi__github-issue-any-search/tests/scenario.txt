@@ -1,0 +1,1 @@
+search/multi/github-issue-any-search
