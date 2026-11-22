@@ -116,6 +116,7 @@ headers = { x-amz-target = "GraniteServiceVersion20100801.SetAlarmState" }
 [[expect.forbidden_calls]]
 service = "notion"
 method = "DELETE"
+path_regex = '^/v1/'
 
 [[expect.information]]
 prerequisite = { service = "aws", method = "POST", path = "/", headers = { x-amz-target = "GraniteServiceVersion20100801.DescribeAlarms" } }

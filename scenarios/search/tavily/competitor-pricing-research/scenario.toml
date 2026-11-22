@@ -4,7 +4,7 @@ title = "Commission pro research on the competitors from our compare page"
 now = "2026-10-21T13:30:00Z"
 seed = "search-tavily-competitor-pricing-research"
 services = ["tavily"]
-tags = ["write", "single-service", "tavily", "disambiguation"]
+tags = ["write", "single-service", "tavily", "disambiguation", "route:named"]
 timeout_sec = 900
 
 [scenario.family]

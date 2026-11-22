@@ -773,7 +773,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/brave/competitor-funding-news": [
+  "search/brave/funding-news-any-search": [
     {
       "answer": "# Norvik Analytics — funding round announced this week\n\n- **Amount raised:** $45 million\n- **Round:** Series B\n- **Lead investor:** Halcyon Ventures (existing investor Fjord Capital also participated)\n\nSource: [TechBeat, 27 Oct 2026 — \"Norvik Analytics raises $45M Series B led by Halcyon Ventures\"](https://www.techbeat.io/2026/10/27/norvik-analytics-series-b).\n\nNotes, so the figures are not confused with similar results:\n\n- A $30M raise led by Brightline Partners reported on 28 Oct is for **Norvik Labs**, a Gothenburg warehouse-robotics company unrelated to Norvik Analytics.\n- The $12M Series A led by Fjord Capital is Norvik Analytics' previous round, from June 2025. DealBase's profile still lists that Series A as the latest round and has not been updated for the Series B.\n- I found one news source for the Series B (TechBeat); no second outlet or company press release turned up in search.\n",
       "expect": "pass",
@@ -795,7 +795,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/brave/hosting-sla-lookup": [
+  "search/brave/hosting-sla-any-search": [
     {
       "answer": "# Ironbark Hosting Business plan SLA (current version)\n\n- **Monthly uptime commitment:** 99.95%\n- **Service credit when uptime falls just below that:** 10% of the monthly fee\n\nDetails from the SLA in force today (effective July 1, 2026, supersedes all previous versions; https://www.ironbarkhosting.com/legal/sla):\n\n- The 10% credit applies to any month where uptime is below 99.95%. The credit rises to 25% of the monthly fee if uptime drops below 99.0%.\n- Credits are not automatic: they must be requested within 30 days.\n- The Business plan is listed at $59/month, so the 10% credit is about $5.90 for an affected month.\n\nThe archived 2024 SLA (99.9% uptime, 5% credit) was replaced on July 1, 2026 and no longer applies. Results for the similarly named \"IronBank Hosting\" are a different company.\n\nCaveat: I read the SLA text through the search engine's extracted page content; a direct fetch of the page failed (DNS error from the scraping tool), so I could not open the page itself.\n",
       "expect": "pass",
@@ -817,7 +817,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/brave/keynote-recording": [
+  "search/brave/keynote-any-search": [
     {
       "answer": "# PGConf Nordic 2026 opening keynote: full recording\n\n- **Speaker:** Marta Lindqvist\n- **Duration:** 47:12 (47 minutes 12 seconds)\n- **URL:** https://www.youtube.com/watch?v=Zt4mQeL1x9c\n\nVideo title: \"Keynote: Scaling Postgres to 1M writes/s - Marta Lindqvist | PGConf Nordic 2026\". It is listed as the full recording of the opening keynote given in Copenhagen on October 8, 2026.\n\nVideos I ruled out:\n\n- https://www.youtube.com/watch?v=r8Kq2PgN7aE is a highlights re-cut by DB Clips (only 12:05 long).\n- https://www.youtube.com/watch?v=Hq7wB3nVt2s is an early version from the Oslo PostgreSQL Meetup, April 2025 (only 28:40 long).\n- https://vimeo.com/987654321 is a different talk by Tom Ekberg at PGDay Paris 2026.\n\nCaveat: the search results do not show the uploading channel's name, so I identified the official recording from its title and description (the conference site says recordings are published on the PGConf Nordic YouTube channel, and the highlights video points to the full talk there).\n",
       "expect": "pass",
@@ -949,7 +949,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/exa/find-vp-engineering-profile": [
+  "search/exa/vp-profile-any-search": [
     {
       "answer": "# Priya Raman — VP of Engineering, Tessellate Bio (Boston)\n\n**LinkedIn profile:** https://www.linkedin.com/in/priya-raman-tessellate\n\n## Why this is the right person\n\n- The profile headline is \"VP of Engineering at Tessellate Bio, Boston, Massachusetts\", with experience listed as Tessellate Bio, VP of Engineering (2024–present), and before that Benchling, Engineering Manager (2019–2024). Education: Carnegie Mellon University.\n- Tessellate Bio's own team page (https://www.tessellate.bio/team, dated September 2026) lists \"Priya Raman, VP of Engineering\" in its leadership, alongside Marcus Feld (CEO) and Hana Sato (CSO). So the role is current.\n\n## Other people named Priya Raman — not her\n\n- https://www.linkedin.com/in/priya-raman-4b21a9 — the former Tessellate Bio employee. She was Director of Engineering there from 2019 to 2023 and has been CTO of Kestrel Genomics (Cambridge, MA) since 2023. Do not use this one for the outreach.\n- https://www.linkedin.com/in/priyaraman — Senior Data Scientist at Tessellate Analytics in Chicago, a different company with a similar name.\n- https://www.linkedin.com/in/dr-priya-raman-md — a cardiologist at Mass General Brigham in Boston; no connection to Tessellate Bio.\n",
       "expect": "pass",
@@ -993,7 +993,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/exa/sdk-timeout-default": [
+  "search/exa/sdk-timeout-any-search": [
     {
       "answer": "# Driftwood Python SDK v4: request timeout\n\n- **Option:** `timeout_seconds` (passed to `driftwood.Client(...)`)\n- **Default:** 30 seconds\n\nSource: Driftwood's v4 Python client configuration docs, https://docs.driftwood.dev/python/v4/configuration\n\nUpgrade note: the v3 option `request_timeout` (default 60 seconds) was removed in v4, so any code that sets it needs to switch to `timeout_seconds`.\n",
       "expect": "pass",
@@ -1010,7 +1010,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/firecrawl/northwind-team-pricing": [
+  "search/firecrawl/team-pricing-any-search": [
     {
       "answer": "# Northwind Analytics: Team plan (current pricing)\n\n- **Price, billed annually:** $79 per month (USD)\n- **Seats included:** 12\n\nSource: Northwind Analytics' own pricing page, https://www.northwind-analytics.com/pricing, which states \"Prices updated September 1, 2026\".\n\nOther details for the pricing sheet:\n\n- Billed monthly instead of annually, the Team plan is $99 per month.\n- Additional seats beyond the included 12 cost $8 per seat per month.\n- The plan also includes 10M tracked events per month and 13-month data retention.\n\nOutdated figures to ignore: the company's 2025 pricing blog post and the G2 listing still show the Team plan at $69 per month with 10 seats. The September 1, 2026 changelog entry confirms the change to 12 seats and updated prices.\n",
       "expect": "pass",
@@ -1054,7 +1054,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/multi/competitor-funding-and-pricing": [
+  "search/multi/funding-and-pricing-any-search": [
     {
       "answer": "# Norvik Analytics: competitor brief inputs\n\n## 1. This week's funding round\n\n- **Amount raised:** $45 million\n- **Round:** Series B\n- **Lead investor:** Halcyon Ventures (existing investor Fjord Capital also participated)\n\nSource: TechBeat, \"Norvik Analytics raises $45M Series B led by Halcyon Ventures\", published 27 October 2026\nhttps://www.techbeat.io/2026/10/27/norvik-analytics-series-b\n\nThings that could be confused with it:\n\n- The $12M Series A led by Fjord Capital is the previous round (June 2025). DealBase still lists that as the latest round and has not been updated.\n- \"Norvik Labs raises $30M from Brightline Partners\" (TechBeat, 28 October 2026) is a different, unrelated company (warehouse robotics, Gothenburg).\n\nCaveat: I could read the TechBeat headline and summary through two search indexes (web and news), and they agree, but the article page itself would not load through any of the page fetchers, and Norvik's own site carries no announcement. The figures above come from that headline and summary.\n\n## 2. Growth plan price\n\n- **$890 per month, billed annually** (USD). The same plan is $1,090 per month if billed monthly.\n\nSource: Norvik's own pricing page, which states \"Prices updated October 1, 2026\"\nhttps://www.norvikanalytics.com/pricing\n\nOlder or third-party figures to ignore:\n\n- $690/month billed annually is the 2025 launch price from Norvik's blog post \"Introducing our new plans\" (https://www.norvikanalytics.com/blog/new-plans-2025).\n- Capterra also still lists Growth at $690/month; that listing is out of date.\n",
       "expect": "pass",
@@ -1098,7 +1098,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/tavily/vendor-rate-limit": [
+  "search/tavily/vendor-rate-limit-any-search": [
     {
       "answer": "# Quillstream API rate limit — Business plan\n\n**Current limit: 1,200 requests per minute** (burst allowance: 200).\n\n**Where I found it:** Quillstream's own API v3 reference, \"Rate limits\" page — https://docs.quillstream.io/api/rate-limits (page says \"Last updated September 14, 2026\").\n\nDetails from that page that matter for the integration:\n\n- The limit is enforced **per workspace, not per API key**, so every key in our workspace shares the same 1,200/min budget.\n- Over the limit, the API returns `429 Too Many Requests` with a `Retry-After` header.\n- Other plans, for reference: Starter 120, Team 400, Enterprise custom.\n\n## Older or wrong numbers to ignore\n\n- **600 requests/min** — this is the Business limit for the **deprecated API v2** (https://docs.quillstream.io/v2/api/rate-limits; v2 is to be retired March 31, 2027). A 2025 third-party review (techradar-weekly.com) repeats the 600 figure. It only applies if we were to build against v2, which we should not.\n- **900 requests/min** — from a February 2025 community forum question by a user seeing 429s around that rate. Quillstream staff did not confirm it; they explained that limits are per workspace and pointed to the docs page.\n- **300 requests/min** — belongs to Quillpad, a different product (docs.quillpad.com), not Quillstream.\n",
       "expect": "pass",
@@ -1120,7 +1120,7 @@
       "style": "pilot_agent"
     }
   ],
-  "search/tavily/webhook-signature-sunset": [
+  "search/tavily/webhook-sunset-any-search": [
     {
       "answer": "# Ferrowave v1 webhook signature sunset\n\n- **Date Ferrowave stops sending v1 webhook signatures:** January 15, 2027 (2027-01-15)\n- **Header to verify instead:** `Ferrowave-Signature-V2`\n\n## Details\n\n- The replacement header has the form `t=<unix timestamp>,v2=<hex HMAC-SHA256 of \"<t>.<body>\">`, signed with the endpoint secret. Deliveries whose timestamp is more than 5 minutes old should be rejected.\n- The old v1 header is `X-Ferrowave-Sig` (HMAC-SHA1). It is still sent alongside v2 until the cutoff.\n\nSource: https://docs.ferrowave.dev/guides/webhooks/verify-signatures (\"Migrating from v1 signatures\"), the current guide.\n\n## Dates on the site that are not the webhook-signature date\n\n- June 30, 2026: from the archived v1 webhooks page (https://docs.ferrowave.dev/legacy/v1/webhooks), marked \"Archived March 2025. This page is no longer maintained.\" Superseded by the current guide.\n- December 1, 2026: legacy v1 API keys stop working (changelog).\n- November 30, 2026: ferrowave-node 3.x SDK end of life (changelog).\n",
       "expect": "pass",

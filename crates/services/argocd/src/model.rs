@@ -14,6 +14,10 @@
 //! - `logs`: `<pod>/<container>` -> `{podName, namespace, container, lines: [{timeStamp, content}]}`.
 //! - `revisions`: `<sha>` -> `{repoURL, sha, refs, message, author, date, health?}`, the git
 //!   commits the repo server can resolve. `health` is the application health once synced.
+//!
+//! The controller's work (a sync, an automated sync after a spec change, a Deployment rollout
+//! after a resource action) runs to its end inside the write request that asked for it. A read
+//! never changes the store, so the application list and a single application show one state.
 
 use std::sync::LazyLock;
 
@@ -609,13 +613,41 @@ pub fn reconcile(svc: &mut ServiceState, now: &str, key: &str) -> Result<(), Arg
     Ok(())
 }
 
-/// Runs a sync operation to completion (the mock's controller finishes it immediately).
+/// Runs a write on a copy of the service and keeps the copy only if the write succeeds, so a
+/// refused request leaves nothing half-applied.
+pub fn atomically<T>(
+    svc: &mut ServiceState,
+    write: impl FnOnce(&mut ServiceState) -> Result<T, ArgoError>,
+) -> Result<T, ArgoError> {
+    let mut staged = svc.clone();
+    let out = write(&mut staged)?;
+    *svc = staged;
+    Ok(out)
+}
+
+/// Accepts a sync and runs it to its end inside the same request. The mock has no controller
+/// between requests, so an operation left pending here could only be finished by a later read,
+/// and a read changes nothing.
 pub fn sync(
     svc: &mut ServiceState,
     now: &str,
     key: &str,
     req: SyncRequest,
 ) -> Result<(), ArgoError> {
+    if accept_sync(svc, now, key, req)? {
+        finish_sync(svc, now, key)?;
+    }
+    Ok(())
+}
+
+/// Validates a sync and records it as the application's operation. `false` when there is
+/// nothing to run.
+fn accept_sync(
+    svc: &mut ServiceState,
+    now: &str,
+    key: &str,
+    req: SyncRequest,
+) -> Result<bool, ArgoError> {
     let mut app = require_app(&svc.store, key)?.clone();
     let options = req
         .sync_options
@@ -677,7 +709,7 @@ pub fn sync(
         && rendered.manifests.is_empty()
         && app.pointer("/spec/syncPolicy/automated/allowEmpty") != Some(&Value::Bool(true))
     {
-        return Ok(());
+        return Ok(false);
     }
     let initiated_by = if req.automated {
         json!({ "automated": true })
@@ -705,54 +737,27 @@ pub fn sync(
         &format!("initiated sync to {sha}"),
     );
     svc.store.collection_mut("applications").insert(key, app);
-    Ok(())
+    Ok(true)
 }
 
-pub fn observe(world: &mut WorldState, key: &str) -> Result<(), ArgoError> {
-    let now = world.clock.now_rfc3339();
-    let service = world.service_mut(NAME);
-    let app = require_app(&service.store, key)?.clone();
-    let rollout_pending = app_resources(&service.store, key).iter().any(|resource| {
+/// A Deployment of the application whose rollout has not run: its spec changed since the
+/// controller last acted on it.
+pub fn rollout_pending(store: &Store, key: &str) -> bool {
+    app_resources(store, key).iter().any(|resource| {
         resource["kind"] == "Deployment"
             && resource["manifest"]["metadata"]["generation"].as_u64()
                 != resource["manifest"]["status"]["observedGeneration"].as_u64()
-    });
-    if !app["operation"].is_object() && !rollout_pending {
-        return Ok(());
-    }
-    let mut staged = service.clone();
-    let result = if app["operation"].is_object() {
-        if app["status"]["operationState"]["phase"] != "Running" {
-            let mut app = app.clone();
-            app["status"]["operationState"] = json!({
-                "operation":app["operation"],"phase":"Running","startedAt":now,
-                "syncResult":{"revision":app["operation"]["sync"]["revision"],"source":app["operation"]["sync"]["source"]}
-            });
-            app["metadata"]["resourceVersion"] = json!(next_resource_version(&mut staged));
-            staged.store.collection_mut("applications").insert(key, app);
-            Ok(())
-        } else {
-            finish_sync(&mut staged, &now, key)
-        }
-    } else {
-        workload::observe(&mut staged, &now, key).map(|()| {
-            let mut app = require_app(&staged.store, key)
-                .expect("observed app")
-                .clone();
-            app["status"]["health"] = workload::health(&staged.store, key);
-            app["metadata"]["resourceVersion"] = json!(next_resource_version(&mut staged));
-            staged.store.collection_mut("applications").insert(key, app);
-        })
-    };
-    if let Err(error) = result {
-        if let Some(reason) = &error.capability_gap {
-            let operation = mock_core::events::current()
-                .expect("controller observation has an operation context");
-            world.fail_operation(&operation, "unsupported_argocd_operation", reason);
-        }
-        return Err(error);
-    }
-    *world.service_mut(NAME) = staged;
+    })
+}
+
+/// Runs the application's Deployment rollouts to their end and records its health, inside the
+/// request that changed a Deployment.
+pub fn roll_out(svc: &mut ServiceState, now: &str, key: &str) -> Result<(), ArgoError> {
+    workload::observe(svc, now, key)?;
+    let mut app = require_app(&svc.store, key)?.clone();
+    app["status"]["health"] = workload::health(&svc.store, key);
+    app["metadata"]["resourceVersion"] = json!(next_resource_version(svc));
+    svc.store.collection_mut("applications").insert(key, app);
     Ok(())
 }
 

@@ -1,0 +1,90 @@
+# Replaces `search/exa/sdk-timeout-default`, which is archived under
+# `releases/archive/tool-bench-public-dev-1/`. Release `tool-bench-public-dev-2`.
+#
+# What changed: the same pages are served by all four connected web-search services
+# (Brave, Exa, Firecrawl, Tavily), and a read through any of them is accepted. The
+# instruction is the original, word for word.
+#
+# Why: the instruction asks for a kind of lookup and names no vendor, while the original
+# kept each page on one vendor (Exa), so no other could answer. This task scores
+# what the instruction asks. The pages exist on no public site, so an answer from outside
+# the tool servers still fails, and `mcp_only` still rejects a request that reaches the
+# world around them.
+#
+# The single-vendor `required_calls` entry is gone, and no entry replaces it: an entry
+# names one service and every entry must hold. The answer check carries the route, as it
+# always has in `search/firecrawl/team-pricing-any-search` and its original.
+[scenario]
+id = "search/exa/sdk-timeout-any-search"
+title = "Find an SDK's v4 timeout option and default among version look-alikes (any connected search vendor)"
+now = "2026-10-28T10:00:00Z"
+seed = "search-exa-sdk-timeout-any-search"
+services = ["brave", "exa", "firecrawl", "tavily"]
+tags = ["lookup", "single-service", "any-search-vendor", "route:unnamed"]
+timeout_sec = 900
+
+[scenario.family]
+schema_version = 1
+primary = "stale_state"
+secondary = ["entity_ambiguity"]
+dependency_depth = 1
+rationale = "v4 docs give timeout_seconds default 30; legacy v3 docs and a 2024 Stack Overflow answer give request_timeout 60; Node SDK timeoutMs 120000 and a README example using 10 are look-alikes."
+
+# v4: timeout_seconds, default 30. Distractors: v3 request_timeout (60), the Node SDK's
+# timeoutMs (120000), a README example using 10, and a 2024 Stack Overflow answer.
+[expect]
+version = 2
+audit_history = true
+
+# The page is Driftwood's own configuration reference for the Python SDK v4; both facts are
+# read from the sentence that documents the request timeout option.
+[expect.answer.record_facts]
+requirement = "Name the client option that sets the request timeout in the Driftwood Python SDK v4 according to Driftwood's own v4 documentation, and state its default value in seconds."
+mode = "statements"
+context = [
+  "(v3's ${v3_option} was removed.)",
+  "(replaces v3's ${v3_option})",
+  "${v3_option} was removed",
+  "${v3_option} option was removed",
+  "${v3_option} has been removed",
+  "replaces ${v3_option}",
+  "replaces the old ${v3_option}",
+  "instead of ${v3_option}",
+]
+# The v4 page itself says that the v3 option no longer exists.
+
+
+[expect.answer.record_facts.selector]
+collection = "/services/exa/documents"
+field_patterns = { "/url" = '^https://docs\.driftwood\.dev/', "/title" = '\| Driftwood Python SDK v4$' }
+
+[expect.answer.record_facts.facts.option]
+field = "/text"
+capture = 'The (\w+) option sets the request timeout'
+kind = "identifier"
+
+[expect.answer.record_facts.facts.default]
+field = "/text"
+capture = 'sets the request timeout[^.]*? defaults to (\d+)'
+kind = "number"
+units = ["seconds", "second", "secs", "sec", "s", "(seconds)", "(in seconds)", "(s)"]
+require_unit = true
+
+[expect.answer.record_facts.facts.v3_option]
+field = "/text"
+capture = 'the old (\w+) option was removed'
+kind = "identifier"
+optional = true
+
+[solution]
+answer = "Option: timeout_seconds Default: 30 seconds"
+
+[[solution.call]]
+endpoint = "exa"
+tool = "get_code_context_exa"
+arguments = { query = "Driftwood Python SDK v4 client configuration timeout option default" }
+
+[[solution.call]]
+endpoint = "exa"
+tool = "web_fetch_exa"
+arguments = { urls = ["https://docs.driftwood.dev/python/v4/configuration"] }

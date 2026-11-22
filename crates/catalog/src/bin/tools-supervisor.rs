@@ -8,13 +8,16 @@
 //!
 //! `TOOL_BENCH_EXPOSURE`, when set by a generated task, restricts registration to the
 //! endpoints and tools it names (`mcp_tools::exposure`). Every endpoint appends the
-//! responses it serves to a passive transcript under `--surface-log` for the host audit.
+//! responses it serves to a passive transcript under `--surface-log` for the host audit,
+//! and reports each MCP request it receives to the world beside `--ca-url`, which seals
+//! the reports with its evidence (`mcp_tools::access`).
 
-use std::{collections::BTreeMap, fs, path::PathBuf, time::Duration};
+use std::{collections::BTreeMap, fs, net::SocketAddr, path::PathBuf, time::Duration};
 
 use anyhow::{Context, bail};
 use catalog::{CONFIG_ROOT, Catalog, Runtime};
 use mcp_tools::{
+    access::{AccessReporter, Observers},
     bridge::StdioBackend,
     exposure::{EXPOSURE_ENV, ExposedBackend, ExposureDirective},
     front::{self, Backend, Observer},
@@ -73,10 +76,15 @@ async fn main() -> anyhow::Result<()> {
         );
     }
 
-    let trust = match ca_url {
-        Some(url) => trust_env(&fetch_ca(&url).await?)?,
+    let trust = match &ca_url {
+        Some(url) => trust_env(&fetch_ca(url).await?)?,
         None => BTreeMap::new(),
     };
+    // Without a world to report to (a local run of one server) nothing is reported.
+    let reports = ca_url
+        .as_deref()
+        .and_then(mcp_tools::access::report_url)
+        .map(mcp_tools::access::deliver);
 
     let mut tasks = JoinSet::new();
     for service in &catalog.services {
@@ -91,17 +99,19 @@ async fn main() -> anyhow::Result<()> {
                 },
                 None => None,
             };
+            let mut observers: Vec<Arc<dyn Observer>> = Vec::new();
+            match Transcript::create(&surface_log, &endpoint.id) {
+                Ok(transcript) => observers.push(Arc::new(transcript)),
+                Err(error) => eprintln!(
+                    "tools: no served-surface transcript for {}: {error}",
+                    endpoint.id
+                ),
+            }
+            if let Some(reports) = &reports {
+                observers.push(Arc::new(AccessReporter::new(&endpoint.id, reports.clone())));
+            }
             let observer: Option<Arc<dyn Observer>> =
-                match Transcript::create(&surface_log, &endpoint.id) {
-                    Ok(transcript) => Some(Arc::new(transcript)),
-                    Err(error) => {
-                        eprintln!(
-                            "tools: no served-surface transcript for {}: {error}",
-                            endpoint.id
-                        );
-                        None
-                    }
-                };
+                (!observers.is_empty()).then(|| Arc::new(Observers(observers)) as _);
             let listener = TcpListener::bind(("0.0.0.0", endpoint.mcp_port)).await?;
             let app = if endpoint.runtime == Runtime::Replica {
                 let file = snapshots.join(format!("{}.json", endpoint.id));
@@ -135,7 +145,14 @@ async fn main() -> anyhow::Result<()> {
                 endpoint.runtime.as_str(),
                 endpoint.mcp_port
             );
-            tasks.spawn(async move { axum::serve(listener, app).await });
+            // The front records who asked: serve with the client's address.
+            tasks.spawn(async move {
+                axum::serve(
+                    listener,
+                    app.into_make_service_with_connect_info::<SocketAddr>(),
+                )
+                .await
+            });
         }
     }
     while let Some(result) = tasks.join_next().await {

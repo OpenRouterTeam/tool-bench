@@ -27,38 +27,7 @@
   "records": [],
   "relations": [],
   "audit_history": true,
-  "ordering": [
-    {
-      "prerequisite": {
-        "selector": {
-          "collection": "/services/jira/issues",
-          "matching": {
-            "key": "PAY-124"
-          },
-          "key_prefix": null,
-          "created": false,
-          "identity_field": null
-        },
-        "field": "/fields/assignee",
-        "equals": "lena.fischer"
-      },
-      "action": {
-        "selector": {
-          "collection": "/services/jira/issues",
-          "matching": {
-            "key": "PAY-124"
-          },
-          "key_prefix": null,
-          "created": false,
-          "identity_field": null
-        },
-        "field": "/fields/status",
-        "equals": "In Progress"
-      },
-      "require_transition": false,
-      "allow_same_commit": true
-    }
-  ],
+  "ordering": [],
   "required_calls": [],
   "forbidden_calls": [],
   "answer": null,

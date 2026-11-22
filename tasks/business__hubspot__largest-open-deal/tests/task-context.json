@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "business/hubspot/largest-open-deal",
-  "instruction_sha256": "sha256:5a3d2bb8dd7d37a40a90e4ba05c247542307aba5161c01aa0d41b199dcc0bd0f",
+  "instruction_sha256": "sha256:4ff9037403ece87b004e7035816161b0fc93d626fe85aedfb23d49154198346b",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:12aae5801df5b3082e6a893b18ba29796eb1be0d41a86ba090c805ef0cbecdcd",
+  "framing_sha256": "sha256:f6c6e6f58032d31f0728106cb165a77d7647151d1c55877b5001b80553228bbe",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:74519f0b98cdf31235d7725c59159c20c255eee178e75810a2e6ef4b2379a21c"
+    "docker-compose.yaml": "sha256:f4fbc1b45b57bca76208b9470018fe6d7791bab4e5c01bcc66a91bbfa0ea0e41"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:baa30060a75e77c5",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:cf9a49fa51dbc382",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

@@ -1183,7 +1183,7 @@ async fn same_requests_give_identical_responses() {
 
 #[tokio::test]
 async fn scenario_datasets_load_and_answer() {
-    let w = world_at("../../../scenarios/search/firecrawl/northwind-team-pricing");
+    let w = world_at("../../../scenarios/search/firecrawl/team-pricing-any-search");
     let app = app(&w);
     let (_, found) = call(
         &app,

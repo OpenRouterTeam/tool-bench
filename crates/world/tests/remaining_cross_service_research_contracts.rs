@@ -4,14 +4,14 @@ use mock_core::grading::{Grade, Outcome};
 use serde_json::{Value, json};
 use support::{ContractTrial as Trial, ServiceSpec};
 
-const COMPETITOR: &str = "search/multi/competitor-research-github-issue";
+const COMPETITOR: &str = "search/multi/github-issue-any-search";
 const ISSUES: &str = "/api/v3/repos/octo-org/competitive-intel/issues";
 const GA_POST: &str = "https://lumenrail.io/blog/scale-plan-generally-available";
 const GA_PRICING: &str = "https://lumenrail.io/pricing";
 const BETA_POST: &str = "https://lumenrail.io/blog/introducing-scale-beta";
 const GA_TITLE: &str = "Lumenrail Scale plan is generally available";
 const GA_BODY: &str = "Lumenrail Scale plan (generally available): $349 per month billed annually, 50M events per month included.\n\nSource: https://lumenrail.io/blog/scale-plan-generally-available";
-const VENDOR: &str = "search/multi/vendor-rate-limit-zendesk-reply";
+const VENDOR: &str = "search/multi/zendesk-reply-any-search";
 const LIMITS_DOC: &str = "https://docs.quillstream.io/api/rate-limits";
 const REPLY: &str = "Hi Priya,\n\nQuillstream's current API documentation (v3) says the Business plan allows 750 requests per minute, with bursts of up to 120.\n\nRita";
 const GA_LABELS: [&str; 2] = ["pricing", "lumenrail"];

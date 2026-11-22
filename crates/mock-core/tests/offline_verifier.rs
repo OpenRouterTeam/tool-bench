@@ -8,13 +8,17 @@ fn fixture(directory: &Path) -> String {
 }
 
 fn fixture_with_answer_source(directory: &Path, answer_source: Option<&str>) -> String {
-    let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../scenarios/example/github/basic");
-    let mut dataset = Dataset::load(&source).unwrap();
     let mut definition =
         json!({"version": 2, "audit_history": true, "answer": {"contains": ["Maya"]}});
     if let Some(source) = answer_source {
         definition["answer"]["source"] = json!(source);
     }
+    fixture_with_contract(directory, definition)
+}
+
+fn fixture_with_contract(directory: &Path, definition: Value) -> String {
+    let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../scenarios/example/github/basic");
+    let mut dataset = Dataset::load(&source).unwrap();
     dataset.contract = serde_json::from_value(definition.clone()).unwrap();
     let mut world = WorldState::from_dataset(dataset).unwrap();
     world.seal().unwrap();
@@ -391,6 +395,59 @@ fn required_runner_proof_is_bound_to_the_actual_inputs_and_missing_proof_is_not_
                 .any(|failure| { failure["location"] == "evidence/runner-admission" })
         );
     }
+}
+
+/// A reply the verifier cannot decide is not a measured failure of the model. With
+/// rewards withheld, as every generated task asks, it publishes no `reward.json` for
+/// one, as for a trial it could not assess; a consumer then records no score.
+#[test]
+fn an_unresolved_trial_earns_no_published_reward_when_rewards_are_withheld() {
+    let directory = tempfile::tempdir().unwrap();
+    let scenario = fixture_with_contract(
+        directory.path(),
+        json!({
+            "version": 2,
+            "audit_history": true,
+            "records": [{
+                "selector": {"collection": "/services/github/issues", "key_prefix": "octo-org/app#"},
+                "min_count": 1,
+                "reviewed_text": {"/title": {
+                    "requirement": "Review the unfamiliar issue wording against the user request.",
+                    "accepted": ["A separately reviewed positive issue title"]
+                }}
+            }]
+        }),
+    );
+    let reward = |name: &str| -> Option<Value> {
+        fs::read(directory.path().join("result").join(name))
+            .ok()
+            .map(|bytes| serde_json::from_slice(&bytes).unwrap())
+    };
+    let assessment = verify(directory.path(), &scenario, true);
+    assert_eq!(assessment["outcome"], "unresolved", "{assessment}");
+    let published = reward("reward.json").expect("a verifier that withholds nothing publishes");
+    assert_eq!(published["outcome_code"], 6.0);
+    assert_eq!(published["reward"], 0.0);
+    fs::remove_dir_all(directory.path().join("result")).unwrap();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_bench-verify"))
+        .current_dir(directory.path())
+        .args(["--scenario", &scenario, "--contract", "contract.json"])
+        .args(["--evidence", "evidence.json", "--output", "result"])
+        .args(["--answer", "answer.md", "--task-source", "task-source.json"])
+        .args(["--allow-unattested-runner", "--withhold-invalid-reward"])
+        .output()
+        .unwrap();
+    assert_eq!(
+        output.status.code(),
+        Some(3),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(reward("reward.json").is_none());
+    let withheld = reward("reward.invalid.json").expect("the withheld metrics are kept");
+    assert_eq!(withheld["outcome_code"], 6.0);
+    assert_eq!(reward("assessment.json").unwrap()["outcome"], "unresolved");
 }
 
 #[test]

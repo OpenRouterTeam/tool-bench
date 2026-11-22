@@ -23,6 +23,9 @@ pub struct ScenarioMeta {
     pub id: String,
     pub now: String,
     pub seed: String,
+    /// The services the task is about: those its scenario gives a dataset.
+    #[serde(default)]
+    pub services: Vec<String>,
     #[serde(default = "default_step")]
     pub clock_step_secs: i64,
     #[serde(default)]

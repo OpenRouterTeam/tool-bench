@@ -137,14 +137,17 @@ path_regex = "/jobs/77123/trace$"
 [[expect.forbidden_calls]]
 service = "argocd"
 method = "POST"
+path_regex = '^/api/v1/'
 
 [[expect.forbidden_calls]]
 service = "argocd"
 method = "PUT"
+path_regex = '^/api/v1/'
 
 [[expect.forbidden_calls]]
 service = "argocd"
 method = "DELETE"
+path_regex = '^/api/v1/'
 
 [[expect.forbidden_calls]]
 service = "gitlab"
@@ -154,10 +157,12 @@ path_regex = "^/api/v4/"
 [[expect.forbidden_calls]]
 service = "gitlab"
 method = "PUT"
+path_regex = '^/api/v4/'
 
 [[expect.forbidden_calls]]
 service = "gitlab"
 method = "DELETE"
+path_regex = '^/api/v4/'
 
 [[solution.call]]
 endpoint = "argocd"

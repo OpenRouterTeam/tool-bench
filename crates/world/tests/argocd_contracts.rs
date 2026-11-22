@@ -42,25 +42,20 @@ async fn restart(trial: &ContractTrial) {
         "restart",
     )
     .await;
-    trial
-        .call("GET", "/api/v1/applications/search-indexer", Value::Null)
-        .await;
 }
 
-async fn observe_completed(trial: &ContractTrial, name: &str, namespace: &str) {
-    for _attempt in 0..6 {
-        let application = trial
+/// Every read route of one application. None of them changes the world.
+async fn read_everything(trial: &ContractTrial, name: &str, namespace: &str) {
+    trial.call("GET", "/api/v1/applications", Value::Null).await;
+    for route in ["", "/resource-tree", "/managed-resources", "/events"] {
+        trial
             .call(
                 "GET",
-                &format!("/api/v1/applications/{name}?appNamespace={namespace}"),
+                &format!("/api/v1/applications/{name}{route}?appNamespace={namespace}"),
                 Value::Null,
             )
             .await;
-        if !application["operation"].is_object() {
-            return;
-        }
     }
-    panic!("controller did not complete the bounded operation");
 }
 
 async fn pin(trial: &ContractTrial, mutate: impl FnOnce(&mut Value)) {
@@ -70,7 +65,6 @@ async fn pin(trial: &ContractTrial, mutate: impl FnOnce(&mut Value)) {
     trial
         .call("PUT", "/api/v1/applications/billing-worker", application)
         .await;
-    observe_completed(trial, "billing-worker", "argocd").await;
 }
 
 async fn sync_payments(trial: &ContractTrial) {
@@ -81,7 +75,6 @@ async fn sync_payments(trial: &ContractTrial) {
             json!({"appNamespace":"payments","prune":true}),
         )
         .await;
-    observe_completed(trial, "payments-api", "payments").await;
 }
 
 fn assert_outcome(trial: &ContractTrial, expected: Outcome) {
@@ -89,8 +82,9 @@ fn assert_outcome(trial: &ContractTrial, expected: Outcome) {
     assert_eq!(assessment.outcome, expected, "{assessment:?}");
 }
 
+/// Each task is done by its one write. No read after it is needed to finish the work.
 #[tokio::test]
-async fn the_three_http_workflows_reach_the_reviewed_positive_outcomes() {
+async fn the_three_writes_alone_reach_the_reviewed_positive_outcomes() {
     let trial = prepared(RESTART, |_| {});
     restart(&trial).await;
     assert_outcome(&trial, Outcome::Pass);
@@ -99,6 +93,60 @@ async fn the_three_http_workflows_reach_the_reviewed_positive_outcomes() {
     assert_outcome(&trial, Outcome::Pass);
     let trial = prepared(PAYMENTS, |_| {});
     sync_payments(&trial).await;
+    assert_outcome(&trial, Outcome::Pass);
+}
+
+#[tokio::test]
+async fn reading_before_and_after_the_write_changes_neither_the_world_nor_the_outcome() {
+    for (id, name, namespace) in [
+        (RESTART, "search-indexer", "argocd"),
+        (ROLLBACK, "billing-worker", "argocd"),
+        (PAYMENTS, "payments-api", "payments"),
+    ] {
+        let trial = prepared(id, |_| {});
+        let initial = trial.state();
+        read_everything(&trial, name, namespace).await;
+        assert_eq!(initial, trial.state(), "{id}");
+        // Reading is not the work.
+        assert_outcome(&trial, Outcome::Fail);
+        match id {
+            RESTART => restart(&trial).await,
+            ROLLBACK => pin(&trial, |_| {}).await,
+            _ => sync_payments(&trial).await,
+        }
+        let done = trial.state();
+        read_everything(&trial, name, namespace).await;
+        assert_eq!(done, trial.state(), "{id}");
+        assert_outcome(&trial, Outcome::Pass);
+    }
+}
+
+/// An agent that checks through the list sees what a read of the one application shows.
+#[tokio::test]
+async fn the_application_list_shows_the_finished_sync() {
+    let trial = prepared(PAYMENTS, |_| {});
+    sync_payments(&trial).await;
+    let list = trial.call("GET", "/api/v1/applications", Value::Null).await;
+    let listed = list["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| {
+            item["metadata"]["namespace"] == "payments"
+                && item["metadata"]["name"] == "payments-api"
+        })
+        .unwrap();
+    assert_eq!(listed["status"]["operationState"]["phase"], "Succeeded");
+    assert_eq!(listed["status"]["sync"]["status"], "Synced");
+    assert!(listed.get("operation").is_none());
+    let read = trial
+        .call(
+            "GET",
+            "/api/v1/applications/payments-api?appNamespace=payments",
+            Value::Null,
+        )
+        .await;
+    assert_eq!(listed, &read);
     assert_outcome(&trial, Outcome::Pass);
 }
 
@@ -148,7 +196,6 @@ async fn spec_only_reference_preserves_opaque_configuration_and_zero_history_ret
             arguments["spec"].clone(),
         )
         .await;
-    observe_completed(&trial, "billing-worker", "argocd").await;
     let after = trial.state()["applications"]["argocd/billing-worker"].clone();
     assert_eq!(after["spec"]["info"], initial["spec"]["info"]);
     assert_eq!(after["spec"]["revisionHistoryLimit"], 0);
@@ -176,7 +223,6 @@ async fn a_persistent_commit_sha_is_not_the_requested_git_tag_even_when_the_buil
     trial
         .call("PUT", "/api/v1/applications/billing-worker", application)
         .await;
-    observe_completed(&trial, "billing-worker", "argocd").await;
     assert_outcome(&trial, Outcome::Fail);
 }
 
@@ -191,7 +237,6 @@ async fn same_target_manual_sync_after_the_pin_is_a_valid_alternative() {
             json!({"appNamespace":"argocd","revision":"v1.42.0"}),
         )
         .await;
-    observe_completed(&trial, "billing-worker", "argocd").await;
     assert_outcome(&trial, Outcome::Pass);
 }
 
@@ -205,7 +250,6 @@ async fn billing_dry_run_before_pinning_is_not_itself_a_deployment_but_can_prece
             json!({"revision":"v1.42.0","dryRun":true}),
         )
         .await;
-    observe_completed(&trial, "billing-worker", "argocd").await;
     assert_outcome(&trial, Outcome::Fail);
     pin(&trial, |_| {}).await;
     assert_outcome(&trial, Outcome::Pass);
@@ -223,7 +267,6 @@ async fn payments_accepts_current_main_sha_and_recoverable_preliminary_nonprune_
             arguments.clone(),
         )
         .await;
-    observe_completed(&trial, "payments-api", "payments").await;
     assert_outcome(&trial, Outcome::Fail);
     let mut with_pruning = arguments;
     with_pruning["prune"] = json!(true);
@@ -234,7 +277,6 @@ async fn payments_accepts_current_main_sha_and_recoverable_preliminary_nonprune_
             with_pruning,
         )
         .await;
-    observe_completed(&trial, "payments-api", "payments").await;
     assert_outcome(&trial, Outcome::Pass);
 }
 
@@ -248,7 +290,6 @@ async fn a_payments_dry_run_with_pruned_result_text_does_not_establish_actual_re
             json!({"appNamespace":"payments","prune":true,"dryRun":true}),
         )
         .await;
-    observe_completed(&trial, "payments-api", "payments").await;
     assert_outcome(&trial, Outcome::Fail);
 }
 

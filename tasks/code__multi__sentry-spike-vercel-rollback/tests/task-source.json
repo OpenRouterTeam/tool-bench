@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "code/multi/sentry-spike-vercel-rollback",
-  "scenario_sha256": "sha256:13b79ffa019a483e0d2d5fc7266f5e67f562902a4fb47d92fadfcdc1facef847",
+  "scenario_sha256": "sha256:97cfcd05852d105837c7a61672bdd0af83c087d8834b2417aaebdaaa2e75edb8",
   "dataset_sha256": "sha256:5541f3992cc5290740fbcd2c6c3c39f4c62667ba90e708bc31dc6126f47edc21",
-  "contract_sha256": "sha256:9fa4fe30f5cdf5197d9a57c2973257731c19ae3252378ced294511b9fc0ba4fc"
+  "contract_sha256": "sha256:c2826140134e60aa36ea0e239779050511dc86d69338535464ad9a6dc037c410"
 }

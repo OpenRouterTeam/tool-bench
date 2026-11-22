@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "scenario": "search/firecrawl/crawl-api-reference",
-  "scenario_sha256": "sha256:0699564001f6309b3085a6a23c0f9ccde2905324faa67020e6f5ae11863b8eb3",
-  "dataset_sha256": "sha256:111c613fda92b40b2e0fbe4161ab530954bfaed1f9b75ac04553e76f55dd9c4a",
+  "scenario_sha256": "sha256:e4fb569e19fb6b92ed2beff877a52e2160f43562af71788ae0fda29800cd64e3",
+  "dataset_sha256": "sha256:e9abcbc8228d7a8bf16febed3bb448a74edf8df8fa1296b28fb1570792e2857d",
   "contract_sha256": "sha256:f33cd60f312c3acb31911b930f8cecc497aeee9ff13cb7884b37416761e88c0d"
 }

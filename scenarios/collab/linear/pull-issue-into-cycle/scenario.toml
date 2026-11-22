@@ -2,6 +2,8 @@
 id = "collab/linear/pull-issue-into-cycle"
 title = "Pull the webhook-secret rotation issue into the current Payments cycle"
 now = "2026-10-29T15:00:00Z"
+# The current cycle is cycle 42 on this date only; cycle 43 starts on 2026-11-09.
+prompt_date = "date"
 seed = "collab-linear-pull-issue-into-cycle"
 services = ["linear"]
 tags = ["write", "single-service", "linear"]

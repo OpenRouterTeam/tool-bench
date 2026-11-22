@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__tavily__competitor-pricing-research"
 description = "Commission pro research on the competitors from our compare page"
-keywords = ["write","single-service","tavily","disambiguation"]
+keywords = ["write","single-service","tavily","disambiguation","route:named"]
 
 [metadata]
 scenario = "search/tavily/competitor-pricing-research"

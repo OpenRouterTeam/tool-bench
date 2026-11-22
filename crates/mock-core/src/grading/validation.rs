@@ -10,6 +10,12 @@ impl Expect {
         if !matches!(self.version, 1 | 2) {
             return Err(format!("unsupported contract version {}", self.version));
         }
+        if self.history == super::HistoryStrictness::Report && !self.audit_history {
+            return Err(
+                "history = \"report\" needs audit_history = true: nothing is replayed to report"
+                    .into(),
+            );
+        }
         for (index, check) in self.state.iter().enumerate() {
             pointer_tokens(&check.pointer)?;
             let has_value_check = check.equals.is_some()

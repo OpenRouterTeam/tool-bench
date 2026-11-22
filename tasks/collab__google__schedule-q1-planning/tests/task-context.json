@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "collab/google/schedule-q1-planning",
-  "instruction_sha256": "sha256:5536d04bf19a8efcd8641b8af05b96f25486f8cfef72567383c4a576580c29e0",
+  "instruction_sha256": "sha256:07286ce35e5b0b9dd9892f765b2aea21df5a8c6a4dd361ed77c001f87e845678",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:da38e32e2952362c44c0948292fc6c4f90e644a5747a48f471599df54f5ca2c4",
+  "framing_sha256": "sha256:d7560982ceee480c1923ce0ed4e08d18ce6d9a2682fa59e6ce467aeb8b9794c4",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:ec9fa8d65bda5fa4433ef83596ed720e953be5d641171b7d3e033aa5752bad6d"
+    "docker-compose.yaml": "sha256:01ae433f9fcfc37e4e0ef7968210941f0e1e5a6b14d67af02a0bebe9f0e93d65"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:baa30060a75e77c5",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:cf9a49fa51dbc382",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

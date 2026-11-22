@@ -1,6 +1,7 @@
 //! MCP plumbing for tool-bench: a stdio connection to a server process, a streamable-HTTP
 //! front end, the stdio→HTTP bridge, clients for both transports, and tool-list snapshots.
 
+pub mod access;
 pub mod bridge;
 pub mod client;
 pub mod exposure;

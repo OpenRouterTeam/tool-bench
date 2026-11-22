@@ -12,12 +12,12 @@ use std::{
 };
 
 use axum::{
-    Router,
-    extract::{ConnectInfo, Request},
+    Json, Router,
+    extract::{ConnectInfo, Request, State},
     http::{StatusCode, header::AUTHORIZATION},
     middleware::{self, Next},
     response::{IntoResponse, Response},
-    routing::get,
+    routing::{get, post},
 };
 use axum_server::tls_rustls::RustlsConfig;
 use mock_core::{
@@ -25,6 +25,7 @@ use mock_core::{
     admin::admin_app,
     serve::{serve, service_app_with_caller},
     service::MockService,
+    tool_access::ToolAccessReport,
     world::SharedWorld,
 };
 use tokio::{net::TcpListener, task::JoinSet};
@@ -103,6 +104,29 @@ impl Running {
             result.map_err(io::Error::other)??;
         }
         Ok(())
+    }
+}
+
+/// Where the tools container reports each MCP request it receives. It is served on the
+/// bootstrap listener, which only the tools container can reach: the agent's container
+/// is not on that network, so it cannot write or erase a report.
+pub const TOOL_ACCESS_PATH: &str = "/_bench/tool-access";
+
+fn tool_access_routes(world: SharedWorld) -> Router {
+    Router::new()
+        .route(TOOL_ACCESS_PATH, post(record_tool_access))
+        .with_state(world)
+}
+
+async fn record_tool_access(
+    State(world): State<SharedWorld>,
+    Json(report): Json<ToolAccessReport>,
+) -> StatusCode {
+    if world.lock().expect("world lock").record_tool_access(report) {
+        StatusCode::NO_CONTENT
+    } else {
+        // The evidence is being sealed or is sealed: nothing can be added to it.
+        StatusCode::CONFLICT
     }
 }
 
@@ -204,7 +228,8 @@ pub async fn spawn_with_access(
                     let certificate = certificate.clone();
                     async move { certificate }
                 }),
-            );
+            )
+            .merge(tool_access_routes(world.clone()));
         tasks.spawn(serve(listener, app));
         address
     } else {
@@ -214,6 +239,7 @@ pub async fn spawn_with_access(
     let admin_routes = admin_app(world.clone())
         .merge(grade::routes(world.clone()))
         .merge(mock_core::scripted_user::routes(world.clone()))
+        .merge(tool_access_routes(world.clone()))
         .merge(Router::new().route(
             "/_bench/ca.pem",
             get(move || {

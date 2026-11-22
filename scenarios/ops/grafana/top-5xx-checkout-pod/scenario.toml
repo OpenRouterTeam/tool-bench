@@ -53,6 +53,7 @@ path_regex = "^/api/datasources/(uid/prom-prod/resources|proxy/uid/prom-prod)/ap
 [[expect.forbidden_calls]]
 service = "grafana"
 method = "DELETE"
+path_regex = '^/(api|oncall/api)/'
 
 [[solution.call]]
 endpoint = "grafana"

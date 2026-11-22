@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
   "scenario": "business/zendesk/create-ticket-for-caller",
-  "instruction_sha256": "sha256:361a417b16863f8d4db42569148ec11830eb557e8d9121d1b0b95c611848efb7",
+  "instruction_sha256": "sha256:aa23b110049b7a5f82b58ebf91d5e24d4b71339f64a42d16cd087038544a7c30",
   "profile_sha256": "sha256:5fb57c8580185ed7726903e2140aa7fe496038c70881760d73f22ce05c774678",
-  "framing_sha256": "sha256:f195a70d157bc1d20d607f1a7a09a03aad310f650c2cbfb45dd8a042e6dd0efb",
+  "framing_sha256": "sha256:51878459abd8b44020ddcd7fe0905723fbe001f264163a050e3ce4e8b5d9e703",
   "environment_files": {
     "Dockerfile": "sha256:502b8df66c8504b45847e79749598b13bb8104cafc0bc3435d45775f460d31b7",
-    "docker-compose.yaml": "sha256:89329f685c0a6c3213d3e2f385014f3c9f3c66d9c5c0cb2910d50d3ca6283209"
+    "docker-compose.yaml": "sha256:2712f30703188374b40d8bbc3df155a9e8cb3ec75b3eed666b859a07bd4c4815"
   },
-  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:11d104dd558b7189",
-  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:fe7c0bb6e86049e6",
+  "world_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-world:baa30060a75e77c5",
+  "tools_reference": "us-docker.pkg.dev/openrouter-ci/harbor/tool-bench-tools:cf9a49fa51dbc382",
   "connector_env_sha256": {
     "ARGOCD_BASE_URL": "sha256:c65ddbc3af6d9f2550c14fec7c80d8a35ccf1d75c24db16b67a06766757faf3d",
     "GITLAB_API_URL": "sha256:7ceafc4a915d677392de002e4277fe20b45ae1f4e8a308ace2945947bbb8fe1d",

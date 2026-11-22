@@ -13,7 +13,7 @@ service = "world"
 [task]
 name = "openrouter/tool-bench__search__tavily__cold-chain-market-research"
 description = "Run a mini research task on Nordic cold-chain sensor vendors"
-keywords = ["write","single-service","tavily"]
+keywords = ["write","single-service","tavily","route:named"]
 
 [metadata]
 scenario = "search/tavily/cold-chain-market-research"

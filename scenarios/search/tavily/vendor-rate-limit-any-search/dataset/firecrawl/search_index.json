@@ -1,0 +1,38 @@
+[
+  {
+    "_key": "web:0",
+    "url": "https://docs.quillstream.io/api/rate-limits",
+    "title": "Rate limits | Quillstream API v3 Reference",
+    "description": "Quillstream API v3 enforces rate limits per workspace. Starter: 120 requests per minute. Team: 400 requests per minute. Business: 1,200 requests per minute. Enterprise: custom limits."
+  },
+  {
+    "_key": "web:1",
+    "url": "https://docs.quillstream.io/v2/api/rate-limits",
+    "title": "Rate limits (API v2, deprecated) | Quillstream Docs",
+    "description": "This page documents the deprecated v2 API. v2 rate limits: Starter 60 requests per minute, Team 200 requests per minute, Business 600 requests per minute."
+  },
+  {
+    "_key": "web:2",
+    "url": "https://community.quillstream.io/t/business-plan-rate-limit/4412",
+    "title": "Business plan rate limit is 900 rpm? - Quillstream Community",
+    "description": "We upgraded to Business and our integration still gets 429s at around 900 requests per minute. Is the Business rate limit 900?"
+  },
+  {
+    "_key": "web:3",
+    "url": "https://www.quillstream.io/pricing",
+    "title": "Pricing - Quillstream",
+    "description": "Starter $0, Team $19 per seat/month, Business $49 per seat/month with SSO, audit logs and higher API limits. Enterprise: contact sales."
+  },
+  {
+    "_key": "web:4",
+    "url": "https://docs.quillpad.com/api/limits",
+    "title": "API limits | Quillpad Developer Docs",
+    "description": "Quillpad API rate limits: Free 30 requests per minute, Pro 100 requests per minute, Business 300 requests per minute."
+  },
+  {
+    "_key": "web:5",
+    "url": "https://www.techradar-weekly.com/reviews/quillstream-review",
+    "title": "Quillstream review 2025: a capable workflow API",
+    "description": "Quillstream's API is generous: even the Business plan allows 600 requests a minute, which should cover most integrations."
+  }
+]
